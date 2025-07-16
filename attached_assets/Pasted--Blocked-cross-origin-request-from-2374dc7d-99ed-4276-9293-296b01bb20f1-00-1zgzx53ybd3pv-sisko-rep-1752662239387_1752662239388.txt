@@ -1,0 +1,152 @@
+ ⚠ Blocked cross-origin request from 2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ✓ Compiled /api/parent/children in 1271ms (1728 modules)
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+ ⨯ Error [PrismaClientConstructorValidationError]: Invalid value undefined for datasource "db" provided to PrismaClient constructor.
+It should have this form: { url: "CONNECTION_STRING" }
+Read more at https://pris.ly/d/client-constructor
+    at eval (lib/prisma.ts:10:48)
+    at <unknown> (rsc)/./lib/prisma.ts (/home/runner/workspace/.next/server/app/api/parent/children/route.js:33:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(rsc)/./app/api/parent/children/route.ts:6:69)
+    at <unknown> (rsc)/./app/api/parent/children/route.ts (/home/runner/workspace/.next/server/app/api/parent/children/route.js:22:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_exec__ (.next/server/app/api/parent/children/route.js:140:39)
+    at <unknown> (.next/server/app/api/parent/children/route.js:141:134)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:168:21)
+    at <unknown> (.next/server/app/api/parent/children/route.js:141:47)
+    at Object.<anonymous> (.next/server/app/api/parent/children/route.js:144:3)
+   8 | }
+   9 |
+> 10 | export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+     |                                                ^
+  11 |   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  12 |   errorFormat: 'pretty',
+  13 |   datasources: { {
+  page: '/api/parent/children'
+}
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+ ⨯ Error [PrismaClientConstructorValidationError]: Invalid value undefined for datasource "db" provided to PrismaClient constructor.
+It should have this form: { url: "CONNECTION_STRING" }
+Read more at https://pris.ly/d/client-constructor
+    at eval (lib/prisma.ts:10:48)
+    at <unknown> (rsc)/./lib/prisma.ts (/home/runner/workspace/.next/server/app/api/auth/user/route.js:33:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(rsc)/./app/api/auth/user/route.ts:7:69)
+    at <unknown> (rsc)/./app/api/auth/user/route.ts (/home/runner/workspace/.next/server/app/api/auth/user/route.js:22:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_exec__ (.next/server/app/api/auth/user/route.js:272:39)
+    at <unknown> (.next/server/app/api/auth/user/route.js:273:544)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:168:21)
+    at <unknown> (.next/server/app/api/auth/user/route.js:273:47)
+    at Object.<anonymous> (.next/server/app/api/auth/user/route.js:276:3)
+   8 | }
+   9 |
+> 10 | export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+     |                                                ^
+  11 |   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  12 |   errorFormat: 'pretty',
+  13 |   datasources: { {
+  page: '/api/auth/user'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1409ms (2057 modules)
+ GET /api/parent/children 500 in 3232ms
+ GET /api/auth/user 500 in 3267ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ GET / 200 in 224ms
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+ ⨯ Error [PrismaClientConstructorValidationError]: Invalid value undefined for datasource "db" provided to PrismaClient constructor.
+It should have this form: { url: "CONNECTION_STRING" }
+Read more at https://pris.ly/d/client-constructor
+    at eval (lib/prisma.ts:10:48)
+    at <unknown> (rsc)/./lib/prisma.ts (/home/runner/workspace/.next/server/app/api/auth/user/route.js:33:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(rsc)/./app/api/auth/user/route.ts:7:69)
+    at <unknown> (rsc)/./app/api/auth/user/route.ts (/home/runner/workspace/.next/server/app/api/auth/user/route.js:22:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_exec__ (.next/server/app/api/auth/user/route.js:272:39)
+    at <unknown> (.next/server/app/api/auth/user/route.js:273:544)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:168:21)
+    at <unknown> (.next/server/app/api/auth/user/route.js:273:47)
+    at Object.<anonymous> (.next/server/app/api/auth/user/route.js:276:3)
+   8 | }
+   9 |
+> 10 | export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+     |                                                ^
+  11 |   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  12 |   errorFormat: 'pretty',
+  13 |   datasources: { {
+  page: '/api/auth/user'
+}
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+ ⨯ Error [PrismaClientConstructorValidationError]: Invalid value undefined for datasource "db" provided to PrismaClient constructor.
+It should have this form: { url: "CONNECTION_STRING" }
+Read more at https://pris.ly/d/client-constructor
+    at eval (lib/prisma.ts:10:48)
+    at <unknown> (rsc)/./lib/prisma.ts (/home/runner/workspace/.next/server/app/api/parent/children/route.js:33:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(rsc)/./app/api/parent/children/route.ts:6:69)
+    at <unknown> (rsc)/./app/api/parent/children/route.ts (/home/runner/workspace/.next/server/app/api/parent/children/route.js:22:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_exec__ (.next/server/app/api/parent/children/route.js:140:39)
+    at <unknown> (.next/server/app/api/parent/children/route.js:141:134)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:168:21)
+    at <unknown> (.next/server/app/api/parent/children/route.js:141:47)
+    at Object.<anonymous> (.next/server/app/api/parent/children/route.js:144:3)
+   8 | }
+   9 |
+> 10 | export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+     |                                                ^
+  11 |   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  12 |   errorFormat: 'pretty',
+  13 |   datasources: { {
+  page: '/api/parent/children'
+}
+ GET /api/auth/user 500 in 255ms
+ GET /api/parent/children 500 in 280ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1243ms (2124 modules)
+ GET /login 200 in 1422ms
+ ○ Compiling /api/parent/login ...
+ ✓ Compiled /api/parent/login in 555ms (2167 modules)
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+ ⨯ Error [PrismaClientConstructorValidationError]: Invalid value undefined for datasource "db" provided to PrismaClient constructor.
+It should have this form: { url: "CONNECTION_STRING" }
+Read more at https://pris.ly/d/client-constructor
+    at eval (lib/prisma.ts:10:48)
+    at <unknown> (rsc)/./lib/prisma.ts (/home/runner/workspace/.next/server/app/api/parent/login/route.js:44:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(rsc)/./app/api/parent/login/route.ts:7:69)
+    at <unknown> (rsc)/./app/api/parent/login/route.ts (/home/runner/workspace/.next/server/app/api/parent/login/route.js:22:1)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_require__ (.next/server/webpack-runtime.js:33:43)
+    at __webpack_exec__ (.next/server/app/api/parent/login/route.js:338:39)
+    at <unknown> (.next/server/app/api/parent/login/route.js:339:577)
+    at __webpack_require__.X (.next/server/webpack-runtime.js:168:21)
+    at <unknown> (.next/server/app/api/parent/login/route.js:339:47)
+    at Object.<anonymous> (.next/server/app/api/parent/login/route.js:342:3)
+   8 | }
+   9 |
+> 10 | export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+     |                                                ^
+  11 |   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  12 |   errorFormat: 'pretty',
+  13 |   datasources: { {
+  page: '/api/parent/login'
+}

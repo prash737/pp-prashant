@@ -6,8 +6,7 @@ channel = "stable-24_05"
 packages = ["unixtools.ping"]
 
 [deployment]
-run = ["sh", "-c", "npm start"]
-build = ["sh", "-c", "npm run build"]
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 3000
