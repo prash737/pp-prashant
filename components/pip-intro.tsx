@@ -116,23 +116,18 @@ export default function PipIntro() {
                 className="relative"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3, ease: "easeInOut" }}
+                style={{
+                  filter: "drop-shadow(0px 10px 15px rgba(45, 212, 191, 0.3))",
+                }}
               >
-                <div className="w-64 h-64 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full relative">
-                  {/* Pip's leaves */}
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
-                    <div className="w-8 h-12 bg-green-400 rounded-full transform rotate-12"></div>
-                    <div className="w-8 h-12 bg-green-400 rounded-full transform -rotate-12 absolute top-0 left-2"></div>
-                  </div>
-                  
-                  {/* Pip's eyes */}
-                  <div className="absolute top-16 left-16 w-4 h-8 bg-slate-800 rounded-full"></div>
-                  <div className="absolute top-16 right-16 w-4 h-8 bg-slate-800 rounded-full"></div>
-                  
-                  {/* Pip's smile */}
-                  <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-                    <div className="w-16 h-8 border-b-4 border-slate-800 rounded-full"></div>
-                  </div>
-                </div>
+                <Image
+                  src="/images/pip-character.png"
+                  width={400}
+                  height={400}
+                  alt="Pip Character"
+                  className="w-80 h-auto"
+                  priority
+                />
               </motion.div>
 
               {/* Chat Bubble */}
