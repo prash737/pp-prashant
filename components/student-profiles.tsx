@@ -1,4 +1,3 @@
-
 "use client"
 
 import { motion } from "framer-motion"
@@ -84,7 +83,7 @@ export default function StudentProfiles() {
             </div>
           </motion.div>
 
-          {/* Right side - Profile Card with Background Illustration */}
+          {/* Right side - Larger Profile Card */}
           <motion.div
             className="lg:w-1/2 flex justify-center"
             initial={{ opacity: 0, x: 50 }}
@@ -92,124 +91,36 @@ export default function StudentProfiles() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <div className="relative">
-              {/* Background illustration with diverse students collaborating */}
-              <div className="absolute -top-12 -right-12 z-0">
-                <motion.div
-                  className="w-96 h-80 rounded-3xl bg-gradient-to-br from-blue-100 via-teal-50 to-purple-50 flex items-center justify-center overflow-hidden"
-                  animate={{ 
-                    scale: [1, 1.02, 1],
-                    rotate: [0, 1, 0] 
-                  }}
-                  transition={{ 
-                    duration: 8, 
-                    repeat: Number.POSITIVE_INFINITY,
-                    ease: "easeInOut" 
-                  }}
-                >
-                  {/* Diverse students illustration */}
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Background shapes */}
-                    <div className="absolute top-8 right-8 w-16 h-16 rounded-full bg-yellow-200 opacity-60"></div>
-                    <div className="absolute bottom-12 left-8 w-12 h-12 rounded-full bg-teal-200 opacity-70"></div>
-                    
-                    {/* Students with laptops */}
-                    <div className="flex items-center space-x-6">
-                      {/* Student 1 - Dark skin, curly hair */}
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-amber-600 to-amber-700 flex items-center justify-center">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-amber-700 to-amber-800 relative">
-                            {/* Hair */}
-                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-gray-900"></div>
-                            {/* Face */}
-                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
-                          </div>
-                        </div>
-                        {/* Laptop */}
-                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <div className="w-10 h-6 bg-blue-400 rounded-sm"></div>
-                        </div>
-                      </div>
+            <motion.div
+              className="w-full max-w-md"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Card className="w-full shadow-xl border-0 bg-white overflow-hidden">
+                {/* Cover Image */}
+                <div className="relative h-40 bg-gradient-to-r from-blue-400 to-purple-500">
+                  <Image
+                    src="/images/students-collaborating.png"
+                    alt="Students working on laptops"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                </div>
 
-                      {/* Student 2 - Red/orange hair */}
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-red-400 to-red-500 flex items-center justify-center">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-red-500 to-red-600 relative">
-                            {/* Hair */}
-                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-red-600"></div>
-                            {/* Face */}
-                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
-                          </div>
-                        </div>
-                        {/* Laptop */}
-                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <div className="w-10 h-6 bg-green-400 rounded-sm"></div>
-                        </div>
-                      </div>
-
-                      {/* Student 3 - Dark hair */}
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-orange-400 to-orange-500 flex items-center justify-center">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-orange-500 to-orange-600 relative">
-                            {/* Hair */}
-                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-gray-900"></div>
-                            {/* Face */}
-                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
-                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
-                          </div>
-                        </div>
-                        {/* Laptop */}
-                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <div className="w-10 h-6 bg-purple-400 rounded-sm"></div>
-                        </div>
-                      </div>
-                    </div>
+                <CardContent className="p-6 relative">
+                  {/* Profile Avatar - positioned to overlap cover image */}
+                  <div className="absolute -top-8 left-6">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 border-4 border-white shadow-lg"></div>
                   </div>
-                </motion.div>
-              </div>
 
-              {/* Pip character floating around */}
-              <div className="absolute -bottom-8 -left-8 z-10">
-                <motion.div
-                  animate={{ 
-                    y: [0, -15, 0],
-                    rotate: [0, 5, -5, 0]
-                  }}
-                  transition={{ 
-                    repeat: Number.POSITIVE_INFINITY, 
-                    duration: 4, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shadow-lg">
-                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-300 to-blue-400"></div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Profile Card */}
-              <motion.div
-                className="relative z-20"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card className="w-80 shadow-xl border-0 bg-white">
-                  <CardContent className="p-6">
-                    {/* Profile Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-teal-500"></div>
-                        <div>
-                          <h3 className="font-semibold text-slate-800">Alex Johnson</h3>
-                          <p className="text-sm text-slate-600">High School Student • Science Enthusiast</p>
-                        </div>
+                  {/* Profile Header */}
+                  <div className="mt-10 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-800">Alex Johnson</h3>
+                        <p className="text-sm text-slate-600">High School Student • Science Enthusiast</p>
                       </div>
                       <Button 
                         size="sm" 
@@ -218,50 +129,50 @@ export default function StudentProfiles() {
                         Connect
                       </Button>
                     </div>
+                  </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-slate-50 rounded-lg">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-slate-800">12</div>
-                        <div className="text-xs text-slate-600">Circles</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-slate-800">247</div>
-                        <div className="text-xs text-slate-600">Connections</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-slate-800">8</div>
-                        <div className="text-xs text-slate-600">Achievements</div>
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-slate-50 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-slate-800">12</div>
+                      <div className="text-xs text-slate-600">Circles</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-slate-800">247</div>
+                      <div className="text-xs text-slate-600">Connections</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-slate-800">8</div>
+                      <div className="text-xs text-slate-600">Achievements</div>
+                    </div>
+                  </div>
+
+                  {/* Skills */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-medium text-slate-700 mb-3">Top Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">Physics</Badge>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">Coding</Badge>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700">Debate</Badge>
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">Mathematics</Badge>
+                      <Badge variant="secondary" className="bg-red-100 text-red-700">Chess</Badge>
+                    </div>
+                  </div>
+
+                  {/* Recent Achievement */}
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <h4 className="text-sm font-medium text-slate-700 mb-2">Recent Achievement</h4>
+                    <div className="flex items-center space-x-3">
+                      <Trophy className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">Science Fair Winner</p>
+                        <p className="text-xs text-slate-600">Awarded 2 weeks ago</p>
                       </div>
                     </div>
-
-                    {/* Skills */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-slate-700 mb-2">Top Skills</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">Physics</Badge>
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">Coding</Badge>
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-700">Debate</Badge>
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">Mathematics</Badge>
-                        <Badge variant="secondary" className="bg-red-100 text-red-700">Chess</Badge>
-                      </div>
-                    </div>
-
-                    {/* Recent Achievement */}
-                    <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <h4 className="text-sm font-medium text-slate-700 mb-1">Recent Achievement</h4>
-                      <div className="flex items-center space-x-2">
-                        <Trophy className="h-4 w-4 text-yellow-600" />
-                        <div>
-                          <p className="text-sm font-medium text-slate-800">Science Fair Winner</p>
-                          <p className="text-xs text-slate-600">Awarded 2 weeks ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </motion.div>
         </div>
       </div>
