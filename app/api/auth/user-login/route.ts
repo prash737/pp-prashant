@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists in parent_profile table
-    const parentProfile = await prisma.parentProfile.findUnique({
+    const parentProfile = await prisma.parentProfile.findFirst({
       where: { auth_id: userId }
     });
 
