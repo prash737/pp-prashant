@@ -17,16 +17,14 @@ import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle, Mail, Shield, Graduatio
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function LoginPageContent() {
-  const [studentEmail, setStudentEmail] = useState("")
-  const [studentPassword, setStudentPassword] = useState("")
+  const [userEmail, setUserEmail] = useState("")
+  const [userPassword, setUserPassword] = useState("")
   const [institutionEmail, setInstitutionEmail] = useState("")
   const [institutionPassword, setInstitutionPassword] = useState("")
-  const [parentEmail, setParentEmail] = useState("")
-  const [parentPassword, setParentPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [activeTab, setActiveTab] = useState("student")
+  const [activeTab, setActiveTab] = useState("user")
   const containerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -69,7 +67,8 @@ function LoginPageContent() {
     }
   }, [searchParams])
 
-  const handleLogin = async (userType: 'student' | 'institution' | 'parent') => {
+  const handleUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setLoading(true)
     setVerificationAlerts({
       needsParentApproval: false,
@@ -77,20 +76,7 @@ function LoginPageContent() {
       message: ""
     })
 
-    let email, password
-    
-    if (userType === 'student') {
-      email = studentEmail
-      password = studentPassword
-    } else if (userType === 'institution') {
-      email = institutionEmail
-      password = institutionPassword
-    } else {
-      email = parentEmail
-      password = parentPassword
-    }
-
-    if (!email || !password) {
+    if (!userEmail || !userPassword) {
       toast.error("Please fill in all fields")
       setLoading(false)
       return
@@ -108,76 +94,43 @@ function LoginPageContent() {
         console.log('Storage clear error:', error)
       }
 
-      // Use different API endpoints for parent login
-      const apiEndpoint = userType === 'parent' ? '/api/parent/login' : '/api/auth/login'
-      const requestBody = userType === 'parent' 
-        ? { email, password }
-        : { email, password, expectedRole: userType }
-
-      const response = await fetch(apiEndpoint, {
+      // Use the new unified user login endpoint
+      const response = await fetch('/api/auth/user-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ email: userEmail, password: userPassword }),
         credentials: 'include'
       })
 
       const data = await response.json()
 
       if (response.status === 403) {
-        const errorData = await response.json()
         setVerificationAlerts({
-          needsParentApproval: errorData.needsParentApproval || false,
-          needsEmailVerification: errorData.needsEmailVerification || false,
-          message: errorData.error || "Verification required"
+          needsParentApproval: data.needsParentApproval || false,
+          needsEmailVerification: data.needsEmailVerification || false,
+          message: data.error || "Verification required"
         })
         
         // Clear form fields
-        if (userType === 'student') {
-          setStudentEmail("")
-          setStudentPassword("")
-        } else if (userType === 'institution') {
-          setInstitutionEmail("")
-          setInstitutionPassword("")
-        } else {
-          setParentEmail("")
-          setParentPassword("")
-        }
+        setUserEmail("")
+        setUserPassword("")
         setLoading(false)
         return
       }
 
       if (data.success) {
-        // For parent login, redirect to parent dashboard
-        if (userType === 'parent') {
-          toast.success("Login successful!")
-          setIsRedirecting(true)
-          setTimeout(() => {
-            window.location.href = '/parent/dashboard'
-          }, 1000)
-          return
-        }
-
-        // Verify the user role matches expected type for student/institution
-        if (data.role !== userType) {
-          toast.error(`This account is registered as a ${data.role}, not a ${userType}. Please use the correct login section.`)
-          setLoading(false)
-          return
-        }
-
         toast.success("Login successful!")
         setIsRedirecting(true)
 
-        // Determine redirect path based on role and onboarding status
+        // Determine redirect path based on user type and onboarding status
         let redirectPath = '/feed' // default
 
-        if (data.role === 'student') {
+        if (data.userType === 'student') {
           redirectPath = data.onboardingCompleted ? '/student/profile' : '/onboarding'
-        } else if (data.role === 'mentor') {
-          redirectPath = data.onboardingCompleted ? '/mentor/profile' : '/mentor-onboarding'
-        } else if (data.role === 'institution') {
-          redirectPath = data.onboardingCompleted ? '/institution/profile' : '/institution-onboarding'
+        } else if (data.userType === 'parent') {
+          redirectPath = '/parent/dashboard'
         }
 
         // Force a hard navigation to ensure fresh session
@@ -220,48 +173,76 @@ function LoginPageContent() {
       }
     } catch (error) {
       console.error('Login error:', error)
-
-      // Check if it's a parent approval error
-      if (error instanceof Error && error.message.includes('parent approve')) {
-        // Show custom warning for parent approval
-        toast.error(
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">👨‍👩‍👧‍👦</span>
-              <span className="font-semibold">Parent Approval Required</span>
-            </div>
-            <p className="text-sm">Please wait for your parent to approve your account first</p>
-          </div>,
-          {
-            duration: 6000,
-            style: {
-              background: '#FEF3C7',
-              border: '1px solid #F59E0B',
-              color: '#92400E'
-            }
-          }
-        )
-      } else {
-        toast.error('An error occurred during login')
-      }
+      toast.error('An error occurred during login')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleStudentSubmit = (e: React.FormEvent) => {
+  const handleInstitutionSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    handleLogin('student')
-  }
+    setLoading(true)
 
-  const handleInstitutionSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleLogin('institution')
-  }
+    if (!institutionEmail || !institutionPassword) {
+      toast.error("Please fill in all fields")
+      setLoading(false)
+      return
+    }
 
-  const handleParentSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    handleLogin('parent')
+    try {
+      // Clear any cached user data and storage before login
+      invalidateUserCache()
+
+      // Clear any residual storage to ensure fresh session
+      try {
+        localStorage.clear()
+        sessionStorage.clear()
+      } catch (error) {
+        console.log('Storage clear error:', error)
+      }
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: institutionEmail, 
+          password: institutionPassword, 
+          expectedRole: 'institution' 
+        }),
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Verify the user role matches expected type for institution
+        if (data.role !== 'institution') {
+          toast.error(`This account is registered as a ${data.role}, not an institution. Please use the correct login section.`)
+          setLoading(false)
+          return
+        }
+
+        toast.success("Login successful!")
+        setIsRedirecting(true)
+
+        // Determine redirect path based on onboarding status
+        const redirectPath = data.onboardingCompleted ? '/institution/profile' : '/institution-onboarding'
+
+        // Force a hard navigation to ensure fresh session
+        setTimeout(() => {
+          window.location.href = redirectPath
+        }, 1000)
+      } else {
+        throw new Error(data.error || 'Login failed')
+      }
+    } catch (error) {
+      console.error('Institution login error:', error)
+      toast.error('An error occurred during login')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Suppress hydration warnings for browser extension attributes
@@ -522,34 +503,30 @@ function LoginPageContent() {
                 )}
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="student" className="flex items-center space-x-2 text-xs">
-                      <GraduationCap className="h-4 w-4" />
-                      <span>Student</span>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="user" className="flex items-center space-x-2 text-xs">
+                      <Users className="h-4 w-4" />
+                      <span>Users</span>
                     </TabsTrigger>
                     <TabsTrigger value="institution" className="flex items-center space-x-2 text-xs">
                       <Building className="h-4 w-4" />
                       <span>Institution</span>
                     </TabsTrigger>
-                    <TabsTrigger value="parent" className="flex items-center space-x-2 text-xs">
-                      <Users className="h-4 w-4" />
-                      <span>Parent</span>
-                    </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="student" className="space-y-4 mt-6">
+                  <TabsContent value="user" className="space-y-4 mt-6">
                     <div className="text-center mb-4">
-                      <p className="text-sm text-gray-600">Student Login</p>
+                      <p className="text-sm text-gray-600">Student & Parent Login</p>
                     </div>
-                    <form onSubmit={handleStudentSubmit} className="space-y-4">
+                    <form onSubmit={handleUserSubmit} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="student-email">Student Email</Label>
+                        <Label htmlFor="user-email">Email</Label>
                         <Input
-                          id="student-email"
+                          id="user-email"
                           type="email"
-                          placeholder="Enter your student email"
-                          value={studentEmail}
-                          onChange={(e) => setStudentEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          value={userEmail}
+                          onChange={(e) => setUserEmail(e.target.value)}
                           required
                           disabled={loading || isRedirecting}
                           className="rounded-lg border-slate-300"
@@ -557,13 +534,13 @@ function LoginPageContent() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="student-password">Password</Label>
+                        <Label htmlFor="user-password">Password</Label>
                         <Input
-                          id="student-password"
+                          id="user-password"
                           type="password"
                           placeholder="Enter your password"
-                          value={studentPassword}
-                          onChange={(e) => setStudentPassword(e.target.value)}
+                          value={userPassword}
+                          onChange={(e) => setUserPassword(e.target.value)}
                           required
                           disabled={loading || isRedirecting}
                           className="rounded-lg border-slate-300"
@@ -576,7 +553,7 @@ function LoginPageContent() {
                         disabled={loading || isRedirecting}
                         suppressHydrationWarning
                       >
-                        {loading ? "Signing in..." : isRedirecting ? "Redirecting..." : "Sign in as Student"}
+                        {loading ? "Signing in..." : isRedirecting ? "Redirecting..." : "Sign in"}
                       </Button>
                     </form>
                   </TabsContent>
@@ -621,50 +598,6 @@ function LoginPageContent() {
                         suppressHydrationWarning
                       >
                         {loading ? "Signing in..." : isRedirecting ? "Redirecting..." : "Sign in as Institution"}
-                      </Button>
-                    </form>
-                  </TabsContent>
-
-                  <TabsContent value="parent" className="space-y-4 mt-6">
-                    <div className="text-center mb-4">
-                      <p className="text-sm text-gray-600">Parent/Guardian Login</p>
-                    </div>
-                    <form onSubmit={handleParentSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="parent-email">Parent Email</Label>
-                        <Input
-                          id="parent-email"
-                          type="email"
-                          placeholder="Enter your parent email"
-                          value={parentEmail}
-                          onChange={(e) => setParentEmail(e.target.value)}
-                          required
-                          disabled={loading || isRedirecting}
-                          className="rounded-lg border-slate-300"
-                          suppressHydrationWarning
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="parent-password">Password</Label>
-                        <Input
-                          id="parent-password"
-                          type="password"
-                          placeholder="Enter your password"
-                          value={parentPassword}
-                          onChange={(e) => setParentPassword(e.target.value)}
-                          required
-                          disabled={loading || isRedirecting}
-                          className="rounded-lg border-slate-300"
-                          suppressHydrationWarning
-                        />
-                      </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white rounded-full py-6"
-                        disabled={loading || isRedirecting}
-                        suppressHydrationWarning
-                      >
-                        {loading ? "Signing in..." : isRedirecting ? "Redirecting..." : "Sign in as Parent"}
                       </Button>
                     </form>
                   </TabsContent>
