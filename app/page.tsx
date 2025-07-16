@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import Navbar from "@/components/navbar"
 import Hero from "@/components/hero"
+import PipIntro from "@/components/pip-intro"
 import Features from "@/components/features"
 import Mentorship from "@/components/mentorship"
 import Safety from "@/components/safety"
@@ -69,6 +70,7 @@ export default function HomePage() {
           <Navbar />
           <main className="overflow-hidden">
             <Hero />
+            <PipIntro />
             <Features />
             <Mentorship />
             <Institutions />

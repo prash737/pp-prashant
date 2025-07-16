@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useRef, useState, useEffect } from "react"
@@ -33,7 +34,7 @@ export default function PipIntro() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-20 relative overflow-hidden bg-slate-900">
+    <section ref={sectionRef} className="py-20 relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-teal-900">
       {/* Interactive gradient background */}
       <div
         className="absolute inset-0 opacity-60 pointer-events-none"
@@ -101,31 +102,58 @@ export default function PipIntro() {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row items-center gap-12">
+          {/* Pip Character with Chat Bubble - Left Side */}
           <motion.div
-            className="md:w-1/2"
+            className="md:w-1/2 flex justify-center"
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
             <div className="relative">
+              {/* Pip Character */}
               <motion.div
-                className="w-full h-full flex justify-center"
+                className="relative"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 3, ease: "easeInOut" }}
               >
-                <Image
-                  src="/images/pip-chat-bubble.png"
-                  width={500}
-                  height={400}
-                  alt="Pip with chat bubble"
-                  className="w-auto h-auto object-contain"
-                  priority
-                />
+                <div className="w-64 h-64 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full relative">
+                  {/* Pip's leaves */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
+                    <div className="w-8 h-12 bg-green-400 rounded-full transform rotate-12"></div>
+                    <div className="w-8 h-12 bg-green-400 rounded-full transform -rotate-12 absolute top-0 left-2"></div>
+                  </div>
+                  
+                  {/* Pip's eyes */}
+                  <div className="absolute top-16 left-16 w-4 h-8 bg-slate-800 rounded-full"></div>
+                  <div className="absolute top-16 right-16 w-4 h-8 bg-slate-800 rounded-full"></div>
+                  
+                  {/* Pip's smile */}
+                  <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
+                    <div className="w-16 h-8 border-b-4 border-slate-800 rounded-full"></div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Chat Bubble */}
+              <motion.div
+                className="absolute -right-8 top-8 bg-white rounded-2xl p-4 shadow-lg max-w-xs"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                {/* Chat bubble tail */}
+                <div className="absolute left-0 top-6 w-0 h-0 border-t-[10px] border-b-[10px] border-r-[15px] border-t-transparent border-b-transparent border-r-white transform -translate-x-full"></div>
+                
+                <p className="text-slate-800 text-sm font-medium">
+                  Hey there! I'm Pip — here to make your PathPiper journey super fun!
+                </p>
               </motion.div>
             </div>
           </motion.div>
 
+          {/* Content - Right Side */}
           <motion.div
             className="md:w-1/2"
             initial={{ opacity: 0, x: 50 }}
@@ -133,28 +161,25 @@ export default function PipIntro() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <div className="flex items-center mb-4">
-              <h2 className="text-3xl md:text-4xl font-bold text-white">Meet Pip!</h2>
-              {/* Removed the NEW pill/token */}
-            </div>
-            <p className="text-xl text-teal-300 mb-6">Your learning companion</p>
+            <div className="text-center md:text-left">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Meet Pip!</h2>
+              <p className="text-xl text-teal-300 mb-6">Your learning companion</p>
 
-            <p className="text-slate-300 mb-8">
-              Pip is designed to make your educational experience more engaging and personalized. From suggesting
-              mentors that match your interests to helping you discover new skills and opportunities, Pip is your
-              friendly companion throughout your PathPiper journey.
-            </p>
+              <p className="text-slate-300 mb-8 text-lg leading-relaxed">
+                Pip is designed to make your educational experience more engaging and personalized. From suggesting mentors that match your interests to helping you discover new skills and opportunities, Pip is your friendly companion throughout your PathPiper journey.
+              </p>
 
-            <div className="flex space-x-4">
-              <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full">
-                Start Tour with Pip
-              </Button>
-              <Button
-                variant="outline"
-                className="border-teal-400/30 text-black hover:bg-teal-400/10 hover:text-white rounded-full"
-              >
-                Learn More
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-3 text-lg">
+                  Start Tour with Pip
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 hover:text-white rounded-full px-8 py-3 text-lg"
+                >
+                  Learn More
+                </Button>
+              </div>
             </div>
           </motion.div>
         </div>
