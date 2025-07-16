@@ -1,8 +1,8 @@
 
-// Achievement type data with SVG icons and colors
+// Achievement type data with unique icons and colors for each type
 export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
   // Academic (Category 1)
-  1: { icon: "🎓", color: "#3B82F6", name: "Honor Roll" }, // Blue
+  1: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" }, // Blue
   2: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
   3: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" }, // Amber
   4: { icon: "📅", color: "#10B981", name: "Perfect Attendance" }, // Emerald
@@ -13,11 +13,11 @@ export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: stri
   
   // Sports (Category 2)
   9: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-  10: { icon: "🏃", color: "#10B981", name: "Tournament Participation" },
-  11: { icon: "💰", color: "#F59E0B", name: "Sports Scholarship" },
-  12: { icon: "👨‍💼", color: "#EF4444", name: "Team Captain" }, // Red
-  13: { icon: "📈", color: "#10B981", name: "Personal Best Record" },
-  14: { icon: "🏅", color: "#F59E0B", name: "Sports Award" },
+  10: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+  11: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+  12: { icon: "👑", color: "#EF4444", name: "Team Captain" }, // Red
+  13: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+  14: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
   15: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
   16: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" },
   
@@ -25,7 +25,7 @@ export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: stri
   17: { icon: "🎨", color: "#EC4899", name: "Art Competition Winner" }, // Pink
   18: { icon: "🖼️", color: "#8B5CF6", name: "Creative Project" },
   19: { icon: "🎭", color: "#EC4899", name: "Performance Award" },
-  20: { icon: "🖼️", color: "#8B5CF6", name: "Art Exhibition" },
+  20: { icon: "🖌️", color: "#8B5CF6", name: "Art Exhibition" },
   21: { icon: "🎵", color: "#EC4899", name: "Music Competition" },
   22: { icon: "💃", color: "#EC4899", name: "Dance Performance" },
   23: { icon: "✍️", color: "#6366F1", name: "Creative Writing" },
@@ -33,10 +33,10 @@ export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: stri
   
   // Leadership (Category 4)
   25: { icon: "🏛️", color: "#EF4444", name: "Student Council" },
-  26: { icon: "👑", color: "#F59E0B", name: "Club President" },
+  26: { icon: "👨‍💼", color: "#F59E0B", name: "Club President" },
   27: { icon: "🤝", color: "#10B981", name: "Volunteer Service" },
   28: { icon: "👥", color: "#3B82F6", name: "Community Leader" },
-  29: { icon: "🎯", color: "#EF4444", name: "Mentorship Award" },
+  29: { icon: "🎖️", color: "#EF4444", name: "Mentorship Award" },
   30: { icon: "⏰", color: "#10B981", name: "Service Hours" },
   31: { icon: "📋", color: "#6366F1", name: "Leadership Certificate" },
   32: { icon: "💡", color: "#F59E0B", name: "Social Initiative" },
@@ -47,7 +47,7 @@ export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: stri
   35: { icon: "✅", color: "#10B981", name: "Course Completion" },
   36: { icon: "📚", color: "#8B5CF6", name: "Training Certificate" },
   37: { icon: "🆔", color: "#EF4444", name: "License Achievement" },
-  38: { icon: "🔖", color: "#EC4899", name: "Competency Badge" },
+  38: { icon: "🏷️", color: "#EC4899", name: "Competency Badge" },
   39: { icon: "🛠️", color: "#F59E0B", name: "Workshop Completion" },
   40: { icon: "👍", color: "#10B981", name: "Skill Endorsement" },
   
@@ -56,25 +56,25 @@ export const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: stri
   42: { icon: "🗣️", color: "#EF4444", name: "Debate Winner" },
   43: { icon: "🔬", color: "#10B981", name: "Science Fair" },
   44: { icon: "💻", color: "#8B5CF6", name: "Hackathon Winner" },
-  45: { icon: "🥇", color: "#F59E0B", name: "Olympiad Medal" },
+  45: { icon: "🥈", color: "#F59E0B", name: "Olympiad Medal" },
   46: { icon: "🎪", color: "#EC4899", name: "Contest Participation" },
-  47: { icon: "🏆", color: "#F59E0B", name: "Competition Award" },
-  48: { icon: "🎯", color: "#EF4444", name: "Challenge Winner" },
+  47: { icon: "🏵️", color: "#F59E0B", name: "Competition Award" },
+  48: { icon: "🎲", color: "#EF4444", name: "Challenge Winner" },
   
   // Personal Development (Category 7)
   49: { icon: "🎯", color: "#EF4444", name: "Goal Achievement" },
   50: { icon: "📍", color: "#10B981", name: "Personal Milestone" },
   51: { icon: "🔄", color: "#3B82F6", name: "Habit Formation" },
   52: { icon: "📈", color: "#10B981", name: "Self Improvement" },
-  53: { icon: "🎓", color: "#6366F1", name: "Learning Goal" },
-  54: { icon: "💪", color: "#EF4444", name: "Personal Challenge" },
+  53: { icon: "🧠", color: "#6366F1", name: "Learning Goal" },
+  54: { icon: "🏋️‍♂️", color: "#EF4444", name: "Personal Challenge" },
   55: { icon: "🌱", color: "#10B981", name: "Growth Milestone" },
   56: { icon: "🔓", color: "#F59E0B", name: "Achievement Unlocked" },
   
   // Technology & Innovation (Category 8)
-  57: { icon: "💻", color: "#8B5CF6", name: "Coding Project" },
+  57: { icon: "⌨️", color: "#8B5CF6", name: "Coding Project" },
   58: { icon: "📱", color: "#6366F1", name: "App Development" },
-  59: { icon: "💡", color: "#F59E0B", name: "Innovation Award" },
+  59: { icon: "🚀", color: "#F59E0B", name: "Innovation Award" },
   60: { icon: "🖥️", color: "#3B82F6", name: "Tech Competition" },
 }
 
