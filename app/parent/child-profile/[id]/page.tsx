@@ -239,7 +239,7 @@ export default function ParentChildProfilePage() {
         method: 'POST',
         credentials: 'include'
       })
-      router.push('/parent/login')
+      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
     }
