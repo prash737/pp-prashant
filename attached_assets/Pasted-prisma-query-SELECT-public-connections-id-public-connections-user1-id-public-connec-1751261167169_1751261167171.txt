@@ -1,0 +1,168 @@
+prisma:query SELECT "public"."connections"."id", "public"."connections"."user1_id", "public"."connections"."user2_id", "public"."connections"."connection_type", "public"."connections"."connected_at" FROM "public"."connections" WHERE ("public"."connections"."user1_id" = $1 OR "public"."connections"."user2_id" = $2) OFFSET $3
+prisma:query COMMIT
+prisma:error 
+Invalid `prisma.userAchievement.findMany()` invocation:
+
+{
+  where: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c"
+  },
+  include: {
+    achievementType: true
+  },
+  orderBy: {
+    earnedDate: "desc",
+    ~~~~~~~~~~
+?   id?: SortOrder,
+?   userId?: SortOrder,
+?   name?: SortOrder,
+?   description?: SortOrder,
+?   dateOfAchievement?: SortOrder,
+?   achievementTypeId?: SortOrder | SortOrderInput,
+?   achievementImageIcon?: SortOrder | SortOrderInput,
+?   createdAt?: SortOrder,
+?   updatedAt?: SortOrder,
+?   user?: ProfileOrderByWithRelationInput,
+?   achievementType?: AchievementTypeOrderByWithRelationInput
+  }
+}
+
+Unknown argument `earnedDate`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching child profile: Error [PrismaClientValidationError]: 
+Invalid `prisma.userAchievement.findMany()` invocation:
+
+{
+  where: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c"
+  },
+  include: {
+    achievementType: true
+  },
+  orderBy: {
+    earnedDate: "desc",
+    ~~~~~~~~~~
+?   id?: SortOrder,
+?   userId?: SortOrder,
+?   name?: SortOrder,
+?   description?: SortOrder,
+?   dateOfAchievement?: SortOrder,
+?   achievementTypeId?: SortOrder | SortOrderInput,
+?   achievementImageIcon?: SortOrder | SortOrderInput,
+?   createdAt?: SortOrder,
+?   updatedAt?: SortOrder,
+?   user?: ProfileOrderByWithRelationInput,
+?   achievementType?: AchievementTypeOrderByWithRelationInput
+  }
+}
+
+Unknown argument `earnedDate`. Available options are listed in green.
+    at async GET (app/api/parent/child-profile/[id]/route.ts:158:25)
+  156 |
+  157 |     // Get child's achievements
+> 158 |     const achievements = await prisma.userAchievement.findMany({
+      |                         ^
+  159 |       where: { userId: childId },
+  160 |       include: {
+  161 |         achievementType: true {
+  clientVersion: '6.8.2'
+}
+ GET /api/parent/child-profile/c2b57ac7-cd91-46d6-abb4-7c936c64308c 500 in 1274ms
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND "public"."profiles"."parent_id" = $2 AND "public"."profiles"."role" = CAST($3::text AS "public"."user_role")) LIMIT $4 OFFSET $5
+prisma:query COMMIT
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."name" FROM "public"."parent_profile" WHERE ("public"."parent_profile"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."personality_type", "public"."student_profiles"."learning_style", "public"."student_profiles"."favorite_quote", "public"."student_profiles"."onboarding_completed", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE ("public"."student_profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."user_interests"."id", "public"."user_interests"."user_id", "public"."user_interests"."interest_id", "public"."user_interests"."created_at", "public"."user_interests"."updated_at" FROM "public"."user_interests" WHERE "public"."user_interests"."user_id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."user_skills"."id", "public"."user_skills"."user_id", "public"."user_skills"."skill_id", "public"."user_skills"."proficiency_level", "public"."user_skills"."created_at", "public"."user_skills"."updated_at" FROM "public"."user_skills" WHERE "public"."user_skills"."user_id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."social_links"."id", "public"."social_links"."user_id", "public"."social_links"."platform", "public"."social_links"."url", "public"."social_links"."display_name", "public"."social_links"."created_at", "public"."social_links"."updated_at" FROM "public"."social_links" WHERE "public"."social_links"."user_id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."career_goals"."id", "public"."career_goals"."user_id", "public"."career_goals"."title", "public"."career_goals"."description", "public"."career_goals"."target_date", "public"."career_goals"."priority", "public"."career_goals"."status", "public"."career_goals"."created_at", "public"."career_goals"."updated_at" FROM "public"."career_goals" WHERE "public"."career_goals"."user_id" IN ($1) ORDER BY "public"."career_goals"."created_at" DESC OFFSET $2
+prisma:query SELECT "public"."custom_badges"."id", "public"."custom_badges"."user_id", "public"."custom_badges"."title", "public"."custom_badges"."description", "public"."custom_badges"."icon_url", "public"."custom_badges"."color", "public"."custom_badges"."earned_date", "public"."custom_badges"."issuer", "public"."custom_badges"."verification_url", "public"."custom_badges"."created_at", "public"."custom_badges"."updated_at" FROM "public"."custom_badges" WHERE "public"."custom_badges"."user_id" IN ($1) ORDER BY "public"."custom_badges"."earned_date" DESC OFFSET $2
+prisma:query SELECT "public"."student_education_history"."id", "public"."student_education_history"."student_id", "public"."student_education_history"."institution_id", "public"."student_education_history"."institution_name", "public"."student_education_history"."institution_type_id", "public"."student_education_history"."degree_program", "public"."student_education_history"."field_of_study", "public"."student_education_history"."subjects", "public"."student_education_history"."start_date", "public"."student_education_history"."end_date", "public"."student_education_history"."is_current", "public"."student_education_history"."grade_level", "public"."student_education_history"."gpa", "public"."student_education_history"."achievements", "public"."student_education_history"."description", "public"."student_education_history"."created_at", "public"."student_education_history"."updated_at" FROM "public"."student_education_history" WHERE "public"."student_education_history"."student_id" IN ($1) ORDER BY "public"."student_education_history"."start_date" DESC OFFSET $2
+prisma:query COMMIT
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."connections"."id", "public"."connections"."user1_id", "public"."connections"."user2_id", "public"."connections"."connection_type", "public"."connections"."connected_at" FROM "public"."connections" WHERE ("public"."connections"."user1_id" = $1 OR "public"."connections"."user2_id" = $2) OFFSET $3
+prisma:query COMMIT
+prisma:error 
+Invalid `prisma.userAchievement.findMany()` invocation:
+
+{
+  where: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c"
+  },
+  include: {
+    achievementType: true
+  },
+  orderBy: {
+    earnedDate: "desc",
+    ~~~~~~~~~~
+?   id?: SortOrder,
+?   userId?: SortOrder,
+?   name?: SortOrder,
+?   description?: SortOrder,
+?   dateOfAchievement?: SortOrder,
+?   achievementTypeId?: SortOrder | SortOrderInput,
+?   achievementImageIcon?: SortOrder | SortOrderInput,
+?   createdAt?: SortOrder,
+?   updatedAt?: SortOrder,
+?   user?: ProfileOrderByWithRelationInput,
+?   achievementType?: AchievementTypeOrderByWithRelationInput
+  }
+}
+
+Unknown argument `earnedDate`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching child profile: Error [PrismaClientValidationError]: 
+Invalid `prisma.userAchievement.findMany()` invocation:
+
+{
+  where: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c"
+  },
+  include: {
+    achievementType: true
+  },
+  orderBy: {
+    earnedDate: "desc",
+    ~~~~~~~~~~
+?   id?: SortOrder,
+?   userId?: SortOrder,
+?   name?: SortOrder,
+?   description?: SortOrder,
+?   dateOfAchievement?: SortOrder,
+?   achievementTypeId?: SortOrder | SortOrderInput,
+?   achievementImageIcon?: SortOrder | SortOrderInput,
+?   createdAt?: SortOrder,
+?   updatedAt?: SortOrder,
+?   user?: ProfileOrderByWithRelationInput,
+?   achievementType?: AchievementTypeOrderByWithRelationInput
+  }
+}
+
+Unknown argument `earnedDate`. Available options are listed in green.
+    at async GET (app/api/parent/child-profile/[id]/route.ts:158:25)
+  156 |
+  157 |     // Get child's achievements
+> 158 |     const achievements = await prisma.userAchievement.findMany({
+      |                         ^
+  159 |       where: { userId: childId },
+  160 |       include: {
+  161 |         achievementType: true {
+  clientVersion: '6.8.2'
+}

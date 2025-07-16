@@ -1,0 +1,72 @@
+Database connection test result: false
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 736ms (1723 modules)
+ GET /status 200 in 887ms
+ GET /_next/static/chunks/app/status/page.js 404 in 884ms
+ GET /status 200 in 45ms
+ ○ Compiling /api/status ...
+ ✓ Compiled /api/status in 533ms (1744 modules)
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Prisma connection failed: Error [PrismaClientInitializationError]: 
+Invalid `prisma.profile.count()` invocation:
+
+
+Can't reach database server at `aws-0-us-east-1-pooler.supabase.com:6543`
+
+Please make sure your database server is running at `aws-0-us-east-1-pooler.supabase.com:6543`.
+    at async eval (lib/prisma.ts:20:19)
+    at async GET (app/api/status/route.ts:13:4)
+  18 |   prisma.$use(async (params, next) => {
+  19 |     const before = Date.now()
+> 20 |     const result = await next(params)
+     |                   ^
+  21 |     const after = Date.now()
+  22 |     console.log(`Query ${params.model}.${params.action} took ${after - before}ms`)
+  23 |     return result {
+  clientVersion: '6.8.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+Error details: {
+  message: '\n' +
+    'Invalid `prisma.profile.count()` invocation:\n' +
+    '\n' +
+    '\n' +
+    "Can't reach database server at `aws-0-us-east-1-pooler.supabase.com:6543`\n" +
+    '\n' +
+    'Please make sure your database server is running at `aws-0-us-east-1-pooler.supabase.com:6543`.',
+  stack: 'PrismaClientInitializationError: \n' +
+    'Invalid `prisma.profile.count()` invocation:\n' +
+    '\n' +
+    '\n' +
+    "Can't reach database server at `aws-0-us-east-1-pooler.supabase.com:6543`\n" +
+    '\n' +
+    'Please make sure your database server is running at `aws-0-us-east-1-pooler.supabase.com:6543`.\n' +
+    '    at Zn.handleRequestError (/home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js:121:7759)\n' +
+    '    at Zn.handleAndLogRequestError (/home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js:121:6784)\n' +
+    '    at Zn.request (/home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js:121:6491)\n' +
+    '    at async l (/home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js:130:9778)\n' +
+    '    at async eval (webpack-internal:///(rsc)/./lib/prisma.ts:21:24)\n' +
+    '    at async GET (webpack-internal:///(rsc)/./app/api/status/route.ts:17:9)\n' +
+    '    at async AppRouteRouteModule.do (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:33891)\n' +
+    '    at async AppRouteRouteModule.handle (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:26:41254)\n' +
+    '    at async doRender (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:1513:42)\n' +
+    '    at async DevServer.renderToResponseWithComponentsImpl (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:1915:28)\n' +
+    '    at async DevServer.renderPageComponent (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:2393:24)\n' +
+    '    at async DevServer.renderToResponseImpl (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:2430:32)\n' +
+    '    at async DevServer.pipeImpl (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:1003:25)\n' +
+    '    at async NextNodeServer.handleCatchallRenderRequest (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/next-server.js:304:17)\n' +
+    '    at async DevServer.handleRequestImpl (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/base-server.js:895:17)\n' +
+    '    at async /home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/dev/next-dev-server.js:371:20\n' +
+    '    at async Span.traceAsyncFn (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/trace/trace.js:157:20)\n' +
+    '    at async DevServer.handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/dev/next-dev-server.js:368:24)\n' +
+    '    at async invokeRender (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/lib/router-server.js:235:21)\n' +
+    '    at async handleRequest (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/lib/router-server.js:426:24)\n' +
+    '    at async requestHandlerImpl (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/lib/router-server.js:450:13)\n' +
+    '    at async Server.requestListener (/home/runner/workspace/node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/server/lib/start-server.js:158:13)',
+  name: 'PrismaClientInitializationError'
+}
+ GET /api/status 200 in 1895ms

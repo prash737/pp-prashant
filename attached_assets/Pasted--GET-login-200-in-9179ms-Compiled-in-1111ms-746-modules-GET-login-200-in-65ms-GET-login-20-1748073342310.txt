@@ -1,0 +1,69 @@
+ GET /login 200 in 9179ms
+ ✓ Compiled in 1111ms (746 modules)
+ GET /login 200 in 65ms
+ GET /login 200 in 56ms
+ ○ Compiling / ...
+ ✓ Compiled / in 996ms (1650 modules)
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."profiles"."id" FROM "public"."profiles" WHERE 1=1 OFFSET $1) AS "sub"
+prisma:query COMMIT
+Query Profile.count took 377ms
+Database connection successful
+Database connection test result: true
+ ⨯ ./app/onboarding/page.tsx
+Error:   × Unexpected token `main`. Expected jsx identifier
+     ╭─[/home/runner/workspace/app/onboarding/page.tsx:217:1]
+ 214 │   }
+ 215 │ 
+ 216 │   return (
+ 217 │     <main className="min-h-screen flex flex-col bg-slate-50">
+     ·      ────
+ 218 │       <OnboardingHeader completionPercentage={completionPercentage} />
+ 219 │ 
+ 220 │       <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/onboarding/page.tsx
+ ○ Compiling /_not-found ...
+ ⨯ ./app/onboarding/page.tsx
+Error:   × Unexpected token `main`. Expected jsx identifier
+     ╭─[/home/runner/workspace/app/onboarding/page.tsx:217:1]
+ 214 │   }
+ 215 │ 
+ 216 │   return (
+ 217 │     <main className="min-h-screen flex flex-col bg-slate-50">
+     ·      ────
+ 218 │       <OnboardingHeader completionPercentage={completionPercentage} />
+ 219 │ 
+ 220 │       <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/onboarding/page.tsx
+ ⨯ ./app/onboarding/page.tsx
+Error:   × Unexpected token `main`. Expected jsx identifier
+     ╭─[/home/runner/workspace/app/onboarding/page.tsx:217:1]
+ 214 │   }
+ 215 │ 
+ 216 │   return (
+ 217 │     <main className="min-h-screen flex flex-col bg-slate-50">
+     ·      ────
+ 218 │       <OnboardingHeader completionPercentage={completionPercentage} />
+ 219 │ 
+ 220 │       <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/onboarding/page.tsx
+ GET /onboarding 500 in 4571ms

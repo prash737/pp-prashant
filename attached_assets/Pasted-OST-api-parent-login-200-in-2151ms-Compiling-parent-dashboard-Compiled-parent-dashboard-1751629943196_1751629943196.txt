@@ -1,0 +1,67 @@
+OST /api/parent/login 200 in 2151ms
+ ○ Compiling /parent/dashboard ...
+ ✓ Compiled /parent/dashboard in 1383ms (1816 modules)
+ GET /parent/dashboard 200 in 1438ms
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."name", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."email_verified", "public"."parent_profile"."created_at" FROM "public"."parent_profile" WHERE ("public"."parent_profile"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE "public"."profiles"."parent_id" = $1 OFFSET $2
+🔍 Fetched children with parentVerified status: [
+  {
+    id: '0bc1c347-169a-48cc-bdb8-54896eb5884c',
+    name: 'gagaga ahhaha',
+    parentVerified: false
+  }
+]
+ GET /api/parent/children 200 in 279ms
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."name", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."email_verified", "public"."parent_profile"."created_at" FROM "public"."parent_profile" WHERE ("public"."parent_profile"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE "public"."profiles"."parent_id" = $1 OFFSET $2
+🔍 Fetched children with parentVerified status: [
+  {
+    id: '0bc1c347-169a-48cc-bdb8-54896eb5884c',
+    name: 'gagaga ahhaha',
+    parentVerified: false
+  }
+]
+ GET /api/parent/children 200 in 138ms
+ ✓ Compiled /api/parent/approve-child in 371ms (1818 modules)
+prisma:error 
+Invalid `prisma.profile.findFirst()` invocation:
+
+{
+  where: {
+    id: "0bc1c347-169a-48cc-bdb8-54896eb5884c",
+    parentId: 2,
+              ~
+    role: "student"
+  }
+}
+
+Argument `parentId`: Invalid value provided. Expected UuidNullableFilter, String or Null, provided Int.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error approving child account: Error [PrismaClientValidationError]: 
+Invalid `prisma.profile.findFirst()` invocation:
+
+{
+  where: {
+    id: "0bc1c347-169a-48cc-bdb8-54896eb5884c",
+    parentId: 2,
+              ~
+    role: "student"
+  }
+}
+
+Argument `parentId`: Invalid value provided. Expected UuidNullableFilter, String or Null, provided Int.
+    at async POST (app/api/parent/approve-child/route.ts:28:18)
+  26 |
+  27 |     // Verify that the child belongs to this parent
+> 28 |     const child = await prisma.profile.findFirst({
+     |                  ^
+  29 |       where: {
+  30 |         id: childId,
+  31 |         parentId: parseInt(parentId), {
+  clientVersion: '6.8.2'
+}
+ POST /api/pare

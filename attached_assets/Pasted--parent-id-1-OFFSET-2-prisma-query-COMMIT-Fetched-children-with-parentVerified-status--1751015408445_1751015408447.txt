@@ -1,0 +1,67 @@
+."parent_id" = $1 OFFSET $2
+prisma:query COMMIT
+🔍 Fetched children with parentVerified status: [
+  {
+    id: 'bfa09c06-d20d-44e9-8710-211ce567a76d',
+    name: 'Vikas solanki',
+    parentVerified: true
+  },
+  {
+    id: '76615458-d2b7-45b5-96af-18e7eb2b2a66',
+    name: 'Vggg shhshs',
+    parentVerified: false
+  }
+]
+ GET /api/parent/children 200 in 52ms
+ ⨯ ./app/api/parent/approve-child/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (66:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { prisma } from '@/lib/prisma';
+| export async function POST(request) {
+
+Import trace for requested module:
+./app/api/parent/approve-child/route.ts
+ ○ Compiling /_not-found ...
+ ⨯ ./app/api/parent/approve-child/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (66:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { prisma } from '@/lib/prisma';
+| export async function POST(request) {
+
+Import trace for requested module:
+./app/api/parent/approve-child/route.ts
+ ⨯ ./app/api/parent/approve-child/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (66:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { prisma } from '@/lib/prisma';
+| export async function POST(request) {
+
+Import trace for requested module:
+./app/api/parent/approve-child/route.ts
+ ⨯ ./app/api/parent/approve-child/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (66:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { prisma } from '@/lib/prisma';
+| export async function POST(request) {
+
+Import trace for requested module:
+./app/api/parent/approve-child/route.ts
+ GET /_next/static/webpack/92bad1c30bb84524.webpack.hot-update.json 500 in 11388ms
+ GET /_next/static/webpack/92bad1c30bb84524.webpack.hot-update.json 500 in 11068ms
+ POST /api/parent/approve-child 500 in 12579ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 500 in 997ms
+ GET /parent/dashboard 500 in 999ms
+ GET / 500 in 144ms
+ GET / 500 in 149ms
+ GET /parent/dashboard 500 in 170ms
+ GET /parent/dashboard 500 in 171ms

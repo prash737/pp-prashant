@@ -1,0 +1,44 @@
+rofiles"."parent_id" = $2 AND "public"."profiles"."role" = CAST($3::text AS "public"."user_role")) LIMIT $4 OFFSET $5
+prisma:query COMMIT
+prisma:error 
+Invalid `prisma.customBadge.create()` invocation:
+
+{
+  data: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+    description: "GGGGG",
+    earnedDate: undefined,
++   title: String
+  }
+}
+
+Argument `title` is missing.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error updating child profile: Error [PrismaClientValidationError]: 
+Invalid `prisma.customBadge.create()` invocation:
+
+{
+  data: {
+    userId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+    description: "GGGGG",
+    earnedDate: undefined,
++   title: String
+  }
+}
+
+Argument `title` is missing.
+    at async PUT (app/api/parent/child-profile/[id]/edit/route.ts:180:10)
+  178 |         } else {
+  179 |           // Create new badge
+> 180 |           await prisma.customBadge.create({
+      |          ^
+  181 |             data: {
+  182 |               userId: childId,
+  183 |               title: data.title, {
+  clientVersion: '6.8.2'
+}
+ PUT /api/parent/child-profile/c2b57ac7-cd91-46d6-abb4-7c936c64308c/edit 500 in 1760ms

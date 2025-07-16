@@ -1,0 +1,51 @@
+", "public"."student_profiles"."onboarding_completed", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+Error fetching children: TypeError: Do not know how to serialize a BigInt
+    at JSON.stringify (<anonymous>)
+    at GET (app/api/parent/children/route.ts:45:24)
+  43 |     })
+  44 |
+> 45 |     return NextResponse.json({
+     |                        ^
+  46 |       success: true,
+  47 |       children: children,
+  48 |       parentName: parentProfile.name
+ GET /api/parent/children 500 in 713ms
+Error: Route "/api/parent/children" used `cookies().get('parent_id')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/parent/children/route.ts:9:33)
+   7 |   try {
+   8 |     const cookieStore = cookies()
+>  9 |     const parentId = cookieStore.get('parent_id')?.value
+     |                                 ^
+  10 |     const parentSession = cookieStore.get('parent_session')?.value
+  11 |
+  12 |     if (!parentId || !parentSession) {
+Error: Route "/api/parent/children" used `cookies().get('parent_session')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/parent/children/route.ts:10:38)
+   8 |     const cookieStore = cookies()
+   9 |     const parentId = cookieStore.get('parent_id')?.value
+> 10 |     const parentSession = cookieStore.get('parent_session')?.value
+     |                                      ^
+  11 |
+  12 |     if (!parentId || !parentSession) {
+  13 |       return NextResponse.json(
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."created_at" FROM "public"."parent_profile" WHERE ("public"."parent_profile"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query COMMIT
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE ("public"."profiles"."parent_id" = $1 AND "public"."profiles"."role" = CAST($2::text AS "public"."user_role")) ORDER BY "public"."profiles"."first_name" ASC OFFSET $3
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."personality_type", "public"."student_profiles"."learning_style", "public"."student_profiles"."favorite_quote", "public"."student_profiles"."onboarding_completed", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+Error fetching children: TypeError: Do not know how to serialize a BigInt
+    at JSON.stringify (<anonymous>)
+    at GET (app/api/parent/children/route.ts:45:24)
+  43 |     })
+  44 |
+> 45 |     return NextResponse.json({
+     |                        ^
+  46 |       success: true,
+  47 |       children: children,
+  48 |       parentName: parentProfile.name
+ GET /api/parent/children 500 in 284ms

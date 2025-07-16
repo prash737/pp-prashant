@@ -1,0 +1,33 @@
+", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified"
+🔄 Student needs parent approval - Age: 15 Parent Email: miniproject618@gmail.com
+🔍 Parent registered in auth.users: false
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."name", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."email_verified", "public"."parent_profile"."created_at" FROM "public"."parent_profile" WHERE "public"."parent_profile"."email" = $1 LIMIT $2 OFFSET $3
+✨ Creating new parent profile for: miniproject618@gmail.com
+prisma:query INSERT INTO "public"."parent_profile" ("email","name","verification_token","email_verified","created_at") VALUES ($1,$2,$3,$4,$5) RETURNING "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."name", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."email_verified", "public"."parent_profile"."created_at"
+prisma:error 
+Invalid `prisma.parentProfile.create()` invocation:
+
+
+Null constraint violation on the fields: (`id`)
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Registration failed: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.parentProfile.create()` invocation:
+
+
+Null constraint violation on the fields: (`id`)
+    at async registerStudent (lib/services/auth-service.ts:124:24)
+  122 |         console.log('✨ Creating new parent profile for:', data.parentEmail);
+  123 |         // Create new parent profile with verification token
+> 124 |         parentProfile = await prisma.parentProfile.create({
+      |                        ^
+  125 |           data: {
+  126 |             email: data.parentEmail,
+  127 |             name: data.parentName || "Parent/Guardian", {
+  code: 'P2011',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ POST /signup 200 in 2130ms

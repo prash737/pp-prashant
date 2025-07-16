@@ -1,0 +1,95 @@
+ GET /student/profile 200 in 19ms
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-refresh-token
+API: Available cookies: [ 'sb-refresh-token' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+API: No access token found, attempting to refresh session
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-refresh-token
+API: Available cookies: [ 'sb-refresh-token' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+API: No access token found, attempting to refresh session
+ GET /login 200 in 26ms
+ GET /login 200 in 15ms
+API: Successfully refreshed access token
+API: Token preview: eyJhbGciOiJIUzI1NiIs...
+API: Verifying token with Supabase
+API: Successfully refreshed access token
+API: Token preview: eyJhbGciOiJIUzI1NiIs...
+API: Verifying token with Supabase
+API: Authenticated user found: 126376a1-4ffe-4a8c-94ee-88c34dd58400
+API: Authenticated user found: 126376a1-4ffe-4a8c-94ee-88c34dd58400
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query BEGIN
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."mentor_profiles"."id", "public"."mentor_profiles"."profession", "public"."mentor_profiles"."organization", "public"."mentor_profiles"."years_experience", "public"."mentor_profiles"."verified", "public"."mentor_profiles"."onboarding_completed", "public"."mentor_profiles"."hours_per_week", "public"."mentor_profiles"."max_mentees", "public"."mentor_profiles"."created_at", "public"."mentor_profiles"."updated_at" FROM "public"."mentor_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type", "public"."institution_profiles"."category", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."mentor_profiles"."id", "public"."mentor_profiles"."profession", "public"."mentor_profiles"."organization", "public"."mentor_profiles"."years_experience", "public"."mentor_profiles"."verified", "public"."mentor_profiles"."onboarding_completed", "public"."mentor_profiles"."hours_per_week", "public"."mentor_profiles"."max_mentees", "public"."mentor_profiles"."created_at", "public"."mentor_profiles"."updated_at" FROM "public"."mentor_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+API: User profile found in database
+API: Raw age_group from database: middle_school
+ GET /api/auth/user 200 in 169ms
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type", "public"."institution_profiles"."category", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+API: User profile found in database
+API: Raw age_group from database: middle_school
+ GET /api/auth/user 200 in 182ms
+prisma:query COMMIT
+ GET /onboarding 200 in 15ms
+ GET /onboarding 200 in 15ms
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-refresh-token
+API: Available cookies: [ 'sb-refresh-token' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+API: No access token found, attempting to refresh session
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-refresh-token
+API: Available cookies: [ 'sb-refresh-token' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+API: No access token found, attempting to refresh session
+API: Successfully refreshed access token
+API: Token preview: eyJhbGciOiJIUzI1NiIs...
+API: Verifying token with Supabase
+API: Successfully refreshed access token
+API: Token preview: eyJhbGciOiJIUzI1NiIs...
+API: Verifying token with Supabase
+API: Authenticated user found: 126376a1-4ffe-4a8c-94ee-88c34dd58400
+API: Authenticated user found: 126376a1-4ffe-4a8c-94ee-88c34dd58400
+prisma:query BEGIN
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."mentor_profiles"."id", "public"."mentor_profiles"."profession", "public"."mentor_profiles"."organization", "public"."mentor_profiles"."years_experience", "public"."mentor_profiles"."verified", "public"."mentor_profiles"."onboarding_completed", "public"."mentor_profiles"."hours_per_week", "public"."mentor_profiles"."max_mentees", "public"."mentor_profiles"."created_at", "public"."mentor_profiles"."updated_at" FROM "public"."mentor_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."mentor_profiles"."id", "public"."mentor_profiles"."profession", "public"."mentor_profiles"."organization", "public"."mentor_profiles"."years_experience", "public"."mentor_profiles"."verified", "public"."mentor_profiles"."onboarding_completed", "public"."mentor_profiles"."hours_per_week", "public"."mentor_profiles"."max_mentees", "public"."mentor_profiles"."created_at", "public"."mentor_profiles"."updated_at" FROM "public"."mentor_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type", "public"."institution_profiles"."category", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type", "public"."institution_profiles"."category", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+API: User profile found in database
+API: Raw age_group from database: middle_school
+ GET /api/auth/user 200 in 166ms
+prisma:query COMMIT
+API: User profile found in database
+API: Raw age_group from database: middle_school
+ GET /api/auth/user 200 in 169ms
+ GET /api/goals 401 in 8ms
+ GET /api/goals 401 in 11ms

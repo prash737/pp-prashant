@@ -1,0 +1,42 @@
+prisma:query COMMIT
+✨ Creating new parent profile for: miniproject618@gmail.com
+prisma:error 
+Invalid `prisma.parentProfile.create()` invocation:
+
+{
+  data: {
+    email: "miniproject618@gmail.com",
+    verificationToken: "bWluaXByb2plY3Q2MThAZ21haWwuY29tOjE5YzFjZDc1LWVkNWQtNGM3Yi04Mjc1LTNkZDA5YzExNzBlYjoxNzUxMDA1NDE1MDQ2OmZhbHNl",
++   name: String
+  }
+}
+
+Argument `name` is missing.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Registration failed: Error [PrismaClientValidationError]: 
+Invalid `prisma.parentProfile.create()` invocation:
+
+{
+  data: {
+    email: "miniproject618@gmail.com",
+    verificationToken: "bWluaXByb2plY3Q2MThAZ21haWwuY29tOjE5YzFjZDc1LWVkNWQtNGM3Yi04Mjc1LTNkZDA5YzExNzBlYjoxNzUxMDA1NDE1MDQ2OmZhbHNl",
++   name: String
+  }
+}
+
+Argument `name` is missing.
+    at async registerStudent (lib/services/auth-service.ts:123:24)
+  121 |         console.log('✨ Creating new parent profile for:', data.parentEmail);
+  122 |         // Create new parent profile with verification token
+> 123 |         parentProfile = await prisma.parentProfile.create({
+      |                        ^
+  124 |           data: {
+  125 |             email: data.parentEmail,
+  126 |             verificationToken: verificationToken, {
+  clientVersion: '6.8.2'
+}
+ POST /signup 200 in 1314ms

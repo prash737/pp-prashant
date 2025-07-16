@@ -1,0 +1,81 @@
+Invalid `prisma.institutionFollowConnection.findMany()` invocation:
+
+{
+  where: {
+    senderId: "59a87f63-a96e-483a-a848-c859bb0a53dc"
+  },
+  include: {
+    receiver: {
+      include: {
+        institution: {
+          include: {
+            institutionTypeRef: {
+              include: {
+                category: true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  orderBy: {
+    createdAt: "desc",
+    ~~~~~~~~~
+?   id?: SortOrder,
+?   senderId?: SortOrder,
+?   receiverId?: SortOrder,
+?   connectedAt?: SortOrder,
+?   sender?: ProfileOrderByWithRelationInput,
+?   receiver?: ProfileOrderByWithRelationInput
+  }
+}
+
+Unknown argument `createdAt`. Available options are listed in green.
+    at async GET (app/api/student/following/route.ts:38:33)
+  36 |
+  37 |     // Get all institutions the student is following
+> 38 |     const followingConnections = await prisma.institutionFollowConnection.findMany({
+     |                                 ^
+  39 |       where: {
+  40 |         senderId: authData.user.id
+  41 |       }, {
+  clientVersion: '6.8.2'
+}
+ GET /api/student/following 500 in 789ms
+prisma:error 
+Invalid `prisma.institutionFollowConnection.findMany()` invocation:
+
+{
+  where: {
+    senderId: "59a87f63-a96e-483a-a848-c859bb0a53dc"
+  },
+  include: {
+    receiver: {
+      include: {
+        institution: {
+          include: {
+            institutionTypeRef: {
+              include: {
+                category: true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  orderBy: {
+    createdAt: "desc",
+    ~~~~~~~~~
+?   id?: SortOrder,
+?   senderId?: SortOrder,
+?   receiverId?: SortOrder,
+?   connectedAt?: SortOrder,
+?   sender?: ProfileOrderByWithRelationInput,
+?   receiver?: ProfileOrderByWithRelationInput
+  }
+}
+
+Unknown argument `createdAt`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be

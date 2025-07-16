@@ -1,0 +1,127 @@
+er_interests"."user_id" = $1 OFFSET $2
+prisma:query COMMIT
+Error checking onboarding completion: TypeError: Cannot read properties of undefined (reading 'findMany')
+    at loginUser (lib/services/auth-service.ts:249:56)
+    at async POST (app/api/auth/login/route.ts:18:19)
+  247 |         
+  248 |         // Check education
+> 249 |         const education = await prisma.educationHistory.findMany({
+      |                                                        ^
+  250 |           where: { userId: profile.id }
+  251 |         });
+  252 |         const hasEducation = education.length > 0;
+Login API - Result success: true
+Login API - User ID: 7b0ae884-4525-416c-bf2a-1729e94c00a9
+Login API - Session exists: true
+Login API - Setting up session cookies...
+Login API - Session access_token preview: eyJhbGciOiJIUzI1NiIs...
+Login API - Session refresh_token preview: ydaeftos6xbh...
+Login API - Session expires_at: 1750331140
+Login API - Session expires_in: 3600
+prisma:error 
+Invalid `prisma.studentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: "7b0ae884-4525-416c-bf2a-1729e94c00a9"
+  },
+  include: {
+    profile: {
+      include: {
+        userInterests: true,
+        educationHistory: true,
+        ~~~~~~~~~~~~~~~~
+?       student?: true,
+?       mentor?: true,
+?       institution?: true,
+?       posts?: true,
+?       userSkills?: true,
+?       socialLinks?: true,
+?       userLanguages?: true,
+?       userHobbies?: true,
+?       careerGoals?: true,
+?       moodBoard?: true,
+?       customBadges?: true,
+?       sentConnections?: true,
+?       receivedConnections?: true,
+?       connections1?: true,
+?       connections2?: true,
+?       givenEndorsements?: true,
+?       receivedEndorsements?: true,
+?       createdCircles?: true,
+?       circleMemberships?: true,
+?       sentCircleInvitations?: true,
+?       receivedCircleInvitations?: true
+      }
+    }
+  }
+}
+
+Unknown field `educationHistory` for include statement on model `Profile`. Available options are marked with ?.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error checking student profile completeness: Error [PrismaClientValidationError]: 
+Invalid `prisma.studentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: "7b0ae884-4525-416c-bf2a-1729e94c00a9"
+  },
+  include: {
+    profile: {
+      include: {
+        userInterests: true,
+        educationHistory: true,
+        ~~~~~~~~~~~~~~~~
+?       student?: true,
+?       mentor?: true,
+?       institution?: true,
+?       posts?: true,
+?       userSkills?: true,
+?       socialLinks?: true,
+?       userLanguages?: true,
+?       userHobbies?: true,
+?       careerGoals?: true,
+?       moodBoard?: true,
+?       customBadges?: true,
+?       sentConnections?: true,
+?       receivedConnections?: true,
+?       connections1?: true,
+?       connections2?: true,
+?       givenEndorsements?: true,
+?       receivedEndorsements?: true,
+?       createdCircles?: true,
+?       circleMemberships?: true,
+?       sentCircleInvitations?: true,
+?       receivedCircleInvitations?: true
+      }
+    }
+  }
+}
+
+Unknown field `educationHistory` for include statement on model `Profile`. Available options are marked with ?.
+    at async POST (app/api/auth/login/route.ts:45:33)
+  43 |           
+  44 |           // Get complete student profile with all required data
+> 45 |           const studentProfile = await prisma.studentProfile.findUnique({
+     |                                 ^
+  46 |             where: { id: result.user.id },
+  47 |             include: {
+  48 |               profile: { {
+  clientVersion: '6.8.2'
+}
+Login API - Setting Supabase session cookies...
+Login API - Cookies set successfully
+API: Cookies set successfully - access token length: 802
+ POST /api/auth/login 200 in 1974ms
+ ○ Compiling /onboarding ...
+ ✓ Compiled /onboarding in 2.1s (2043 modules)
+ GET /onboarding 200 in 2301ms
+ ○ Compiling /api/connections/requests ...
+ ✓ Compiled /api/connections/requests in 747ms (2056 modules)
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-user-id, __next_hmr_refresh_hash__, sb-access-token, sb-refresh-token

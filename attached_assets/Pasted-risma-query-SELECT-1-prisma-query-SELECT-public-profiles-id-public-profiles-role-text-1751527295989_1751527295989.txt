@@ -1,0 +1,33 @@
+risma:query SELECT 1
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."email_verified", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:error 
+Invalid `prisma.profile.findUnique()` invocation:
+
+
+The table `public.profiles` does not exist in the current database.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Login failed: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.profile.findUnique()` invocation:
+
+
+The table `public.profiles` does not exist in the current database.
+    at async loginUser (lib/services/auth-service.ts:422:20)
+    at async POST (app/api/auth/login/route.ts:18:19)
+  420 |     // Get user's profile with a single optimized query
+  421 |     // Include the specific profile type based on role to get onboarding status in one query
+> 422 |     const profile = await prisma.profile.findUnique({
+      |                    ^
+  423 |       where: { id: authData.user.id },
+  424 |       include: {
+  425 |         student: true, {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+Login API - Result success: false
+Login API - User ID: undefined
+Login API - Session exists: false
+ POST /api/auth/login 401 in 1288ms

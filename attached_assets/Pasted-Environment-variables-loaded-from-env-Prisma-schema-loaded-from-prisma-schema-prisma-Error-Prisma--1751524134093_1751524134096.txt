@@ -1,0 +1,842 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Error: Prisma schema validation - (get-dmmf wasm)
+Error code: P1012
+error: Error validating model "UserRoleEnum": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:23
+   | 
+22 | /// This model maps to the enum in the database
+23 | model UserRoleEnum {
+24 |   name String @id @map("name")
+25 | 
+26 |   @@map("user_role")
+27 | }
+   | 
+error: Error validating model "Profile": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:51
+   | 
+50 | 
+51 | model Profile {
+52 |   id                 String    @id @db.Uuid
+53 |   role               UserRole
+54 |   firstName          String    @map("first_name")
+55 |   lastName           String    @map("last_name")
+56 |   bio                String?
+57 |   location           String?
+58 |   profileImageUrl    String?   @map("profile_image_url")
+59 |   tagline            String?
+60 |   professionalSummary String?  @map("professional_summary")
+61 |   verificationStatus Boolean   @default(false) @map("verification_status")
+62 |   email              String?   // User's registered email for authentication
+63 |   emailVerified      Boolean?  @default(false) @map("email_verified") // Email verification status
+64 |   phone              String?   // Direct contact phone number
+65 |   coverImageUrl      String?   @map("cover_image_url")
+66 |   themePreference    String    @default("default") @map("theme_preference")
+67 |   timezone           String?
+68 |   availabilityStatus String    @default("online") @map("availability_status")
+69 |   lastActiveDate     DateTime  @default(now()) @map("last_active_date")
+70 |   profileViews       Int       @default(0) @map("profile_views")
+71 |   createdAt          DateTime  @default(now()) @map("created_at")
+72 |   updatedAt          DateTime  @updatedAt @map("updated_at")
+73 |   parentId        BigInt?           @map("parent_id")
+74 |   parentVerified  Boolean?          @default(false) @map("parent_verified")
+75 | 
+76 | // Relationships
+77 |   student             StudentProfile?
+78 |   mentor              MentorProfile?
+79 |   institution         InstitutionProfile?
+80 |   posts               FeedPost[]
+81 |   userInterests       UserInterest[]
+82 |   userSkills          UserSkill[]
+83 |   socialLinks         SocialLink[]
+84 |   userLanguages       UserLanguage[]
+85 |   userHobbies         UserHobby[]
+86 |   careerGoals         CareerGoal[]
+87 |   moodBoard           MoodBoard[]
+88 |   customBadges        CustomBadge[]
+89 |   sentConnections     ConnectionRequest[] @relation("SentConnections")
+90 |   receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
+91 |   connections1        Connection[] @relation("User1Connections")
+92 |   connections2        Connection[] @relation("User2Connections")
+93 |   givenEndorsements   SkillEndorsement[] @relation("Endorser")
+94 |   receivedEndorsements SkillEndorsement[] @relation("EndorsedUser")
+95 |   createdCircles      CircleBadge[] @relation("CreatedCircles")
+96 |   circleMemberships   CircleMembership[] @relation("CircleMemberships")
+97 |   sentCircleInvitations CircleInvitation[] @relation("SentCircleInvitations")
+98 |   receivedCircleInvitations CircleInvitation[] @relation("ReceivedCircleInvitations")
+99 |   goals                 Goal[]
+100 |   achievements          UserAchievement[]
+101 |   parent                 ParentProfile?        @relation(fields: [parentId], references: [id])
+102 |   postLikes         PostLike[]
+103 |   postComments      PostComment[]
+104 |   postBookmarks     PostBookmark[]
+105 | 
+106 | 
+107 |   @@map("profiles")
+108 | }
+   | 
+error: Error validating model "StudentProfile": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:110
+   | 
+109 | 
+110 | model StudentProfile {
+111 |   id                 String           @id @db.Uuid
+112 |   profile            Profile          @relation(fields: [id], references: [id])
+113 |   age_group          AgeGroup?        @map("age_group")
+114 |   educationLevel     EducationLevel   @map("education_level")
+115 |   birthMonth         String?          @map("birth_month")
+116 |   birthYear          String?          @map("birth_year")
+117 |   personalityType    String?          @map("personality_type")
+118 |   learningStyle      String?          @map("learning_style")
+119 |   favoriteQuote      String?          @map("favorite_quote")
+120 |   onboardingCompleted Boolean          @default(false) @map("onboarding_completed")
+121 |   createdAt          DateTime         @default(now()) @map("created_at")
+122 |   updatedAt          DateTime         @updatedAt @map("updated_at")
+123 | 
+124 |   educationHistory   StudentEducationHistory[]
+125 | 
+126 |   @@map("student_profiles")
+127 | }
+   | 
+error: Error validating model "StudentEducationHistory": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:129
+   | 
+128 | 
+129 | model StudentEducationHistory {
+130 |   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+131 |   studentId           String    @map("student_id") @db.Uuid
+132 |   institutionId       String?   @map("institution_id") @db.Uuid
+133 |   institutionName     String    @map("institution_name")
+134 |   institutionTypeId   Int?      @map("institution_type_id")
+135 |   degreeProgram       String?   @map("degree_program")
+136 |   fieldOfStudy        String?   @map("field_of_study")
+137 |   subjects         Json?    @default("[]")
+138 |   startDate           DateTime? @map("start_date") @db.Date
+139 |   endDate             DateTime? @map("end_date") @db.Date
+140 |   isCurrent           Boolean   @default(false) @map("is_current")
+141 |   gradeLevel          String?   @map("grade_level")
+142 |   gpa                 String?
+143 |   achievements        String?
+144 |   description         String?
+145 |   createdAt           DateTime  @default(now()) @map("created_at")
+146 |   updatedAt           DateTime  @updatedAt @map("updated_at")
+147 | 
+148 |   student             StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+149 |   institution         InstitutionProfile? @relation(fields: [institutionId], references: [id])
+150 |   institutionType     InstitutionType?    @relation(fields: [institutionTypeId], references: [id])
+151 | 
+152 |   @@map("student_education_history")
+153 | }
+   | 
+error: Error validating model "MentorProfile": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:155
+   | 
+154 | 
+155 | model MentorProfile {
+156 |   id                  String    @id @db.Uuid
+157 |   profile             Profile   @relation(fields: [id], references: [id])
+158 |   profession          String
+159 |   organization        String?
+160 |   yearsExperience     Int?      @map("years_experience")
+161 |   verified            Boolean   @default(false)
+162 |   onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+163 |   hoursPerWeek        Int       @default(5) @map("hours_per_week")
+164 |   maxMentees          Int       @default(1) @map("max_mentees")
+165 |   createdAt           DateTime  @default(now()) @map("created_at")
+166 |   updatedAt           DateTime  @updatedAt @map("updated_at")
+167 | 
+168 |   @@map("mentor_profiles")
+169 | }
+   | 
+error: Error validating model "InstitutionCategory": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:171
+   | 
+170 | 
+171 | model InstitutionCategory {
+172 |   id           Int       @id @default(autoincrement())
+173 |   name         String    @unique
+174 |   slug         String    @unique
+175 |   description  String?
+176 |   createdAt    DateTime  @default(now()) @map("created_at")
+177 |   updatedAt    DateTime  @updatedAt @map("updated_at")
+178 | 
+179 |   types        InstitutionType[]
+180 | 
+181 |   @@map("institution_categories")
+182 | }
+   | 
+error: Error validating model "InstitutionType": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:184
+   | 
+183 | 
+184 | model InstitutionType {
+185 |   id           Int       @id @default(autoincrement())
+186 |   categoryId   Int       @map("category_id")
+187 |   name         String
+188 |   slug         String
+189 |   description  String?
+190 |   createdAt    DateTime  @default(now()) @map("created_at")
+191 |   updatedAt    DateTime  @updatedAt @map("updated_at")
+192 | 
+193 |   category                    InstitutionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+194 |   institutions                InstitutionProfile[]
+195 |   studentEducationHistory     StudentEducationHistory[]
+196 | 
+197 |   @@unique([categoryId, slug])
+198 |   @@map("institution_types")
+199 | }
+   | 
+error: Error validating model "InstitutionProfile": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:201
+   | 
+200 | 
+201 | model InstitutionProfile {
+202 |   id                  String    @id @db.Uuid
+203 |   profile             Profile   @relation(fields: [id], references: [id])
+204 |   institutionName     String    @map("institution_name")
+205 |   institutionType     String?   @map("institution_type")
+206 |   institutionTypeId   Int?      @map("institution_type_id")
+207 |   website            String?
+208 |   logoUrl            String?   @map("logo_url")
+209 |   coverImageUrl      String?   @map("cover_image_url")
+210 |   overview           String?
+211 |   mission            String?
+212 |   coreValues         Json?     @map("core_values")
+213 |   verified           Boolean   @default(false)
+214 |   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+215 |   createdAt          DateTime  @default(now()) @map("created_at")
+216 |   updatedAt          DateTime  @updatedAt @map("updated_at")
+217 | 
+218 |   institutionTypeRef          InstitutionType? @relation(fields: [institutionTypeId], references: [id])
+219 |   studentEducationHistory     StudentEducationHistory[]
+220 | 
+221 |   @@map("institution_profiles")
+222 | }
+   | 
+error: Error validating model "InterestCategory": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:224
+   | 
+223 | 
+224 | model InterestCategory {
+225 |   id          Int        @id @default(autoincrement())
+226 |   name        String
+227 |   ageGroup    AgeGroup   @map("age_group")
+228 |   createdAt   DateTime   @default(now()) @map("created_at")
+229 |   updatedAt   DateTime   @updatedAt @map("updated_at")
+230 |   interests   Interest[]
+231 | 
+232 |   @@map("interest_categories")
+233 | }
+   | 
+error: Error validating model "Interest": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:235
+   | 
+234 | 
+235 | model Interest {
+236 |   id                Int              @id @default(autoincrement())
+237 |   name              String
+238 |   categoryId        Int              @map("category_id")
+239 |   category          InterestCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+240 |   createdAt         DateTime         @default(now()) @map("created_at")
+241 |   updatedAt         DateTime         @updatedAt @map("updated_at")
+242 |   userInterests     UserInterest[]
+243 | 
+244 |   @@map("interests")
+245 | }
+   | 
+error: Error validating model "UserInterest": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:247
+   | 
+246 | 
+247 | model UserInterest {
+248 |   id          Int      @id @default(autoincrement())
+249 |   userId      String   @map("user_id") @db.Uuid
+250 |   interestId  Int      @map("interest_id")
+251 |   user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+252 |   interest    Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+253 |   createdAt   DateTime @default(now()) @map("created_at")
+254 |   updatedAt   DateTime @updatedAt @map("updated_at")
+255 | 
+256 |   @@unique([userId, interestId])
+257 |   @@map("user_interests")
+258 | }
+   | 
+error: Error validating model "SkillCategory": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:260
+   | 
+259 | 
+260 | model SkillCategory {
+261 |   id          Int        @id @default(autoincrement())
+262 |   name        String
+263 |   ageGroup    AgeGroup   @map("age_group")
+264 |   createdAt   DateTime   @default(now()) @map("created_at")
+265 |   updatedAt   DateTime   @updatedAt @map("updated_at")
+266 |   skills      Skill[]
+267 | 
+268 |   @@map("skill_categories")
+269 | }
+   | 
+error: Error validating model "Skill": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:271
+   | 
+270 | 
+271 | model Skill {
+272 |   id                Int           @id @default(autoincrement())
+273 |   name              String
+274 |   categoryId        Int           @map("category_id")
+275 |   category          SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+276 |   createdAt         DateTime      @default(now()) @map("created_at")
+277 |   updatedAt         DateTime      @updatedAt @map("updated_at")
+278 |   userSkills        UserSkill[]
+279 |   endorsements      SkillEndorsement[]
+280 | 
+281 |   @@map("skills")
+282 | }
+   | 
+error: Error validating model "UserSkill": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:284
+   | 
+283 | 
+284 | model UserSkill {
+285 |   id                Int         @id @default(autoincrement())
+286 |   userId            String      @map("user_id") @db.Uuid
+287 |   skillId           Int         @map("skill_id")
+288 |   proficiencyLevel  Int         @map("proficiency_level") // 1-5 skill level
+289 |   user              Profile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+290 |   skill             Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+291 |   createdAt         DateTime    @default(now()) @map("created_at")
+292 |   updatedAt         DateTime    @updatedAt @map("updated_at")
+293 | 
+294 |   @@unique([userId, skillId])
+295 |   @@map("user_skills")
+296 | }
+   | 
+error: Error validating model "SocialLink": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:298
+   | 
+297 | 
+298 | model SocialLink {
+299 |   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+300 |   userId      String   @map("user_id") @db.Uuid
+301 |   platform    String
+302 |   url         String
+303 |   displayName String?  @map("display_name")
+304 |   user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+305 |   createdAt   DateTime @default(now()) @map("created_at")
+306 |   updatedAt   DateTime @updatedAt @map("updated_at")
+307 | 
+308 |   @@unique([userId, platform])
+309 |   @@map("social_links")
+310 | }
+   | 
+error: Error validating model "Language": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:312
+   | 
+311 | 
+312 | model Language {
+313 |   id            Int            @id @default(autoincrement())
+314 |   name          String         @unique
+315 |   code          String?        @unique
+316 |   userLanguages UserLanguage[]
+317 |   createdAt     DateTime       @default(now()) @map("created_at")
+318 | 
+319 |   @@map("languages")
+320 | }
+   | 
+error: Error validating model "UserLanguage": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:322
+   | 
+321 | 
+322 | model UserLanguage {
+323 |   id               Int      @id @default(autoincrement())
+324 |   userId           String   @map("user_id") @db.Uuid
+325 |   languageId       Int      @map("language_id")
+326 |   proficiencyLevel String   @map("proficiency_level") // 'beginner', 'intermediate', 'advanced', 'native'
+327 |   user             Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+328 |   language         Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+329 |   createdAt        DateTime @default(now()) @map("created_at")
+330 |   updatedAt        DateTime @updatedAt @map("updated_at")
+331 | 
+332 |   @@unique([userId, languageId])
+333 |   @@map("user_languages")
+334 | }
+   | 
+error: Error validating model "Hobby": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:336
+   | 
+335 | 
+336 | model Hobby {
+337 |   id          Int         @id @default(autoincrement())
+338 |   name        String      @unique
+339 |   category    String?
+340 |   userHobbies UserHobby[]
+341 |   createdAt   DateTime    @default(now()) @map("created_at")
+342 | 
+343 |   @@map("hobbies")
+344 | }
+   | 
+error: Error validating model "UserHobby": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:346
+   | 
+345 | 
+346 | model UserHobby {
+347 |   id        Int      @id @default(autoincrement())
+348 |   userId    String   @map("user_id") @db.Uuid
+349 |   hobbyId   Int      @map("hobby_id")
+350 |   user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+351 |   hobby     Hobby    @relation(fields: [hobbyId], references: [id], onDelete: Cascade)
+352 |   createdAt DateTime @default(now()) @map("created_at")
+353 | 
+354 |   @@unique([userId, hobbyId])
+355 |   @@map("user_hobbies")
+356 | }
+   | 
+error: Error validating model "CareerGoal": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:358
+   | 
+357 | 
+358 | model CareerGoal {
+359 |   id          Int      @id @default(autoincrement())
+360 |   userId      String   @map("user_id") @db.Uuid
+361 |   title       String
+362 |   description String?
+363 |   targetDate  DateTime? @map("target_date") @db.Date
+364 |   priority    Int      @default(1) // 1-5 priority level
+365 |   status      String   @default("active") // 'active', 'completed', 'paused', 'cancelled'
+366 |   user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+367 |   createdAt   DateTime @default(now()) @map("created_at")
+368 |   updatedAt   DateTime @updatedAt @map("updated_at")
+369 | 
+370 |   @@map("career_goals")
+371 | }
+   | 
+error: Error validating model "MoodBoard": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:373
+   | 
+372 | 
+373 | model MoodBoard {
+374 |   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+375 |   userId    String   @map("user_id") @db.Uuid
+376 |   imageUrl  String   @map("image_url")
+377 |   caption   String?
+378 |   position  Int      @default(0)
+379 |   user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+380 |   createdAt DateTime @default(now()) @map("created_at")
+381 |   updatedAt DateTime @updatedAt @map("updated_at")
+382 | 
+383 |   @@map("mood_board")
+384 | }
+   | 
+error: Error validating model "CustomBadge": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:386
+   | 
+385 | 
+386 | model CustomBadge {
+387 |   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+388 |   userId          String    @map("user_id") @db.Uuid
+389 |   title           String
+390 |   description     String?
+391 |   iconUrl         String?   @map("icon_url")
+392 |   color           String    @default("#3B82F6")
+393 |   earnedDate      DateTime  @default(now()) @map("earned_date") @db.Date
+394 |   issuer          String?
+395 |   verificationUrl String?   @map("verification_url")
+396 |   user            Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+397 |   createdAt       DateTime  @default(now()) @map("created_at")
+398 |   updatedAt       DateTime  @updatedAt @map("updated_at")
+399 | 
+400 |   @@map("custom_badges")
+401 | }
+   | 
+error: Error validating model "ConnectionRequest": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:403
+   | 
+402 | 
+403 | model ConnectionRequest {
+404 |   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+405 |   senderId   String   @map("sender_id") @db.Uuid
+406 |   receiverId String   @map("receiver_id") @db.Uuid
+407 |   status     String   @default("pending") // 'pending', 'accepted', 'declined', 'cancelled'
+408 |   message    String?
+409 |   sender     Profile  @relation("SentConnections", fields: [senderId], references: [id], onDelete: Cascade)
+410 |   receiver   Profile  @relation("ReceivedConnections", fields: [receiverId], references: [id], onDelete: Cascade)
+411 |   createdAt  DateTime @default(now()) @map("created_at")
+412 |   updatedAt  DateTime @updatedAt @map("updated_at")
+413 | 
+414 |   @@unique([senderId, receiverId])
+415 |   @@map("connection_requests")
+416 | }
+   | 
+error: Error validating model "Connection": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:418
+   | 
+417 | 
+418 | model Connection {
+419 |   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+420 |   user1Id        String   @map("user1_id") @db.Uuid
+421 |   user2Id        String   @map("user2_id") @db.Uuid
+422 |   connectionType String   @default("friend") @map("connection_type") // 'friend', 'mentor', 'mentee', 'colleague'
+423 |   user1          Profile  @relation("User1Connections", fields: [user1Id], references: [id], onDelete: Cascade)
+424 |   user2          Profile  @relation("User2Connections", fields: [user2Id], references: [id], onDelete: Cascade)
+425 |   connectedAt    DateTime @default(now()) @map("connected_at")
+426 | 
+427 |   @@unique([user1Id, user2Id])
+428 |   @@map("connections")
+429 | }
+   | 
+error: Error validating model "SkillEndorsement": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:431
+   | 
+430 | 
+431 | model SkillEndorsement {
+432 |   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+433 |   endorserId     String   @map("endorser_id") @db.Uuid
+434 |   endorsedUserId String   @map("endorsed_user_id") @db.Uuid
+435 |   skillId        Int      @map("skill_id")
+436 |   comment        String?
+437 |   endorser       Profile  @relation("Endorser", fields: [endorserId], references: [id], onDelete: Cascade)
+438 |   endorsedUser   Profile  @relation("EndorsedUser", fields: [endorsedUserId], references: [id], onDelete: Cascade)
+439 |   skill          Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+440 |   createdAt      DateTime @default(now()) @map("created_at")
+441 | 
+442 |   @@unique([endorserId, endorsedUserId, skillId])
+443 |   @@map("skill_endorsements")
+444 | }
+   | 
+error: Error validating model "CircleBadge": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:446
+   | 
+445 | 
+446 | model CircleBadge {
+447 |   id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+448 |   creatorId       String              @map("creator_id") @db.Uuid
+449 |   name            String              @db.VarChar(50)
+450 |   description     String?
+451 |   color           String              @default("#3B82F6") @db.VarChar(20)
+452 |   icon            String              @default("users") @db.VarChar(50)
+453 |   isDefault       Boolean             @default(false) @map("is_default")
+454 |   creator         Profile             @relation("CreatedCircles", fields: [creatorId], references: [id], onDelete: Cascade)
+455 |   memberships     CircleMembership[]
+456 |   invitations     CircleInvitation[]
+457 |   createdAt       DateTime            @default(now()) @map("created_at")
+458 |   updatedAt       DateTime            @updatedAt @map("updated_at")
+459 | 
+460 |   @@map("circle_badges")
+461 | }
+   | 
+error: Error validating model "CircleMembership": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:463
+   | 
+462 | 
+463 | model CircleMembership {
+464 |   id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+465 |   circleId  String      @map("circle_id") @db.Uuid
+466 |   userId    String      @map("user_id") @db.Uuid
+467 |   status    String      @default("active") // 'active', 'pending', 'declined', 'left'
+468 |   joinedAt  DateTime    @default(now()) @map("joined_at")
+469 |   circle    CircleBadge @relation(fields: [circleId], references: [id], onDelete: Cascade)
+470 |   user      Profile     @relation("CircleMemberships", fields: [userId], references: [id], onDelete: Cascade)
+471 |   createdAt DateTime    @default(now()) @map("created_at")
+472 |   updatedAt DateTime    @updatedAt @map("updated_at")
+473 | 
+474 |   @@unique([circleId, userId])
+475 |   @@map("circle_memberships")
+476 | }
+   | 
+error: Error validating model "CircleInvitation": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:478
+   | 
+477 | 
+478 | model CircleInvitation {
+479 |   id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+480 |   circleId  String      @map("circle_id") @db.Uuid
+481 |   inviterId String      @map("inviter_id") @db.Uuid
+482 |   inviteeId String      @map("invitee_id") @db.Uuid
+483 |   status    String      @default("pending") // 'pending', 'accepted', 'declined', 'cancelled'
+484 |   message   String?
+485 |   circle    CircleBadge @relation(fields: [circleId], references: [id], onDelete: Cascade)
+486 |   inviter   Profile     @relation("SentCircleInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+487 |   invitee   Profile     @relation("ReceivedCircleInvitations", fields: [inviteeId], references: [id], onDelete: Cascade)
+488 |   createdAt DateTime    @default(now()) @map("created_at")
+489 |   updatedAt DateTime    @updatedAt @map("updated_at")
+490 | 
+491 |   @@unique([circleId, inviteeId])
+492 |   @@map("circle_invitations")
+493 | }
+   | 
+error: Error validating model "FeedPost": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:495
+   | 
+494 | 
+495 | model FeedPost {
+496 |   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+497 |   userId        String   @map("user_id") @db.Uuid
+498 |   content       String
+499 |   imageUrl      String?  @map("image_url")
+500 |   likesCount    Int      @default(0) @map("likes_count")
+501 |   commentsCount Int      @default(0) @map("comments_count")
+502 |   sharesCount   Int      @default(0) @map("shares_count")
+503 |   isTrail       Boolean  @default(false) @map("is_trail")
+504 |   parentPostId  String?  @map("parent_post_id")
+505 |   trailOrder    Int?     @map("trail_order")
+506 | 
+507 |   // Advanced features
+508 |   postType      PostType @default(GENERAL) @map("post_type")
+509 |   tags          String[] @default([])
+510 |   subjects      String[] @default([])
+511 |   ageGroup      String?  @map("age_group")
+512 |   difficultyLevel String? @map("difficulty_level")
+513 |   isQuestion    Boolean  @default(false) @map("is_question")
+514 |   isAchievement Boolean  @default(false) @map("is_achievement")
+515 |   achievementType String? @map("achievement_type")
+516 |   projectCategory String? @map("project_category")
+517 | 
+518 |   // Moderation & Analytics
+519 |   moderationStatus String @default("approved") @map("moderation_status")
+520 |   viewsCount    Int      @default(0) @map("views_count")
+521 |   engagementScore Float  @default(0) @map("engagement_score")
+522 |   isPinned      Boolean  @default(false) @map("is_pinned")
+523 |   isPromoted    Boolean  @default(false) @map("is_promoted")
+524 | 
+525 |   createdAt     DateTime @default(now()) @map("created_at")
+526 |   updatedAt     DateTime @updatedAt @map("updated_at")
+527 | 
+528 |   // Relations
+529 |   author       Profile     @relation(fields: [userId], references: [id])
+530 |   parentPost   FeedPost?   @relation("PostTrails", fields: [parentPostId], references: [id])
+531 |   trails       FeedPost[]  @relation("PostTrails")
+532 |   likes        PostLike[]
+533 |   comments     PostComment[]
+534 |   bookmarks    PostBookmark[]
+535 | 
+536 |   @@map("feed_posts")
+537 | }
+   | 
+error: Error validating model "PostLike": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:552
+   | 
+551 | 
+552 | model PostLike {
+553 |   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+554 |   userId String @map("user_id") @db.Uuid
+555 |   postId String @map("post_id") @db.Uuid
+556 |   createdAt DateTime @default(now()) @map("created_at")
+557 | 
+558 |   user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+559 |   post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+560 | 
+561 |   @@unique([userId, postId])
+562 |   @@map("post_likes")
+563 | }
+   | 
+error: Error validating model "PostComment": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:565
+   | 
+564 | 
+565 | model PostComment {
+566 |   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+567 |   postId    String   @map("post_id") @db.Uuid
+568 |   userId    String   @map("user_id") @db.Uuid
+569 |   content   String
+570 |   parentId  String?  @map("parent_id") @db.Uuid
+571 |   createdAt DateTime @default(now()) @map("created_at")
+572 |   updatedAt DateTime @updatedAt @map("updated_at")
+573 | 
+574 |   post     FeedPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+575 |   author   Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+576 |   parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+577 |   replies  PostComment[] @relation("CommentReplies")
+578 | 
+579 |   @@map("post_comments")
+580 | }
+   | 
+error: Error validating model "PostBookmark": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:582
+   | 
+581 | 
+582 | model PostBookmark {
+583 |   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+584 |   userId String @map("user_id") @db.Uuid
+585 |   postId String @map("post_id") @db.Uuid
+586 |   createdAt DateTime @default(now()) @map("created_at")
+587 | 
+588 |   user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+589 |   post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+590 | 
+591 |   @@unique([userId, postId])
+592 |   @@map("post_bookmarks")
+593 | }
+   | 
+error: Error validating model "Goal": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:595
+   | 
+594 | 
+595 | model Goal {
+596 |   id          Int      @id @default(autoincrement())
+597 |   userId      String   @map("user_id") @db.Uuid
+598 |   title       String
+599 |   description String?
+600 |   category    String?
+601 |   timeframe   String?
+602 |   completed   Boolean  @default(false)
+603 |   createdAt   DateTime @default(now()) @map("created_at")
+604 |   updatedAt   DateTime @updatedAt @map("updated_at")
+605 | 
+606 |   user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+607 | 
+608 |   @@map("goals")
+609 | }
+   | 
+error: Error validating model "AchievementCategory": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:611
+   | 
+610 | 
+611 | model AchievementCategory {
+612 |   id          Int      @id @default(autoincrement())
+613 |   name        String   @unique
+614 |   createdAt   DateTime @default(now()) @map("created_at")
+615 | 
+616 |   types AchievementType[]
+617 | 
+618 |   @@map("achievement_categories")
+619 | }
+   | 
+error: Error validating model "AchievementType": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:621
+   | 
+620 | 
+621 | model AchievementType {
+622 |   id          Int      @id @default(autoincrement())
+623 |   categoryId  Int      @map("category_id")
+624 |   name        String
+625 |   createdAt   DateTime @default(now()) @map("created_at")
+626 | 
+627 |   category           AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+628 |   userAchievements   UserAchievement[]
+629 | 
+630 |   @@unique([categoryId, name])
+631 |   @@map("achievement_types")
+632 | }
+   | 
+error: Error validating model "UserAchievement": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:634
+   | 
+633 | 
+634 | model UserAchievement {
+635 |   id                     Int      @id @default(autoincrement())
+636 |   userId                 String   @map("user_id") @db.Uuid
+637 |   name                   String
+638 |   description            String
+639 |   dateOfAchievement      DateTime @map("date_of_achievement") @db.Date
+640 |   achievementTypeId      Int?     @map("achievement_type_id")
+641 |   achievementImageIcon   String?  @map("achievement_image_icon")
+642 |   createdAt              DateTime @default(now()) @map("created_at")
+643 |   updatedAt              DateTime @updatedAt @map("updated_at")
+644 | 
+645 |   user           Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+646 |   achievementType AchievementType? @relation(fields: [achievementTypeId], references: [id])
+647 | 
+648 |   @@map("user_achievements")
+649 | }
+   | 
+error: Error validating model "ParentProfile": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:651
+   | 
+650 | 
+651 | model ParentProfile {
+652 |   id                BigInt   @id @default(autoincrement())
+653 |   email             String
+654 |   name              String
+655 |   auth_id           String?  @map("auth_id") @db.Uuid
+656 |   verificationToken String?  @map("verification_token")
+657 |   emailVerified     Boolean  @default(false) @map("email_verified")
+658 |   createdAt         DateTime @default(now()) @map("created_at")
+659 | 
+660 |   // Relationships
+661 |   children          Profile[]
+662 | 
+663 |   @@map("parent_profile")
+664 | }
+   | 
+error: Error validating model "ChatbotTheme": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:666
+   | 
+665 | 
+666 | model ChatbotTheme {
+667 |   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+668 |   name           String
+669 |   primaryColor   String?  @map("primary_color")
+670 |   secondaryColor String?  @map("secondary_color")
+671 |   fontFamily     String?  @map("font_family")
+672 |   allowedDomains Json     @default("{\"links\": []}") @map("allowed_domains")
+673 |   isActive       Boolean  @default(true) @map("is_active")
+674 |   createdAt      DateTime @default(now()) @map("created_at")
+675 |   updatedAt      DateTime @updatedAt @map("updated_at")
+676 | 
+677 |   @@map("chatbot_themes")
+678 | }
+   | 
+error: This enum is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:14
+   | 
+13 | 
+14 | enum UserRole {
+15 |   student
+16 |   mentor
+17 |   institution
+18 | 
+19 |   @@map("user_role")
+20 | }
+   | 
+error: This enum is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:29
+   | 
+28 | 
+29 | enum AgeGroup {
+30 |   early_childhood
+31 |   elementary
+32 |   middle_school
+33 |   high_school
+34 |   young_adult
+35 | 
+36 |   @@map("age_group")
+37 | }
+   | 
+error: This enum is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:39
+   | 
+38 | 
+39 | enum EducationLevel {
+40 |   pre_school @map("pre_school")
+41 |   school
+42 |   high_school @map("high_school")
+43 |   undergraduate
+44 |   graduate
+45 |   post_graduate @map("post_graduate")
+46 |   phd
+47 | 
+48 |   @@map("education_level")
+49 | }
+   | 
+error: This enum is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:539
+   | 
+538 | 
+539 | enum PostType {
+540 |   GENERAL
+541 |   ACHIEVEMENT
+542 |   PROJECT
+543 |   QUESTION
+544 |   DISCUSSION
+545 |   TUTORIAL
+546 |   RESOURCE_SHARE
+547 |   EVENT_ANNOUNCEMENT
+548 | 
+549 |   @@map("post_type")
+550 | }
+   | 
+
+Validation Error Count: 42
+[Context: getDmmf]
+
+Prisma CLI Version : 6.8.2

@@ -1,0 +1,95 @@
+tory"."start_date" DESC OFFSET $2
+prisma:query COMMIT
+prisma:error 
+Invalid `prisma.connection.findMany()` invocation:
+
+{
+  where: {
+    OR: [
+      {
+        requesterId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+        status: "accepted"
+      },
+      {
+        receiverId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+        status: "accepted"
+      }
+    ]
+  },
+  include: {
+    requester: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true
+      }
+    },
+    receiver: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true
+      }
+    }
+  }
+}
+
+Unknown argument `requesterId`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching child profile: Error [PrismaClientValidationError]: 
+Invalid `prisma.connection.findMany()` invocation:
+
+{
+  where: {
+    OR: [
+      {
+        requesterId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+        status: "accepted"
+      },
+      {
+        receiverId: "c2b57ac7-cd91-46d6-abb4-7c936c64308c",
+        status: "accepted"
+      }
+    ]
+  },
+  include: {
+    requester: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true
+      }
+    },
+    receiver: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true
+      }
+    }
+  }
+}
+
+Unknown argument `requesterId`. Available options are listed in green.
+    at async GET (app/api/parent/child-profile/[id]/route.ts:119:24)
+  117 |
+  118 |     // Get child's connections
+> 119 |     const connections = await prisma.connection.findMany({
+      |                        ^
+  120 |       where: {
+  121 |         OR: [
+  122 |           { requesterId: childId, status: 'accepted' }, {
+  clientVersion: '6.8.2'
+}

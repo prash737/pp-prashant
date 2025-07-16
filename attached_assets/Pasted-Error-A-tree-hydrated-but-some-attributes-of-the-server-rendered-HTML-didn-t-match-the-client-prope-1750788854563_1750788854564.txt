@@ -1,0 +1,102 @@
+Error: A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <LoadingBoundary loading={null}>
+      <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/login" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>
+              <ClientPageRoot Component={function LoginPage} searchParams={{}} params={{}}>
+                <LoginPage params={Promise} searchParams={Promise}>
+                  <main className="min-h-scre...">
+                    <header className="w-full py-...">
+                      <LinkComponent>
+                      <div>
+                        <LinkComponent href="/signup">
+                          <a ref={function} onClick={function onClick} onMouseEnter={function onMouseEnter} ...>
+                            <_c variant="ghost" className="text-teal-...">
+                              <button
+                                className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-m..."}
+                                ref={null}
+-                               fdprocessedid="eqswlp"
+                              >
++                               Sign Up
+                    ...
+                      <_c className="w-full bor...">
+                        <div className="rounded-lg..." ref={null}>
+                          <_c2>
+                          <_c8>
+                            <div className="p-6 pt-0" ref={null}>
+                              <form onSubmit={function handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                  <_c>
+                                  <_c id="email" type="email" placeholder="Enter your..." value="" ...>
+                                    <input
+                                      type="email"
+                                      className="flex h-10 w-full border bg-background px-3 py-2 text-base ring-offset..."
+                                      ref={null}
+                                      id="email"
+                                      placeholder="Enter your email"
+                                      value=""
+                                      onChange={function onChange}
+                                      required={true}
+                                      disabled={false}
+-                                     fdprocessedid="1lgytq"
+                                    >
+                                <div className="space-y-2">
+                                  <_c>
+                                  <_c id="password" type="password" placeholder="Enter your..." value="" ...>
+                                    <input
+                                      type="password"
+                                      className="flex h-10 w-full border bg-background px-3 py-2 text-base ring-offset..."
+                                      ref={null}
+                                      id="password"
+                                      placeholder="Enter your password"
+                                      value=""
+                                      onChange={function onChange}
+                                      required={true}
+                                      disabled={false}
+-                                     fdprocessedid="odrhdo"
+                                    >
+                                <_c type="submit" className="w-full bg-..." disabled={false}>
+                                  <button
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap text-..."}
+                                    ref={null}
+                                    type="submit"
+                                    disabled={false}
+-                                   fdprocessedid="sbjv9"
+                                  >
++                                   Sign in
+                              ...
+                    ...
+              ...
+
+    at createUnhandledError (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/errors/console-error.js:27:71)
+    at handleClientError (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/errors/use-error-handler.js:45:56)
+    at console.error (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/globals/intercept-console-error.js:47:56)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13502:19)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:1511:30)
+    at emitPendingHydrationWarnings (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13501:9)
+    at completeWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13662:18)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:1514:13)
+    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15256:19)
+    at performUnitOfWork (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15137:11)
+    at workLoopConcurrentByScheduler (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15114:9)
+    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15089:15)
+    at performWorkOnRoot (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14410:13)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16275:7)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)
+    at button (<anonymous>)
+    at _c (webpack-internal:///(app-pages-browser)/./components/ui/button.tsx:42:87)
+    at LoginPage (webpack-internal:///(app-pages-browser)/./app/login/page.tsx:196:114)
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/client-page.js:20:50)

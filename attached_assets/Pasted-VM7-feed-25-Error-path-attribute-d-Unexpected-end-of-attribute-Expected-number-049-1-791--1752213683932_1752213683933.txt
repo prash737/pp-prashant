@@ -1,0 +1,46 @@
+VM7 feed:25 Error: <path> attribute d: Unexpected end of attribute. Expected number, "…-.049-1.791-.218".
+react-dom-client.development.js:24915 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+warn-once.js:16 Image with src "/images/student-profile.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+warnOnce @ warn-once.js:16
+use-auth.ts:143 🔄 Fetching and caching complete profile data...
+internal-navbar.tsx:128 🔍 Navbar: User data fetched: Object
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:312 🔍 Navbar: Navigating to profile URL: /student/profile
+use-auth.ts:172 ✅ Profile data cached successfully: Object
+hot-reloader-client.js:242 [Fast Refresh] rebuilding
+hot-reloader-client.js:74 [Fast Refresh] done in 406ms
+hot-reloader-client.js:242 [Fast Refresh] rebuilding
+hot-reloader-client.js:74 [Fast Refresh] done in 1205ms
+react-dom-client.development.js:1117 Error: <path> attribute d: Unexpected end of attribute. Expected number, "…-.049-1.791-.218".
+setValueForAttribute @ react-dom-client.development.js:1117
+internal-navbar.tsx:128 🔍 Navbar: User data fetched: Object
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:128 🔍 Navbar: User data fetched: Object
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+react-dom-client.development.js:1132 Error: <svg> attribute viewBox: Unexpected end of attribute. Expected number, "0 024 24".
+setValueForKnownAttribute @ react-dom-client.development.js:1132
+education-cards.tsx:28 🔍 Education verification status: Objectinstitution: "VIT PUNE"institutionVerified: undefinedtype: "undefined"[[Prototype]]: Objectconstructor: ƒ Object()hasOwnProperty: ƒ hasOwnProperty()isPrototypeOf: ƒ isPrototypeOf()propertyIsEnumerable: ƒ propertyIsEnumerable()toLocaleString: ƒ toLocaleString()toString: ƒ toString()valueOf: ƒ valueOf()__defineGetter__: ƒ __defineGetter__()__defineSetter__: ƒ __defineSetter__()__lookupGetter__: ƒ __lookupGetter__()__lookupSetter__: ƒ __lookupSetter__()__proto__: (...)get __proto__: ƒ __proto__()set __proto__: ƒ __proto__()
+education-cards.tsx:28 🔍 Education verification status: Object
+hot-reloader-client.js:242 [Fast Refresh] rebuilding
+education-cards.tsx:28 🔍 Education verification status: Object
+education-cards.tsx:28 🔍 Education verification status: Object
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+internal-navbar.tsx:283 🔍 Navbar: Getting profile URL for user role: undefined
+hot-reloader-client.js:242 [Fast Refresh] rebuilding
+hot-reloader-client.js:74 [Fast Refresh] done in 409ms
+education-cards.tsx:28 🔍 Education verification status: Object
+education-cards.tsx:28 🔍 Education verification status: Object
+education-cards.tsx:28 🔍 Education verification status: Object
+education-cards.tsx:28 🔍 Education verification status: Object
+hot-reloader-client.js:74 [Fast Refresh] done in 874ms
+hot-reloader-client.js:74 [Fast Refresh] done in 907ms
+education-cards.tsx:28 🔍 Education verification status: Object
+education-cards.tsx:28 🔍 Education verification status: Object

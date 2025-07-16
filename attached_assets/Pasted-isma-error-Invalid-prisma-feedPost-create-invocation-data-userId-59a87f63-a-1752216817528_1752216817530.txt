@@ -1,0 +1,176 @@
+isma:error 
+Invalid `prisma.feedPost.create()` invocation:
+
+{
+  data: {
+    userId: "59a87f63-a96e-483a-a848-c859bb0a53dc",
+    content: "[evonix.co](evonix.co)",
+    imageUrl: null,
+    isTrail: false,
+    parentPostId: undefined,
+    trailOrder: null,
+    postType: "GENERAL",
+    tags: [],
+    subjects: [],
+    ageGroup: "young_adult",
+    difficultyLevel: undefined,
+    isQuestion: false,
+    isAchievement: false,
+    achievementType: null,
+    projectCategory: null,
+    moderationStatus: "approved",
+    engagementScore: 0,
+    linkPreview: null,
+    ~~~~~~~~~~~
+?   id?: String,
+?   likesCount?: Int,
+?   commentsCount?: Int,
+?   sharesCount?: Int,
+?   viewsCount?: Int,
+?   isPinned?: Boolean,
+?   isPromoted?: Boolean,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   trails?: FeedPostUncheckedCreateNestedManyWithoutParentPostInput,
+?   likes?: PostLikeUncheckedCreateNestedManyWithoutPostInput,
+?   comments?: PostCommentUncheckedCreateNestedManyWithoutPostInput,
+?   bookmarks?: PostBookmarkUncheckedCreateNestedManyWithoutPostInput
+  },
+  include: {
+    author: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true,
+        student: {
+          select: {
+            age_group: true
+          }
+        }
+      }
+    },
+    trails: {
+      orderBy: {
+        trailOrder: "asc"
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImageUrl: true,
+            role: true
+          }
+        }
+      }
+    },
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+        bookmarks: true
+      }
+    }
+  }
+}
+
+Unknown argument `linkPreview`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error creating post: Error [PrismaClientValidationError]: 
+Invalid `prisma.feedPost.create()` invocation:
+
+{
+  data: {
+    userId: "59a87f63-a96e-483a-a848-c859bb0a53dc",
+    content: "[evonix.co](evonix.co)",
+    imageUrl: null,
+    isTrail: false,
+    parentPostId: undefined,
+    trailOrder: null,
+    postType: "GENERAL",
+    tags: [],
+    subjects: [],
+    ageGroup: "young_adult",
+    difficultyLevel: undefined,
+    isQuestion: false,
+    isAchievement: false,
+    achievementType: null,
+    projectCategory: null,
+    moderationStatus: "approved",
+    engagementScore: 0,
+    linkPreview: null,
+    ~~~~~~~~~~~
+?   id?: String,
+?   likesCount?: Int,
+?   commentsCount?: Int,
+?   sharesCount?: Int,
+?   viewsCount?: Int,
+?   isPinned?: Boolean,
+?   isPromoted?: Boolean,
+?   createdAt?: DateTime,
+?   updatedAt?: DateTime,
+?   trails?: FeedPostUncheckedCreateNestedManyWithoutParentPostInput,
+?   likes?: PostLikeUncheckedCreateNestedManyWithoutPostInput,
+?   comments?: PostCommentUncheckedCreateNestedManyWithoutPostInput,
+?   bookmarks?: PostBookmarkUncheckedCreateNestedManyWithoutPostInput
+  },
+  include: {
+    author: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImageUrl: true,
+        role: true,
+        student: {
+          select: {
+            age_group: true
+          }
+        }
+      }
+    },
+    trails: {
+      orderBy: {
+        trailOrder: "asc"
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profileImageUrl: true,
+            role: true
+          }
+        }
+      }
+    },
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+        bookmarks: true
+      }
+    }
+  }
+}
+
+Unknown argument `linkPreview`. Available options are listed in green.
+    at async POST (app/api/feed/posts/route.ts:125:17)
+  123 |     const moderationStatus = await moderateContent(content)
+  124 |
+> 125 |     const post = await prisma.feedPost.create({
+      |                 ^
+  126 |       data: {
+  127 |         userId: user.id,
+  128 |         content, {
+  clientVersion: '6.8.2'
+}
+ POST /api/feed/posts 500 in 595ms

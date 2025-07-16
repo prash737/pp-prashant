@@ -1,0 +1,86 @@
+prisma:query SELECT "public"."parent_profile"."id", "public"."parent_profile"."email", "public"."parent_profile"."name", "public"."parent_profile"."auth_id", "public"."parent_profile"."verification_token", "public"."parent_profile"."email_verified", "public"."parent_profile"."created_at" FROM "public"."parent_profile" WHERE ("public"."parent_profile"."email" = $1 AND "public"."parent_profile"."auth_id" = $2) LIMIT $3 OFFSET $4
+✅ Parent login successful
+ POST /api/parent/login 200 in 1271ms
+ ○ Compiling /parent/dashboard ...
+ ✓ Compiled /parent/dashboard in 1020ms (2217 modules)
+ GET /parent/dashboard 200 in 1087ms
+prisma:error 
+Invalid `prisma.parentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: 2
+        ~
+  }
+}
+
+Argument `id`: Invalid value provided. Expected String, provided Int.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching children: Error [PrismaClientValidationError]: 
+Invalid `prisma.parentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: 2
+        ~
+  }
+}
+
+Argument `id`: Invalid value provided. Expected String, provided Int.
+    at async GET (app/api/parent/children/route.ts:19:26)
+  17 |
+  18 |     // Get parent profile
+> 19 |     const parentProfile = await prisma.parentProfile.findUnique({
+     |                          ^
+  20 |       where: { id: parseInt(parentId) }
+  21 |     })
+  22 | {
+  clientVersion: '6.8.2'
+}
+ GET /api/parent/children 500 in 127ms
+prisma:error 
+Invalid `prisma.parentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: 2
+        ~
+  }
+}
+
+Argument `id`: Invalid value provided. Expected String, provided Int.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching children: Error [PrismaClientValidationError]: 
+Invalid `prisma.parentProfile.findUnique()` invocation:
+
+{
+  where: {
+    id: 2
+        ~
+  }
+}
+
+Argument `id`: Invalid value provided. Expected String, provided Int.
+    at async GET (app/api/parent/children/route.ts:19:26)
+  17 |
+  18 |     // Get parent profile
+> 19 |     const parentProfile = await prisma.parentProfile.findUnique({
+     |                          ^
+  20 |       where: { id: parseInt(parentId) }
+  21 |     })
+  22 | {
+  clientVersion: '6.8.2'
+}
+ GET /api/parent/children 500 in 64ms
+ GET /api/connections/requests?type=received 401 in 52ms
+ GET /api/circles/invitations?type=received 401 in 59ms
+ GET /api/connections/requests?type=received 401 in 11ms
+ GET /api/circles/invitations?type=received 401 in 11ms

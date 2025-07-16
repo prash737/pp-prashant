@@ -1,0 +1,41 @@
+prisma:query SELECT "public"."achievement_categories"."id", "public"."achievement_categories"."name", "public"."achievement_categories"."description", "public"."achievement_categories"."created_at", "public"."achievement_categories"."updated_at" FROM "public"."achievement_categories" WHERE 1=1 ORDER BY "public"."achievement_categories"."name" ASC OFFSET $1
+prisma:query ROLLBACK
+prisma:error 
+Invalid `prisma.achievementCategory.findMany()` invocation:
+
+
+The column `achievement_categories.description` does not exist in the current database.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+❌ Error fetching achievement categories: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.achievementCategory.findMany()` invocation:
+
+
+The column `achievement_categories.description` does not exist in the current database.
+    at async GET (app/api/achievement-categories/route.ts:17:23)
+  15 |     }
+  16 |
+> 17 |     const categories = await prisma.achievementCategory.findMany({
+     |                       ^
+  18 |       orderBy: {
+  19 |         name: 'asc'
+  20 |       } {
+  code: 'P2022',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ GET /api/achievement-categories 500 in 101ms
+prisma:query SELECT 1
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT 1
+prisma:query SELECT "public"."connection_requests"."id", "public"."connection_requests"."sender_id", "public"."connection_requests"."receiver_id", "public"."connection_requests"."status", "public"."connection_requests"."message", "public"."connection_requests"."created_at", "public"."connection_requests"."updated_at" FROM "public"."connection_requests" WHERE "public"."connection_requests"."receiver_id" = $1 ORDER BY "public"."connection_requests"."created_at" DESC OFFSET $2
+prisma:query BEGIN
+prisma:query COMMIT
+ GET /api/connections/requests?type=received 200 in 99ms
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."circle_invitations"."id", "public"."circle_invitations"."circle_id", "public"."circle_invitations"."inviter_id", "public"."circle_invitations"."invitee_id", "public"."circle_invitations"."status", "public"."circle_invitations"."message", "public"."circle_invitations"."created_at", "public"."circle_invitations"."updated_at" FROM "public"."circle_invitations" WHERE "public"."circle_invitations"."invitee_id" = $1 ORDER BY "public"."circle_invitations"."created_at" DESC OFFSET $2
+ GET /api/circles/invitations?type=received 200 in 111ms
+prisma:query COMMIT

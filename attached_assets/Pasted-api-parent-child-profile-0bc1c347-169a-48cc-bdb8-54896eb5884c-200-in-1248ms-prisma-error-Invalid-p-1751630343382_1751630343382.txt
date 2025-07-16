@@ -1,0 +1,49 @@
+api/parent/child-profile/0bc1c347-169a-48cc-bdb8-54896eb5884c 200 in 1248ms
+prisma:error 
+Invalid `prisma.profile.findFirst()` invocation:
+
+{
+  where: {
+    id: "0bc1c347-169a-48cc-bdb8-54896eb5884c",
+    parentId: 2,
+              ~
+    role: "student"
+  }
+}
+
+Argument `parentId`: Invalid value provided. Expected UuidNullableFilter, String or Null, provided Int.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error in GET /api/parent/child-profile/[id]/interests: Error [PrismaClientValidationError]: 
+Invalid `prisma.profile.findFirst()` invocation:
+
+{
+  where: {
+    id: "0bc1c347-169a-48cc-bdb8-54896eb5884c",
+    parentId: 2,
+              ~
+    role: "student"
+  }
+}
+
+Argument `parentId`: Invalid value provided. Expected UuidNullableFilter, String or Null, provided Int.
+    at async GET (app/api/parent/child-profile/[id]/interests/route.ts:33:18)
+  31 |
+  32 |     // Verify parent-child relationship
+> 33 |     const child = await prisma.profile.findFirst({
+     |                  ^
+  34 |       where: {
+  35 |         id: childId,
+  36 |         parentId: parseInt(parentId), {
+  clientVersion: '6.8.2'
+}
+ GET /api/parent/child-profile/0bc1c347-169a-48cc-bdb8-54896eb5884c/interests 500 in 1575ms
+ ○ Compiling /api/connections/requests ...
+ ✓ Compiled /api/connections/requests in 886ms (2077 modules)
+ GET /api/connections/requests?type=received 401 in 932ms
+ GET /api/circles/invitations?type=received 401 in 946ms
+ GET /api/connections/requests?type=received 401 in 22ms
+ GET /api/circles/invitation

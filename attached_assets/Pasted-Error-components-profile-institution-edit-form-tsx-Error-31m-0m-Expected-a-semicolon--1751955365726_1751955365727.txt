@@ -1,0 +1,49 @@
+Error: ./components/profile/institution-edit-form.tsx
+Error:   [31m×[0m Expected a semicolon
+      ╭─[[36;1;4m/home/runner/workspace/components/profile/institution-edit-form.tsx[0m:1479:1]
+ [2m1476[0m │       </CardContent>
+ [2m1477[0m │     </Card>
+ [2m1478[0m │   )
+ [2m1479[0m │       <CardContent className="space-y-6">
+      · [35;1m                   ─────────[0m
+ [2m1480[0m │         {formData.facilities.map((facility, index) => (
+ [2m1481[0m │           <div key={index} className="p-4 border rounded-lg space-y-4">
+ [2m1482[0m │             <div className="flex justify-between items-center">
+      ╰────
+  [31m×[0m Expected a semicolon
+      ╭─[[36;1;4m/home/runner/workspace/components/profile/institution-edit-form.tsx[0m:1480:1]
+ [2m1477[0m │     </Card>
+ [2m1478[0m │   )
+ [2m1479[0m │       <CardContent className="space-y-6">
+ [2m1480[0m │         {formData.facilities.map((facility, index) => (
+      · [35;1m                 ─[0m
+ [2m1481[0m │           <div key={index} className="p-4 border rounded-lg space-y-4">
+ [2m1482[0m │             <div className="flex justify-between items-center">
+ [2m1483[0m │               <h4 className="font-medium">Facility {index + 1}</h4>
+      ╰────
+  [31m×[0m Expression expected
+      ╭─[[36;1;4m/home/runner/workspace/components/profile/institution-edit-form.tsx[0m:1594:1]
+ [2m1591[0m │               </p>
+ [2m1592[0m │             </div>
+ [2m1593[0m │           </div>
+ [2m1594[0m │         ))}
+      · [35;1m        ─[0m
+ [2m1595[0m │ 
+ [2m1596[0m │         <Button
+ [2m1597[0m │           type="button"
+      ╰────
+
+Caused by:
+    Syntax Error
+    at BuildError (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/react-dev-overlay/ui/container/build-error.js:43:41)
+    at react-stack-bottom-frame (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:22429:20)
+    at renderWithHooks (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:5758:22)
+    at updateFunctionComponent (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:8019:19)
+    at beginWork (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:9684:18)
+    at runWithFiberInDEV (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:544:16)
+    at performUnitOfWork (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:15045:22)
+    at workLoopSync (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14871:41)
+    at renderRootSync (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14851:11)
+    at performWorkOnRoot (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14335:13)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:15932:7)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/scheduler@0.25.0/node_modules/scheduler/cjs/scheduler.development.js:44:48)

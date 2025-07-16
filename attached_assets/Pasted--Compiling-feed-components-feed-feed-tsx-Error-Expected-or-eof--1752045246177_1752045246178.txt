@@ -1,0 +1,40 @@
+○ Compiling /feed ...
+ ⨯ ./components/feed/feed.tsx
+Error:   × Expected ';', '}' or <eof>
+   ╭─[/home/runner/workspace/components/feed/feed.tsx:1:1]
+ 1 │ The code is modified to add liking functionality to the posts in the feed, including updating the UI and integrating with the backend API.
+   · ─┬─ ────
+   ·  ╰── This is the expression part of an expression statement
+ 2 │ ```
+ 3 │ 
+ 4 │ ```replit_final_file
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/feed/feed.tsx
+./app/feed/page.tsx
+ ⨯ ./components/feed/feed.tsx
+Error:   × Expected ';', '}' or <eof>
+   ╭─[/home/runner/workspace/components/feed/feed.tsx:1:1]
+ 1 │ The code is modified to add liking functionality to the posts in the feed, including updating the UI and integrating with the backend API.
+   · ─┬─ ────
+   ·  ╰── This is the expression part of an expression statement
+ 2 │ ```
+ 3 │ 
+ 4 │ ```replit_final_file
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/feed/feed.tsx
+./app/feed/page.tsx
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+ ⨯ ./components/feed/feed.tsx

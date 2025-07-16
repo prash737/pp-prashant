@@ -1,0 +1,832 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth"]
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  previewFeatures = ["multiSchema"]
+}
+
+enum UserRole {
+  student
+  mentor
+  institution
+
+  @@map("user_role")
+  @@schema("public")
+}
+
+/// This model maps to the enum in the database
+model UserRoleEnum {
+  name String @id @map("name")
+
+  @@map("user_role")
+  @@schema("public")
+}
+
+enum AgeGroup {
+  early_childhood
+  elementary
+  middle_school
+  high_school
+  young_adult
+
+  @@map("age_group")
+  @@schema("public")
+}
+
+enum EducationLevel {
+  pre_school @map("pre_school")
+  school
+  high_school @map("high_school")
+  undergraduate
+  graduate
+  post_graduate @map("post_graduate")
+  phd
+
+  @@map("education_level")
+  @@schema("public")
+}
+
+model Profile {
+  id                 String    @id @db.Uuid
+  role               UserRole
+  firstName          String    @map("first_name")
+  lastName           String    @map("last_name")
+  bio                String?
+  location           String?
+  profileImageUrl    String?   @map("profile_image_url")
+  tagline            String?
+  professionalSummary String?  @map("professional_summary")
+  verificationStatus Boolean   @default(false) @map("verification_status")
+  email              String?   // User's registered email for authentication
+  emailVerified      Boolean?  @default(false) @map("email_verified") // Email verification status
+  phone              String?   // Direct contact phone number
+  coverImageUrl      String?   @map("cover_image_url")
+  themePreference    String    @default("default") @map("theme_preference")
+  timezone           String?
+  availabilityStatus String    @default("online") @map("availability_status")
+  lastActiveDate     DateTime  @default(now()) @map("last_active_date")
+  profileViews       Int       @default(0) @map("profile_views")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  parentId        String?           @map("parent_id") @db.Uuid
+  parentVerified  Boolean?          @default(false) @map("parent_verified")
+
+// Relationships
+  student             StudentProfile?
+  mentor              MentorProfile?
+  institution         InstitutionProfile?
+  posts               FeedPost[]
+  userInterests       UserInterest[]
+  userSkills          UserSkill[]
+  socialLinks         SocialLink[]
+  userLanguages       UserLanguage[]
+  userHobbies         UserHobby[]
+  moodBoard           MoodBoard[]
+  customBadges        CustomBadge[]
+  sentConnections     ConnectionRequest[] @relation("SentConnections")
+  receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
+  connections1        Connection[] @relation("User1Connections")
+  connections2        Connection[] @relation("User2Connections")
+  givenEndorsements   SkillEndorsement[] @relation("Endorser")
+  receivedEndorsements SkillEndorsement[] @relation("EndorsedUser")
+  createdCircles      CircleBadge[] @relation("CreatedCircles")
+  circleMemberships   CircleMembership[] @relation("CircleMemberships")
+  sentCircleInvitations CircleInvitation[] @relation("SentCircleInvitations")
+  receivedCircleInvitations CircleInvitation[] @relation("ReceivedCircleInvitations")
+  goals                 Goal[]
+  achievements          UserAchievement[]
+  parent                 ParentProfile?        @relation(fields: [parentId], references: [id])
+  postLikes         PostLike[]
+  postComments      PostComment[]
+  postBookmarks     PostBookmark[]
+  postReactions  PostReaction[]
+  institutionFollowers InstitutionFollowConnection[] @relation("InstitutionFollowers")
+  institutionFollowing InstitutionFollowConnection[] @relation("InstitutionFollowing")
+
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model StudentProfile {
+  id                 String           @id @db.Uuid
+  profile            Profile          @relation(fields: [id], references: [id])
+  age_group          AgeGroup?        @map("age_group")
+  educationLevel     EducationLevel   @map("education_level")
+  birthMonth         String?          @map("birth_month")
+  birthYear          String?          @map("birth_year")
+  personalityType    String?          @map("personality_type")
+  learningStyle      String?          @map("learning_style")
+  favoriteQuote      String?          @map("favorite_quote")
+  onboardingCompleted Boolean          @default(false) @map("onboarding_completed")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  educationHistory   StudentEducationHistory[]
+
+  @@map("student_profiles")
+  @@schema("public")
+}
+
+model StudentEducationHistory {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentId           String    @map("student_id") @db.Uuid
+  institutionId       String?   @map("institution_id") @db.Uuid
+  institutionName     String    @map("institution_name")
+  institutionTypeId   Int?      @map("institution_type_id")
+  degreeProgram       String?   @map("degree_program")
+  fieldOfStudy        String?   @map("field_of_study")
+  subjects         Json?    @default("[]")
+  startDate           DateTime? @map("start_date") @db.Date
+  endDate             DateTime? @map("end_date") @db.Date
+  isCurrent           Boolean   @default(false) @map("is_current")
+  gradeLevel          String?   @map("grade_level")
+  gpa                 String?
+  achievements        String?
+  description         String?
+  institutionVerified Boolean?  @map("institution_verified")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  student             StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  institution         InstitutionProfile? @relation(fields: [institutionId], references: [id])
+  institutionType     InstitutionType?    @relation(fields: [institutionTypeId], references: [id])
+
+  @@map("student_education_history")
+  @@schema("public")
+}
+
+model MentorProfile {
+  id                  String    @id @db.Uuid
+  profile             Profile   @relation(fields: [id], references: [id])
+  profession          String
+  organization        String?
+  yearsExperience     Int?      @map("years_experience")
+  verified            Boolean   @default(false)
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  hoursPerWeek        Int       @default(5) @map("hours_per_week")
+  maxMentees          Int       @default(1) @map("max_mentees")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("mentor_profiles")
+  @@schema("public")
+}
+
+model InstitutionCategory {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+  slug         String    @unique
+  description  String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  types        InstitutionType[]
+
+  @@map("institution_categories")
+  @@schema("public")
+}
+
+model InstitutionType {
+  id           Int       @id @default(autoincrement())
+  categoryId   Int       @map("category_id")
+  name         String
+  slug         String
+  description  String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  category                    InstitutionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  institutions                InstitutionProfile[]
+  studentEducationHistory     StudentEducationHistory[]
+
+  @@unique([categoryId, slug])
+  @@map("institution_types")
+  @@schema("public")
+}
+
+model InstitutionProfile {
+  id                  String    @id @db.Uuid
+  profile             Profile   @relation(fields: [id], references: [id])
+  institutionName     String    @map("institution_name")
+  institutionType     String?   @map("institution_type")
+  institutionTypeId   Int?      @map("institution_type_id")
+  website            String?
+  logoUrl            String?   @map("logo_url")
+  coverImageUrl      String?   @map("cover_image_url")
+  overview           String?
+  mission            String?
+  coreValues         Json?     @map("core_values")
+  verified           Boolean   @default(false)
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  institutionTypeRef          InstitutionType? @relation(fields: [institutionTypeId], references: [id])
+  studentEducationHistory     StudentEducationHistory[]
+  programs              InstitutionProgram[]
+  events       InstitutionEvents[]
+  gallery      InstitutionGallery[]
+  facilities   InstitutionFacility[]
+  faculty      InstitutionFaculty[]
+
+  @@map("institution_profiles")
+  @@schema("public")
+}
+
+model InstitutionGallery {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId String              @map("institution_id") @db.Uuid
+  imageUrl      String              @map("image_url")
+  caption       String?
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  institution   InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_gallery")
+  @@schema("public")
+}
+
+model InstitutionFacility {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId  String              @map("institution_id") @db.Uuid
+  name           String
+  description    String
+  features       String[]
+  images         String[]
+  learnMoreLink  String?             @map("learn_more_link")
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  institution    InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_facilities")
+  @@schema("public")
+}
+
+model InstitutionFaculty {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId  String              @map("institution_id") @db.Uuid
+  name           String
+  title          String
+  department     String
+  image          String?
+  expertise      String[]            @default([])
+  email          String?
+  bio            String?
+  qualifications String?
+  experience     String?
+  specialization String?
+  featured       Boolean             @default(false)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  institution    InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_faculty")
+  @@schema("public")
+}
+
+model InstitutionEvents {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId   String    @map("institution_id") @db.Uuid
+  title           String
+  description     String
+  eventType       String    @map("event_type")
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime? @map("end_date")
+  location        String?
+  imageUrl        String?   @map("image_url")
+  registrationUrl String?   @map("registration_url")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  institution InstitutionProfile @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_events")
+  @@schema("public")
+}
+
+model InstitutionProgram {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId     String    @map("institution_id") @db.Uuid
+  name              String
+  type              String
+  level             String
+  durationValue     Int       @map("duration_value")
+  durationType      String    @map("duration_type")
+  description       String
+  eligibility       String?
+  learningOutcomes  String?   @map("learning_outcomes")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  institution       InstitutionProfile @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_programs")
+  @@schema("public")
+}
+
+model InterestCategory {
+  id          Int        @id @default(autoincrement())
+  name        String
+  ageGroup    AgeGroup   @map("age_group")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  interests   Interest[]
+
+  @@map("interest_categories")
+  @@schema("public")
+}
+
+model Interest {
+  id                Int              @id @default(autoincrement())
+  name              String
+  categoryId        Int              @map("category_id")
+  category          InterestCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  userInterests     UserInterest[]
+
+  @@map("interests")
+  @@schema("public")
+}
+
+model UserInterest {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  interestId  Int      @map("interest_id")
+  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest    Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, interestId])
+  @@map("user_interests")
+  @@schema("public")
+}
+
+model SkillCategory {
+  id          Int        @id @default(autoincrement())
+  name        String
+  ageGroup    AgeGroup   @map("age_group")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  skills      Skill[]
+
+  @@map("skill_categories")
+  @@schema("public")
+}
+
+model Skill {
+  id                Int           @id @default(autoincrement())
+  name              String
+  categoryId        Int           @map("category_id")
+  category          SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  userSkills        UserSkill[]
+  endorsements      SkillEndorsement[]
+
+  @@map("skills")
+  @@schema("public")
+}
+
+model UserSkill {
+  id                Int         @id @default(autoincrement())
+  userId            String      @map("user_id") @db.Uuid
+  skillId           Int         @map("skill_id")
+  proficiencyLevel  Int         @map("proficiency_level") // 1-5 skill level
+  user              Profile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill             Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  @@unique([userId, skillId])
+  @@map("user_skills")
+  @@schema("public")
+}
+
+model SocialLink {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  platform    String
+  url         String
+  displayName String?  @map("display_name")
+  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, platform])
+  @@map("social_links")
+  @@schema("public")
+}
+
+model Language {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  code          String?        @unique
+  userLanguages UserLanguage[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  @@map("languages")
+  @@schema("public")
+}
+
+model UserLanguage {
+  id               Int      @id @default(autoincrement())
+  userId           String   @map("user_id") @db.Uuid
+  languageId       Int      @map("language_id")
+  proficiencyLevel String   @map("proficiency_level") // 'beginner', 'intermediate', 'advanced', 'native'
+  user             Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language         Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, languageId])
+  @@map("user_languages")
+  @@schema("public")
+}
+
+model Hobby {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  category    String?
+  userHobbies UserHobby[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@map("hobbies")
+  @@schema("public")
+}
+
+model UserHobby {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  hobbyId   Int      @map("hobby_id")
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hobby     Hobby    @relation(fields: [hobbyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, hobbyId])
+  @@map("user_hobbies")
+  @@schema("public")
+}
+
+model Goal {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  description String?
+  category    String?
+  timeframe   String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+  @@schema("public")
+}
+
+model MoodBoard {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  imageUrl  String   @map("image_url")
+  caption   String?
+  position  Int      @default(0)
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("mood_board")
+  @@schema("public")
+}
+
+model CustomBadge {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  title           String
+  description     String?
+  iconUrl         String?   @map("icon_url")
+  color           String    @default("#3B82F6")
+  earnedDate      DateTime  @default(now()) @map("earned_date") @db.Date
+  issuer          String?
+  verificationUrl String?   @map("verification_url")
+  user            Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("custom_badges")
+  @@schema("public")
+}
+
+model ConnectionRequest {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId   String   @map("sender_id") @db.Uuid
+  receiverId String   @map("receiver_id") @db.Uuid
+  status     String   @default("pending") // 'pending', 'accepted', 'declined', 'cancelled'
+  message    String?
+  sender     Profile  @relation("SentConnections", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   Profile  @relation("ReceivedConnections", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([senderId, receiverId])
+  @@map("connection_requests")
+  @@schema("public")
+}
+
+model Connection {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user1Id        String   @map("user1_id") @db.Uuid
+  user2Id        String   @map("user2_id") @db.Uuid
+  connectionType String   @default("friend") @map("connection_type") // 'friend', 'mentor', 'mentee', 'colleague'
+  user1          Profile  @relation("User1Connections", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2          Profile  @relation("User2Connections", fields: [user2Id], references: [id], onDelete: Cascade)
+  connectedAt    DateTime @default(now()) @map("connected_at")
+
+  @@unique([user1Id, user2Id])
+  @@map("connections")
+  @@schema("public")
+}
+
+model SkillEndorsement {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  endorserId     String   @map("endorser_id") @db.Uuid
+  endorsedUserId String   @map("endorsed_user_id") @db.Uuid
+  skillId        Int      @map("skill_id")
+  comment        String?
+  endorser       Profile  @relation("Endorser", fields: [endorserId], references: [id], onDelete: Cascade)
+  endorsedUser   Profile  @relation("EndorsedUser", fields: [endorsedUserId], references: [id], onDelete: Cascade)
+  skill          Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([endorserId, endorsedUserId, skillId])
+  @@map("skill_endorsements")
+  @@schema("public")
+}
+
+model CircleBadge {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creatorId         String              @map("creator_id") @db.Uuid
+  name              String              @db.VarChar(50)
+  description       String?
+  color             String              @default("#3B82F6") @db.VarChar(20)
+  icon              String              @default("users") @db.VarChar(50)
+  isDefault         Boolean             @default(false) @map("is_default")
+  isDisabled        Boolean             @default(false) @map("is_disabled")
+  isCreatorDisabled Boolean             @default(false) @map("is_creator_disabled")
+  creator           Profile             @relation("CreatedCircles", fields: [creatorId], references: [id], onDelete: Cascade)
+  memberships       CircleMembership[]
+  invitations       CircleInvitation[]
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  @@map("circle_badges")
+  @@schema("public")
+}
+
+model CircleMembership {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circleId          String      @map("circle_id") @db.Uuid
+  userId            String      @map("user_id") @db.Uuid
+  status            String      @default("active") // 'active', 'pending', 'declined', 'left'
+  joinedAt          DateTime    @default(now()) @map("joined_at")
+  isDisabledMember  Boolean     @default(false) @map("is_disabled_member")
+  circle            CircleBadge @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  user              Profile     @relation("CircleMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  @@unique([circleId, userId])
+  @@map("circle_memberships")
+  @@schema("public")
+}
+
+model CircleInvitation {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  circleId  String      @map("circle_id") @db.Uuid
+  inviterId String      @map("inviter_id") @db.Uuid
+  inviteeId String      @map("invitee_id") @db.Uuid
+  status    String      @default("pending") // 'pending', 'accepted', 'declined', 'cancelled'
+  message   String?
+  circle    CircleBadge @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  inviter   Profile     @relation("SentCircleInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee   Profile     @relation("ReceivedCircleInvitations", fields: [inviteeId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  @@unique([circleId, inviteeId])
+  @@map("circle_invitations")
+  @@schema("public")
+}
+
+model FeedPost {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  content           String
+  imageUrl          String?  @map("image_url")
+  linkPreview       Json?    @map("link_preview")
+  likesCount        Int      @default(0) @map("likes_count")
+  commentsCount     Int      @default(0) @map("comments_count")
+  sharesCount       Int      @default(0) @map("shares_count")
+  isTrail           Boolean  @default(false) @map("is_trail")
+  parentPostId      String?  @map("parent_post_id") @db.Uuid
+  trailOrder        Int?     @map("trail_order")
+  postType          PostType @default(GENERAL) @map("post_type")
+  tags              String[] @default([])
+  subjects          String[] @default([])
+  ageGroup          String?  @map("age_group")
+  difficultyLevel   String?  @map("difficulty_level")
+  isQuestion        Boolean  @default(false) @map("is_question")
+  isAchievement     Boolean  @default(false) @map("is_achievement")
+  achievementType   String?  @map("achievement_type")
+  projectCategory   String?  @map("project_category")
+  moderationStatus  String   @default("approved") @map("moderation_status")
+  viewsCount        Int      @default(0) @map("views_count")
+  engagementScore   Float    @default(0) @map("engagement_score")
+  isPinned          Boolean  @default(false) @map("is_pinned")
+  isPromoted        Boolean  @default(false) @map("is_promoted")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  author       Profile     @relation(fields: [userId], references: [id])
+  likes        PostLike[]
+  comments     PostComment[]
+  bookmarks    PostBookmark[]
+  reactions    PostReaction[]
+  trails       FeedPost[]  @relation("PostTrails")
+  parentPost   FeedPost?   @relation("PostTrails", fields: [parentPostId], references: [id], onDelete: Cascade)
+
+  @@map("feed_posts")
+  @@schema("public")
+}
+
+enum PostType {
+  GENERAL
+  ACHIEVEMENT
+  PROJECT
+  QUESTION
+  DISCUSSION
+  TUTORIAL
+  RESOURCE_SHARE
+  EVENT_ANNOUNCEMENT
+
+  @@map("post_type")
+  @@schema("public")
+}
+
+model PostLike {
+  id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  postId String @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_likes")
+  @@schema("public")
+}
+
+model PostComment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  content   String
+  parentId  String?  @map("parent_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  post     FeedPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author   Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  PostComment[] @relation("CommentReplies")
+
+  @@map("post_comments")
+  @@schema("public")
+}
+
+model PostBookmark {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_bookmarks")
+  @@schema("public")
+}
+
+model PostReaction {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId       String   @map("post_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  reactionType String   @default("like") @map("reaction_type") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_reactions")
+  @@schema("public")
+}
+
+model InstitutionFollowConnection {
+  id          Int      @id @default(autoincrement())
+  senderId    String   @map("sender_id") @db.Uuid
+  receiverId  String   @map("receiver_id") @db.Uuid
+  connectedAt DateTime @default(now()) @map("connected_at")
+
+  sender   Profile @relation("InstitutionFollowers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver Profile @relation("InstitutionFollowing", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("institution_follow_connections")
+  @@schema("public")
+}
+
+model AchievementCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  types AchievementType[]
+
+  @@map("achievement_categories")
+  @@schema("public")
+}
+
+model AchievementType {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int      @map("category_id")
+  name        String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  category           AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  userAchievements   UserAchievement[]
+
+  @@unique([categoryId, name])
+  @@map("achievement_types")
+  @@schema("public")
+}
+
+model UserAchievement {
+  id                     Int      @id @default(autoincrement())
+  userId                 String   @map("user_id") @db.Uuid
+  name                   String
+  description            String
+  dateOfAchievement      DateTime @map("date_of_achievement") @db.Date
+  achievementTypeId      Int?     @map("achievement_type_id")
+  achievementImageIcon   String?  @map("achievement_image_icon")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user           Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementType AchievementType? @relation(fields: [achievementTypeId], references: [id])
+
+  @@map("user_achievements")
+  @@schema("public")
+}
+
+model ParentProfile {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String
+  name              String
+  auth_id           String?  @map("auth_id") @db.Uuid
+  verificationToken String?  @map("verification_token")
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  children          Profile[]
+
+  @@map("parent_profile")
+  @@schema("public")
+}
+
+model ChatbotTheme {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  primaryColor   String?  @map("primary_color")
+  secondaryColor String?  @map("secondary_color")
+  fontFamily     String?  @map("font_family")
+  allowedDomains Json     @default("{\"links\": []}") @map("allowed_domains")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("chatbot_themes")
+  @@schema("public")
+}

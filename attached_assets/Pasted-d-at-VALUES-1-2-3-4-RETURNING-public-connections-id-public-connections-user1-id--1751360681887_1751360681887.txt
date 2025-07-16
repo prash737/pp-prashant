@@ -1,0 +1,28 @@
+d_at") VALUES ($1,$2,$3,$4) RETURNING "public"."connections"."id", "public"."connections"."user1_id", "public"."connections"."user2_id", "public"."connections"."connection_type", "public"."connections"."connected_at"
+prisma:error 
+Invalid `prisma.connection.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "new row for relation \"connections\" violates check constraint \"connections_check\"", severity: "ERROR", detail: Some("Failing row contains (bb9ae630-546d-44c8-9089-13979161e0de, e2178762-18a8-4b8f-92ae-f1e66a1eb4a1, c2b57ac7-cd91-46d6-abb4-7c936c64308c, friend, 2025-07-01 09:04:10.854+00)."), column: None, hint: None }), transient: false })
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error updating connection request: Error [PrismaClientUnknownRequestError]: 
+Invalid `prisma.connection.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "new row for relation \"connections\" violates check constraint \"connections_check\"", severity: "ERROR", detail: Some("Failing row contains (bb9ae630-546d-44c8-9089-13979161e0de, e2178762-18a8-4b8f-92ae-f1e66a1eb4a1, c2b57ac7-cd91-46d6-abb4-7c936c64308c, friend, 2025-07-01 09:04:10.854+00)."), column: None, hint: None }), transient: false })
+    at async PUT (app/api/connections/requests/[id]/route.ts:74:6)
+  72 |     // If accepted, create a connection
+  73 |     if (action === 'accept') {
+> 74 |       await prisma.connection.create({
+     |      ^
+  75 |         data: {
+  76 |           user1Id: connectionRequest.senderId,
+  77 |           user2Id: connectionRequest.receiverId, {
+  clientVersion: '6.8.2'
+}
+ PUT /api/connections/requests/31315cf2-8b9a-434d-a10e-58b280ce590b 500 in 1733ms

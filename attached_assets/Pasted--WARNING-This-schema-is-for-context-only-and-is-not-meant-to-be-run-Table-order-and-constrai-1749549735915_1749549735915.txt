@@ -1,0 +1,429 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.career_goals (
+  id integer NOT NULL DEFAULT nextval('career_goals_id_seq'::regclass),
+  user_id uuid,
+  title text NOT NULL,
+  description text,
+  target_date date,
+  priority integer DEFAULT 1 CHECK (priority >= 1 AND priority <= 5),
+  status text DEFAULT 'active'::text CHECK (status = ANY (ARRAY['active'::text, 'completed'::text, 'paused'::text, 'cancelled'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT career_goals_pkey PRIMARY KEY (id),
+  CONSTRAINT career_goals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.connection_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  sender_id uuid,
+  receiver_id uuid,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'accepted'::text, 'declined'::text, 'cancelled'::text])),
+  message text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT connection_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT connection_requests_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.profiles(id),
+  CONSTRAINT connection_requests_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.connections (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user1_id uuid,
+  user2_id uuid,
+  connection_type text DEFAULT 'friend'::text CHECK (connection_type = ANY (ARRAY['friend'::text, 'mentor'::text, 'mentee'::text, 'colleague'::text])),
+  connected_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT connections_pkey PRIMARY KEY (id),
+  CONSTRAINT connections_user2_id_fkey FOREIGN KEY (user2_id) REFERENCES public.profiles(id),
+  CONSTRAINT connections_user1_id_fkey FOREIGN KEY (user1_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.custom_badges (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  title text NOT NULL,
+  description text,
+  icon_url text,
+  color text DEFAULT '#3B82F6'::text,
+  earned_date date DEFAULT CURRENT_DATE,
+  issuer text,
+  verification_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT custom_badges_pkey PRIMARY KEY (id),
+  CONSTRAINT custom_badges_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.feed_posts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  content text NOT NULL,
+  image_url text,
+  likes_count integer DEFAULT 0,
+  comments_count integer DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT feed_posts_pkey PRIMARY KEY (id),
+  CONSTRAINT feed_posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.goals (
+  user_id uuid,
+  title text NOT NULL,
+  description text,
+  category text,
+  timeframe text,
+  completed boolean DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  id integer NOT NULL DEFAULT nextval('goals_id_seq'::regclass),
+  CONSTRAINT goals_pkey PRIMARY KEY (id),
+  CONSTRAINT goals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.hobbies (
+  id integer NOT NULL DEFAULT nextval('hobbies_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  category text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT hobbies_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.institution_categories (
+  id integer NOT NULL DEFAULT nextval('institution_categories_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  slug text NOT NULL UNIQUE,
+  description text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT institution_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.institution_events (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  institution_id uuid,
+  title text NOT NULL,
+  description text NOT NULL,
+  event_type text NOT NULL,
+  start_date timestamp with time zone NOT NULL,
+  end_date timestamp with time zone,
+  location text,
+  image_url text,
+  registration_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT institution_events_pkey PRIMARY KEY (id),
+  CONSTRAINT institution_events_institution_id_fkey FOREIGN KEY (institution_id) REFERENCES public.institution_profiles(id)
+);
+CREATE TABLE public.institution_gallery (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  institution_id uuid,
+  image_url text NOT NULL,
+  caption text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT institution_gallery_pkey PRIMARY KEY (id),
+  CONSTRAINT institution_gallery_institution_id_fkey FOREIGN KEY (institution_id) REFERENCES public.institution_profiles(id)
+);
+CREATE TABLE public.institution_profiles (
+  id uuid NOT NULL,
+  institution_name text NOT NULL,
+  institution_type text NOT NULL,
+  category text NOT NULL,
+  website text,
+  logo_url text,
+  cover_image_url text,
+  verified boolean DEFAULT false,
+  onboarding_completed boolean DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  institution_type_id integer,
+  CONSTRAINT institution_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT institution_profiles_institution_type_id_fkey FOREIGN KEY (institution_type_id) REFERENCES public.institution_types(id),
+  CONSTRAINT institution_profiles_id_fkey FOREIGN KEY (id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.institution_programs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  institution_id uuid,
+  name text NOT NULL,
+  type text NOT NULL,
+  level text NOT NULL,
+  duration text NOT NULL,
+  duration_type text NOT NULL,
+  description text NOT NULL,
+  eligibility text,
+  outcomes text,
+  assessment text,
+  certification text,
+  schedule text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT institution_programs_pkey PRIMARY KEY (id),
+  CONSTRAINT institution_programs_institution_id_fkey FOREIGN KEY (institution_id) REFERENCES public.institution_profiles(id)
+);
+CREATE TABLE public.institution_types (
+  id integer NOT NULL DEFAULT nextval('institution_types_id_seq'::regclass),
+  category_id integer,
+  name text NOT NULL,
+  slug text NOT NULL,
+  description text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT institution_types_pkey PRIMARY KEY (id),
+  CONSTRAINT institution_types_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.institution_categories(id)
+);
+CREATE TABLE public.interest_categories (
+  id integer NOT NULL DEFAULT nextval('interest_categories_id_seq'::regclass),
+  name text NOT NULL,
+  age_group USER-DEFINED NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT interest_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.interests (
+  id integer NOT NULL DEFAULT nextval('interests_id_seq'::regclass),
+  name text NOT NULL,
+  category_id integer NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT interests_pkey PRIMARY KEY (id),
+  CONSTRAINT interests_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.interest_categories(id)
+);
+CREATE TABLE public.languages (
+  id integer NOT NULL DEFAULT nextval('languages_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  code text UNIQUE,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT languages_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.mentor_availability (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  mentor_id uuid,
+  time_slot text NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mentor_availability_pkey PRIMARY KEY (id),
+  CONSTRAINT mentor_availability_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES public.mentor_profiles(id)
+);
+CREATE TABLE public.mentor_experience (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  mentor_id uuid,
+  title text NOT NULL,
+  organization text NOT NULL,
+  start_date date NOT NULL,
+  end_date date,
+  current boolean DEFAULT false,
+  description text,
+  type USER-DEFINED NOT NULL,
+  credential_id text,
+  credential_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mentor_experience_pkey PRIMARY KEY (id),
+  CONSTRAINT mentor_experience_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES public.mentor_profiles(id)
+);
+CREATE TABLE public.mentor_expertise (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  mentor_id uuid,
+  subject text NOT NULL,
+  description text,
+  years_experience integer,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mentor_expertise_pkey PRIMARY KEY (id),
+  CONSTRAINT mentor_expertise_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES public.mentor_profiles(id)
+);
+CREATE TABLE public.mentor_profiles (
+  id uuid NOT NULL,
+  profession text NOT NULL,
+  organization text,
+  years_experience integer,
+  verified boolean DEFAULT false,
+  onboarding_completed boolean DEFAULT false,
+  hours_per_week integer DEFAULT 5,
+  max_mentees integer DEFAULT 1,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mentor_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT mentor_profiles_id_fkey FOREIGN KEY (id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.mentorships (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  mentor_id uuid,
+  student_id uuid,
+  status text NOT NULL,
+  start_date timestamp with time zone,
+  end_date timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mentorships_pkey PRIMARY KEY (id),
+  CONSTRAINT mentorships_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.student_profiles(id),
+  CONSTRAINT mentorships_mentor_id_fkey FOREIGN KEY (mentor_id) REFERENCES public.mentor_profiles(id)
+);
+CREATE TABLE public.mood_board (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  image_url text NOT NULL,
+  caption text,
+  position integer DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT mood_board_pkey PRIMARY KEY (id),
+  CONSTRAINT mood_board_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.post_comments (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  post_id uuid,
+  user_id uuid,
+  content text NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT post_comments_pkey PRIMARY KEY (id),
+  CONSTRAINT post_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT post_comments_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.feed_posts(id)
+);
+CREATE TABLE public.post_likes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  post_id uuid,
+  user_id uuid,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT post_likes_pkey PRIMARY KEY (id),
+  CONSTRAINT post_likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT post_likes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.feed_posts(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  role USER-DEFINED NOT NULL,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  bio text,
+  location text,
+  profile_image_url text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  tagline text,
+  professional_summary text,
+  verification_status boolean DEFAULT false,
+  cover_image_url text,
+  theme_preference text DEFAULT 'default'::text,
+  timezone text,
+  availability_status text DEFAULT 'online'::text,
+  last_active_date timestamp with time zone DEFAULT now(),
+  profile_views integer DEFAULT 0,
+  email text CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'::text),
+  phone text,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.skill_categories (
+  id integer NOT NULL DEFAULT nextval('skill_categories_id_seq'::regclass),
+  name text NOT NULL,
+  age_group USER-DEFINED NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT skill_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.skill_endorsements (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  endorser_id uuid,
+  endorsed_user_id uuid,
+  skill_id integer,
+  comment text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT skill_endorsements_pkey PRIMARY KEY (id),
+  CONSTRAINT skill_endorsements_endorsed_user_id_fkey FOREIGN KEY (endorsed_user_id) REFERENCES public.profiles(id),
+  CONSTRAINT skill_endorsements_endorser_id_fkey FOREIGN KEY (endorser_id) REFERENCES public.profiles(id),
+  CONSTRAINT skill_endorsements_skill_id_fkey FOREIGN KEY (skill_id) REFERENCES public.skills(id)
+);
+CREATE TABLE public.skills (
+  id integer NOT NULL DEFAULT nextval('skills_id_seq'::regclass),
+  name text NOT NULL,
+  category_id integer NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT skills_pkey PRIMARY KEY (id),
+  CONSTRAINT skills_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.skill_categories(id)
+);
+CREATE TABLE public.social_links (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  platform text NOT NULL,
+  url text NOT NULL,
+  display_name text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT social_links_pkey PRIMARY KEY (id),
+  CONSTRAINT social_links_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.student_education_history (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  student_id uuid,
+  institution_id uuid,
+  institution_name text NOT NULL,
+  degree_program text,
+  field_of_study text,
+  start_date date,
+  end_date date,
+  is_current boolean DEFAULT false,
+  grade_level text,
+  gpa text,
+  achievements text,
+  description text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  institution_type_id integer,
+  subjects jsonb DEFAULT '[]'::jsonb CHECK (jsonb_typeof(subjects) = 'array'::text),
+  CONSTRAINT student_education_history_pkey PRIMARY KEY (id),
+  CONSTRAINT student_education_history_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.student_profiles(id),
+  CONSTRAINT student_education_history_institution_type_id_fkey FOREIGN KEY (institution_type_id) REFERENCES public.institution_types(id),
+  CONSTRAINT student_education_history_institution_id_fkey FOREIGN KEY (institution_id) REFERENCES public.institution_profiles(id)
+);
+CREATE TABLE public.student_profiles (
+  id uuid NOT NULL,
+  education_level USER-DEFINED NOT NULL,
+  parent_email text,
+  parent_verified boolean DEFAULT false,
+  onboarding_completed boolean DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  birth_month text,
+  birth_year text,
+  age_group USER-DEFINED,
+  personality_type text,
+  learning_style text,
+  favorite_quote text,
+  CONSTRAINT student_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT student_profiles_id_fkey FOREIGN KEY (id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.user_hobbies (
+  id integer NOT NULL DEFAULT nextval('user_hobbies_id_seq'::regclass),
+  user_id uuid,
+  hobby_id integer,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_hobbies_pkey PRIMARY KEY (id),
+  CONSTRAINT user_hobbies_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_hobbies_hobby_id_fkey FOREIGN KEY (hobby_id) REFERENCES public.hobbies(id)
+);
+CREATE TABLE public.user_interests (
+  id integer NOT NULL DEFAULT nextval('user_interests_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  interest_id integer NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_interests_pkey PRIMARY KEY (id),
+  CONSTRAINT user_interests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_interests_interest_id_fkey FOREIGN KEY (interest_id) REFERENCES public.interests(id)
+);
+CREATE TABLE public.user_languages (
+  id integer NOT NULL DEFAULT nextval('user_languages_id_seq'::regclass),
+  user_id uuid,
+  language_id integer,
+  proficiency_level text NOT NULL CHECK (proficiency_level = ANY (ARRAY['beginner'::text, 'intermediate'::text, 'advanced'::text, 'native'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_languages_pkey PRIMARY KEY (id),
+  CONSTRAINT user_languages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_languages_language_id_fkey FOREIGN KEY (language_id) REFERENCES public.languages(id)
+);
+CREATE TABLE public.user_skills (
+  id integer NOT NULL DEFAULT nextval('user_skills_id_seq'::regclass),
+  user_id uuid NOT NULL,
+  skill_id integer NOT NULL,
+  proficiency_level integer NOT NULL CHECK (proficiency_level >= 1 AND proficiency_level <= 5),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_skills_pkey PRIMARY KEY (id),
+  CONSTRAINT user_skills_skill_id_fkey FOREIGN KEY (skill_id) REFERENCES public.skills(id),
+  CONSTRAINT user_skills_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);

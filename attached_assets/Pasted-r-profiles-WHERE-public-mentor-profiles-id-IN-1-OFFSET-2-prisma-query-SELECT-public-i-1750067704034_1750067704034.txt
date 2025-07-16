@@ -1,0 +1,22 @@
+r_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type_id", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+API: User profile found in database
+API: Raw age_group from database: young_adult
+ GET /api/auth/user 200 in 116ms
+ GET /api/student/profile/d66a8250-482e-4681-a9a0-ed76c8223386 403 in 77ms
+ GET /student/profile/view/f9606be6-ddd9-4951-961a-cf95f539cea1 200 in 101ms
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: sb-user-id, sb-access-token, sb-refresh-token
+API: Available cookies: [ 'sb-user-id', 'sb-access-token', 'sb-refresh-token' ]
+API: Looking for session cookies...
+API: Using access token from sb-access-token cookie
+API: Token found: true
+API: Token preview: eyJhbGciOiJIUzI1NiIsImtpZCI6In...
+API: Token preview: eyJhbGciOiJIUzI1NiIs...
+API: Verifying token with Supabase
+API: Authenticated user found: 7b0ae884-4525-416c-bf2a-1729e94c00a9
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "p

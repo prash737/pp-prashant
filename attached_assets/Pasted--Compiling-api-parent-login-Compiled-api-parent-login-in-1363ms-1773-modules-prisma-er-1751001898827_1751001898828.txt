@@ -1,0 +1,58 @@
+○ Compiling /api/parent/login ...
+ ✓ Compiled /api/parent/login in 1363ms (1773 modules)
+prisma:error 
+Invalid `prisma.parentProfile.findFirst()` invocation:
+
+{
+  where: {
+    email: "miniproject618@gmail.com",
+    auth_id: "b9a4d9df-5740-4dc8-bade-c156450a84ef",
+    ~~~~~~~
+?   AND?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   OR?: ParentProfileWhereInput[],
+?   NOT?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   id?: BigIntFilter | BigInt,
+?   authId?: UuidNullableFilter | String | Null,
+?   verificationToken?: StringNullableFilter | String | Null,
+?   createdAt?: DateTimeFilter | DateTime,
+?   children?: ProfileListRelationFilter
+  }
+}
+
+Unknown argument `auth_id`. Did you mean `authId`? Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Parent login error: Error [PrismaClientValidationError]: 
+Invalid `prisma.parentProfile.findFirst()` invocation:
+
+{
+  where: {
+    email: "miniproject618@gmail.com",
+    auth_id: "b9a4d9df-5740-4dc8-bade-c156450a84ef",
+    ~~~~~~~
+?   AND?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   OR?: ParentProfileWhereInput[],
+?   NOT?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   id?: BigIntFilter | BigInt,
+?   authId?: UuidNullableFilter | String | Null,
+?   verificationToken?: StringNullableFilter | String | Null,
+?   createdAt?: DateTimeFilter | DateTime,
+?   children?: ProfileListRelationFilter
+  }
+}
+
+Unknown argument `auth_id`. Did you mean `authId`? Available options are listed in green.
+    at async POST (app/api/parent/login/route.ts:41:26)
+  39 |
+  40 |     // Verify this is a parent account
+> 41 |     const parentProfile = await prisma.parentProfile.findFirst({
+     |                          ^
+  42 |       where: { 
+  43 |         email: email,
+  44 |         auth_id: authData.user.id  {
+  clientVersion: '6.8.2'
+}
+ POST /api/parent/login 500 in 2326ms

@@ -1,0 +1,111 @@
+export const INSTITUTION_CATEGORIES = [
+  {
+    id: "traditional",
+    label: "Traditional Educational Institutions",
+    types: [
+      { id: "preschool", label: "Preschool/Kindergarten" },
+      { id: "primary", label: "Primary School" },
+      { id: "secondary", label: "Secondary/High School" },
+      { id: "university", label: "University" },
+      { id: "college", label: "College" },
+      { id: "community_college", label: "Community/Junior College" },
+      { id: "polytechnic", label: "Polytechnic" },
+      { id: "vocational", label: "Vocational/Trade School" },
+    ],
+  },
+  {
+    id: "specialized_coaching",
+    label: "Specialized Training & Coaching",
+    types: [
+      { id: "career_coaching", label: "Career Coaching Center" },
+      { id: "professional_skills", label: "Professional Skills Training" },
+      { id: "it_training", label: "IT/Technical Training Institute" },
+      { id: "competitive_exam", label: "Competitive Exam Coaching" },
+      { id: "test_prep", label: "Test Preparation Center" },
+      { id: "subject_tutoring", label: "Subject Tutoring Center" },
+      { id: "language", label: "Language Institute" },
+      { id: "soft_skills", label: "Soft Skills Development Center" },
+    ],
+  },
+  {
+    id: "arts_sports",
+    label: "Arts, Sports & Performance Education",
+    types: [
+      { id: "sports_academy", label: "Sports Academy/Athletic Training" },
+      { id: "music_school", label: "Music School/Conservatory" },
+      { id: "dance_academy", label: "Dance Academy" },
+      { id: "fine_arts", label: "Fine Arts Institution" },
+      { id: "drama_theater", label: "Drama/Theater School" },
+      { id: "film_media", label: "Film and Media Academy" },
+      { id: "martial_arts", label: "Martial Arts/Physical Training" },
+      { id: "yoga_wellness", label: "Yoga and Wellness Academy" },
+    ],
+  },
+  {
+    id: "special_alternative",
+    label: "Special & Alternative Education",
+    types: [
+      { id: "special_needs", label: "Special Needs Education Center" },
+      { id: "remedial", label: "Remedial Education Institution" },
+      { id: "gifted", label: "Gifted Education Program" },
+      { id: "therapeutic", label: "Therapeutic Education Center" },
+      { id: "montessori", label: "Montessori/Waldorf School" },
+      { id: "homeschooling", label: "Homeschooling Support Center" },
+      { id: "alternative", label: "Alternative Education School" },
+    ],
+  },
+  {
+    id: "government",
+    label: "Government Educational Institutions",
+    types: [
+      { id: "public_admin", label: "Public School System Administration" },
+      { id: "govt_university", label: "Government University/College" },
+      { id: "military_academy", label: "Military/Defense Training Academy" },
+      { id: "civil_service", label: "Civil Service Training Institute" },
+      { id: "govt_research", label: "Government Research Institution" },
+      { id: "public_vocational", label: "Public Vocational Training Center" },
+      { id: "govt_sports", label: "Government Sports Authority" },
+    ],
+  },
+  {
+    id: "ngo",
+    label: "Non-Governmental Organizations (NGOs)",
+    types: [
+      { id: "edu_ngo", label: "Educational NGO" },
+      { id: "skill_dev", label: "Skill Development Organization" },
+      { id: "literacy", label: "Literacy Program Provider" },
+      { id: "resource", label: "Educational Resource Provider" },
+      { id: "community", label: "Community Learning Center" },
+      { id: "international", label: "International Education Organization" },
+      { id: "special_needs_ngo", label: "Special Needs Support Organization" },
+    ],
+  },
+  {
+    id: "modern",
+    label: "Modern Learning Environments",
+    types: [
+      { id: "online", label: "Online Learning Platform" },
+      { id: "blended", label: "Blended Learning Provider" },
+      { id: "continuing_ed", label: "Continuing Education Center" },
+      { id: "edtech", label: "Educational Technology Provider" },
+      { id: "mooc", label: "Massive Open Online Course (MOOC) Provider" },
+      { id: "virtual_school", label: "Virtual School" },
+      { id: "microlearning", label: "Microlearning Platform" },
+    ],
+  },
+  {
+    id: "other",
+    label: "Other Educational Institutions",
+    types: [
+      { id: "corporate_training", label: "Corporate Training Department" },
+      { id: "research_institute", label: "Independent Research Institute" },
+      { id: "think_tank", label: "Educational Think Tank" },
+      { id: "publishing", label: "Educational Publishing Organization" },
+      { id: "assessment", label: "Educational Assessment Provider" },
+      { id: "other_type", label: "Other (Not Listed)" },
+    ],
+  },
+]
+
+export type InstitutionCategory = (typeof INSTITUTION_CATEGORIES)[0]
+export type InstitutionType = (typeof INSTITUTION_CATEGORIES)[0]["types"][0]

@@ -1,0 +1,49 @@
+}
+
+Unknown argument `overview`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error updating institution profile: Error [PrismaClientValidationError]: 
+Invalid `prisma.institutionProfile.update()` invocation:
+
+{
+  where: {
+    id: "2fe46924-6301-46be-a3da-b8e5fae82654"
+  },
+  data: {
+    overview: "Best ",
+    ~~~~~~~~
+    mission: "To take more fees",
+    coreValues: [
+      "Atleast 20 LPA placements"
+    ],
+    logoUrl: "/images/pathpiper-logo.png",
+    coverImageUrl: "/university-classroom.png",
+?   institutionName?: String | StringFieldUpdateOperationsInput,
+?   institutionType?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   website?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   verified?: Boolean | BoolFieldUpdateOperationsInput,
+?   onboardingCompleted?: Boolean | BoolFieldUpdateOperationsInput,
+?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   profile?: ProfileUpdateOneRequiredWithoutInstitutionNestedInput,
+?   institutionTypeRef?: InstitutionTypeUpdateOneWithoutInstitutionsNestedInput,
+?   studentEducationHistory?: StudentEducationHistoryUpdateManyWithoutInstitutionNestedInput
+  }
+}
+
+Unknown argument `overview`. Available options are listed in green.
+    at async PATCH (app/api/institution/profile/route.ts:32:27)
+  30 |
+  31 |     // Update institution profile
+> 32 |     const updatedProfile = await prisma.institutionProfile.update({
+     |                           ^
+  33 |       where: { id: user.id },
+  34 |       data: {
+  35 |         overview: overview || null, {
+  clientVersion: '6.8.2'
+}
+ PATCH /api/institution/profile 500 in 629ms

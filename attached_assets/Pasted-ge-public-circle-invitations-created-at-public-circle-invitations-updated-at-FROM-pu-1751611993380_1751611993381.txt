@@ -1,0 +1,29 @@
+ge", "public"."circle_invitations"."created_at", "public"."circle_invitations"."updated_at" FROM "public"."circle_invitations" WHERE "public"."circle_invitations"."invitee_id" = $1 ORDER BY "public"."circle_invitations"."created_at" DESC OFFSET $2
+API: Authenticated user found: 59a87f63-a96e-483a-a848-c859bb0a53dc
+prisma:error 
+Invalid `prisma.studentProfile.findUnique()` invocation:
+
+
+The table `public.career_goals` does not exist in the current database.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching student profile: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.studentProfile.findUnique()` invocation:
+
+
+The table `public.career_goals` does not exist in the current database.
+    at async GET (app/api/student/profile/[id]/route.ts:72:27)
+  70 |
+  71 |     // Fetch student profile with all related data
+> 72 |     const studentProfile = await prisma.studentProfile.findUnique({
+     |                           ^
+  73 |       where: { id: studentId },
+  74 |       include: {
+  75 |         profile: { {
+  code: 'P2021',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ GET /api/s

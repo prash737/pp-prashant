@@ -1,0 +1,35 @@
+Error: ./components/profile/student-profile.tsx
+Error:   [31m×[0m The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+     ╭─[[36;1;4m/home/runner/workspace/components/profile/student-profile.tsx[0m:166:1]
+ [2m163[0m │ ]
+ [2m164[0m │ 
+ [2m165[0m │ // HorizontalNavigation component updated to reflect the Goals tab.
+ [2m166[0m │ "use client";
+     · [35;1m─────────────[0m
+ [2m167[0m │ 
+ [2m168[0m │ import React from "react";
+ [2m169[0m │ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+     ╰────
+  [31m×[0m The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+     ╭─[[36;1;4m/home/runner/workspace/components/profile/student-profile.tsx[0m:235:1]
+ [2m232[0m │ export default HorizontalNavigation;
+ [2m233[0m │ 
+ [2m234[0m │ // Goals component updated to display user's goals and provide an edit button.
+ [2m235[0m │ "use client";
+     · [35;1m─────────────[0m
+ [2m236[0m │ 
+ [2m237[0m │ import { useState, useEffect } from "react";
+ [2m238[0m │ import { useRouter } from "next/navigation";
+     ╰────
+    at BuildError (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/next@15.2.4_react-dom@19.0.0_react@19.0.0__react@19.0.0/node_modules/next/dist/client/components/react-dev-overlay/ui/container/build-error.js:43:41)
+    at react-stack-bottom-frame (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:22429:20)
+    at renderWithHooks (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:5758:22)
+    at updateFunctionComponent (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:8019:19)
+    at beginWork (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:9684:18)
+    at runWithFiberInDEV (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:544:16)
+    at performUnitOfWork (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:15045:22)
+    at workLoopSync (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14871:41)
+    at renderRootSync (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14851:11)
+    at performWorkOnRoot (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:14335:13)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/react-dom@19.0.0_react@19.0.0/node_modules/react-dom/cjs/react-dom-client.development.js:15932:7)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(pages-dir-browser)/./node_modules/.pnpm/scheduler@0.25.0/node_modules/scheduler/cjs/scheduler.development.js:44:48)

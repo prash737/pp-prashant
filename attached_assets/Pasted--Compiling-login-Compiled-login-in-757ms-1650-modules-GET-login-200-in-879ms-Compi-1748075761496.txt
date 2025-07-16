@@ -1,0 +1,19 @@
+ ○ Compiling /login ...
+ ✓ Compiled /login in 757ms (1650 modules)
+ GET /login 200 in 879ms
+ ○ Compiling /api/auth/login ...
+ ✓ Compiled /api/auth/login in 806ms (1774 modules)
+prisma:query SELECT 1
+prisma:query BEGIN
+prisma:query DEALLOCATE ALL
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."created_at", "public"."profiles"."updated_at" FROM "public"."profiles" WHERE ("public"."profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."parent_email", "public"."student_profiles"."parent_verified", "public"."student_profiles"."onboarding_completed", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE "public"."student_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."mentor_profiles"."id", "public"."mentor_profiles"."profession", "public"."mentor_profiles"."organization", "public"."mentor_profiles"."years_experience", "public"."mentor_profiles"."verified", "public"."mentor_profiles"."onboarding_completed", "public"."mentor_profiles"."hours_per_week", "public"."mentor_profiles"."max_mentees", "public"."mentor_profiles"."created_at", "public"."mentor_profiles"."updated_at" FROM "public"."mentor_profiles" WHERE "public"."mentor_profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type", "public"."institution_profiles"."category", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at" FROM "public"."institution_profiles" WHERE "public"."institution_profiles"."id" IN ($1) OFFSET $2
+prisma:query COMMIT
+Query Profile.findUnique took 45ms
+Query Profile.findUnique took 45ms
+ POST /api/auth/login 200 in 1550ms
+Cookie check in middleware: { path: '/onboarding', hasAuthCookie: false, cookies: [] }
+Redirecting unauthenticated request from /onboarding to https://localhost:3000/login?from=%2Fonboarding
+ GET /login?from=%2Fonboarding 200 in 223ms

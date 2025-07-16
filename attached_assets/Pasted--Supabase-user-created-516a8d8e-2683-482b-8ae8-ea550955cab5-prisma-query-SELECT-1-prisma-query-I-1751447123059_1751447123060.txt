@@ -1,0 +1,38 @@
+✅ Supabase user created: 516a8d8e-2683-482b-8ae8-ea550955cab5
+prisma:query SELECT 1
+prisma:query INSERT INTO "public"."profiles" ("id","role","first_name","last_name","bio","verification_status","email","email_verified","theme_preference","availability_status","last_active_date","profile_views","created_at","updated_at","parent_verified") VALUES ($1,CAST($2::text AS "public"."user_role"),$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."email_verified", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified"
+✅ Profile created: 516a8d8e-2683-482b-8ae8-ea550955cab5
+prisma:query INSERT INTO "public"."institution_profiles" ("id","institution_name","institution_type_id","website","logo_url","cover_image_url","verified","onboarding_completed","created_at","updated_at") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "public"."institution_profiles"."id", "public"."institution_profiles"."institution_name", "public"."institution_profiles"."institution_type_id", "public"."institution_profiles"."website", "public"."institution_profiles"."logo_url", "public"."institution_profiles"."cover_image_url", "public"."institution_profiles"."verified", "public"."institution_profiles"."onboarding_completed", "public"."institution_profiles"."created_at", "public"."institution_profiles"."updated_at"
+prisma:error 
+Invalid `prisma.institutionProfile.create()` invocation:
+
+
+Null constraint violation on the fields: (`institution_type`)
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+❌ Institution registration failed: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.institutionProfile.create()` invocation:
+
+
+Null constraint violation on the fields: (`institution_type`)
+    at async registerInstitution (lib/services/auth-service.ts:358:4)
+  356 |
+  357 |     // Create institution profile with all required fields matching schema
+> 358 |     await prisma.institutionProfile.create({
+      |    ^
+  359 |       data: {
+  360 |         id: profile.id,
+  361 |         institutionName: data.institutionData.institutionName, {
+  code: 'P2011',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ POST /signup 200 in 1220ms
+ GET /api/connections/requests?type=received 401 in 19ms
+ GET /api/connections/requests?type=received 401 in 28ms
+ GET /api/circles/invitations?type=received 401 in 30ms
+ GET /api/circles/invitations?type=received 401 in 25ms
+ GET /api/connections/requests?type=received 401 in 9ms
+ GET /api/circles/invitations?type=received 401 in 6ms

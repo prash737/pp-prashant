@@ -1,0 +1,144 @@
+ Linking student profile to parent ID: 20n
+prisma:error 
+Invalid `prisma.profile.update()` invocation:
+
+{
+  where: {
+    id: "f3e0012b-c344-4135-8714-62d63b663ff7"
+  },
+  data: {
+    parent: {
+      connect: {
+        id: 20n
+      }
+    },
+    parentVerified: false,
+    email: "dubeyrajkumar8@gmail.com",
+    emailVerified: false,
+    ~~~~~~~~~~~~~
+?   id?: String | StringFieldUpdateOperationsInput,
+?   role?: UserRole | EnumUserRoleFieldUpdateOperationsInput,
+?   firstName?: String | StringFieldUpdateOperationsInput,
+?   lastName?: String | StringFieldUpdateOperationsInput,
+?   bio?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   location?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   profileImageUrl?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   tagline?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   professionalSummary?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   verificationStatus?: Boolean | BoolFieldUpdateOperationsInput,
+?   phone?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   coverImageUrl?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   themePreference?: String | StringFieldUpdateOperationsInput,
+?   timezone?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   availabilityStatus?: String | StringFieldUpdateOperationsInput,
+?   lastActiveDate?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   profileViews?: Int | IntFieldUpdateOperationsInput,
+?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   student?: StudentProfileUpdateOneWithoutProfileNestedInput,
+?   mentor?: MentorProfileUpdateOneWithoutProfileNestedInput,
+?   institution?: InstitutionProfileUpdateOneWithoutProfileNestedInput,
+?   posts?: FeedPostUpdateManyWithoutAuthorNestedInput,
+?   userInterests?: UserInterestUpdateManyWithoutUserNestedInput,
+?   userSkills?: UserSkillUpdateManyWithoutUserNestedInput,
+?   socialLinks?: SocialLinkUpdateManyWithoutUserNestedInput,
+?   userLanguages?: UserLanguageUpdateManyWithoutUserNestedInput,
+?   userHobbies?: UserHobbyUpdateManyWithoutUserNestedInput,
+?   careerGoals?: CareerGoalUpdateManyWithoutUserNestedInput,
+?   moodBoard?: MoodBoardUpdateManyWithoutUserNestedInput,
+?   customBadges?: CustomBadgeUpdateManyWithoutUserNestedInput,
+?   sentConnections?: ConnectionRequestUpdateManyWithoutSenderNestedInput,
+?   receivedConnections?: ConnectionRequestUpdateManyWithoutReceiverNestedInput,
+?   connections1?: ConnectionUpdateManyWithoutUser1NestedInput,
+?   connections2?: ConnectionUpdateManyWithoutUser2NestedInput,
+?   givenEndorsements?: SkillEndorsementUpdateManyWithoutEndorserNestedInput,
+?   receivedEndorsements?: SkillEndorsementUpdateManyWithoutEndorsedUserNestedInput,
+?   createdCircles?: CircleBadgeUpdateManyWithoutCreatorNestedInput,
+?   circleMemberships?: CircleMembershipUpdateManyWithoutUserNestedInput,
+?   sentCircleInvitations?: CircleInvitationUpdateManyWithoutInviterNestedInput,
+?   receivedCircleInvitations?: CircleInvitationUpdateManyWithoutInviteeNestedInput,
+?   goals?: GoalUpdateManyWithoutUserNestedInput,
+?   achievements?: UserAchievementUpdateManyWithoutUserNestedInput
+  }
+}
+
+Unknown argument `emailVerified`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Registration failed: Error [PrismaClientValidationError]: 
+Invalid `prisma.profile.update()` invocation:
+
+{
+  where: {
+    id: "f3e0012b-c344-4135-8714-62d63b663ff7"
+  },
+  data: {
+    parent: {
+      connect: {
+        id: 20n
+      }
+    },
+    parentVerified: false,
+    email: "dubeyrajkumar8@gmail.com",
+    emailVerified: false,
+    ~~~~~~~~~~~~~
+?   id?: String | StringFieldUpdateOperationsInput,
+?   role?: UserRole | EnumUserRoleFieldUpdateOperationsInput,
+?   firstName?: String | StringFieldUpdateOperationsInput,
+?   lastName?: String | StringFieldUpdateOperationsInput,
+?   bio?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   location?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   profileImageUrl?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   tagline?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   professionalSummary?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   verificationStatus?: Boolean | BoolFieldUpdateOperationsInput,
+?   phone?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   coverImageUrl?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   themePreference?: String | StringFieldUpdateOperationsInput,
+?   timezone?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   availabilityStatus?: String | StringFieldUpdateOperationsInput,
+?   lastActiveDate?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   profileViews?: Int | IntFieldUpdateOperationsInput,
+?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   student?: StudentProfileUpdateOneWithoutProfileNestedInput,
+?   mentor?: MentorProfileUpdateOneWithoutProfileNestedInput,
+?   institution?: InstitutionProfileUpdateOneWithoutProfileNestedInput,
+?   posts?: FeedPostUpdateManyWithoutAuthorNestedInput,
+?   userInterests?: UserInterestUpdateManyWithoutUserNestedInput,
+?   userSkills?: UserSkillUpdateManyWithoutUserNestedInput,
+?   socialLinks?: SocialLinkUpdateManyWithoutUserNestedInput,
+?   userLanguages?: UserLanguageUpdateManyWithoutUserNestedInput,
+?   userHobbies?: UserHobbyUpdateManyWithoutUserNestedInput,
+?   careerGoals?: CareerGoalUpdateManyWithoutUserNestedInput,
+?   moodBoard?: MoodBoardUpdateManyWithoutUserNestedInput,
+?   customBadges?: CustomBadgeUpdateManyWithoutUserNestedInput,
+?   sentConnections?: ConnectionRequestUpdateManyWithoutSenderNestedInput,
+?   receivedConnections?: ConnectionRequestUpdateManyWithoutReceiverNestedInput,
+?   connections1?: ConnectionUpdateManyWithoutUser1NestedInput,
+?   connections2?: ConnectionUpdateManyWithoutUser2NestedInput,
+?   givenEndorsements?: SkillEndorsementUpdateManyWithoutEndorserNestedInput,
+?   receivedEndorsements?: SkillEndorsementUpdateManyWithoutEndorsedUserNestedInput,
+?   createdCircles?: CircleBadgeUpdateManyWithoutCreatorNestedInput,
+?   circleMemberships?: CircleMembershipUpdateManyWithoutUserNestedInput,
+?   sentCircleInvitations?: CircleInvitationUpdateManyWithoutInviterNestedInput,
+?   receivedCircleInvitations?: CircleInvitationUpdateManyWithoutInviteeNestedInput,
+?   goals?: GoalUpdateManyWithoutUserNestedInput,
+?   achievements?: UserAchievementUpdateManyWithoutUserNestedInput
+  }
+}
+
+Unknown argument `emailVerified`. Available options are listed in green.
+    at async registerStudent (lib/services/auth-service.ts:213:29)
+  211 |     if (parentId) {
+  212 |       console.log('🔗 Linking student profile to parent ID:', parentId);
+> 213 |       const updatedProfile = await prisma.profile.update({
+      |                             ^
+  214 |         where: { id: profile.id },
+  215 |         data: {
+  216 |           parent: { {
+  clientVersion: '6.8.2'
+}

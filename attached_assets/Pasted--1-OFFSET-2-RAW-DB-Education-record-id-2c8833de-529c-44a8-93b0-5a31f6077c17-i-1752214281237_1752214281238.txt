@@ -1,0 +1,64 @@
+($1) OFFSET $2
+🔍 RAW DB Education record: {
+  "id": "2c8833de-529c-44a8-93b0-5a31f6077c17",
+  "institutionName": "VIT PUNE",
+  "institutionVerified": true,
+  "fullRecord": {
+    "id": "2c8833de-529c-44a8-93b0-5a31f6077c17",
+    "studentId": "59a87f63-a96e-483a-a848-c859bb0a53dc",
+    "institutionId": "cbf8c329-2fc0-4b74-92eb-445aebcbd2e0",
+    "institutionName": "VIT PUNE",
+    "institutionTypeId": 51,
+    "degreeProgram": "Diploma",
+    "fieldOfStudy": null,
+    "subjects": [
+      "Biology"
+    ],
+    "startDate": "2025-05-01T00:00:00.000Z",
+    "endDate": null,
+    "isCurrent": true,
+    "gradeLevel": "4th year",
+    "gpa": null,
+    "achievements": null,
+    "description": null,
+    "institutionVerified": true,
+    "createdAt": "2025-07-10T11:09:18.514Z",
+    "updatedAt": "2025-07-10T11:10:29.551Z",
+    "institutionType": {
+      "id": 51,
+      "categoryId": 7,
+      "name": "Virtual School",
+      "slug": "virtual-school",
+      "description": "Fully virtual educational institutions",
+      "createdAt": "2025-07-04T06:06:28.163Z",
+      "updatedAt": "2025-07-04T06:06:28.163Z",
+      "category": {
+        "id": 7,
+        "name": "Modern Learning Environments",
+        "slug": "modern-learning",
+        "description": "Technology-enabled and contemporary learning platforms",
+        "createdAt": "2025-07-04T06:06:28.163Z",
+        "updatedAt": "2025-07-04T06:06:28.163Z"
+      }
+    }
+  }
+}
+🔍 API Education verification status: {
+  institution: 'VIT PUNE',
+  institutionVerified: true,
+  type: 'boolean',
+  hasProperty: true,
+  allKeys: [
+    'id',                'studentId',
+    'institutionId',     'institutionName',
+    'institutionTypeId', 'degreeProgram',
+    'fieldOfStudy',      'subjects',
+    'startDate',         'endDate',
+    'isCurrent',         'gradeLevel',
+    'gpa',               'achievements',
+    'description',       'institutionVerified',
+    'createdAt',         'updatedAt',
+    'institutionType'
+  ]
+}
+ GET /api/student/profile/59a8

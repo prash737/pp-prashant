@@ -1,0 +1,64 @@
+Prisma schema loaded from prisma/schema.prisma
+Error: Prisma schema validation - (get-dmmf wasm)
+Error code: P1012
+error: Error validating model "PostLike": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:681
+   | 
+680 | 
+681 | model PostLike {
+682 |   id     String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+683 |   userId String @map("user_id") @db.Uuid
+684 |   postId String @map("post_id") @db.Uuid
+685 |   createdAt DateTime @default(now()) @map("created_at")
+686 | 
+687 |   user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+688 |   post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+689 | 
+690 |   @@unique([userId, postId])
+691 |   @@map("post_likes")
+692 | }
+   | 
+error: Error validating model "PostComment": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:694
+   | 
+693 | 
+694 | model PostComment {
+695 |   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+696 |   postId    String   @map("post_id") @db.Uuid
+697 |   userId    String   @map("user_id") @db.Uuid
+698 |   content   String
+699 |   parentId  String?  @map("parent_id") @db.Uuid
+700 |   createdAt DateTime @default(now()) @map("created_at")
+701 |   updatedAt DateTime @updatedAt @map("updated_at")
+702 | 
+703 |   post     FeedPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+704 |   author   Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+705 |   parent   PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+706 |   replies  PostComment[] @relation("CommentReplies")
+707 | 
+708 |   @@map("post_comments")
+709 | }
+   | 
+error: Error validating model "PostBookmark": This model is missing an `@@schema` attribute.
+  -->  prisma/schema.prisma:711
+   | 
+710 | 
+711 | model PostBookmark {
+712 |   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+713 |   userId    String   @map("user_id") @db.Uuid
+714 |   postId    String   @map("post_id") @db.Uuid
+715 |   createdAt DateTime @default(now()) @map("created_at")
+716 | 
+717 |   user Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+718 |   post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+719 | 
+720 |   @@unique([userId, postId])
+721 |   @@map("post_bookmarks")
+722 | }
+   | 
+
+Validation Error Count: 3
+[Context: getDmmf]
+
+Prisma CLI Version : 6.8.2
+~/workspace$ 
