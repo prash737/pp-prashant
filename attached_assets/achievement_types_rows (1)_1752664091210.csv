@@ -1,0 +1,81 @@
+id,category_id,name,created_at,description
+161,21,Honor Roll,2025-07-04 06:17:18.092429+00,Academic achievement recognition
+162,21,Dean's List,2025-07-04 06:17:18.092429+00,High academic performance
+163,21,Academic Scholarship,2025-07-04 06:17:18.092429+00,Merit-based educational funding
+164,21,Perfect Attendance,2025-07-04 06:17:18.092429+00,Complete attendance record
+165,21,Subject Topper,2025-07-04 06:17:18.092429+00,Top performance in specific subject
+166,21,Research Publication,2025-07-04 06:17:18.092429+00,Published academic research
+167,21,Academic Award,2025-07-04 06:17:18.092429+00,General academic recognition
+168,21,Merit Certificate,2025-07-04 06:17:18.092429+00,Certificate of academic merit
+169,22,Championship Winner,2025-07-04 06:17:18.092429+00,First place in competition
+170,22,Tournament Participation,2025-07-04 06:17:18.092429+00,Active participation in tournaments
+171,22,Sports Scholarship,2025-07-04 06:17:18.092429+00,Athletic-based educational funding
+172,22,Team Captain,2025-07-04 06:17:18.092429+00,Leadership role in sports team
+173,22,Personal Best Record,2025-07-04 06:17:18.092429+00,Individual performance milestone
+174,22,Sports Award,2025-07-04 06:17:18.092429+00,Recognition for athletic achievement
+175,22,Athletic Achievement,2025-07-04 06:17:18.092429+00,General sports accomplishment
+176,22,Fitness Milestone,2025-07-04 06:17:18.092429+00,Personal fitness goal achievement
+177,23,Art Competition Winner,2025-07-04 06:17:18.092429+00,First place in art contest
+178,23,Creative Project,2025-07-04 06:17:18.092429+00,Completion of creative work
+179,23,Performance Award,2025-07-04 06:17:18.092429+00,Recognition for artistic performance
+180,23,Art Exhibition,2025-07-04 06:17:18.092429+00,Participation in art show
+181,23,Music Competition,2025-07-04 06:17:18.092429+00,Musical performance recognition
+182,23,Dance Performance,2025-07-04 06:17:18.092429+00,Dance achievement or performance
+183,23,Creative Writing,2025-07-04 06:17:18.092429+00,Writing achievement or publication
+184,23,Photography Award,2025-07-04 06:17:18.092429+00,Recognition for photographic work
+185,24,Student Council,2025-07-04 06:17:18.092429+00,Elected student leadership position
+186,24,Club President,2025-07-04 06:17:18.092429+00,Leadership role in organization
+187,24,Volunteer Service,2025-07-04 06:17:18.092429+00,Community volunteer work
+188,24,Community Leader,2025-07-04 06:17:18.092429+00,Leadership in community activities
+189,24,Mentorship Award,2025-07-04 06:17:18.092429+00,Recognition for mentoring others
+190,24,Service Hours,2025-07-04 06:17:18.092429+00,Completion of volunteer hours
+191,24,Leadership Certificate,2025-07-04 06:17:18.092429+00,Formal leadership training
+192,24,Social Initiative,2025-07-04 06:17:18.092429+00,Leading social change project
+193,25,Professional Certification,2025-07-04 06:17:18.092429+00,Industry-recognized credential
+194,25,Skill Assessment,2025-07-04 06:17:18.092429+00,Formal skill evaluation
+195,25,Course Completion,2025-07-04 06:17:18.092429+00,Educational course achievement
+196,25,Training Certificate,2025-07-04 06:17:18.092429+00,Completion of training program
+197,25,License Achievement,2025-07-04 06:17:18.092429+00,Professional license obtained
+198,25,Competency Badge,2025-07-04 06:17:18.092429+00,Skill competency recognition
+199,25,Workshop Completion,2025-07-04 06:17:18.092429+00,Workshop participation certificate
+200,25,Skill Endorsement,2025-07-04 06:17:18.092429+00,Professional skill validation
+201,26,Quiz Competition,2025-07-04 06:17:18.092429+00,Academic quiz achievement
+202,26,Debate Winner,2025-07-04 06:17:18.092429+00,Debate competition success
+203,26,Science Fair,2025-07-04 06:17:18.092429+00,Science fair participation or award
+204,26,Hackathon Winner,2025-07-04 06:17:18.092429+00,Programming competition success
+205,26,Olympiad Medal,2025-07-04 06:17:18.092429+00,Academic olympiad achievement
+206,26,Contest Participation,2025-07-04 06:17:18.092429+00,Active contest involvement
+207,26,Competition Award,2025-07-04 06:17:18.092429+00,General competition recognition
+208,26,Challenge Winner,2025-07-04 06:17:18.092429+00,Challenge competition success
+209,27,Goal Achievement,2025-07-04 06:17:18.092429+00,Personal goal completion
+210,27,Personal Milestone,2025-07-04 06:17:18.092429+00,Significant personal accomplishment
+211,27,Habit Formation,2025-07-04 06:17:18.092429+00,Successful habit development
+212,27,Self Improvement,2025-07-04 06:17:18.092429+00,Personal growth achievement
+213,27,Learning Goal,2025-07-04 06:17:18.092429+00,Educational objective completion
+214,27,Personal Challenge,2025-07-04 06:17:18.092429+00,Self-imposed challenge success
+215,27,Growth Milestone,2025-07-04 06:17:18.092429+00,Personal development marker
+216,27,Achievement Unlocked,2025-07-04 06:17:18.092429+00,General personal accomplishment
+217,28,Coding Project,2025-07-04 06:17:18.092429+00,Programming project completion
+218,28,App Development,2025-07-04 06:17:18.092429+00,Mobile or web application creation
+219,28,Innovation Award,2025-07-04 06:17:18.092429+00,Recognition for innovative work
+220,28,Tech Competition,2025-07-04 06:17:18.092429+00,Technology competition achievement
+221,28,Patent Filed,2025-07-04 06:17:18.092429+00,Intellectual property creation
+222,28,Technical Presentation,2025-07-04 06:17:18.092429+00,Technology presentation achievement
+223,28,Programming Achievement,2025-07-04 06:17:18.092429+00,Coding skill recognition
+224,28,Digital Creation,2025-07-04 06:17:18.092429+00,Digital content or product creation
+225,29,Social Project,2025-07-04 06:17:18.092429+00,Community impact project
+226,29,Community Service,2025-07-04 06:17:18.092429+00,Service to local community
+227,29,Fundraising Success,2025-07-04 06:17:18.092429+00,Successful fundraising effort
+228,29,Awareness Campaign,2025-07-04 06:17:18.092429+00,Public awareness initiative
+229,29,Environmental Initiative,2025-07-04 06:17:18.092429+00,Environmental action project
+230,29,Social Impact Award,2025-07-04 06:17:18.092429+00,Recognition for social contribution
+231,29,Charity Work,2025-07-04 06:17:18.092429+00,Charitable activity participation
+232,29,Community Recognition,2025-07-04 06:17:18.092429+00,Community appreciation award
+233,30,Language Proficiency,2025-07-04 06:17:18.092429+00,Language skill certification
+234,30,Cultural Performance,2025-07-04 06:17:18.092429+00,Cultural event participation
+235,30,Language Competition,2025-07-04 06:17:18.092429+00,Language contest achievement
+236,30,Cultural Award,2025-07-04 06:17:18.092429+00,Cultural contribution recognition
+237,30,Translation Work,2025-07-04 06:17:18.092429+00,Translation project completion
+238,30,Cultural Exchange,2025-07-04 06:17:18.092429+00,Cultural exchange participation
+239,30,Heritage Project,2025-07-04 06:17:18.092429+00,Cultural heritage preservation
+240,30,Multilingual Achievement,2025-07-04 06:17:18.092429+00,Multiple language proficiency
