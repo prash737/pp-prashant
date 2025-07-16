@@ -84,7 +84,7 @@ export default function StudentProfiles() {
             </div>
           </motion.div>
 
-          {/* Right side - Profile Card and Illustration */}
+          {/* Right side - Profile Card with Background Illustration */}
           <motion.div
             className="lg:w-1/2 flex justify-center"
             initial={{ opacity: 0, x: 50 }}
@@ -93,52 +93,104 @@ export default function StudentProfiles() {
             transition={{ duration: 0.8 }}
           >
             <div className="relative">
-              {/* Background illustration with students */}
-              <div className="absolute -top-8 -right-8 z-0">
+              {/* Background illustration with diverse students collaborating */}
+              <div className="absolute -top-12 -right-12 z-0">
                 <motion.div
-                  className="w-80 h-60 rounded-2xl bg-gradient-to-br from-blue-100 to-teal-100 flex items-center justify-center"
+                  className="w-96 h-80 rounded-3xl bg-gradient-to-br from-blue-100 via-teal-50 to-purple-50 flex items-center justify-center overflow-hidden"
                   animate={{ 
-                    scale: [1, 1.05, 1],
-                    rotate: [0, 2, 0] 
+                    scale: [1, 1.02, 1],
+                    rotate: [0, 1, 0] 
                   }}
                   transition={{ 
-                    duration: 6, 
+                    duration: 8, 
                     repeat: Number.POSITIVE_INFINITY,
                     ease: "easeInOut" 
                   }}
                 >
-                  {/* Student illustrations */}
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white"></div>
-                    </div>
-                    <div className="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white"></div>
-                    </div>
-                    <div className="w-16 h-16 rounded-full bg-purple-500 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white"></div>
+                  {/* Diverse students illustration */}
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    {/* Background shapes */}
+                    <div className="absolute top-8 right-8 w-16 h-16 rounded-full bg-yellow-200 opacity-60"></div>
+                    <div className="absolute bottom-12 left-8 w-12 h-12 rounded-full bg-teal-200 opacity-70"></div>
+                    
+                    {/* Students with laptops */}
+                    <div className="flex items-center space-x-6">
+                      {/* Student 1 - Dark skin, curly hair */}
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-amber-600 to-amber-700 flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-amber-700 to-amber-800 relative">
+                            {/* Hair */}
+                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-gray-900"></div>
+                            {/* Face */}
+                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
+                          </div>
+                        </div>
+                        {/* Laptop */}
+                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-6 bg-blue-400 rounded-sm"></div>
+                        </div>
+                      </div>
+
+                      {/* Student 2 - Red/orange hair */}
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-red-400 to-red-500 flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-red-500 to-red-600 relative">
+                            {/* Hair */}
+                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-red-600"></div>
+                            {/* Face */}
+                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
+                          </div>
+                        </div>
+                        {/* Laptop */}
+                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-6 bg-green-400 rounded-sm"></div>
+                        </div>
+                      </div>
+
+                      {/* Student 3 - Dark hair */}
+                      <div className="relative">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-b from-orange-400 to-orange-500 flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-b from-orange-500 to-orange-600 relative">
+                            {/* Hair */}
+                            <div className="absolute -top-2 -left-1 w-18 h-12 rounded-full bg-gray-900"></div>
+                            {/* Face */}
+                            <div className="absolute top-4 left-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-4 right-3 w-2 h-1 bg-gray-900 rounded-full"></div>
+                            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-6 h-2 bg-gray-800 rounded-full"></div>
+                          </div>
+                        </div>
+                        {/* Laptop */}
+                        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-8 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-6 bg-purple-400 rounded-sm"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
               </div>
 
-              {/* Pip character in corner */}
-              <div className="absolute -bottom-4 -left-4 z-10">
+              {/* Pip character floating around */}
+              <div className="absolute -bottom-8 -left-8 z-10">
                 <motion.div
-                  animate={{ y: [0, -10, 0] }}
+                  animate={{ 
+                    y: [0, -15, 0],
+                    rotate: [0, 5, -5, 0]
+                  }}
                   transition={{ 
                     repeat: Number.POSITIVE_INFINITY, 
-                    duration: 3, 
+                    duration: 4, 
                     ease: "easeInOut" 
                   }}
                 >
-                  <Image
-                    src="/images/pip-character.png"
-                    width={80}
-                    height={80}
-                    alt="Pip Character"
-                    className="w-20 h-auto filter drop-shadow-lg"
-                  />
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-300 to-blue-400"></div>
+                    </div>
+                  </div>
                 </motion.div>
               </div>
 
