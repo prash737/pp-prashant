@@ -121,7 +121,7 @@ export default function ParentDashboard() {
           }
         }
 
-        router.push('/parent/login')
+        router.push('/login')
       } else {
         console.error('Logout failed')
       }
