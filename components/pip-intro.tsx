@@ -132,14 +132,14 @@ export default function PipIntro() {
 
               {/* Chat Bubble */}
               <motion.div
-                className="absolute -right-8 top-8 bg-white rounded-2xl p-4 shadow-lg max-w-xs"
+                className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-2xl p-4 shadow-lg max-w-xs"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                {/* Chat bubble tail */}
-                <div className="absolute left-0 top-6 w-0 h-0 border-t-[10px] border-b-[10px] border-r-[15px] border-t-transparent border-b-transparent border-r-white transform -translate-x-full"></div>
+                {/* Chat bubble tail pointing down to Pip's mouth */}
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-0 h-0 border-l-[10px] border-r-[10px] border-t-[15px] border-l-transparent border-r-transparent border-t-white"></div>
                 
                 <p className="text-slate-800 text-sm font-medium">
                   Hey there! I'm Pip — here to make your PathPiper journey super fun!
@@ -170,7 +170,7 @@ export default function PipIntro() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10 hover:text-white rounded-full px-8 py-3 text-lg"
+                  className="border-white/30 text-black bg-white hover:bg-white/90 hover:text-black rounded-full px-8 py-3 text-lg"
                 >
                   Learn More
                 </Button>
