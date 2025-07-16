@@ -119,32 +119,32 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
     <div className="min-h-screen bg-gray-50">
       <InstitutionProfileHeader institutionData={institutionData} />
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Mobile: Sticky Top Navigation */}
-        <div className="lg:hidden sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 mb-6 -mx-4 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 capitalize">
-              {sections.find(s => s.id === activeSection)?.label || "About"}
-            </h2>
-            <div className="flex gap-1">
-              {sections.map(({ id, label }) => (
-                <button
-                  key={id}
-                  onClick={() => scrollToSection(id)}
-                  className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-all ${
-                    activeSection === id
-                      ? 'bg-blue-100 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+      {/* Mobile: Sticky Top Navigation */}
+      <div className="lg:hidden sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 mb-6 -mx-4 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 capitalize">
+            {sections.find(s => s.id === activeSection)?.label || "About"}
+          </h2>
+          <div className="flex gap-1">
+            {sections.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => scrollToSection(id)}
+                className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-all ${
+                  activeSection === id
+                    ? 'bg-blue-100 text-blue-700 font-medium'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Desktop and Mobile Layout */}
+      {/* Desktop and Mobile Layout - Full width container to match header */}
+      <div className="container mx-auto px-4 py-6">
         <div className="flex gap-8">
           {/* Desktop Sidebar Navigation */}
           <div className="hidden lg:block w-64 flex-shrink-0">
