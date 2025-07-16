@@ -143,89 +143,91 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
         </div>
       </div>
 
-      {/* Desktop and Mobile Layout - Full width container to match header */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-8">
-          {/* Desktop Sidebar Navigation */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <nav className="space-y-2">
-                  {sections.map(({ id, label }) => (
-                    <button
-                      key={id}
-                      onClick={() => scrollToSection(id)}
-                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
-                        activeSection === id
-                          ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 font-medium'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </nav>
+      {/* Desktop and Mobile Layout - Match header container width */}
+      <div className="relative">
+        <div className="container mx-auto px-4 max-w-7xl py-6">
+          <div className="flex gap-8">
+            {/* Desktop Sidebar Navigation */}
+            <div className="hidden lg:block w-64 flex-shrink-0">
+              <div className="sticky top-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <nav className="space-y-2">
+                    {sections.map(({ id, label }) => (
+                      <button
+                        key={id}
+                        onClick={() => scrollToSection(id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
+                          activeSection === id
+                            ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700 font-medium'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Main Content - Scrollable */}
-          <div className="flex-1">
-            <div 
-              ref={containerRef}
-              className="h-[calc(100vh-280px)] lg:h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
-            >
-              <div className="space-y-8 lg:pr-4">
-                <div 
-                  ref={(el) => sectionRefs.current['about'] = el}
-                  id="about"
-                  className="scroll-mt-6"
-                >
-                  <AboutInstitutionSection institutionData={institutionData} />
-                </div>
+            {/* Main Content - Scrollable */}
+            <div className="flex-1">
+              <div 
+                ref={containerRef}
+                className="h-[calc(100vh-280px)] lg:h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                <div className="space-y-8 lg:pr-4">
+                  <div 
+                    ref={(el) => sectionRefs.current['about'] = el}
+                    id="about"
+                    className="scroll-mt-6"
+                  >
+                    <AboutInstitutionSection institutionData={institutionData} />
+                  </div>
 
-                <div 
-                  ref={(el) => sectionRefs.current['programs'] = el}
-                  id="programs"
-                  className="scroll-mt-6"
-                >
-                  <ProgramsSection institutionId={institutionData.id} />
-                </div>
+                  <div 
+                    ref={(el) => sectionRefs.current['programs'] = el}
+                    id="programs"
+                    className="scroll-mt-6"
+                  >
+                    <ProgramsSection institutionId={institutionData.id} />
+                  </div>
 
-                <div 
-                  ref={(el) => sectionRefs.current['faculty'] = el}
-                  id="faculty"
-                  className="scroll-mt-6"
-                >
-                  <FacultySection />
-                </div>
+                  <div 
+                    ref={(el) => sectionRefs.current['faculty'] = el}
+                    id="faculty"
+                    className="scroll-mt-6"
+                  >
+                    <FacultySection />
+                  </div>
 
-                <div 
-                  ref={(el) => sectionRefs.current['facilities'] = el}
-                  id="facilities"
-                  className="scroll-mt-6"
-                >
-                  <FacilitiesSection />
-                </div>
+                  <div 
+                    ref={(el) => sectionRefs.current['facilities'] = el}
+                    id="facilities"
+                    className="scroll-mt-6"
+                  >
+                    <FacilitiesSection />
+                  </div>
 
-                <div 
-                  ref={(el) => sectionRefs.current['events'] = el}
-                  id="events"
-                  className="scroll-mt-6"
-                >
-                  <EventsSection />
-                </div>
+                  <div 
+                    ref={(el) => sectionRefs.current['events'] = el}
+                    id="events"
+                    className="scroll-mt-6"
+                  >
+                    <EventsSection />
+                  </div>
 
-                <div 
-                  ref={(el) => sectionRefs.current['gallery'] = el}
-                  id="gallery"
-                  className="scroll-mt-6"
-                >
-                  <GallerySection images={institutionData.gallery} />
+                  <div 
+                    ref={(el) => sectionRefs.current['gallery'] = el}
+                    id="gallery"
+                    className="scroll-mt-6"
+                  >
+                    <GallerySection images={institutionData.gallery} />
+                  </div>
                 </div>
               </div>
             </div>
