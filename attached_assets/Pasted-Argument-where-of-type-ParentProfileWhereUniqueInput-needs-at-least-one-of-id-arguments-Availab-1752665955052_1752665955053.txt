@@ -1,0 +1,38 @@
+Argument `where` of type ParentProfileWhereUniqueInput needs at least one of `id` arguments. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+User login API error: Error [PrismaClientValidationError]: 
+Invalid `prisma.parentProfile.findUnique()` invocation:
+
+{
+  where: {
+    auth_id: "aa468584-7681-46f0-87a8-7065c36e1774",
+?   id?: String,
+?   AND?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   OR?: ParentProfileWhereInput[],
+?   NOT?: ParentProfileWhereInput | ParentProfileWhereInput[],
+?   email?: StringFilter | String,
+?   name?: StringFilter | String,
+?   verificationToken?: StringNullableFilter | String | Null,
+?   emailVerified?: BoolFilter | Boolean,
+?   createdAt?: DateTimeFilter | DateTime,
+?   children?: ProfileListRelationFilter
+  }
+}
+
+Argument `where` of type ParentProfileWhereUniqueInput needs at least one of `id` arguments. Available options are listed in green.
+    at async POST (app/api/auth/user-login/route.ts:145:26)
+  143 |
+  144 |     // Check if user exists in parent_profile table
+> 145 |     const parentProfile = await prisma.parentProfile.findUnique({
+      |                          ^
+  146 |       where: { auth_id: userId }
+  147 |     });
+  148 | {
+  clientVersion: '6.8.2'
+}
+ POST /api/auth/user-login 500 in 928ms
+ GET /api/circles/inv
