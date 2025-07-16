@@ -241,7 +241,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
             <div className="flex-1">
               <div 
                 ref={containerRef}
-                className="h-[calc(100vh-280px)] lg:h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide transition-all duration-300"
+                className="h-[calc(100vh-200px)] lg:h-[calc(100vh-120px)] overflow-y-auto scrollbar-hide transition-all duration-300"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
