@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth"
 import Navbar from "@/components/navbar"
 import Hero from "@/components/hero"
 import PipIntro from "@/components/pip-intro"
+import StudentProfiles from "@/components/student-profiles"
 import Features from "@/components/features"
 import Mentorship from "@/components/mentorship"
 import Safety from "@/components/safety"
@@ -71,6 +72,7 @@ export default function HomePage() {
           <main className="overflow-hidden">
             <Hero />
             <PipIntro />
+            <StudentProfiles />
             <Features />
             <Mentorship />
             <Institutions />
