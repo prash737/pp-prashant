@@ -47,49 +47,79 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
     { id: "gallery", label: "Gallery" },
   ]
 
-  // Handle scroll to update active section
+  // Handle scroll to update active section with snap-to-section behavior
   useEffect(() => {
+    let isSnapping = false
+    let snapTimeout: NodeJS.Timeout | null = null
+
     const handleScroll = () => {
-      if (!containerRef.current) return
+      if (!containerRef.current || isSnapping) return
 
-      const scrollTop = containerRef.current.scrollTop
-      const containerHeight = containerRef.current.clientHeight
-      const centerPoint = containerHeight / 2
+      const container = containerRef.current
+      const scrollTop = container.scrollTop
+      const containerHeight = container.clientHeight
 
-      // Find which section is closest to the center of the viewport
-      let currentSection = "about"
-      let minDistance = Infinity
+      // Find which section should be active based on scroll position
+      let targetSection = "about"
+      let targetElement: HTMLElement | null = null
 
       sections.forEach(({ id }) => {
         const element = sectionRefs.current[id]
         if (!element) return
 
-        const rect = element.getBoundingClientRect()
-        const containerRect = containerRef.current!.getBoundingClientRect()
+        const elementTop = element.offsetTop
+        const elementBottom = elementTop + element.offsetHeight
 
-        // Calculate distance from section center to viewport center
-        const sectionTop = rect.top - containerRect.top
-        const sectionBottom = rect.bottom - containerRect.top
-        const sectionCenter = (sectionTop + sectionBottom) / 2
-        const distance = Math.abs(sectionCenter - centerPoint)
-
-        if (distance < minDistance) {
-          minDistance = distance
-          currentSection = id
+        // If we're in the middle of this section or past its start
+        if (scrollTop >= elementTop - containerHeight / 3) {
+          targetSection = id
+          targetElement = element
         }
       })
 
-      setActiveSection(currentSection)
+      // Only snap if we're changing sections
+      if (targetSection !== activeSection && targetElement) {
+        const targetTop = targetElement.offsetTop
+        const threshold = 50 // Pixels of tolerance
+
+        // If we're close to the section start but not exactly there, snap to it
+        if (Math.abs(scrollTop - targetTop) > threshold) {
+          isSnapping = true
+          
+          container.scrollTo({
+            top: targetTop,
+            behavior: 'smooth'
+          })
+
+          // Clear any existing timeout
+          if (snapTimeout) {
+            clearTimeout(snapTimeout)
+          }
+
+          // Allow normal scrolling after snap completes
+          snapTimeout = setTimeout(() => {
+            isSnapping = false
+          }, 500) // Adjust timing as needed
+        }
+      }
+
+      setActiveSection(targetSection)
     }
 
     const container = containerRef.current
     if (container) {
-      container.addEventListener('scroll', handleScroll)
+      container.addEventListener('scroll', handleScroll, { passive: true })
       // Call initially to set correct active section
       handleScroll()
-      return () => container.removeEventListener('scroll', handleScroll)
+      
+      return () => {
+        container.removeEventListener('scroll', handleScroll)
+        if (snapTimeout) {
+          clearTimeout(snapTimeout)
+        }
+      }
     }
-  }, [])
+  }, [activeSection])
 
   // Handle navigation click
   const scrollToSection = (sectionId: string) => {
