@@ -47,17 +47,51 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
     { id: "gallery", label: "Gallery" },
   ]
 
-  // Handle scroll to update active section with snap-to-section behavior
+  // Handle scroll to update active section with scroll-to-expand and snap behavior
   useEffect(() => {
+    let isExpanding = false
     let isSnapping = false
+    let expandTimeout: NodeJS.Timeout | null = null
     let snapTimeout: NodeJS.Timeout | null = null
 
     const handleScroll = () => {
-      if (!containerRef.current || isSnapping) return
+      if (!containerRef.current || isExpanding || isSnapping) return
 
       const container = containerRef.current
       const scrollTop = container.scrollTop
       const containerHeight = container.clientHeight
+
+      // Check if container should expand to full height first
+      const containerRect = container.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const headerHeight = containerRect.top // Distance from top of viewport
+      
+      // If the container is not at the top of viewport and user is trying to scroll
+      if (headerHeight > 0 && scrollTop > 0) {
+        isExpanding = true
+        
+        // Scroll the page to bring the container to the top
+        const targetScrollY = window.scrollY + headerHeight
+        window.scrollTo({
+          top: targetScrollY,
+          behavior: 'smooth'
+        })
+
+        // Reset container scroll to maintain user's intended scroll position
+        container.scrollTop = scrollTop
+
+        // Clear any existing timeout
+        if (expandTimeout) {
+          clearTimeout(expandTimeout)
+        }
+
+        // Allow normal scrolling after expansion completes
+        expandTimeout = setTimeout(() => {
+          isExpanding = false
+        }, 600) // Slightly longer than scroll animation
+        
+        return // Don't process section changes during expansion
+      }
 
       // Find which section should be active based on scroll position
       let targetSection = "about"
@@ -77,8 +111,8 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
         }
       })
 
-      // Only snap if we're changing sections
-      if (targetSection !== activeSection && targetElement) {
+      // Only snap if we're changing sections and container is properly positioned
+      if (targetSection !== activeSection && targetElement && headerHeight <= 10) {
         const targetTop = targetElement.offsetTop
         const threshold = 50 // Pixels of tolerance
 
@@ -99,7 +133,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
           // Allow normal scrolling after snap completes
           snapTimeout = setTimeout(() => {
             isSnapping = false
-          }, 500) // Adjust timing as needed
+          }, 500)
         }
       }
 
@@ -114,6 +148,9 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
       
       return () => {
         container.removeEventListener('scroll', handleScroll)
+        if (expandTimeout) {
+          clearTimeout(expandTimeout)
+        }
         if (snapTimeout) {
           clearTimeout(snapTimeout)
         }
@@ -204,10 +241,11 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
             <div className="flex-1">
               <div 
                 ref={containerRef}
-                className="h-[calc(100vh-280px)] lg:h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide"
+                className="h-[calc(100vh-280px)] lg:h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide transition-all duration-300"
                 style={{
                   scrollbarWidth: 'none',
                   msOverflowStyle: 'none',
+                  scrollBehavior: 'smooth',
                 }}
               >
                 <div className="space-y-8 lg:pr-4">
