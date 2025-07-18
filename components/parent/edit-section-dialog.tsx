@@ -4,17 +4,22 @@ import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CalendarIcon, Upload, X } from "lucide-react"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { getDefaultIconData, getDefaultIcon } from "@/lib/achievement-icons"
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Save, X, Plus, Edit, Trash2 } from 'lucide-react'
+import { Save, Plus, Edit, Trash2, Search, Heart, Award } from 'lucide-react'
 import { getPlaceholderText } from '@/data/institution-placeholders'
 import { MultiSelect } from "@/components/ui/multi-select"
 import { Slider } from '@/components/ui/slider'
-import { Search, Heart, Award } from 'lucide-react'
 
 interface Interest {
   id: number
@@ -1335,123 +1340,18 @@ export default function EditSectionDialog({
                   <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
                        style={{
                          background: `linear-gradient(135deg, ${(() => {
-                           const getDefaultIconData = (achievementTypeId: number) => {
-                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
-                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
-                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
-                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
-                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
-                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
-                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
-                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
-                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
-                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
-                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
-                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
-                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
-                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
-                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
-                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
-                             }
-                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
-                           }
                            return getDefaultIconData(parseInt(formData.achievementTypeId)).color
                          })()}20, ${(() => {
-                           const getDefaultIconData = (achievementTypeId: number) => {
-                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
-                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
-                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
-                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
-                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
-                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
-                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
-                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
-                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
-                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
-                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
-                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
-                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
-                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
-                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
-                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
-                             }
-                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
-                           }
                            return getDefaultIconData(parseInt(formData.achievementTypeId)).color
                          })()}40)`,
                          border: `2px solid ${(() => {
-                           const getDefaultIconData = (achievementTypeId: number) => {
-                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
-                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
-                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
-                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
-                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
-                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
-                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
-                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
-                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
-                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
-                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
-                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
-                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
-                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
-                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
-                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
-                             }
-                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
-                           }
                            return getDefaultIconData(parseInt(formData.achievementTypeId)).color
                          })()}30`,
                          boxShadow: `0 2px 8px ${(() => {
-                           const getDefaultIconData = (achievementTypeId: number) => {
-                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
-                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
-                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
-                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
-                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
-                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
-                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
-                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
-                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
-                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
-                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
-                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
-                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
-                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
-                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
-                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
-                             }
-                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
-                           }
                            return getDefaultIconData(parseInt(formData.achievementTypeId)).color
                          })()}20`
                        }}>
                     {(() => {
-                      const getDefaultIconData = (achievementTypeId: number) => {
-                        const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
-                          161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
-                          162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
-                          163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
-                          164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
-                          165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
-                          166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
-                          167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
-                          168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
-                          169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
-                          170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
-                          171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
-                          172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
-                          173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
-                          174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
-                          175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
-                          176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
-                        }
-                        return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
-                      }
                       return getDefaultIconData(parseInt(formData.achievementTypeId)).icon
                     })()}
                   </div>
