@@ -30,6 +30,7 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
   const [institutions, setInstitutions] = useState<FollowingInstitution[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isParentContext, setIsParentContext] = useState(false)
 
   useEffect(() => {
     const fetchFollowingInstitutions = async () => {
@@ -37,7 +38,14 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/student/following', {
+        // Check if we're in parent context by looking at the current URL
+        const parentContext = window.location.pathname.includes('/parent/child-profile/')
+        setIsParentContext(parentContext)
+        const apiEndpoint = parentContext 
+          ? `/api/parent/child-profile/${userId}/following`
+          : '/api/student/following'
+
+        const response = await fetch(apiEndpoint, {
           credentials: 'include'
         })
 
@@ -67,7 +75,9 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
     return (
       <div className="p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Following</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {isParentContext ? "Child's Following" : "Following"}
+          </h2>
           <Badge variant="secondary" className="animate-pulse px-3 py-1.5 text-sm font-medium">Loading...</Badge>
         </div>
         <div className="flex space-x-6 overflow-x-auto pb-4">
@@ -89,7 +99,9 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
     return (
       <div className="p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Following</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {isParentContext ? "Child's Following" : "Following"}
+          </h2>
           <Badge variant="destructive" className="px-3 py-1.5 text-sm font-medium">Error</Badge>
         </div>
         <div className="text-center py-16">
@@ -110,16 +122,21 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
     return (
       <div className="p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Following</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {isParentContext ? "Child's Following" : "Following"}
+          </h2>
           <Badge variant="secondary" className="px-3 py-1.5 text-sm font-medium">0 institutions</Badge>
         </div>
         <div className="text-center py-16">
           <Users className="h-16 w-16 text-gray-400 mx-auto mb-6" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-            No institutions followed yet
+            {isParentContext ? "No institutions followed yet" : "No institutions followed yet"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-            Start following institutions to stay updated with their latest news and opportunities.
+            {isParentContext 
+              ? "Your child hasn't followed any institutions yet." 
+              : "Start following institutions to stay updated with their latest news and opportunities."
+            }
           </p>
           <Button variant="outline" className="px-6 py-2 h-10">
             Explore Institutions
@@ -132,7 +149,9 @@ export default function FollowingInstitutions({ userId }: FollowingInstitutionsP
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Following</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {isParentContext ? "Child's Following" : "Following"}
+        </h2>
         <Badge variant="secondary" className="px-3 py-1.5 text-sm font-medium">
           {institutions.length} institution{institutions.length !== 1 ? 's' : ''}
         </Badge>

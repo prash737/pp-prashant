@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import EditSectionDialog from "@/components/parent/edit-section-dialog"
+import FollowingInstitutions from "@/components/profile/following-institutions"
 import { 
   User, 
   Edit3, 
@@ -643,7 +644,7 @@ export default function ParentChildProfilePage() {
       <main className="flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
+            <TabsList className="grid w-full grid-cols-9">
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="interests">Interests</TabsTrigger>
               <TabsTrigger value="skills">Skills</TabsTrigger>
@@ -651,6 +652,7 @@ export default function ParentChildProfilePage() {
               <TabsTrigger value="achievements">Achievements</TabsTrigger>
               <TabsTrigger value="goals">Goals</TabsTrigger>
               <TabsTrigger value="circles">Circles</TabsTrigger>
+              <TabsTrigger value="following">Following</TabsTrigger>
               <TabsTrigger value="connections">Connections</TabsTrigger>
             </TabsList>
 
@@ -1345,6 +1347,11 @@ export default function ParentChildProfilePage() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Following Tab */}
+            <TabsContent value="following" className="space-y-6">
+              <FollowingInstitutions userId={childId} />
             </TabsContent>
 
             {/* Connections Tab */}
