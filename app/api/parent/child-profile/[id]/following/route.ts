@@ -9,10 +9,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const childId = params.id
+    const { id: childId } = await params
 
     // Get the authorization header
     const authHeader = request.headers.get('authorization')
