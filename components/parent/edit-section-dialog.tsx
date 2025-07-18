@@ -927,8 +927,7 @@ export default function EditSectionDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeSkill(skill.name)}
-                        className="ml-2 p-0 h-auto text-blue-700 dark:<replit_final_file>
-text-blue-300 hover:text-red-500 hover:bg-transparent"
+                        className="ml-2 p-0 h-auto text-blue-700 dark:text-blue-300 hover:text-red-500 hover:bg-transparent"
                       >
                         <X size={14} />
                       </Button>
@@ -937,8 +936,7 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </div>        </div>
       </div>
     </div>
   )
@@ -1139,10 +1137,10 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
                       const currentYear = currentDate.getFullYear()
                       const currentMonth = currentDate.getMonth()
                       const selectedYear = formData.startDate ? new Date(formData.startDate).getFullYear() : currentYear
-                      
+
                       // Disable future months in current year
                       const isDisabled = selectedYear === currentYear && index > currentMonth
-                      
+
                       return (
                         <SelectItem key={index} value={index.toString()} disabled={isDisabled}>
                           {month}
@@ -1282,7 +1280,8 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Achievement Type Selection */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="category">Category *</Label>
                 <Select
@@ -1326,63 +1325,146 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="dateOfAchievement">Date of Achievement *</Label>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                <Select
-                  value={formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getMonth().toString() : ''}
-                  onValueChange={(value) => {
-                    const year = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear() : new Date().getFullYear()
-                    const newDate = `${year}-${String(parseInt(value) + 1).padStart(2, '0')}-01`
-                    setFormData({ ...formData, dateOfAchievement: newDate })
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["January", "February", "March", "April", "May", "June", 
-                      "July", "August", "September", "October", "November", "December"].map((month, index) => {
-                      const currentDate = new Date()
-                      const currentYear = currentDate.getFullYear()
-                      const currentMonth = currentDate.getMonth()
-                      const selectedYear = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear() : currentYear
-
-                      // Disable future months in current year
-                      const isDisabled = selectedYear === currentYear && index > currentMonth
-
-                      return (
-                        <SelectItem key={index} value={index.toString()} disabled={isDisabled}>
-                          {month}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear().toString() : ''}
-                  onValueChange={(value) => {
-                    const month = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getMonth() : 0
-                    const newDate = `${value}-${String(month + 1).padStart(2, '0')}-01`
-                    setFormData({ ...formData, dateOfAchievement: newDate })
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
+            {/* Achievement Icon Upload */}
             <div className="space-y-3">
-              <Label htmlFor="achievementImage" className="text-sm font-medium">Achievement Icon</Label>
+              <Label className="text-sm font-medium">Achievement Icon</Label>
+
+              {/* Default Icon Preview */}
+              {formData.achievementTypeId && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                       style={{
+                         background: `linear-gradient(135deg, ${(() => {
+                           const getDefaultIconData = (achievementTypeId: number) => {
+                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
+                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
+                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
+                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
+                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
+                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
+                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
+                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
+                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
+                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
+                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
+                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
+                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
+                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
+                             }
+                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
+                           }
+                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
+                         })()}20, ${(() => {
+                           const getDefaultIconData = (achievementTypeId: number) => {
+                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
+                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
+                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
+                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
+                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
+                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
+                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
+                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
+                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
+                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
+                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
+                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
+                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
+                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
+                             }
+                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
+                           }
+                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
+                         })()}40)`,
+                         border: `2px solid ${(() => {
+                           const getDefaultIconData = (achievementTypeId: number) => {
+                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
+                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
+                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
+                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
+                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
+                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
+                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
+                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
+                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
+                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
+                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
+                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
+                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
+                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
+                             }
+                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
+                           }
+                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
+                         })()}30`,
+                         boxShadow: `0 2px 8px ${(() => {
+                           const getDefaultIconData = (achievementTypeId: number) => {
+                             const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
+                               161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
+                               162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
+                               163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
+                               164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
+                               165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
+                               166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
+                               167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
+                               168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
+                               169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
+                               170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+                               171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+                               172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
+                               173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+                               174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
+                               175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
+                               176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
+                             }
+                             return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
+                           }
+                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
+                         })()}20`
+                       }}>
+                    {(() => {
+                      const getDefaultIconData = (achievementTypeId: number) => {
+                        const ACHIEVEMENT_TYPE_DATA: { [key: number]: { icon: string; color: string; name: string } } = {
+                          161: { icon: "🎖️", color: "#3B82F6", name: "Honor Roll" },
+                          162: { icon: "🎓", color: "#3B82F6", name: "Dean's List" },
+                          163: { icon: "💰", color: "#F59E0B", name: "Academic Scholarship" },
+                          164: { icon: "📅", color: "#10B981", name: "Perfect Attendance" },
+                          165: { icon: "🥇", color: "#F59E0B", name: "Subject Topper" },
+                          166: { icon: "📄", color: "#6366F1", name: "Research Publication" },
+                          167: { icon: "🏅", color: "#F59E0B", name: "Academic Award" },
+                          168: { icon: "📜", color: "#8B5CF6", name: "Merit Certificate" },
+                          169: { icon: "🏆", color: "#F59E0B", name: "Championship Winner" },
+                          170: { icon: "🏃‍♂️", color: "#10B981", name: "Tournament Participation" },
+                          171: { icon: "🎯", color: "#F59E0B", name: "Sports Scholarship" },
+                          172: { icon: "👑", color: "#EF4444", name: "Team Captain" },
+                          173: { icon: "📊", color: "#10B981", name: "Personal Best Record" },
+                          174: { icon: "🥉", color: "#F59E0B", name: "Sports Award" },
+                          175: { icon: "⚽", color: "#10B981", name: "Athletic Achievement" },
+                          176: { icon: "💪", color: "#EF4444", name: "Fitness Milestone" }
+                        }
+                        return ACHIEVEMENT_TYPE_DATA[achievementTypeId] || { icon: "🏆", color: "#F59E0B", name: "Achievement" }
+                      }
+                      return getDefaultIconData(parseInt(formData.achievementTypeId)).icon
+                    })()}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Default Icon</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      If you don't upload any image, this icon will be used as the default icon for this achievement
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Icon Upload */}
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Input
@@ -1410,7 +1492,7 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
-                        Upload Image
+                        Upload Custom Icon
                       </>
                     )}
                   </Button>
@@ -1418,16 +1500,20 @@ text-blue-300 hover:text-red-500 hover:bg-transparent"
 
                 {formData.achievementImageIcon && (
                   <div className="flex items-center gap-2">
-                    <img
-                      src={formData.achievementImageIcon}
-                      alt="Achievement icon preview"
+                    <img 
+                      src={formData.achievementImageIcon} 
+                      alt="Achievement icon preview" 
                       className="h-8 w-8 object-cover rounded border"
                     />
-                    <span className="text-sm text-green-600 font-medium">Uploaded</span>
+                    <span className="text-sm text-green-600 font-medium">Custom Icon Uploaded</span>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500">JPG, PNG up to 5MB (optional)</p>
+              <p className="text-xs text-gray-500">
+                {formData.achievementTypeId 
+                  ? "Upload your own custom icon (JPG, PNG up to 5MB) or leave blank to use the default icon" 
+                  : "Select an achievement type first to see the default icon"}
+              </p>
             </div>
           </div>
         )
