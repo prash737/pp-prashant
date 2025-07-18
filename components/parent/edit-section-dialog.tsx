@@ -1264,7 +1264,7 @@ export default function EditSectionDialog({
 
       case 'achievements':
         return (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="name">Achievement Name *</Label>
               <Input
@@ -1286,6 +1286,72 @@ export default function EditSectionDialog({
                 rows={3}
                 required
               />
+            </div>
+
+            <div>
+              <Label htmlFor="dateOfAchievement">Date of Achievement *</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <Select
+                  value={formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getMonth().toString() : ''}
+                  onValueChange={(value) => {
+                    const currentDate = new Date()
+                    const currentYear = currentDate.getFullYear()
+                    const currentMonth = currentDate.getMonth()
+                    const selectedYear = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear() : currentYear
+                    
+                    let selectedMonth = parseInt(value)
+                    
+                    // If current year and trying to select future month, reset to current month
+                    if (selectedYear === currentYear && selectedMonth > currentMonth) {
+                      selectedMonth = currentMonth
+                    }
+                    
+                    const newDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-01`
+                    handleInputChange('dateOfAchievement', newDate)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["January", "February", "March", "April", "May", "June", 
+                      "July", "August", "September", "October", "November", "December"].map((month, index) => {
+                      const currentDate = new Date()
+                      const currentYear = currentDate.getFullYear()
+                      const currentMonth = currentDate.getMonth()
+                      const selectedYear = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear() : currentYear
+
+                      // Disable future months in current year
+                      const isDisabled = selectedYear === currentYear && index > currentMonth
+
+                      return (
+                        <SelectItem key={index} value={index.toString()} disabled={isDisabled}>
+                          {month}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getFullYear().toString() : ''}
+                  onValueChange={(value) => {
+                    const month = formData.dateOfAchievement ? new Date(formData.dateOfAchievement).getMonth() : 0
+                    const newDate = `${value}-${String(month + 1).padStart(2, '0')}-01`
+                    handleInputChange('dateOfAchievement', newDate)
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Achievement Type Selection */}
@@ -1407,25 +1473,7 @@ export default function EditSectionDialog({
               </p>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex gap-2 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <Button 
-                type="submit" 
-                disabled={isLoading || !formData.name?.trim() || !formData.description?.trim() || !formData.dateOfAchievement || !formData.achievementTypeId}
-                className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 text-white"
-              >
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={actualOnClose}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
             </div>
-          </form>
         )
 
       default:
@@ -1461,7 +1509,7 @@ export default function EditSectionDialog({
       case 'goals':
         return formData.title && formData.title.trim().length > 0
       case 'achievements':
-        return formData.name && formData.description && formData.categoryId && formData.achievementTypeId && formData.dateOfAchievement
+        return formData.name && formData.name.trim() && formData.description && formData.description.trim() && formData.categoryId && formData.achievementTypeId
       default:
         return true
     }
@@ -1554,6 +1602,24 @@ export default function EditSectionDialog({
           <DialogTitle>{getDialogTitle()}</DialogTitle>
         </DialogHeader>
           {renderFormContent()}
+          
+          {/* Save and Cancel buttons for all sections */}
+          <div className="flex gap-2 pt-6 border-t border-gray-200 dark:border-gray-700 mt-6">
+            <Button 
+              onClick={handleSave}
+              disabled={loading || !isValid}
+              className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 text-white"
+            >
+              {loading ? 'Saving...' : editingItemData ? 'Update' : 'Save Changes'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={actualOnClose}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </div>
       </DialogContent>
     </Dialog>
   )
