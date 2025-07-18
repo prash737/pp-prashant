@@ -15,6 +15,16 @@ import { toast } from 'sonner';
 import { getPlaceholdersForType } from '@/data/institution-placeholders';
 import { getSubjectSuggestions } from '@/data/subject-suggestions';
 
+interface InstitutionSearchResult {
+  id: string
+  name: string
+  type: string
+  typeId: string
+  categoryId: string
+  categoryName: string
+  typeName: string
+}
+
 interface EducationEntry {
   id: number | string;
   institutionName: string;
@@ -29,6 +39,8 @@ interface EducationEntry {
   isCurrent: boolean;
   grade?: string;
   description?: string;
+  institutionId?: string;
+  institutionVerified: boolean | null;
 }
 
 interface EducationStepProps {
@@ -64,11 +76,16 @@ export default function EducationStep({
   const [isAddingEntry, setIsAddingEntry] = useState(false);
   const [editingEntry, setEditingEntry] = useState<EducationEntry | null>(null);
   const [institutionCategories, setInstitutionCategories] = useState<InstitutionCategory[]>([]);
+  const [institutionSearchResults, setInstitutionSearchResults] = useState<InstitutionSearchResult[]>([])
+  const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false)
+  const [institutionSearchLoading, setInstitutionSearchLoading] = useState(false)
   const [newEntry, setNewEntry] = useState<EducationEntry>({
     id: "",
     institutionName: "",
     institutionCategory: "",
     institutionType: "",
+    institutionId: "",
+    institutionVerified: null,
     degree: "",
     fieldOfStudy: "",
     subjects: [],
@@ -78,6 +95,18 @@ export default function EducationStep({
     grade: "",
     description: ""
   });
+
+  // Debounced search function
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
+
+  // Cleanup search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout)
+      }
+    }
+  }, [searchTimeout])
 
   // Fetch institution types and existing education data on component mount
   useEffect(() => {
@@ -124,6 +153,76 @@ export default function EducationStep({
     fetchInstitutionTypes();
     fetchExistingEducation();
   }, []);
+
+  // Search institutions function with debouncing
+  const searchInstitutions = async (query: string) => {
+    if (query.length < 2) {
+      setInstitutionSearchResults([])
+      setShowInstitutionDropdown(false)
+      return
+    }
+
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+
+    // Set new timeout for debounced search
+    const newTimeout = setTimeout(async () => {
+      try {
+        setInstitutionSearchLoading(true)
+        console.log('🔍 Searching institutions for:', query)
+        
+        const response = await fetch(`/api/institutions/search?q=${encodeURIComponent(query)}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Search results:', data.institutions?.length || 0, 'institutions')
+          setInstitutionSearchResults(data.institutions || [])
+          setShowInstitutionDropdown(true)
+        } else {
+          console.error('Failed to search institutions')
+          setInstitutionSearchResults([])
+          setShowInstitutionDropdown(false)
+        }
+      } catch (error) {
+        console.error('Error searching institutions:', error)
+        setInstitutionSearchResults([])
+        setShowInstitutionDropdown(false)
+      } finally {
+        setInstitutionSearchLoading(false)
+      }
+    }, 300) // 300ms debounce
+
+    setSearchTimeout(newTimeout)
+  }
+
+  // Handle institution selection from search results
+  const handleInstitutionSelect = async (institution: InstitutionSearchResult) => {
+    try {
+      const updatedEntry = {
+        institutionName: institution.name,
+        institutionId: institution.id,
+        institutionVerified: true
+      }
+
+      // Update state in a single batch
+      if (editingEntry) {
+        setEditingEntry(prev => prev ? { ...prev, ...updatedEntry } : null)
+      } else {
+        setNewEntry(prev => ({ ...prev, ...updatedEntry }))
+      }
+
+      // Close dropdown and clear results
+      setShowInstitutionDropdown(false)
+      setInstitutionSearchResults([])
+      
+      console.log('✅ Institution selected:', institution.name)
+    } catch (error) {
+      console.error('❌ Error selecting institution:', error)
+      toast.error('Failed to select institution')
+    }
+  }
 
   const handleInputChange = (field: keyof EducationEntry, value: string | number | boolean | string[]) => {
     if (editingEntry) {
@@ -180,6 +279,7 @@ export default function EducationStep({
         credentials: 'include',
         body: JSON.stringify({
           institutionName: newEntry.institutionName,
+          institutionId: newEntry.institutionId || null,
           institutionTypeId: parseInt(newEntry.institutionType),
           degree: newEntry.degree || null,
           fieldOfStudy: newEntry.fieldOfStudy || null,
@@ -188,7 +288,8 @@ export default function EducationStep({
           endDate: newEntry.endDate ? new Date(newEntry.endDate) : null,
           isCurrent: Boolean(newEntry.isCurrent),
           grade: newEntry.grade || null,
-          description: newEntry.description || null
+          description: newEntry.description || null,
+          institutionVerified: newEntry.institutionVerified
         }),
       });
 
@@ -223,6 +324,8 @@ export default function EducationStep({
         institutionName: "",
         institutionCategory: "",
         institutionType: "",
+        institutionId: "",
+        institutionVerified: null,
         degree: "",
         fieldOfStudy: "",
         subjects: [],
@@ -284,6 +387,7 @@ export default function EducationStep({
         credentials: 'include',
         body: JSON.stringify({
           institutionName: editingEntry.institutionName,
+          institutionId: editingEntry.institutionId || null,
           institutionTypeId: parseInt(editingEntry.institutionType),
           degree: editingEntry.degree || null,
           fieldOfStudy: editingEntry.fieldOfStudy || null,
@@ -292,7 +396,8 @@ export default function EducationStep({
           endDate: editingEntry.endDate ? new Date(editingEntry.endDate) : null,
           isCurrent: Boolean(editingEntry.isCurrent),
           grade: editingEntry.grade || null,
-          description: editingEntry.description || null
+          description: editingEntry.description || null,
+          institutionVerified: editingEntry.institutionVerified
         }),
       });
 
@@ -521,16 +626,71 @@ export default function EducationStep({
               </div>
 
               {/* Step 2: Institution Name */}
-              <div>
+              <div className="relative">
                 <Label className="text-gray-700 dark:text-gray-300">
                   Institution Name <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  value={currentEntry.institutionName}
-                  onChange={(e) => handleInputChange('institutionName', e.target.value)}
-                  placeholder="e.g., Delhi Public School, IIT Delhi, BYJU'S"
-                  className="mt-1"
-                />
+                <div className="relative">
+                  <Input
+                    value={currentEntry.institutionName}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      handleInputChange('institutionName', value)
+                      searchInstitutions(value)
+                    }}
+                    onFocus={() => {
+                      if (currentEntry.institutionName.length >= 2) {
+                        searchInstitutions(currentEntry.institutionName)
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Only close dropdown if not clicking on a dropdown item
+                      const relatedTarget = e.relatedTarget as HTMLElement
+                      if (!relatedTarget || !relatedTarget.closest('.institution-dropdown')) {
+                        setTimeout(() => setShowInstitutionDropdown(false), 150)
+                      }
+                    }}
+                    placeholder="e.g., Delhi Public School, IIT Delhi, BYJU'S"
+                    className="mt-1"
+                  />
+                  {institutionSearchLoading && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Institution Search Dropdown */}
+                {showInstitutionDropdown && institutionSearchResults.length > 0 && (
+                  <div className="institution-dropdown absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {institutionSearchResults.map((institution) => (
+                      <div
+                        key={institution.id}
+                        className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleInstitutionSelect(institution)
+                        }}
+                        onMouseDown={(e) => {
+                          // Prevent input blur when clicking on dropdown
+                          e.preventDefault()
+                        }}
+                      >
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {institution.name}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {institution.typeName} • {institution.categoryName}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-500 mt-1">
+                  Start typing to search for your institution or enter a custom name
+                </p>
               </div>
 
               {/* Step 3: Subjects/Courses */}
