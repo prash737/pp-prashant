@@ -392,17 +392,16 @@ export default function SkillsStep({
       setSaving(true)
       console.log("💾 Saving skills during onboarding...", skills)
 
-      // Always save skills during onboarding
-      if (skills.length > 0) {
-        // Prepare skills data with proper formatting for the API
-        const skillsToSave = skills.map(skill => ({
-          name: skill.name,
-          level: skill.level || 1,
-          id: skill.id || null // null for custom skills
-        }))
+      // Always save skills during onboarding, even if empty
+      const skillsToSave = skills.map(skill => ({
+        name: skill.name,
+        level: skill.level || 1,
+        id: skill.id || null // null for custom skills
+      }))
 
-        console.log("💾 Formatted skills to save:", skillsToSave)
+      console.log("💾 Formatted skills to save:", skillsToSave)
 
+      if (skillsToSave.length > 0) {
         // Send all skills (including custom ones) to the API
         // The API will handle creating custom skills in the database
         const response = await fetch('/api/user/skills', {
@@ -420,22 +419,21 @@ export default function SkillsStep({
         }
 
         console.log("✅ All skills (including custom) saved successfully during onboarding")
-
-        setIsDirty(false)
-        setOriginalSkills([...skills])
       } else {
-        console.log("ℹ️ No skills to save")
+        console.log("ℹ️ No skills to save, continuing with empty skills")
       }
 
+      setIsDirty(false)
+      setOriginalSkills([...skills])
+
+      // Always call onComplete and onNext after successful save or empty skills
       onComplete(skills)
       onNext()
     } catch (error) {
       console.error('Error saving skills:', error)
-      // Show error to user but don't prevent navigation
-      alert('Failed to save skills. Please try again later.')
-      // Still allow user to continue onboarding
-      onComplete(skills)
-      onNext()
+      // Show error to user
+      alert('Failed to save skills. Please try again.')
+      // Don't continue on error - let user retry
     } finally {
       setSaving(false)
     }
