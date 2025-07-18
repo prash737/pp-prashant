@@ -394,6 +394,15 @@ export default function SkillsStep({
 
       // Always save skills during onboarding
       if (skills.length > 0) {
+        // Prepare skills data with proper formatting for the API
+        const skillsToSave = skills.map(skill => ({
+          name: skill.name,
+          level: skill.level || 1,
+          id: skill.id || null // null for custom skills
+        }))
+
+        console.log("💾 Formatted skills to save:", skillsToSave)
+
         // Send all skills (including custom ones) to the API
         // The API will handle creating custom skills in the database
         const response = await fetch('/api/user/skills', {
@@ -401,7 +410,7 @@ export default function SkillsStep({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ skills }),
+          body: JSON.stringify({ skills: skillsToSave }),
         })
 
         if (!response.ok) {

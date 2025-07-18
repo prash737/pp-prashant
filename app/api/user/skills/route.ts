@@ -155,16 +155,32 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Full user object keys:', Object.keys(user))
     console.log('🔍 User student profile:', user.studentProfile)
 
-    // Get user's age group to validate skills - try both possible locations
-    const ageGroup = user.ageGroup || user.studentProfile?.age_group
+    // Get user's age group to validate skills - try multiple possible locations
+    let ageGroup = user.ageGroup || user.studentProfile?.age_group
+
+    // If no age group found, try to fetch from database
+    if (!ageGroup && user.id) {
+      try {
+        const studentProfile = await prisma.studentProfile.findUnique({
+          where: { id: user.id },
+          select: { ageGroup: true }
+        })
+        ageGroup = studentProfile?.ageGroup
+        console.log('🔍 Fetched age group from database:', ageGroup)
+      } catch (error) {
+        console.log('⚠️ Could not fetch age group from database:', error)
+      }
+    }
+
+    // If still no age group, use a fallback based on typical onboarding scenario
+    if (!ageGroup) {
+      console.log('⚠️ No age_group found, using fallback: young_adult')
+      ageGroup = 'young_adult' // Default fallback for onboarding
+    }
+
     console.log('🔍 User age group from ageGroup field:', user.ageGroup)
     console.log('🔍 User age group from studentProfile:', user.studentProfile?.age_group)
     console.log('🔍 Final age group used:', ageGroup)
-
-    if (!ageGroup) {
-      console.error('❌ No age_group found in user object')
-      return NextResponse.json({ error: 'No age group found. Please complete your profile first.' }, { status: 400 })
-    }
 
     console.log('🔍 Using age group:', ageGroup)
 
@@ -239,9 +255,21 @@ export async function POST(request: NextRequest) {
 
     // Now all skills (including newly created custom ones) should be valid
     const validSkills = skills.filter(skill => {
-      return skill.id ? availableSkillIds.includes(skill.id) : availableSkillNamesMap.has(skill.name)
+      const hasValidId = skill.id && availableSkillIds.includes(skill.id)
+      const hasValidName = skill.name && availableSkillNamesMap.has(skill.name)
+      const isCustomSkill = !skill.id && skill.name && skill.name.trim().length > 0
+      
+      return hasValidId || hasValidName || isCustomSkill
     })
     console.log('🔍 Processing skills for age group', ageGroup, '. Valid:', validSkills.length, 'out of', skills.length)
+    
+    // Log details about skill validation
+    skills.forEach(skill => {
+      const hasValidId = skill.id && availableSkillIds.includes(skill.id)
+      const hasValidName = skill.name && availableSkillNamesMap.has(skill.name)
+      const isCustomSkill = !skill.id && skill.name && skill.name.trim().length > 0
+      console.log(`🔍 Skill "${skill.name}": hasValidId=${hasValidId}, hasValidName=${hasValidName}, isCustomSkill=${isCustomSkill}`)
+    })
 
     // Get currently saved user skills
     const currentUserSkills = await prisma.userSkill.findMany({
