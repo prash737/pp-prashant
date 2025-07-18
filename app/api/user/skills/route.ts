@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
@@ -13,18 +12,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from session
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-      headers: {
-        cookie: `sb-access-token=${accessTokenCookie.value}`,
-      },
-    })
+    // Get user from session - try API first, fallback to direct validation
+    let user
+    try {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
+        headers: {
+          cookie: `sb-access-token=${accessTokenCookie.value}`,
+        },
+      })
 
-    if (!userResponse.ok) {
+      if (!userResponse.ok) {
+        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
+        // Fallback to direct Supabase validation
+        const { createClient } = require('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+
+        if (error || !supabaseUser) {
+          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+        }
+
+        user = {
+          id: supabaseUser.id,
+          email: supabaseUser.email
+        }
+      } else {
+        const result = await userResponse.json()
+        user = result.user
+      }
+    } catch (error) {
+      console.error('Error validating user session for skills get:', error)
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    const { user } = await userResponse.json()
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
 
     console.log('🔍 Fetching skills for user:', user.id)
 
@@ -70,7 +97,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check for valid session cookie
     const cookieStore = await cookies()
     const accessTokenCookie = cookieStore.get('sb-access-token')
 
@@ -78,18 +104,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from session
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-      headers: {
-        cookie: `sb-access-token=${accessTokenCookie.value}`,
-      },
-    })
+    // Get user from session - try API first, fallback to direct validation
+    let user
+    try {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
+        headers: {
+          cookie: `sb-access-token=${accessTokenCookie.value}`,
+        },
+      })
 
-    if (!userResponse.ok) {
+      if (!userResponse.ok) {
+        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
+        // Fallback to direct Supabase validation
+        const { createClient } = require('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+
+        if (error || !supabaseUser) {
+          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+        }
+
+        user = {
+          id: supabaseUser.id,
+          email: supabaseUser.email
+        }
+      } else {
+        const result = await userResponse.json()
+        user = result.user
+      }
+    } catch (error) {
+      console.error('Error validating user session for skills save:', error)
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    const { user } = await userResponse.json()
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const { skills } = await request.json()
 
     if (!Array.isArray(skills)) {
@@ -151,7 +206,7 @@ export async function POST(request: NextRequest) {
     for (const skill of skills) {
       if (!skill.id && !availableSkillNamesMap.has(skill.name)) {
         console.log('🔍 Processing custom skill:', skill.name)
-        
+
         // Check if this custom skill already exists
         const existingCustomSkill = await prisma.skill.findFirst({
           where: {
@@ -168,7 +223,7 @@ export async function POST(request: NextRequest) {
               categoryId: customSkillCategory.id
             }
           })
-          
+
           // Add to our maps so it can be processed normally
           availableSkillIds.push(newCustomSkill.id)
           availableSkillNamesMap.set(skill.name, newCustomSkill.id)
@@ -205,19 +260,19 @@ export async function POST(request: NextRequest) {
       us.skill.name, 
       { id: us.skill.id, level: us.proficiencyLevel }
     ]))
-    
+
     console.log('🔍 Current saved skills:', currentUserSkills.length, Array.from(currentSkillsMap.keys()))
     console.log('🔍 New skills to save:', validSkills.length, validSkills.map(s => s.name))
 
     // Find skills to add (in new list but not in current)
     const skillsToAdd = validSkills.filter(skill => !currentSkillsMap.has(skill.name))
-    
+
     // Find skills to update (in both lists but with different proficiency level)
     const skillsToUpdate = validSkills.filter(skill => {
       const current = currentSkillsMap.get(skill.name)
       return current && current.level !== (skill.level || 1)
     })
-    
+
     // Find skills to remove (in current but not in new list, or not valid for current age group)
     const skillsToRemove = currentUserSkills.filter(us => {
       const isInNewList = validSkills.some(skill => skill.name === us.skill.name)

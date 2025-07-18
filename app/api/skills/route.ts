@@ -30,6 +30,25 @@ export async function GET(request: NextRequest) {
       }
     } else if (!accessTokenCookie) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    } else {
+      // Verify the access token is valid for regular users
+      try {
+        const { createClient } = require('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+        
+        const { data: { user }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+        
+        if (error || !user) {
+          console.log('⚠️ Invalid access token for skills API')
+          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+        }
+      } catch (error) {
+        console.error('Error verifying access token:', error)
+        return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+      }
     }
 
     const { searchParams } = new URL(request.url)

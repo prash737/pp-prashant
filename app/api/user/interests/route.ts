@@ -4,7 +4,6 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    // Check for valid session cookie
     const cookieStore = await cookies()
     const accessTokenCookie = cookieStore.get('sb-access-token')
 
@@ -12,18 +11,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from session
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-      headers: {
-        cookie: `sb-access-token=${accessTokenCookie.value}`,
-      },
-    })
+    // Get user from session - try API first, fallback to direct validation
+    let user
+    try {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
+        headers: {
+          cookie: `sb-access-token=${accessTokenCookie.value}`,
+        },
+      })
 
-    if (!userResponse.ok) {
+      if (!userResponse.ok) {
+        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
+        // Fallback to direct Supabase validation
+        const { createClient } = require('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+
+        if (error || !supabaseUser) {
+          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+        }
+
+        user = {
+          id: supabaseUser.id,
+          email: supabaseUser.email
+        }
+      } else {
+        const result = await userResponse.json()
+        user = result.user
+      }
+    } catch (error) {
+      console.error('Error validating user session for interests save:', error)
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    const { user } = await userResponse.json()
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     const { interests } = await request.json()
 
     if (!Array.isArray(interests)) {
@@ -207,9 +235,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Check for valid session cookie
     const cookieStore = await cookies()
     const accessTokenCookie = cookieStore.get('sb-access-token')
 
@@ -217,18 +244,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from session
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-      headers: {
-        cookie: `sb-access-token=${accessTokenCookie.value}`,
-      },
-    })
+    // Get user from session - try API first, fallback to direct validation
+    let user
+    try {
+      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
+        headers: {
+          cookie: `sb-access-token=${accessTokenCookie.value}`,
+        },
+      })
 
-    if (!userResponse.ok) {
+      if (!userResponse.ok) {
+        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
+        // Fallback to direct Supabase validation
+        const { createClient } = require('@supabase/supabase-js')
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+
+        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+
+        if (error || !supabaseUser) {
+          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+        }
+
+        user = {
+          id: supabaseUser.id,
+          email: supabaseUser.email
+        }
+      } else {
+        const result = await userResponse.json()
+        user = result.user
+      }
+    } catch (error) {
+      console.error('Error validating user session for interests get:', error)
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    const { user } = await userResponse.json()
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
 
     // Get user's age group to filter interests
     let ageGroup = 'young_adult' // default

@@ -30,19 +30,42 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
       }
     } else if (accessTokenCookie) {
-      // Regular user authentication
-      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-        headers: {
-          cookie: `sb-access-token=${accessTokenCookie.value}`,
-        },
-      })
+      // Regular user authentication - try internal API call first
+      try {
+        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
+          headers: {
+            cookie: `sb-access-token=${accessTokenCookie.value}`,
+          },
+        })
 
-      if (!userResponse.ok) {
+        if (!userResponse.ok) {
+          console.log('⚠️ Failed to validate user session via API, checking token directly')
+          // If API call fails, try direct Supabase verification
+          const { createClient } = require('@supabase/supabase-js')
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          )
+          
+          const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+          
+          if (error || !supabaseUser) {
+            return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+          }
+          
+          // Create a user object for compatibility
+          user = {
+            id: supabaseUser.id,
+            email: supabaseUser.email
+          }
+        } else {
+          const result = await userResponse.json()
+          user = result.user
+        }
+      } catch (error) {
+        console.error('Error validating user session:', error)
         return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
       }
-
-      const result = await userResponse.json()
-      user = result.user
     } else {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
