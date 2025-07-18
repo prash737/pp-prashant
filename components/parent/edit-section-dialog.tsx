@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Upload, X } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { getDefaultIconData, getDefaultIcon } from "@/lib/achievement-icons"
+import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -96,11 +96,14 @@ export default function EditSectionDialog({
   const [achievementCategories, setAchievementCategories] = useState<any[]>([])
   const [achievementTypes, setAchievementTypes] = useState<any[]>([])
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [editingId, setEditingId] = useState(editingItemData?.id || null)
 
   useEffect(() => {
     if (actualOpen) {
       fetchOptions()
       initializeFormData()
+      setEditingId(editingItemData?.id || null)
     }
   }, [actualOpen, section, editingItemData])
 
@@ -1261,7 +1264,7 @@ export default function EditSectionDialog({
 
       case 'achievements':
         return (
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Achievement Name *</Label>
               <Input
@@ -1339,21 +1342,11 @@ export default function EditSectionDialog({
                 <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
                        style={{
-                         background: `linear-gradient(135deg, ${(() => {
-                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
-                         })()}20, ${(() => {
-                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
-                         })()}40)`,
-                         border: `2px solid ${(() => {
-                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
-                         })()}30`,
-                         boxShadow: `0 2px 8px ${(() => {
-                           return getDefaultIconData(parseInt(formData.achievementTypeId)).color
-                         })()}20`
+                         background: `linear-gradient(135deg, ${getDefaultIconData(parseInt(formData.achievementTypeId)).color}20, ${getDefaultIconData(parseInt(formData.achievementTypeId)).color}40)`,
+                         border: `2px solid ${getDefaultIconData(parseInt(formData.achievementTypeId)).color}30`,
+                         boxShadow: `0 2px 8px ${getDefaultIconData(parseInt(formData.achievementTypeId)).color}20`
                        }}>
-                    {(() => {
-                      return getDefaultIconData(parseInt(formData.achievementTypeId)).icon
-                    })()}
+                    {getDefaultIcon(parseInt(formData.achievementTypeId))}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Default Icon</p>
@@ -1389,9 +1382,7 @@ export default function EditSectionDialog({
                       </>
                     ) : (
                       <>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+                        <Upload className="h-4 w-4" />
                         Upload Custom Icon
                       </>
                     )}
@@ -1415,7 +1406,26 @@ export default function EditSectionDialog({
                   : "Select an achievement type first to see the default icon"}
               </p>
             </div>
-          </div>
+
+            {/* Form Actions */}
+            <div className="flex gap-2 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <Button 
+                type="submit" 
+                disabled={isLoading || !formData.name?.trim() || !formData.description?.trim() || !formData.dateOfAchievement || !formData.achievementTypeId}
+                className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 text-white"
+              >
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={actualOnClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
         )
 
       default:
@@ -1459,6 +1469,79 @@ export default function EditSectionDialog({
 
   const isValid = getValidationStatus()
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!childId) return
+
+    setIsLoading(true)
+    try {
+      let response
+
+      if (section === 'achievements') {
+        // Handle achievement creation/update
+        const achievementData = {
+          name: formData.name,
+          description: formData.description,
+          dateOfAchievement: formData.dateOfAchievement,
+          achievementTypeId: parseInt(formData.achievementTypeId),
+          achievementImageIcon: formData.achievementImageIcon || null
+        }
+
+        if (editingId) {
+          // Update existing achievement
+          response = await fetch(`/api/achievements?id=${editingId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(achievementData)
+          })
+        } else {
+          // Create new achievement
+          response = await fetch('/api/achievements', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              ...achievementData,
+              userId: childId
+            })
+          })
+        }
+      } else {
+        // Handle other sections
+        response = await fetch(`/api/parent/child-profile/${childId}/edit`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            section,
+            data: formData
+          })
+        })
+      }
+
+      if (response.ok) {
+        toast.success(`${section === 'achievements' ? 'Achievement' : section} ${editingId ? 'updated' : 'added'} successfully!`)
+        onSave(formData)
+        actualOnClose?.()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || error.message || `Failed to ${editingId ? 'update' : 'add'} ${section}`)
+      }
+    } catch (error) {
+      console.error(`Error ${editingId ? 'updating' : 'adding'} ${section}:`, error)
+      toast.error(`Failed to ${editingId ? 'update' : 'add'} ${section}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <Dialog open={actualOpen} onOpenChange={isControlledExternally ? actualOnClose : setOpen}>
       {children && (
@@ -1470,17 +1553,7 @@ export default function EditSectionDialog({
         <DialogHeader>
           <DialogTitle>{getDialogTitle()}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSave}>
           {renderFormContent()}
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || !isValid}>
-              {loading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
       </DialogContent>
     </Dialog>
   )
