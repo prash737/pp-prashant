@@ -500,10 +500,10 @@ export default function Onboarding() {
                   onComplete={(skills) => {
                     console.log('🛠️ Skills step completed with data:', skills);
                     
-                    // Skills are saved within the SkillsStep component itself
-                    // Update local state and proceed
+                    // Skills are now saved within the SkillsStep component itself
+                    // Just update local state
                     setUserData({ ...userData, skills });
-                    console.log('✅ Skills data updated in local state:', skills);
+                    console.log('✅ Skills data updated in local state');
                   }}
                   onNext={handleNext}
                   onSkip={() => {
