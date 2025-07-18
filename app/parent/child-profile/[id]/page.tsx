@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import EditSectionDialog from "@/components/parent/edit-section-dialog"
 import FollowingInstitutions from "@/components/profile/following-institutions"
+import ActivityLogs from "@/components/profile/activity-logs"
 import { 
   User, 
   Edit3, 
@@ -644,7 +645,7 @@ export default function ParentChildProfilePage() {
       <main className="flex-grow">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-9">
+            <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="interests">Interests</TabsTrigger>
               <TabsTrigger value="skills">Skills</TabsTrigger>
@@ -654,6 +655,7 @@ export default function ParentChildProfilePage() {
               <TabsTrigger value="circles">Circles</TabsTrigger>
               <TabsTrigger value="following">Following</TabsTrigger>
               <TabsTrigger value="connections">Connections</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
 
             {/* About Tab */}
@@ -1384,6 +1386,11 @@ export default function ParentChildProfilePage() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Activity Logs Tab */}
+            <TabsContent value="activity" className="space-y-6">
+              <ActivityLogs childId={childId} />
             </TabsContent>
           </Tabs>
         </div>
