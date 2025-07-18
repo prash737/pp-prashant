@@ -14,53 +14,39 @@ export async function GET(
   try {
     const { id: childId } = await params
 
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    let token = authHeader?.replace('Bearer ', '')
+    // Get parent authentication from cookies
+    const cookieStore = request.headers.get('cookie') || ''
+    const cookies = Object.fromEntries(
+      cookieStore.split(';').map(cookie => {
+        const [name, ...rest] = cookie.trim().split('=')
+        return [name, decodeURIComponent(rest.join('='))]
+      })
+    )
 
-    if (!token) {
-      // Try to get token from cookies as fallback
-      const authCookie = request.cookies.get('sb-access-token')?.value ||
-                        request.cookies.get('sb-refresh-token')?.value
+    const parentId = cookies['parent_id']
+    const parentSession = cookies['parent_session']
 
-      if (authCookie) {
-        token = authCookie
-      }
+    if (!parentId || !parentSession) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify the user is authenticated
-    const { data: authData, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !authData.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify the authenticated user is the parent of the child
-    const parentProfile = await prisma.profile.findUnique({
-      where: { id: authData.user.id },
-      select: { role: true }
-    })
-
-    if (!parentProfile || parentProfile.role !== 'parent') {
-      return NextResponse.json({ error: 'Unauthorized - Parent access required' }, { status: 403 })
-    }
-
-    // Verify the child belongs to this parent
-    const childProfile = await prisma.studentProfile.findUnique({
-      where: { id: childId },
-      include: {
-        profile: {
-          select: { parentId: true }
-        }
+    // Verify parent-child relationship
+    const child = await prisma.profile.findFirst({
+      where: {
+        id: childId,
+        parentId: parentId,
+        role: 'student'
       }
     })
 
-    if (!childProfile || childProfile.profile.parentId !== authData.user.id) {
-      return NextResponse.json({ error: 'Child not found or access denied' }, { status: 403 })
+    if (!child) {
+      return NextResponse.json(
+        { success: false, error: 'Child not found or not authorized' },
+        { status: 403 }
+      )
     }
 
     // Fetch the institutions the child is following
