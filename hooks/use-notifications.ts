@@ -9,30 +9,43 @@ export function useNotifications() {
 
   const fetchNotificationCounts = async () => {
     try {
+      setLoading(true)
       const [connectionResponse, circleResponse, verificationResponse] = await Promise.all([
-        fetch('/api/connections/requests?type=received'),
-        fetch('/api/circles/invitations?type=received'),
-        fetch('/api/education/verification')
+        fetch('/api/connections/requests?type=received', { credentials: 'include' }),
+        fetch('/api/circles/invitations?type=received', { credentials: 'include' }),
+        fetch('/api/education/verification', { credentials: 'include' })
       ])
 
       if (connectionResponse.ok) {
         const requests = await connectionResponse.json()
         const pendingRequests = requests.filter((req: any) => req.status === 'pending')
         setConnectionRequestCount(pendingRequests.length)
+      } else {
+        setConnectionRequestCount(0)
       }
 
       if (circleResponse.ok) {
         const invitations = await circleResponse.json()
         const pendingInvitations = invitations.filter((inv: any) => inv.status === 'pending')
         setCircleInvitationCount(pendingInvitations.length)
+      } else {
+        setCircleInvitationCount(0)
       }
 
       if (verificationResponse.ok) {
         const data = await verificationResponse.json()
-        setVerificationRequestCount(data.verificationRequests?.length || 0)
+        // Ensure we get the actual array length, defaulting to 0 if undefined or empty
+        const verificationRequests = data.verificationRequests || []
+        setVerificationRequestCount(verificationRequests.length)
+      } else {
+        setVerificationRequestCount(0)
       }
     } catch (error) {
       console.error('Error fetching notification counts:', error)
+      // Reset all counts to 0 on error
+      setConnectionRequestCount(0)
+      setCircleInvitationCount(0)
+      setVerificationRequestCount(0)
     } finally {
       setLoading(false)
     }

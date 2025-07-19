@@ -499,7 +499,7 @@ export function InstitutionNavbar() {
                   size={24}
                   className="text-slate-700 hover:text-teal-500 transition-colors"
                 />
-                {notificationCount > 0 && (
+                {!notificationsLoading && notificationCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                     {notificationCount}
                   </span>
@@ -640,7 +640,7 @@ export function InstitutionNavbar() {
           })}
           <Link href="/institution/notifications" className="relative flex flex-col items-center p-2 text-gray-500 hover:text-teal-500">
             <Bell size={20} />
-            {notificationCount > 0 && (
+            {!notificationsLoading && notificationCount > 0 && (
               <span className="absolute -top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 {notificationCount}
               </span>
