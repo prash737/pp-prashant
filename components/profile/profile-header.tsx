@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefcase, GraduationCap, Mail, Phone, Globe, Instagram, Twitter, Linkedin, Github, Youtube, Facebook, UserPlus, BadgeCheck, Edit, MessageCircle, UserIcon, FolderKanban, Award, BrainIcon, UserCheck, UserX } from "lucide-react"
+import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefcase, GraduationCap, Mail, Phone, Globe, Instagram, Twitter, Linkedin, Github, Youtube, Facebook, UserPlus, BadgeCheck, Edit, MessageCircle, UserIcon, FolderKanban, Award, BrainIcon, UserCheck, UserX, Building2 } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
 import CircleManagementDialog from "./circle-management-dialog"
@@ -48,6 +48,9 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   const [selectedCircle, setSelectedCircle] = useState<any>(null)
   const [showCircleManagement, setShowCircleManagement] = useState(false)
   const [connections, setConnections] = useState<any[]>([])
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false)
+  const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
+  const [followingCount, setFollowingCount] = useState(0)
 
   // Use passed student data or fallback to mock data
   const studentProp = student || {
@@ -197,10 +200,26 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       }
     }
 
+    const fetchFollowingInstitutions = async () => {
+      try {
+        const response = await fetch('/api/student/following', {
+          credentials: 'include'
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setFollowingInstitutions(data.following || [])
+          setFollowingCount(data.count || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching following institutions:', error)
+      }
+    }
+
     if (isOwnProfile) {
       fetchCircles()
       fetchConnections()
       fetchRecentAchievements()
+      fetchFollowingInstitutions()
     } else {
       setAchievementLoading(false)
     }
@@ -350,6 +369,29 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     }
   }
 
+  const handleUnfollowInstitution = async (institutionId: string) => {
+    try {
+      const response = await fetch('/api/institutions/follow', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ institutionId }),
+      })
+
+      if (response.ok) {
+        // Remove from local state
+        setFollowingInstitutions(prev => prev.filter(inst => inst.id !== institutionId))
+        setFollowingCount(prev => prev - 1)
+      } else {
+        console.error('Failed to unfollow institution')
+      }
+    } catch (error) {
+      console.error('Error unfollowing institution:', error)
+    }
+  }
+
   return (
     <div>
       <div className="relative">
@@ -480,6 +522,15 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                       <BrainIcon className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
                         Skills: {studentProp?.skills?.length || 0}
+                      </span>
+                    </div>
+                    <div 
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all"
+                      onClick={() => setShowFollowingDialog(true)}
+                    >
+                      <Users className="h-3.5 w-3.5 text-indigo-500" data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`} />
+                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
+                        Following: {followingCount}
                       </span>
                     </div>
                   </div>
@@ -1013,6 +1064,61 @@ xmlns="http://www.w3.org/2000/svg"
         onOpenChange={setShowCircleManagement}
         onCircleUpdated={handleCircleUpdated}
       />
+
+      {/* Following Institutions Dialog */}
+      <Dialog open={showFollowingDialog} onOpenChange={setShowFollowingDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Following Institutions ({followingCount})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {followingInstitutions.length > 0 ? (
+              followingInstitutions.map((institution) => (
+                <div key={institution.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      {institution.logoUrl ? (
+                        <img
+                          src={institution.logoUrl}
+                          alt={institution.institutionName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Building2 className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">{institution.institutionName}</h4>
+                      <p className="text-xs text-gray-500">{institution.institutionType}</p>
+                      {institution.location && (
+                        <p className="text-xs text-gray-400">{institution.location}</p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUnfollowInstitution(institution.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    Unfollow
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No institutions followed yet</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
