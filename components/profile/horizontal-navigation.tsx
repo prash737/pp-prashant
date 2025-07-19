@@ -1,8 +1,8 @@
-
 "use client"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { User, GraduationCap, Award, FolderOpen, Target, Brain, Users, Building2 } from 'lucide-react'
 
 interface Tab {
   id: string
@@ -16,6 +16,16 @@ interface HorizontalNavigationProps {
 }
 
 export default function HorizontalNavigation({ tabs, activeTab, setActiveTab }: HorizontalNavigationProps) {
+  const tabs = [
+    { id: 'about', label: 'About', icon: User },
+    { id: 'education', label: 'Education', icon: GraduationCap },
+    { id: 'achievements', label: 'Achievements', icon: Award },
+    { id: 'projects', label: 'Projects', icon: FolderOpen },
+    { id: 'goals', label: 'Goals', icon: Target },
+    { id: 'skills', label: 'Skills', icon: Brain },
+    { id: 'following', label: 'Following', icon: Building2 },
+    { id: 'connections', label: 'Connections', icon: Users }
+  ]
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 sm:top-24 z-40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
