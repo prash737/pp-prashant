@@ -1,0 +1,67 @@
+ hasInterests: true,
+  hasEducation: true,
+  onboardingCompleted: ''
+}
+ POST /api/auth/user-login 200 in 1127ms
+ ○ Compiling /onboarding ...
+ ⨯ ./components/onboarding/skills-step.tsx
+Error:   × Parenthesized expression cannot be empty
+     ╭─[/home/runner/workspace/components/onboarding/skills-step.tsx:287:1]
+ 284 │   }, [skillCategories])
+ 285 │ 
+ 286 │   // Track dirty state
+ 287 │   useEffect((){
+     ·             ──
+ 288 │     // Compare current skills with original skills
+ 289 │     const skillsChanged = skills.length !== originalSkills.length ||
+ 290 │       skills.some(skill => {
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/onboarding/skills-step.tsx
+./app/onboarding/page.tsx
+ ⨯ ./components/onboarding/skills-step.tsx
+Error:   × Parenthesized expression cannot be empty
+     ╭─[/home/runner/workspace/components/onboarding/skills-step.tsx:287:1]
+ 284 │   }, [skillCategories])
+ 285 │ 
+ 286 │   // Track dirty state
+ 287 │   useEffect((){
+     ·             ──
+ 288 │     // Compare current skills with original skills
+ 289 │     const skillsChanged = skills.length !== originalSkills.length ||
+ 290 │       skills.some(skill => {
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/onboarding/skills-step.tsx
+./app/onboarding/page.tsx
+ ⨯ ./components/onboarding/skills-step.tsx
+Error:   × Parenthesized expression cannot be empty
+     ╭─[/home/runner/workspace/components/onboarding/skills-step.tsx:287:1]
+ 284 │   }, [skillCategories])
+ 285 │ 
+ 286 │   // Track dirty state
+ 287 │   useEffect((){
+     ·             ──
+ 288 │     // Compare current skills with original skills
+ 289 │     const skillsChanged = skills.length !== originalSkills.length ||
+ 290 │       skills.some(skill => {
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/onboarding/skills-step.tsx
+./app/onboarding/page.tsx
+ GET /onboarding 500 in 7823ms
+ GET /api/connections/requests?type=received 500 in 23ms
+ GET /api/circles/invitations?type=received 500 in 34ms
+ GET /api/education/verification 500 in 33ms
