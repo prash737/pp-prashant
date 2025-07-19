@@ -33,6 +33,8 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
     mentors: 0,
     institutions: 0
   })
+  
+  const [followingInstitutionsCount, setFollowingInstitutionsCount] = useState(0)
 
   // Fetch connections data
   const fetchConnections = async () => {
@@ -56,9 +58,23 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
     }
   }
 
+  // Fetch following institutions count
+  const fetchFollowingInstitutionsCount = async () => {
+    try {
+      const response = await fetch('/api/student/following')
+      if (response.ok) {
+        const data = await response.json()
+        setFollowingInstitutionsCount(data.length)
+      }
+    } catch (error) {
+      console.error('Error fetching following institutions:', error)
+    }
+  }
+
   useEffect(() => {
     if (studentData) {
       fetchConnections()
+      fetchFollowingInstitutionsCount()
 
       // Transform the real data to match our component's expected structure
       const transformedStudent = {
@@ -131,11 +147,23 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
           institutions: [],
           total: connectionCounts.total,
           students: connectionCounts.students
-        }
+        },
+        followingInstitutions: []  // This will be populated from the API
       }
 
       setStudent(transformedStudent)
       setLoading(false)
+    }
+
+    // Listen for following tab switch event
+    const handleSwitchToFollowingTab = () => {
+      setActiveTab('following')
+    }
+
+    window.addEventListener('switchToFollowingTab', handleSwitchToFollowingTab)
+
+    return () => {
+      window.removeEventListener('switchToFollowingTab', handleSwitchToFollowingTab)
     }
   }, [studentData])
 
@@ -184,7 +212,12 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader student={student} currentUser={currentUser} connectionCounts={connectionCounts} isViewMode={isViewMode} />
+      <ProfileHeader 
+        student={{...student, followingInstitutions: Array(followingInstitutionsCount).fill({})}} 
+        currentUser={currentUser} 
+        connectionCounts={connectionCounts} 
+        isViewMode={isViewMode} 
+      />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 

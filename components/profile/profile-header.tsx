@@ -503,16 +503,23 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                     <div 
                       className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 text-emerald-600 dark:text-emerald-300 px-3 py-1.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => {
-                        const followingSection = document.getElementById('following-institutions');
-                        if (followingSection) {
-                          followingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
+                        // Find the parent component that has setActiveTab
+                        const event = new CustomEvent('switchToFollowingTab');
+                        window.dispatchEvent(event);
                       }}
                       data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}
                     >
                       <svg 
                         className="h-3.5 w-3.5 text-emerald-500" 
-                        fill="none" 
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
+                        Following: {studentProp?.followingInstitutions?.length || 0}
+                      </span>e" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
                         data-tooltip="Following institutions"
