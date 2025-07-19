@@ -284,7 +284,7 @@ export default function SkillsStep({
   }, [skillCategories])
 
   // Track dirty state
-  useEffect((){
+  useEffect(() => {
     // Compare current skills with original skills
     const skillsChanged = skills.length !== originalSkills.length ||
       skills.some(skill => {
