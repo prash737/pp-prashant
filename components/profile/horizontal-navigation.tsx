@@ -3,7 +3,6 @@
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { User, GraduationCap, Award, FolderOpen, Target, Brain, Users, Building2 } from 'lucide-react'
 
 interface Tab {
   id: string

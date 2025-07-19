@@ -145,7 +145,6 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   // State for recent achievements
   const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([])
   const [achievementLoading, setAchievementLoading] = useState(true)
-  const [followingCount, setFollowingCount] = useState(0)
 
   // Fetch user's circles, connections, and achievements
   useEffect(() => {
@@ -198,27 +197,10 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       }
     }
 
-    const fetchFollowingCount = async () => {
-      try {
-        const response = await fetch('/api/student/following', {
-          credentials: 'include'
-        })
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success) {
-            setFollowingCount(data.count || 0)
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching following count:', error)
-      }
-    }
-
     if (isOwnProfile) {
       fetchCircles()
       fetchConnections()
       fetchRecentAchievements()
-      fetchFollowingCount()
     } else {
       setAchievementLoading(false)
     }
@@ -498,36 +480,6 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                       <BrainIcon className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
                         Skills: {studentProp?.skills?.length || 0}
-                      </span>
-                    </div>
-                    <div 
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 text-emerald-600 dark:text-emerald-300 px-3 py-1.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => {
-                        // Find the parent component that has setActiveTab
-                        const event = new CustomEvent('switchToFollowingTab');
-                        window.dispatchEvent(event);
-                      }}
-                      data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}
-                    >
-                      <svg 
-                        className="h-3.5 w-3.5 text-emerald-500" 
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
-                        Following: {studentProp?.followingInstitutions?.length || 0}
-                      </span>e" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        data-tooltip="Following institutions"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
-                        Following: {followingCount}
                       </span>
                     </div>
                   </div>
