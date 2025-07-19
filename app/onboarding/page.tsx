@@ -497,13 +497,17 @@ export default function Onboarding() {
               {step === 3 && (
                 <SkillsStep
                   initialData={userData.skills || []}
-                  onComplete={(skills) => {
+                  onComplete={async (skills) => {
                     console.log('🛠️ Skills step completed with data:', skills);
                     
-                    // Skills are now saved within the SkillsStep component itself
-                    // Just update local state
+                    // Skills are saved within the SkillsStep component itself
+                    // Just update local state and proceed
                     setUserData({ ...userData, skills });
                     console.log('✅ Skills data updated in local state');
+                    
+                    // The SkillsStep component handles the database save,
+                    // so we just need to proceed to the next step
+                    handleNext();
                   }}
                   onNext={handleNext}
                   onSkip={() => {

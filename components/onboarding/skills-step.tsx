@@ -1,4 +1,4 @@
-
+typescript
 "use client"
 
 import type React from "react"
@@ -284,7 +284,7 @@ export default function SkillsStep({
   }, [skillCategories])
 
   // Track dirty state
-  useEffect(() => {
+  useEffect((){
     // Compare current skills with original skills
     const skillsChanged = skills.length !== originalSkills.length ||
       skills.some(skill => {
@@ -428,14 +428,14 @@ export default function SkillsStep({
       }
 
       onComplete(skills)
-      onNext()
+      // onNext() will be called by the parent component (onboarding page)
     } catch (error) {
       console.error('Error saving skills:', error)
       // Show error to user but don't prevent navigation
       alert('Failed to save skills. Please try again later.')
       // Still allow user to continue onboarding
       onComplete(skills)
-      onNext()
+      // onNext() will be called by the parent component (onboarding page)
     } finally {
       setSaving(false)
     }
