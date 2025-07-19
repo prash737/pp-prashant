@@ -301,29 +301,11 @@ export async function POST(request: NextRequest) {
       return current && current.level !== (skill.level || 1)
     })
 
-    // Find skills to remove (in current but not in new list, or not valid for current age group)
-    const skillsToRemove = currentUserSkills.filter(us => {
-      const isInNewList = validSkills.some(skill => skill.name === us.skill.name)
-      const isValidForAgeGroup = availableSkillIds.includes(us.skill.id)
-      return !isInNewList || !isValidForAgeGroup
-    })
-
+    // Don't remove any existing skills - only add new ones and update existing ones
+    // This preserves skills that were added through other parts of the app
     console.log('➕ Skills to add:', skillsToAdd.length, skillsToAdd.map(s => s.name))
     console.log('🔄 Skills to update:', skillsToUpdate.length, skillsToUpdate.map(s => s.name))
-    console.log('➖ Skills to remove:', skillsToRemove.length, skillsToRemove.map(us => us.skill.name))
-
-    // Remove skills that are no longer selected or not valid for current age group
-    if (skillsToRemove.length > 0) {
-      const removedCount = await prisma.userSkill.deleteMany({
-        where: {
-          userId: user.id,
-          skillId: {
-            in: skillsToRemove.map(us => us.skill.id)
-          }
-        },
-      })
-      console.log('🗑️ Removed', removedCount.count, 'skills')
-    }
+    console.log('✅ Preserving existing skills that are not being modified')
 
     // Add new skills
     if (skillsToAdd.length > 0) {
