@@ -267,7 +267,9 @@ export default function AboutInstitutionSection({ institutionData }: AboutInstit
                     <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
                     <div>
                       <span className="font-medium block">Website</span>
-                      <span className="text-gray-600">{institutionData?.website || 'Not added yet'}</span>
+                      <span className="text-gray-600">
+                        {contactInfo?.website || institutionData?.website || 'Not added yet'}
+                      </span>
                     </div>
                   </div>
                 </div>
