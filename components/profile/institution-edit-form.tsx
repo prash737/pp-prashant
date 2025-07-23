@@ -84,6 +84,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     country: "",
     phone: "",
     email: "",
+    website: "",
 
     // Programs section
     programs: [
@@ -361,7 +362,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
             postalCode: ci.postal_code || '',
             country: ci.country || '',
             phone: ci.phone || '',
-            email: ci.email || ''
+            email: ci.email || '',
+            website: ci.website || ''
           }))
         }
       }
@@ -947,7 +949,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           postalCode: formData.postalCode,
           country: formData.country,
           phone: formData.phone,
-          email: formData.email
+          email: formData.email,
+          website: formData.website
         }),
       })
 
@@ -1387,12 +1390,17 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
 
         {/* International Students */}
         <div className="space-y-2">
-          <Label htmlFor="internationalStudents">International Students</Label>
+          <Label htmlFor="internationalStudents">International Students (Number of Countries)</Label>
           <Input
             id="internationalStudents"
             value={formData.internationalStudents}
-            onChange={(e) => handleInputChange('internationalStudents', e.target.value)}
-            placeholder="e.g., Students from 90+ countries"
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, '')
+              handleInputChange('internationalStudents', value)
+            }}
+            placeholder="e.g., 90"
+            type="number"
+            min="0"
           />
         </div>
 
@@ -1503,7 +1511,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           />
         </div>
 
-        {/* Phone and Email */}
+        {/* Phone, Email, and Website */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
@@ -1525,6 +1533,18 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               type="email"
             />
           </div>
+        </div>
+
+        {/* Website */}
+        <div className="space-y-2">
+          <Label htmlFor="website">Website</Label>
+          <Input
+            id="website"
+            value={formData.website}
+            onChange={(e) => handleInputChange('website', e.target.value)}
+            placeholder="e.g., https://www.stanford.edu"
+            type="url"
+          />
         </div>
 
         {/* Save Button for Contact Information Section */}

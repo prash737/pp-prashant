@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
       postalCode,
       country,
       phone,
-      email
+      email,
+      website
     } = body
 
     // Check if contact info already exists
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
           country = ${country || null},
           phone = ${phone || null},
           email = ${email || null},
+          website = ${website || null},
           updated_at = NOW()
         WHERE institution_id = ${user.id}::uuid
       `
@@ -87,9 +89,9 @@ export async function POST(request: NextRequest) {
       // Insert new record
       await prisma.$queryRaw`
         INSERT INTO institution_contact_info 
-        (institution_id, address, city, state, postal_code, country, phone, email)
+        (institution_id, address, city, state, postal_code, country, phone, email, website)
         VALUES (${user.id}::uuid, ${address || null}, ${city || null}, ${state || null}, 
-                ${postalCode || null}, ${country || null}, ${phone || null}, ${email || null})
+                ${postalCode || null}, ${country || null}, ${phone || null}, ${email || null}, ${website || null})
       `
     }
 

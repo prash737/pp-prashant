@@ -317,7 +317,7 @@ model InstitutionContactInfo {
   city          String?
   state         String?
   country       String?
-  zipCode       String?             @map("zip_code")
+  postalCode    String?             @map("postal_code")
   phone         String?
   email         String?
   website       String?
