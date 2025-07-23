@@ -54,6 +54,10 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
   const [showFollowersDialog, setShowFollowersDialog] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [quickFacts, setQuickFacts] = useState<any>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [quickFactsLoading, setQuickFactsLoading] = useState(true)
+  const [eventsLoading, setEventsLoading] = useState(true)
 
   // Use real institution data
   const institution = {
@@ -73,31 +77,64 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
     followers: followerCount, // Use actual count from API
   }
 
-  // Fetch actual follower count
+  // Fetch actual follower count, quick facts, and events
   useEffect(() => {
-    const fetchFollowerCount = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch follower count
         setLoading(true)
-        const response = await fetch(`/api/institutions/followers?institutionId=${institutionData.id}`, {
+        const followerResponse = await fetch(`/api/institutions/followers?institutionId=${institutionData.id}`, {
           credentials: 'include'
         })
 
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success) {
-            setFollowerCount(data.count || 0)
+        if (followerResponse.ok) {
+          const followerData = await followerResponse.json()
+          if (followerData.success) {
+            setFollowerCount(followerData.count || 0)
+          }
+        }
+
+        // Fetch quick facts
+        setQuickFactsLoading(true)
+        const quickFactsResponse = await fetch('/api/institution/quick-facts', {
+          credentials: 'include'
+        })
+
+        if (quickFactsResponse.ok) {
+          const quickFactsData = await quickFactsResponse.json()
+          setQuickFacts(quickFactsData.quickFacts)
+        }
+
+        // Fetch events
+        setEventsLoading(true)
+        const eventsResponse = await fetch('/api/institution/events', {
+          credentials: 'include'
+        })
+
+        if (eventsResponse.ok) {
+          const eventsData = await eventsResponse.json()
+          if (eventsData.success && eventsData.events) {
+            // Sort by start date and take top 5 most recent
+            const sortedEvents = eventsData.events
+              .sort((a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+              .slice(0, 5)
+            setEvents(sortedEvents)
           }
         }
       } catch (error) {
-        console.error('Error fetching follower count:', error)
+        console.error('Error fetching data:', error)
         setFollowerCount(0)
+        setQuickFacts(null)
+        setEvents([])
       } finally {
         setLoading(false)
+        setQuickFactsLoading(false)
+        setEventsLoading(false)
       }
     }
 
     if (institutionData.id) {
-      fetchFollowerCount()
+      fetchData()
     }
   }, [institutionData.id])
 
@@ -477,68 +514,90 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
 
                 {/* Right column - Institution highlights */}
                 <div className="lg:col-span-2 lg:border-l lg:border-gray-200 lg:dark:border-gray-700 lg:pl-6 mt-6 lg:mt-0">
-                  {/* Top Departments section */}
-                  <div>
-                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Departments</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {institution.specialties.map((specialty, index) => (
-                        <span
-                          key={index}
-                          className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Quick Info section */}
-                  <div className="mt-3">
+                  <div>
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Quick Info</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{institution.location}</span>
+                    {quickFactsLoading ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Globe className="h-4 w-4 text-gray-500" />
-                        <span>{institution.website}</span>
+                    ) : quickFacts ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span>{institutionData.location}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Globe className="h-4 w-4 text-gray-500" />
+                          <span>{institutionData.website}</span>
+                        </div>
+                        {quickFacts.campusSize && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Building className="h-4 w-4 text-gray-500" />
+                            <span>{quickFacts.campusSize}</span>
+                          </div>
+                        )}
+                        {quickFacts.studentCount && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            <span>{quickFacts.studentCount.toLocaleString()} students</span>
+                          </div>
+                        )}
+                        {quickFacts.facultyCount && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            <span>{quickFacts.facultyCount.toLocaleString()} faculty</span>
+                          </div>
+                        )}
+                        {quickFacts.establishedYear && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span>Established {quickFacts.establishedYear}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Building className="h-4 w-4 text-gray-500" />
-                        <span>8,180 acres campus</span>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-gray-500 text-xs">Not added yet</p>
+                    )}
                   </div>
 
-                  {/* Upcoming Events section */}
+                  {/* Events section */}
                   <div className="mt-3">
-                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Upcoming Events</h3>
-                    <div className="bg-sky-50 dark:bg-sky-900/20 p-2 rounded-lg flex items-center gap-3">
-                      <div className="bg-blue-100 dark:bg-blue-900/40 h-8 w-8 rounded-full flex items-center justify-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4 text-blue-600 dark:text-blue-400"
-                        >
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
+                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Events</h3>
+                    {eventsLoading ? (
+                      <div className="bg-sky-50 dark:bg-sky-900/20 p-2 rounded-lg flex items-center gap-3">
+                        <div className="bg-gray-200 dark:bg-gray-700 h-8 w-8 rounded-full animate-pulse"></div>
+                        <div className="space-y-1">
+                          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                          <div className="h-2 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-medium">Spring Open House</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">May 15, 2023</p>
+                    ) : events.length > 0 ? (
+                      <div className="space-y-2">
+                        {events.map((event, index) => (
+                          <div key={event.id || index} className="bg-sky-50 dark:bg-sky-900/20 p-2 rounded-lg flex items-center gap-3">
+                            <div className="bg-blue-100 dark:bg-blue-900/40 h-8 w-8 rounded-full flex items-center justify-center">
+                              <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-medium">{event.title}</h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(event.startDate).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    ) : (
+                      <p className="text-gray-500 text-xs">Not added yet</p>
+                    )}
                   </div>
                 </div>
               </div>
