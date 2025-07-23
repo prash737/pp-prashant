@@ -382,11 +382,13 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">{institution.name}</h1>
                         {institution.verified && <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 self-center" />}
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base">
-                        {institution.tagline}
-                      </p>
+                      {institution.tagline && (
+                        <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base">
+                          {institution.tagline}
+                        </p>
+                      )}
                       <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                        {institution.type} • Est. {institution.founded}
+                        {institution.type}{institution.founded ? ` • Est. ${institution.founded}` : ''}
                       </p>
                     </div>
                   </div>
