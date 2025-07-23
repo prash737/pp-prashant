@@ -82,9 +82,9 @@ export default function FacilitiesSection() {
                   className="object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <button className="px-4 py-2 bg-white rounded-md shadow-md text-blue-600 font-medium hover:bg-blue-50 transition-colors">
-                    View Interactive Map
-                  </button>
+                  <div className="px-4 py-2 bg-white rounded-md shadow-md text-gray-500 font-medium">
+                    Coming Soon
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -191,27 +191,8 @@ export default function FacilitiesSection() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Campus Size</span>
-                  <span className="font-semibold">8,180 acres</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Buildings</span>
-                  <span className="font-semibold">700+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Libraries</span>
-                  <span className="font-semibold">20+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Research Facilities</span>
-                  <span className="font-semibold">40+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Athletic Facilities</span>
-                  <span className="font-semibold">15+</span>
-                </div>
+              <div className="flex items-center justify-center h-32">
+                <p className="text-gray-500 text-lg">Coming Soon</p>
               </div>
             </CardContent>
           </Card>
@@ -224,40 +205,8 @@ export default function FacilitiesSection() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Dining Halls & Cafes</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Recreation Centers</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Student Unions</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Health Services</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Performing Arts Centers</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Museums & Galleries</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                  <span className="text-gray-700">Outdoor Recreation Areas</span>
-                </li>
-              </ul>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <a href="#" className="text-blue-600 hover:underline text-sm block">
-                  View Campus Map
-                </a>
+              <div className="flex items-center justify-center h-32">
+                <p className="text-gray-500 text-lg">Coming Soon</p>
               </div>
             </CardContent>
           </Card>
