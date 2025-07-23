@@ -80,6 +80,22 @@ export default function ProgramsSection({ institutionId, className = "" }: Progr
     )
   }
 
+  if (programs.length === 0) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Programs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-500 text-center py-8">No programs added yet</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -89,7 +105,59 @@ export default function ProgramsSection({ institutionId, className = "" }: Progr
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-500 text-center py-8">Coming soon</p>
+        <div className="space-y-4">
+          {programs.map((program) => (
+            <div key={program.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-1">{program.name}</h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <Badge variant="secondary">{program.type}</Badge>
+                    <Badge variant="outline">{program.level}</Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleExpanded(program.id)}
+                  className="shrink-0"
+                >
+                  {expandedProgram === program.id ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{formatDuration(program.durationValue, program.durationType)}</span>
+                </div>
+              </div>
+
+              <p className="text-gray-700 mb-3">{program.description}</p>
+
+              {expandedProgram === program.id && (
+                <div className="border-t pt-3 space-y-3">
+                  {program.eligibility && (
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-900 mb-1">Eligibility</h4>
+                      <p className="text-sm text-gray-600">{program.eligibility}</p>
+                    </div>
+                  )}
+                  {program.learningOutcomes && (
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-900 mb-1">Learning Outcomes</h4>
+                      <p className="text-sm text-gray-600">{program.learningOutcomes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )

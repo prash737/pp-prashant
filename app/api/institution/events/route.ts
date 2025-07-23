@@ -25,44 +25,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get filter parameter
-    const { searchParams } = new URL(request.url)
-    const filter = searchParams.get('filter') || 'upcoming'
-    
-    const now = new Date()
-    let whereCondition: any = { institutionId: user.id }
-    
-    // Apply time-based filtering
-    if (filter === 'upcoming') {
-      whereCondition.startDate = {
-        gt: now
-      }
-    } else if (filter === 'ongoing') {
-      whereCondition.AND = [
-        { startDate: { lte: now } },
-        {
-          OR: [
-            { endDate: { gte: now } },
-            { endDate: null }
-          ]
-        }
-      ]
-    } else if (filter === 'occurred') {
-      whereCondition.OR = [
-        { endDate: { lt: now } },
-        {
-          AND: [
-            { endDate: null },
-            { startDate: { lt: now } }
-          ]
-        }
-      ]
-    }
-
-    // Fetch events for this institution with filtering
+    // Fetch events for this institution
     const events = await prisma.institutionEvents.findMany({
-      where: whereCondition,
-      orderBy: { startDate: filter === 'occurred' ? 'desc' : 'asc' }
+      where: { institutionId: user.id },
+      orderBy: { startDate: 'asc' }
     })
 
     return NextResponse.json({ events })

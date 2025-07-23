@@ -16,21 +16,17 @@ interface Event {
   registrationUrl?: string
 }
 
-type EventFilter = 'upcoming' | 'ongoing' | 'occurred'
-
 export default function EventsSection() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeFilter, setActiveFilter] = useState<EventFilter>('upcoming')
 
   useEffect(() => {
-    fetchEvents(activeFilter)
-  }, [activeFilter])
+    fetchEvents()
+  }, [])
 
-  const fetchEvents = async (filter: EventFilter = 'upcoming') => {
+  const fetchEvents = async () => {
     try {
-      setLoading(true)
-      const response = await fetch(`/api/institution/events?filter=${filter}`)
+      const response = await fetch('/api/institution/events')
       if (response.ok) {
         const data = await response.json()
         setEvents(data.events || [])
@@ -218,41 +214,32 @@ export default function EventsSection() {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-600" />
-                Event Filters
+                Event Categories
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setActiveFilter('upcoming')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeFilter === 'upcoming'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Events Upcoming
-                </button>
-                <button
-                  onClick={() => setActiveFilter('ongoing')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeFilter === 'ongoing'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Events Going On
-                </button>
-                <button
-                  onClick={() => setActiveFilter('occurred')}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeFilter === 'occurred'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Events Occurred
-                </button>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                  Academic
+                </span>
+                <span className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
+                  Conference
+                </span>
+                <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
+                  Cultural
+                </span>
+                <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                  Sports
+                </span>
+                <span className="inline-flex items-center rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">
+                  Workshop
+                </span>
+                <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                  Seminar
+                </span>
+                <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                  Competition
+                </span>
               </div>
             </CardContent>
           </Card>
