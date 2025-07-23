@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Check if contact info already exists
     const existingContactInfo = await prisma.$queryRaw`
-      SELECT id FROM institution_contact_info WHERE institution_id = ${user.id}
+      SELECT id FROM institution_contact_info WHERE institution_id = ${user.id}::uuid
     `
 
     if (Array.isArray(existingContactInfo) && existingContactInfo.length > 0) {
@@ -76,19 +76,19 @@ export async function POST(request: NextRequest) {
           address = ${address || null},
           city = ${city || null},
           state = ${state || null},
-          postal_code = ${postalCode || null},
+          zip_code = ${postalCode || null},
           country = ${country || null},
           phone = ${phone || null},
           email = ${email || null},
           updated_at = NOW()
-        WHERE institution_id = ${user.id}
+        WHERE institution_id = ${user.id}::uuid
       `
     } else {
       // Insert new record
       await prisma.$queryRaw`
         INSERT INTO institution_contact_info 
-        (institution_id, address, city, state, postal_code, country, phone, email)
-        VALUES (${user.id}, ${address || null}, ${city || null}, ${state || null}, 
+        (institution_id, address, city, state, zip_code, country, phone, email)
+        VALUES (${user.id}::uuid, ${address || null}, ${city || null}, ${state || null}, 
                 ${postalCode || null}, ${country || null}, ${phone || null}, ${email || null})
       `
     }
