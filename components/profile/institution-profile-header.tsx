@@ -55,8 +55,10 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
   const [followerCount, setFollowerCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [quickFacts, setQuickFacts] = useState<any>(null)
+  const [contactInfo, setContactInfo] = useState<any>(null)
   const [events, setEvents] = useState<any[]>([])
   const [quickFactsLoading, setQuickFactsLoading] = useState(true)
+  const [contactInfoLoading, setContactInfoLoading] = useState(true)
   const [eventsLoading, setEventsLoading] = useState(true)
 
   // Use real institution data
@@ -105,6 +107,17 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
           setQuickFacts(quickFactsData.quickFacts)
         }
 
+        // Fetch contact info
+        setContactInfoLoading(true)
+        const contactInfoResponse = await fetch('/api/institution/contact-info', {
+          credentials: 'include'
+        })
+
+        if (contactInfoResponse.ok) {
+          const contactInfoData = await contactInfoResponse.json()
+          setContactInfo(contactInfoData.contactInfo)
+        }
+
         // Fetch events
         setEventsLoading(true)
         const eventsResponse = await fetch('/api/institution/events', {
@@ -125,10 +138,12 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
         console.error('Error fetching data:', error)
         setFollowerCount(0)
         setQuickFacts(null)
+        setContactInfo(null)
         setEvents([])
       } finally {
         setLoading(false)
         setQuickFactsLoading(false)
+        setContactInfoLoading(false)
         setEventsLoading(false)
       }
     }
@@ -534,11 +549,19 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                         </div>
                       </div>
-                    ) : quickFacts ? (
+                    ) : quickFacts || contactInfo ? (
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
                           <MapPin className="h-5 w-5 text-gray-500" />
-                          <span>{institutionData.location}</span>
+                          <span>
+                            {contactInfo && (contactInfo.city || contactInfo.state || contactInfo.country) ? (
+                              [contactInfo.city, contactInfo.state, contactInfo.country]
+                                .filter(Boolean)
+                                .join(', ')
+                            ) : (
+                              institutionData.location || 'Location not specified'
+                            )}
+                          </span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
                           <Globe className="h-5 w-5 text-gray-500" />
