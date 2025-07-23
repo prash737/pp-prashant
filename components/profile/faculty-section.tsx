@@ -41,10 +41,8 @@ export default function FacultySection({ institutionId }: FacultySectionProps) {
   }, [])
 
   useEffect(() => {
-    if (institutionId) {
-      fetchFacultyStats()
-    }
-  }, [institutionId])
+    fetchFacultyStats()
+  }, [])
 
   const fetchFaculty = async () => {
     try {
@@ -66,22 +64,21 @@ export default function FacultySection({ institutionId }: FacultySectionProps) {
 
   const fetchFacultyStats = async () => {
     try {
-      setIsLoading(true)
       const response = await fetch('/api/institution/faculty-stats')
       if (response.ok) {
         const data = await response.json()
         setFacultyStats(data.facultyStats)
+      } else {
+        console.error('Failed to fetch faculty stats:', response.status)
       }
     } catch (error) {
       console.error('Error fetching faculty stats:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
 
-  const formatRatio = (students?: number, faculty?: number) => {
-    if (students && faculty) {
+  const formatRatio = (students?: number | null, faculty?: number | null) => {
+    if (students !== null && students !== undefined && faculty !== null && faculty !== undefined) {
       return `${students}:${faculty}`
     }
     return 'Not added yet'
@@ -194,48 +191,43 @@ export default function FacultySection({ institutionId }: FacultySectionProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="space-y-3">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Total Faculty</span>
+                  <span className="font-semibold">
+                    {facultyStats?.totalFaculty !== null && facultyStats?.totalFaculty !== undefined 
+                      ? facultyStats.totalFaculty.toLocaleString() 
+                      : 'Not added yet'}
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Total Faculty</span>
-                    <span className="font-semibold">
-                      {facultyStats?.totalFaculty ? facultyStats.totalFaculty.toLocaleString() : 'Not added yet'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Student-Faculty Ratio</span>
-                    <span className="font-semibold">
-                      {formatRatio(facultyStats?.studentFacultyRatioStudents, facultyStats?.studentFacultyRatioFaculty)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Faculty with PhDs</span>
-                    <span className="font-semibold">
-                      {facultyStats?.facultyWithPhdsPercentage ? `${facultyStats.facultyWithPhdsPercentage}%` : 'Not added yet'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">International Faculty</span>
-                    <span className="font-semibold">
-                      {facultyStats?.internationalFacultyPercentage ? `${facultyStats.internationalFacultyPercentage}%` : 'Not added yet'}
-                    </span>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <a href="#" className="text-blue-600 hover:underline text-sm block">
-                      Browse Faculty Directory
-                    </a>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Student-Faculty Ratio</span>
+                  <span className="font-semibold">
+                    {formatRatio(facultyStats?.studentFacultyRatioStudents, facultyStats?.studentFacultyRatioFaculty)}
+                  </span>
                 </div>
-              )}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Faculty with PhDs</span>
+                  <span className="font-semibold">
+                    {facultyStats?.facultyWithPhdsPercentage !== null && facultyStats?.facultyWithPhdsPercentage !== undefined 
+                      ? `${facultyStats.facultyWithPhdsPercentage}%` 
+                      : 'Not added yet'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">International Faculty</span>
+                  <span className="font-semibold">
+                    {facultyStats?.internationalFacultyPercentage !== null && facultyStats?.internationalFacultyPercentage !== undefined 
+                      ? `${facultyStats.internationalFacultyPercentage}%` 
+                      : 'Not added yet'}
+                  </span>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <a href="#" className="text-blue-600 hover:underline text-sm block">
+                    Browse Faculty Directory
+                  </a>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

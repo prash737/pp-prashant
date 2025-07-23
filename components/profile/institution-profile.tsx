@@ -31,9 +31,10 @@ interface InstitutionData {
 
 interface InstitutionProfileProps {
   institutionData: InstitutionData
+  institutionId?: string
 }
 
-export default function InstitutionProfile({ institutionData }: InstitutionProfileProps) {
+export default function InstitutionProfile({ institutionData, institutionId }: InstitutionProfileProps) {
   const [activeSection, setActiveSection] = useState("about")
   const containerRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -65,11 +66,11 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
       const containerRect = container.getBoundingClientRect()
       const viewportHeight = window.innerHeight
       const headerHeight = containerRect.top // Distance from top of viewport
-      
+
       // If the container is not at the top of viewport and user is trying to scroll
       if (headerHeight > 0 && scrollTop > 0) {
         isExpanding = true
-        
+
         // Scroll the page to bring the container to the top
         const targetScrollY = window.scrollY + headerHeight
         window.scrollTo({
@@ -89,7 +90,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
         expandTimeout = setTimeout(() => {
           isExpanding = false
         }, 600) // Slightly longer than scroll animation
-        
+
         return // Don't process section changes during expansion
       }
 
@@ -119,7 +120,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
         // If we're close to the section start but not exactly there, snap to it
         if (Math.abs(scrollTop - targetTop) > threshold) {
           isSnapping = true
-          
+
           container.scrollTo({
             top: targetTop,
             behavior: 'smooth'
@@ -145,7 +146,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
       container.addEventListener('scroll', handleScroll, { passive: true })
       // Call initially to set correct active section
       handleScroll()
-      
+
       return () => {
         container.removeEventListener('scroll', handleScroll)
         if (expandTimeout) {
@@ -270,7 +271,7 @@ export default function InstitutionProfile({ institutionData }: InstitutionProfi
                     id="faculty"
                     className="scroll-mt-6"
                   >
-                    <FacultySection />
+                    <FacultySection institutionId={institutionId || institutionData?.id} />
                   </div>
 
                   <div 

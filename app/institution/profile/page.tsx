@@ -74,7 +74,7 @@ export default async function InstitutionProfilePage() {
       <div className="min-h-screen bg-white">
         <InstitutionNavbar />
         <main className="pt-16 sm:pt-24">
-          <InstitutionProfile institutionData={institution} />
+          <InstitutionProfile institutionData={institution} institutionId={institution.id} />
         </main>
         <Footer />
       </div>
