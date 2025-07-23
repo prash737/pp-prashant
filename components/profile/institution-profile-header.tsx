@@ -396,71 +396,81 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
 
                   {/* Quick Stats - Horizontal display with icons and pastel backgrounds */}
                   <div className="flex flex-wrap gap-2 sm:gap-3 text-xs font-medium mt-4">
+                    {/* Students Badge - Dynamic from quickFacts */}
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full">
                       <Users className="h-3.5 w-3.5 text-blue-500" data-tooltip="Total students enrolled" />
                       <span data-tooltip="Total students enrolled">
-                        {institution.students.toLocaleString()} Students
+                        {quickFactsLoading ? 'Loading...' : 
+                         quickFacts && (quickFacts.undergraduate_students || quickFacts.graduate_students) ?
+                         `${((quickFacts.undergraduate_students || 0) + (quickFacts.graduate_students || 0)).toLocaleString()} Students` :
+                         'No info'}
                       </span>
-                      <div className="ml-1.5 flex items-center gap-1 border-l border-blue-200 dark:border-blue-800/30 pl-1.5">
-                        <div className="flex items-center" data-tooltip="Undergraduate students">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-3 w-3 text-blue-500"
-                            data-tooltip="Undergraduate"
-                          >
-                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                          </svg>
-                          <span className="text-[10px] ml-0.5" data-tooltip="Undergraduate students">
-                            7,645
-                          </span>
+                      {quickFacts && (quickFacts.undergraduate_students || quickFacts.graduate_students) && (
+                        <div className="ml-1.5 flex items-center gap-1 border-l border-blue-200 dark:border-blue-800/30 pl-1.5">
+                          {quickFacts.undergraduate_students && (
+                            <div className="flex items-center" data-tooltip="Undergraduate students">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-3 w-3 text-blue-500"
+                                data-tooltip="Undergraduate"
+                              >
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                              </svg>
+                              <span className="text-[10px] ml-0.5" data-tooltip="Undergraduate students">
+                                {quickFacts.undergraduate_students.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          {quickFacts.graduate_students && (
+                            <div className="flex items-center" data-tooltip="Graduate students">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-3 w-3 text-blue-500"
+                                data-tooltip="Graduate"
+                              >
+                                <path d="M8 14v7H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h4"></path>
+                                <path d="M16 14v7h4a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-4"></path>
+                                <path d="M12 14v7"></path>
+                                <path d="M12 4v10"></path>
+                                <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
+                              </svg>
+                              <span className="text-[10px] ml-0.5" data-tooltip="Graduate students">
+                                {quickFacts.graduate_students.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center" data-tooltip="Graduate students">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-3 w-3 text-blue-500"
-                            data-tooltip="Graduate"
-                          >
-                            <path d="M8 14v7H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h4"></path>
-                            <path d="M16 14v7h4a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-4"></path>
-                            <path d="M12 14v7"></path>
-                            <path d="M12 4v10"></path>
-                            <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
-                          </svg>
-                          <span className="text-[10px] ml-0.5" data-tooltip="Graduate students">
-                            9,292
-                          </span>
-                        </div>
-                      </div>
+                      )}
                     </div>
+
+                    {/* Faculty Badge - Dynamic from quickFacts */}
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 text-purple-600 dark:text-purple-300 px-3 py-1.5 rounded-full">
                       <Users className="h-3.5 w-3.5 text-purple-500" data-tooltip="Faculty members" />
-                      <span data-tooltip="Faculty members">Faculty: {institution.faculty.toLocaleString()}</span>
+                      <span data-tooltip="Faculty members">
+                        Faculty: {quickFactsLoading ? 'Loading...' : 
+                                 quickFacts?.faculty_members ? 
+                                 quickFacts.faculty_members.toLocaleString() : 
+                                 'No info'}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 text-amber-600 dark:text-amber-300 px-3 py-1.5 rounded-full">
-                      <BookOpen className="h-3.5 w-3.5 text-amber-500" data-tooltip="Academic programs offered" />
-                      <span data-tooltip="Academic programs offered">Programs: {institution.programs}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
-                      <Award className="h-3.5 w-3.5 text-teal-500" data-tooltip="Global ranking" />
-                      <span data-tooltip="Global ranking">Top 5 Globally</span>
-                    </div>
+
                     {/* Followers Count - Clickable */}
                     <button
                       onClick={() => setShowFollowersDialog(true)}
