@@ -27,10 +27,10 @@ interface InstitutionData {
 }
 
 interface AboutInstitutionSectionProps {
-  institution: InstitutionData
+  institutionData: InstitutionData
 }
 
-export default function AboutInstitutionSection({ institution }: AboutInstitutionSectionProps) {
+export default function AboutInstitutionSection({ institutionData }: AboutInstitutionSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [quickFacts, setQuickFacts] = useState<any>(null)
   const [contactInfo, setContactInfo] = useState<any>(null)
@@ -77,16 +77,16 @@ export default function AboutInstitutionSection({ institution }: AboutInstitutio
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {institution.overview ? (
+              {institutionData?.overview ? (
                 <div className="space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    {institution.overview}
+                    {institutionData.overview}
                   </p>
-                  {institution.coverImage && (
+                  {institutionData.coverImage && (
                     <div className="mt-6">
                       <Image
-                        src={institution.coverImage}
-                        alt={`${institution.name} cover image`}
+                        src={institutionData.coverImage}
+                        alt={`${institutionData.name} cover image`}
                         width={800}
                         height={300}
                         className="rounded-lg object-cover w-full h-48"
@@ -111,22 +111,22 @@ export default function AboutInstitutionSection({ institution }: AboutInstitutio
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {institution.mission || (institution.coreValues && institution.coreValues.length > 0) ? (
+              {institutionData?.mission || (institutionData?.coreValues && institutionData.coreValues.length > 0) ? (
                 <>
-                  {institution.mission && (
+                  {institutionData?.mission && (
                     <>
                       <h3 className="font-semibold text-lg">Our Mission</h3>
                       <p className="text-gray-700 leading-relaxed">
-                        {institution.mission}
+                        {institutionData.mission}
                       </p>
                     </>
                   )}
 
-                  {institution.coreValues && institution.coreValues.length > 0 && (
+                  {institutionData?.coreValues && institutionData.coreValues.length > 0 && (
                     <>
                       <h3 className="font-semibold text-lg mt-4">Core Values</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {institution.coreValues.map((value, index) => (
+                        {institutionData.coreValues.map((value, index) => (
                           <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                             <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                               {index + 1}
@@ -267,7 +267,7 @@ export default function AboutInstitutionSection({ institution }: AboutInstitutio
                     <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
                     <div>
                       <span className="font-medium block">Website</span>
-                      <span className="text-gray-600">{institution.website || 'Not added yet'}</span>
+                      <span className="text-gray-600">{institutionData?.website || 'Not added yet'}</span>
                     </div>
                   </div>
                 </div>
