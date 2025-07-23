@@ -388,7 +388,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         </p>
                       )}
                       <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                        {institution.type}
+                        {institution.type}{institution.founded ? ` • Est. ${institution.founded}` : ''}
                       </p>
                     </div>
                   </div>
@@ -405,7 +405,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                       <Users className="h-4 w-4 mr-2" />
                       Connect
                     </Button>
-                    {!contactInfoLoading && contactInfo?.website ? (
+                    {contactInfo?.website ? (
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -425,7 +425,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Visit Website
                       </Button>
-                    )}</
+                    )}
                   </div>
 
                   {/* Quick Stats - Horizontal display with icons and pastel backgrounds */}
