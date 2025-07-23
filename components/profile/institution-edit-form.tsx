@@ -151,6 +151,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingQuickFacts, setIsLoadingQuickFacts] = useState(false)
+  const [isLoadingContactInfo, setIsLoadingContactInfo] = useState(false)
 
   // Refs for scroll-to-section functionality
   const sectionRefs = {
@@ -309,10 +311,66 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         coreValues: Array.isArray(institutionData.coreValues) ? institutionData.coreValues : [''],
       }))
 
-      // Fetch existing programs
+      // Fetch existing data
       fetchPrograms()
+      fetchQuickFacts()
+      fetchContactInfo()
     }
   }, [institutionData])
+
+  const fetchQuickFacts = async () => {
+    try {
+      setIsLoadingQuickFacts(true)
+      const response = await fetch('/api/institution/quick-facts')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.quickFacts) {
+          const qf = data.quickFacts
+          setFormData(prev => ({
+            ...prev,
+            undergraduateStudents: qf.undergraduate_students?.toString() || '',
+            graduateStudents: qf.graduate_students?.toString() || '',
+            facultyMembers: qf.faculty_members?.toString() || '',
+            campusSize: qf.campus_size_acres?.toString() || qf.campus_size_km2?.toString() || '',
+            campusSizeUnit: qf.campus_size_acres ? 'acres' : qf.campus_size_km2 ? 'sq-km' : 'acres',
+            internationalStudents: qf.international_students_countries?.toString() || '',
+            ranking: qf.global_ranking || ''
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching quick facts:', error)
+    } finally {
+      setIsLoadingQuickFacts(false)
+    }
+  }
+
+  const fetchContactInfo = async () => {
+    try {
+      setIsLoadingContactInfo(true)
+      const response = await fetch('/api/institution/contact-info')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.contactInfo) {
+          const ci = data.contactInfo
+          setFormData(prev => ({
+            ...prev,
+            address: ci.address || '',
+            city: ci.city || '',
+            state: ci.state || '',
+            postalCode: ci.postal_code || '',
+            country: ci.country || '',
+            phone: ci.phone || '',
+            email: ci.email || ''
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching contact info:', error)
+    } finally {
+      setIsLoadingContactInfo(false)
+    }
+  }
 
   const fetchPrograms = async () => {
     try {
@@ -835,6 +893,84 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     }
   }
 
+  const saveQuickFactsSection = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/institution/quick-facts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          undergraduateStudents: formData.undergraduateStudents,
+          graduateStudents: formData.graduateStudents,
+          facultyMembers: formData.facultyMembers,
+          campusSize: formData.campusSize,
+          campusSizeUnit: formData.campusSizeUnit,
+          internationalStudents: formData.internationalStudents,
+          ranking: formData.ranking
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update quick facts')
+      }
+
+      toast({
+        title: "Success",
+        description: "Quick facts updated successfully!",
+      })
+    } catch (error) {
+      console.error('Error updating quick facts:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update quick facts. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const saveContactInfoSection = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/institution/contact-info', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.postalCode,
+          country: formData.country,
+          phone: formData.phone,
+          email: formData.email
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update contact info')
+      }
+
+      toast({
+        title: "Success",
+        description: "Contact information updated successfully!",
+      })
+    } catch (error) {
+      console.error('Error updating contact info:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update contact info. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const saveProgramsSection = async () => {
     setIsLoading(true)
     try {
@@ -1296,18 +1432,12 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         {/* Save Button for Quick Facts Section */}
         <div className="flex justify-end pt-4 border-t">
           <Button
-            onClick={async () => {
-              // TODO: Implement save functionality
-              toast({
-                title: "Info",
-                description: "Quick Facts save functionality will be implemented later.",
-              })
-            }}
-            disabled={isLoading}
+            onClick={saveQuickFactsSection}
+            disabled={isLoading || isLoadingQuickFacts}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Save className="h-4 w-4 mr-2" />
-            Save Quick Facts
+            {isLoading ? 'Saving...' : 'Save Quick Facts'}
           </Button>
         </div>
       </CardContent>
@@ -1400,18 +1530,12 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         {/* Save Button for Contact Information Section */}
         <div className="flex justify-end pt-4 border-t">
           <Button
-            onClick={async () => {
-              // TODO: Implement save functionality
-              toast({
-                title: "Info",
-                description: "Contact Information save functionality will be implemented later.",
-              })
-            }}
-            disabled={isLoading}
+            onClick={saveContactInfoSection}
+            disabled={isLoading || isLoadingContactInfo}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Save className="h-4 w-4 mr-2" />
-            Save Contact Information
+            {isLoading ? 'Saving...' : 'Save Contact Information'}
           </Button>
         </div>
       </CardContent>

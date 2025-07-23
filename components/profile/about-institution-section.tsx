@@ -1,6 +1,12 @@
-import Image from "next/image"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Award, BookOpen, Globe, Users, MapPin, Landmark, GraduationCap } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { MapPin, Users, GraduationCap, BookOpen, Globe, Phone, Mail, Building2, Calendar, Award, ChevronDown, ChevronUp } from "lucide-react"
+import Image from "next/image"
+import { cn } from "@/lib/utils"
 
 interface InstitutionData {
   id: string
@@ -21,10 +27,43 @@ interface InstitutionData {
 }
 
 interface AboutInstitutionSectionProps {
-  institutionData: InstitutionData
+  institution: InstitutionData
 }
 
-export default function AboutInstitutionSection({ institutionData }: AboutInstitutionSectionProps) {
+export default function AboutInstitutionSection({ institution }: AboutInstitutionSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [quickFacts, setQuickFacts] = useState<any>(null)
+  const [contactInfo, setContactInfo] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchQuickFactsAndContactInfo()
+  }, [])
+
+  const fetchQuickFactsAndContactInfo = async () => {
+    try {
+      setIsLoading(true)
+
+      // Fetch quick facts
+      const quickFactsResponse = await fetch('/api/institution/quick-facts')
+      if (quickFactsResponse.ok) {
+        const quickFactsData = await quickFactsResponse.json()
+        setQuickFacts(quickFactsData.quickFacts)
+      }
+
+      // Fetch contact info
+      const contactInfoResponse = await fetch('/api/institution/contact-info')
+      if (contactInfoResponse.ok) {
+        const contactInfoData = await contactInfoResponse.json()
+        setContactInfo(contactInfoData.contactInfo)
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -38,16 +77,16 @@ export default function AboutInstitutionSection({ institutionData }: AboutInstit
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {institutionData.overview ? (
+              {institution.overview ? (
                 <div className="space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    {institutionData.overview}
+                    {institution.overview}
                   </p>
-                  {institutionData.coverImage && (
+                  {institution.coverImage && (
                     <div className="mt-6">
                       <Image
-                        src={institutionData.coverImage}
-                        alt={`${institutionData.name} cover image`}
+                        src={institution.coverImage}
+                        alt={`${institution.name} cover image`}
                         width={800}
                         height={300}
                         className="rounded-lg object-cover w-full h-48"
@@ -72,22 +111,22 @@ export default function AboutInstitutionSection({ institutionData }: AboutInstit
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {institutionData.mission || (institutionData.coreValues && institutionData.coreValues.length > 0) ? (
+              {institution.mission || (institution.coreValues && institution.coreValues.length > 0) ? (
                 <>
-                  {institutionData.mission && (
+                  {institution.mission && (
                     <>
                       <h3 className="font-semibold text-lg">Our Mission</h3>
                       <p className="text-gray-700 leading-relaxed">
-                        {institutionData.mission}
+                        {institution.mission}
                       </p>
                     </>
                   )}
-                  
-                  {institutionData.coreValues && institutionData.coreValues.length > 0 && (
+
+                  {institution.coreValues && institution.coreValues.length > 0 && (
                     <>
                       <h3 className="font-semibold text-lg mt-4">Core Values</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {institutionData.coreValues.map((value, index) => (
+                        {institution.coreValues.map((value, index) => (
                           <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                             <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                               {index + 1}
@@ -118,44 +157,65 @@ export default function AboutInstitutionSection({ institutionData }: AboutInstit
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <Users className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block">Student Body</span>
-                    <span className="text-gray-600">7,645 Undergraduate</span>
-                    <span className="text-gray-600 block">9,292 Graduate</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <GraduationCap className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block">Faculty</span>
-                    <span className="text-gray-600">2,288 Faculty members</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block">Campus Size</span>
-                    <span className="text-gray-600">8,180 acres (33.1 km²)</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block">International</span>
-                    <span className="text-gray-600">Students from 90+ countries</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Award className="h-5 w-5 text-gray-500 mt-0.5" />
-                  <div>
-                    <span className="font-medium block">Rankings</span>
-                    <span className="text-gray-600">Top 5 globally</span>
-                  </div>
-                </li>
-              </ul>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                </div>
+              ) : (
+                <ul className="space-y-4">
+                  <li className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Student Body</span>
+                      <span className="text-gray-600">
+                        {quickFacts?.undergraduate_students ? `${quickFacts.undergraduate_students.toLocaleString()} Undergraduate` : 'Not added yet'}
+                      </span>
+                      {quickFacts?.graduate_students && (
+                        <span className="text-gray-600 block">{quickFacts.graduate_students.toLocaleString()} Graduate</span>
+                      )}
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <GraduationCap className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Faculty</span>
+                      <span className="text-gray-600">
+                        {quickFacts?.faculty_members ? `${quickFacts.faculty_members.toLocaleString()} Faculty members` : 'Not added yet'}
+                      </span>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Campus Size</span>
+                      <span className="text-gray-600">
+                        {quickFacts?.campus_size_acres ? `${quickFacts.campus_size_acres.toLocaleString()} acres` : 
+                         quickFacts?.campus_size_km2 ? `${quickFacts.campus_size_km2.toLocaleString()} km²` : 'Not added yet'}
+                      </span>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">International Students</span>
+                      <span className="text-gray-600">
+                        {quickFacts?.international_students_countries ? `Students from ${quickFacts.international_students_countries}+ countries` : 'Not added yet'}
+                      </span>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Award className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Ranking</span>
+                      <span className="text-gray-600">
+                        {quickFacts?.global_ranking || 'Not added yet'}
+                      </span>
+                    </div>
+                  </li>
+                </ul>
+              )}
             </CardContent>
           </Card>
 
@@ -163,22 +223,55 @@ export default function AboutInstitutionSection({ institutionData }: AboutInstit
           <Card>
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
+                <Building2 className="h-5 w-5 text-blue-600" />
                 Contact Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="font-medium">Stanford University</p>
-              <p className="text-gray-600">450 Serra Mall</p>
-              <p className="text-gray-600">Stanford, CA 94305</p>
-              <p className="text-gray-600">United States</p>
-              <div className="pt-2">
-                <p className="text-gray-600">Phone: (650) 723-2300</p>
-                <p className="text-gray-600">Email: admission@stanford.edu</p>
-                <a href="#" className="text-blue-600 hover:underline block mt-2">
-                  Visit Website
-                </a>
-              </div>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Address</span>
+                      <span className="text-gray-600">
+                        {contactInfo?.address || contactInfo?.city || contactInfo?.state || contactInfo?.country ? (
+                          `${contactInfo?.address || ''} ${contactInfo?.city || ''} ${contactInfo?.state || ''} ${contactInfo?.postal_code || ''} ${contactInfo?.country || ''}`.trim()
+                        ) : (
+                          'Not added yet'
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Phone</span>
+                      <span className="text-gray-600">{contactInfo?.phone || 'Not added yet'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Email</span>
+                      <span className="text-gray-600">{contactInfo?.email || 'Not added yet'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <span className="font-medium block">Website</span>
+                      <span className="text-gray-600">{institution.website || 'Not added yet'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
