@@ -66,6 +66,25 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     mission: institutionData.mission || "",
     coreValues: Array.isArray(institutionData.coreValues) ? institutionData.coreValues : [""],
 
+    // Quick Facts section
+    undergraduateStudents: "",
+    graduateStudents: "",
+    facultyMembers: "",
+    campusSize: "",
+    campusSizeUnit: "acres",
+    internationalStudents: "",
+    ranking: "",
+    rankingLevel: "globally",
+
+    // Contact Information section
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+    phone: "",
+    email: "",
+
     // Programs section
     programs: [
       {
@@ -136,6 +155,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   // Refs for scroll-to-section functionality
   const sectionRefs = {
     about: useRef<HTMLDivElement>(null),
+    "quick-facts": useRef<HTMLDivElement>(null),
+    contact: useRef<HTMLDivElement>(null),
     programs: useRef<HTMLDivElement>(null),
     faculty: useRef<HTMLDivElement>(null),
     facilities: useRef<HTMLDivElement>(null),
@@ -145,6 +166,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
 
   const sections = [
     { id: "about", label: "About", icon: Building },
+    { id: "quick-facts", label: "Quick Facts", icon: Users },
+    { id: "contact", label: "Contact Info", icon: MapPin },
     { id: "programs", label: "Programs", icon: Book },
     { id: "faculty", label: "Faculty", icon: Users },
     { id: "facilities", label: "Facilities", icon: Building },
@@ -1141,6 +1164,254 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           >
             <Save className="h-4 w-4 mr-2" />
             {isLoading ? 'Saving...' : 'Save About Section'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const renderQuickFactsSection = () => (
+    <Card ref={sectionRefs["quick-facts"]}>
+      <CardHeader>
+        <CardTitle>Quick Facts</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Student Body */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Student Body</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="undergraduateStudents">Undergraduate Students</Label>
+              <Input
+                id="undergraduateStudents"
+                value={formData.undergraduateStudents}
+                onChange={(e) => handleInputChange('undergraduateStudents', e.target.value)}
+                placeholder="e.g., 7,645"
+                type="number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="graduateStudents">Graduate Students</Label>
+              <Input
+                id="graduateStudents"
+                value={formData.graduateStudents}
+                onChange={(e) => handleInputChange('graduateStudents', e.target.value)}
+                placeholder="e.g., 9,292"
+                type="number"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Faculty */}
+        <div className="space-y-2">
+          <Label htmlFor="facultyMembers">Faculty Members</Label>
+          <Input
+            id="facultyMembers"
+            value={formData.facultyMembers}
+            onChange={(e) => handleInputChange('facultyMembers', e.target.value)}
+            placeholder="e.g., 2,288"
+            type="number"
+          />
+        </div>
+
+        {/* Campus Size */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Campus Size</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="campusSize">Size</Label>
+              <Input
+                id="campusSize"
+                value={formData.campusSize}
+                onChange={(e) => handleInputChange('campusSize', e.target.value)}
+                placeholder="e.g., 8,180"
+                type="number"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="campusSizeUnit">Unit</Label>
+              <Select
+                value={formData.campusSizeUnit}
+                onValueChange={(value) => handleInputChange('campusSizeUnit', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="acres">Acres</SelectItem>
+                  <SelectItem value="hectares">Hectares</SelectItem>
+                  <SelectItem value="sq-km">Square Kilometers</SelectItem>
+                  <SelectItem value="sq-miles">Square Miles</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* International Students */}
+        <div className="space-y-2">
+          <Label htmlFor="internationalStudents">International Students</Label>
+          <Input
+            id="internationalStudents"
+            value={formData.internationalStudents}
+            onChange={(e) => handleInputChange('internationalStudents', e.target.value)}
+            placeholder="e.g., Students from 90+ countries"
+          />
+        </div>
+
+        {/* Rankings */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Rankings</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="ranking">Ranking Position</Label>
+              <Input
+                id="ranking"
+                value={formData.ranking}
+                onChange={(e) => handleInputChange('ranking', e.target.value)}
+                placeholder="e.g., Top 5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rankingLevel">Ranking Level</Label>
+              <Select
+                value={formData.rankingLevel}
+                onValueChange={(value) => handleInputChange('rankingLevel', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="globally">Globally</SelectItem>
+                  <SelectItem value="nationally">Nationally</SelectItem>
+                  <SelectItem value="regionally">Regionally</SelectItem>
+                  <SelectItem value="in-category">In Category</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Save Button for Quick Facts Section */}
+        <div className="flex justify-end pt-4 border-t">
+          <Button
+            onClick={async () => {
+              // TODO: Implement save functionality
+              toast({
+                title: "Info",
+                description: "Quick Facts save functionality will be implemented later.",
+              })
+            }}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Quick Facts
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const renderContactInfoSection = () => (
+    <Card ref={sectionRefs.contact}>
+      <CardHeader>
+        <CardTitle>Contact Information</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Address */}
+        <div className="space-y-2">
+          <Label htmlFor="address">Street Address</Label>
+          <Input
+            id="address"
+            value={formData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+            placeholder="e.g., 450 Serra Mall"
+          />
+        </div>
+
+        {/* City, State, Postal Code */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input
+              id="city"
+              value={formData.city}
+              onChange={(e) => handleInputChange('city', e.target.value)}
+              placeholder="e.g., Stanford"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="state">State/Province</Label>
+            <Input
+              id="state"
+              value={formData.state}
+              onChange={(e) => handleInputChange('state', e.target.value)}
+              placeholder="e.g., CA"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="postalCode">Postal Code</Label>
+            <Input
+              id="postalCode"
+              value={formData.postalCode}
+              onChange={(e) => handleInputChange('postalCode', e.target.value)}
+              placeholder="e.g., 94305"
+            />
+          </div>
+        </div>
+
+        {/* Country */}
+        <div className="space-y-2">
+          <Label htmlFor="country">Country</Label>
+          <Input
+            id="country"
+            value={formData.country}
+            onChange={(e) => handleInputChange('country', e.target.value)}
+            placeholder="e.g., United States"
+          />
+        </div>
+
+        {/* Phone and Email */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="e.g., (650) 723-2300"
+              type="tel"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="e.g., admission@stanford.edu"
+              type="email"
+            />
+          </div>
+        </div>
+
+        {/* Save Button for Contact Information Section */}
+        <div className="flex justify-end pt-4 border-t">
+          <Button
+            onClick={async () => {
+              // TODO: Implement save functionality
+              toast({
+                title: "Info",
+                description: "Contact Information save functionality will be implemented later.",
+              })
+            }}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Contact Information
           </Button>
         </div>
       </CardContent>
@@ -2894,6 +3165,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {renderAboutSection()}
+              {renderQuickFactsSection()}
+              {renderContactInfoSection()}
               {renderProgramsSection()}
               {renderFacultySection()}
               {renderFacilitiesSection()}
