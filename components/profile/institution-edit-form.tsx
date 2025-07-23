@@ -76,6 +76,13 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     ranking: "",
     rankingLevel: "globally",
 
+    // Faculty Stats section
+    totalFaculty: "",
+    studentFacultyRatioStudent: "",
+    studentFacultyRatioFaculty: "",
+    facultyWithPhds: "",
+    internationalFacultyPercentage: "",
+
     // Contact Information section
     address: "",
     city: "",
@@ -162,6 +169,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     contact: useRef<HTMLDivElement>(null),
     programs: useRef<HTMLDivElement>(null),
     faculty: useRef<HTMLDivElement>(null),
+    "faculty-stats": useRef<HTMLDivElement>(null),
     facilities: useRef<HTMLDivElement>(null),
     events: useRef<HTMLDivElement>(null),
     gallery: useRef<HTMLDivElement>(null)
@@ -173,6 +181,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     { id: "contact", label: "Contact Info", icon: MapPin },
     { id: "programs", label: "Programs", icon: Book },
     { id: "faculty", label: "Faculty", icon: Users },
+    { id: "faculty-stats", label: "Faculty Stats", icon: Award },
     { id: "facilities", label: "Facilities", icon: Building },
     { id: "events", label: "Events", icon: Calendar },
     { id: "gallery", label: "Gallery", icon: ImageIcon }
@@ -2032,6 +2041,140 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     )
   }
 
+  const renderFacultyStatsSection = () => (
+    <Card ref={sectionRefs["faculty-stats"]}>
+      <CardHeader>
+        <CardTitle>Faculty Statistics</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Total Faculty */}
+        <div className="space-y-2">
+          <Label htmlFor="totalFaculty">Total Faculty</Label>
+          <Input
+            id="totalFaculty"
+            value={formData.totalFaculty}
+            onChange={(e) => handleInputChange('totalFaculty', e.target.value)}
+            placeholder="e.g., 2288"
+            type="number"
+          />
+        </div>
+
+        {/* Student-Faculty Ratio */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Student-Faculty Ratio</h3>
+          <div className="grid grid-cols-3 gap-4 items-center">
+            <div className="space-y-2">
+              <Label htmlFor="studentFacultyRatioStudent">Students</Label>
+              <Input
+                id="studentFacultyRatioStudent"
+                value={formData.studentFacultyRatioStudent}
+                onChange={(e) => handleInputChange('studentFacultyRatioStudent', e.target.value)}
+                placeholder="e.g., 5"
+                type="number"
+              />
+            </div>
+            <div className="flex justify-center items-center pt-6">
+              <span className="text-2xl font-bold text-gray-500">:</span>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="studentFacultyRatioFaculty">Faculty</Label>
+              <Input
+                id="studentFacultyRatioFaculty"
+                value={formData.studentFacultyRatioFaculty}
+                onChange={(e) => handleInputChange('studentFacultyRatioFaculty', e.target.value)}
+                placeholder="e.g., 1"
+                type="number"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Faculty with PhDs */}
+        <div className="space-y-2">
+          <Label htmlFor="facultyWithPhds">Faculty with PhDs</Label>
+          <div className="relative">
+            <Input
+              id="facultyWithPhds"
+              value={formData.facultyWithPhds}
+              onChange={(e) => handleInputChange('facultyWithPhds', e.target.value)}
+              placeholder="e.g., 97"
+              type="number"
+              min="0"
+              max="100"
+              className="pr-8"
+            />
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">%</span>
+          </div>
+        </div>
+
+        {/* International Faculty */}
+        <div className="space-y-2">
+          <Label htmlFor="internationalFacultyPercentage">International Faculty</Label>
+          <div className="relative">
+            <Input
+              id="internationalFacultyPercentage"
+              value={formData.internationalFacultyPercentage}
+              onChange={(e) => handleInputChange('internationalFacultyPercentage', e.target.value)}
+              placeholder="e.g., 30"
+              type="number"
+              min="0"
+              max="100"
+              className="pr-8"
+            />
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">%</span>
+          </div>
+        </div>
+
+        {/* Save Button for Faculty Stats Section */}
+        <div className="flex justify-end pt-4 border-t">
+          <Button
+            onClick={async () => {
+              setIsLoading(true)
+              try {
+                const response = await fetch('/api/institution/faculty-stats', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    totalFaculty: formData.totalFaculty,
+                    studentFacultyRatioStudent: formData.studentFacultyRatioStudent,
+                    studentFacultyRatioFaculty: formData.studentFacultyRatioFaculty,
+                    facultyWithPhds: formData.facultyWithPhds,
+                    internationalFacultyPercentage: formData.internationalFacultyPercentage
+                  }),
+                })
+
+                if (!response.ok) {
+                  throw new Error('Failed to save faculty stats')
+                }
+
+                toast({
+                  title: "Success",
+                  description: "Faculty statistics updated successfully!",
+                })
+              } catch (error) {
+                console.error('Error saving faculty stats:', error)
+                toast({
+                  title: "Error",
+                  description: "Failed to save faculty statistics. Please try again.",
+                  variant: "destructive",
+                })
+              } finally {
+                setIsLoading(false)
+              }
+            }}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isLoading ? 'Saving...' : 'Save Faculty Statistics'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   const renderFacultySection = () => {
     return (
       <Card ref={sectionRefs.faculty}>
@@ -3313,6 +3456,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               {renderContactInfoSection()}
               {renderProgramsSection()}
               {renderFacultySection()}
+              {renderFacultyStatsSection()}
               {renderFacilitiesSection()}
               {renderEventsSection()}
               {renderGallerySection()}

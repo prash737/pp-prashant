@@ -146,35 +146,6 @@ export default function FacultySection() {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
-                <Award className="h-5 w-5 text-blue-600" />
-                Faculty Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Nobel Laureates</span>
-                  <span className="font-semibold">55+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">MacArthur Fellows</span>
-                  <span className="font-semibold">30+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">National Academy Members</span>
-                  <span className="font-semibold">160+</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Pulitzer Prize Winners</span>
-                  <span className="font-semibold">8</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-600" />
                 Faculty Stats
               </CardTitle>
