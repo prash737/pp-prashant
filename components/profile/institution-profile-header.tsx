@@ -403,10 +403,27 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                       <Users className="h-4 w-4 mr-2" />
                       Connect
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none w-full sm:w-auto h-9 px-4 text-sm font-medium">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Visit Website
-                    </Button>
+                    {contactInfo?.website ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 sm:flex-none w-full sm:w-auto h-9 px-4 text-sm font-medium"
+                        onClick={() => window.open(contactInfo.website, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visit Website
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 sm:flex-none w-full sm:w-auto h-9 px-4 text-sm font-medium opacity-50 cursor-not-allowed"
+                        disabled
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visit Website
+                      </Button>
+                    )}
                   </div>
 
                   {/* Quick Stats - Horizontal display with icons and pastel backgrounds */}
