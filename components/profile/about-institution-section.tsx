@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Users, GraduationCap, BookOpen, Globe, Phone, Mail, Building2, Calendar, Award, ChevronDown, ChevronUp } from "lucide-react"
+import { MapPin, Users, GraduationCap, BookOpen, Globe, Phone, Mail, Building2, Calendar, Award, ChevronDown, ChevronUp, Landmark } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
