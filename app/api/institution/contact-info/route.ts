@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch contact info for the institution
     const contactInfo = await prisma.$queryRaw`
-      SELECT * FROM institution_contact_info WHERE institution_id = ${user.id}
+      SELECT * FROM institution_contact_info WHERE institution_id = ${user.id}::uuid
     `
 
     return NextResponse.json({ contactInfo: Array.isArray(contactInfo) ? contactInfo[0] : null })

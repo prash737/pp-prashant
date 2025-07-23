@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch quick facts for the institution
     const quickFacts = await prisma.$queryRaw`
-      SELECT * FROM institution_quick_facts WHERE institution_id = ${user.id}
+      SELECT * FROM institution_quick_facts WHERE institution_id = ${user.id}::uuid
     `
 
     return NextResponse.json({ quickFacts: Array.isArray(quickFacts) ? quickFacts[0] : null })
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Check if quick facts already exist
     const existingQuickFacts = await prisma.$queryRaw`
-      SELECT id FROM institution_quick_facts WHERE institution_id = ${user.id}
+      SELECT id FROM institution_quick_facts WHERE institution_id = ${user.id}::uuid
     `
 
     const campusSizeAcres = campusSizeUnit === 'acres' ? parseFloat(campusSize) || null : null
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           international_students_countries = ${internationalStudents ? parseInt(internationalStudents) : null},
           global_ranking = ${ranking || null},
           updated_at = NOW()
-        WHERE institution_id = ${user.id}
+        WHERE institution_id = ${user.id}::uuid
       `
     } else {
       // Insert new record
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         INSERT INTO institution_quick_facts 
         (institution_id, undergraduate_students, graduate_students, faculty_members, 
          campus_size_acres, campus_size_km2, international_students_countries, global_ranking)
-        VALUES (${user.id}, ${undergraduateStudents ? parseInt(undergraduateStudents) : null}, 
+        VALUES (${user.id}::uuid, ${undergraduateStudents ? parseInt(undergraduateStudents) : null}, 
                 ${graduateStudents ? parseInt(graduateStudents) : null}, 
                 ${facultyMembers ? parseInt(facultyMembers) : null}, 
                 ${campusSizeAcres}, ${campusSizeKm2}, 
