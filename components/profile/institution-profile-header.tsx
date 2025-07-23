@@ -585,7 +585,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           <div className="h-2 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                       </div>
-                    ) : events.length > 0 ? (
+                    ) : events && events.length > 0 ? (
                       <div className="space-y-2">
                         {events.map((event, index) => (
                           <div key={event.id || index} className="bg-sky-50 dark:bg-sky-900/20 p-2 rounded-lg flex items-center gap-3">
