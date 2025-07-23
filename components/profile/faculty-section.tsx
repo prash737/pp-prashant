@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, ExternalLink, Award, BookOpen, Users } from "lucide-react"
+import { Mail, ExternalLink, Award, BookOpen, Users, Building2, Coffee, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface Faculty {
   id: string
@@ -183,6 +184,42 @@ export default function FacultySection({ institutionId }: FacultySectionProps) {
         </div>
 
         <div className="space-y-6">
+          {/* Campus Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                Campus Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-lg">Coming Soon there ok</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Campus Amenities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Coffee className="h-5 w-5 text-blue-600" />
+                Campus Amenities
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-lg">Coming Soon there ok</p>
+              </div>
+
+              <div className="pt-4 border-t">
+                <Button variant="outline" size="sm" className="w-full" disabled>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Coming Soon
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
