@@ -526,7 +526,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                 <div className="lg:col-span-2 lg:border-l lg:border-gray-200 lg:dark:border-gray-700 lg:pl-6 mt-6 lg:mt-0">
                   {/* Quick Info section */}
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quick Info</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Info</h3>
                     {quickFactsLoading ? (
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 text-gray-600">
@@ -535,18 +535,18 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         </div>
                       </div>
                     ) : quickFacts ? (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                          <MapPin className="h-4 w-4 text-gray-500" />
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                          <MapPin className="h-5 w-5 text-gray-500" />
                           <span>{institutionData.location}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                          <Globe className="h-4 w-4 text-gray-500" />
+                        <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                          <Globe className="h-5 w-5 text-gray-500" />
                           <span>{institutionData.website}</span>
                         </div>
                         {(quickFacts.campus_size_acres || quickFacts.campus_size_km2) && (
-                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                            <Building className="h-4 w-4 text-gray-500" />
+                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                            <Building className="h-5 w-5 text-gray-500" />
                             <span>
                               {quickFacts.campus_size_acres 
                                 ? `${quickFacts.campus_size_acres.toLocaleString()} acres campus`
@@ -555,8 +555,8 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           </div>
                         )}
                         {(quickFacts.undergraduate_students || quickFacts.graduate_students) && (
-                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                            <Users className="h-4 w-4 text-gray-500" />
+                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                            <Users className="h-5 w-5 text-gray-500" />
                             <span>
                               {quickFacts.undergraduate_students && quickFacts.graduate_students 
                                 ? `${(quickFacts.undergraduate_students + quickFacts.graduate_students).toLocaleString()} students`
@@ -567,44 +567,44 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           </div>
                         )}
                         {quickFacts.faculty_members && (
-                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                            <GraduationCap className="h-4 w-4 text-gray-500" />
+                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                            <GraduationCap className="h-5 w-5 text-gray-500" />
                             <span>{quickFacts.faculty_members.toLocaleString()} faculty</span>
                           </div>
                         )}
                         {institutionData.founded && (
-                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-sm">
-                            <Calendar className="h-4 w-4 text-gray-500" />
+                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
+                            <Calendar className="h-5 w-5 text-gray-500" />
                             <span>Established {institutionData.founded}</span>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">Not added yet</p>
+                      <p className="text-gray-500 text-base">Not added yet</p>
                     )}
                   </div>
 
                   {/* Events section */}
-                  <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Events</h3>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3">Events</h3>
                     {eventsLoading ? (
-                      <div className="bg-sky-50 dark:bg-sky-900/20 p-3 rounded-lg flex items-center gap-3">
-                        <div className="bg-gray-200 dark:bg-gray-700 h-10 w-10 rounded-full animate-pulse"></div>
+                      <div className="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-lg flex items-center gap-3">
+                        <div className="bg-gray-200 dark:bg-gray-700 h-12 w-12 rounded-full animate-pulse"></div>
                         <div className="space-y-2">
+                          <div className="h-5 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                           <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                       </div>
                     ) : events && events.length > 0 ? (
                       <div className="space-y-3">
                         {events.slice(0, 3).map((event, index) => (
-                          <div key={event.id || index} className="bg-sky-50 dark:bg-sky-900/20 p-3 rounded-lg flex items-center gap-3">
-                            <div className="bg-blue-100 dark:bg-blue-900/40 h-10 w-10 rounded-full flex items-center justify-center">
-                              <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <div key={event.id || index} className="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-lg flex items-center gap-3">
+                            <div className="bg-blue-100 dark:bg-blue-900/40 h-12 w-12 rounded-full flex items-center justify-center">
+                              <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{event.title}</h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <h4 className="text-base font-medium text-gray-900 dark:text-gray-100">{event.title}</h4>
+                              <p className="text-base text-gray-600 dark:text-gray-400">
                                 {new Date(event.startDate).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -622,14 +622,14 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                                 eventsSection.scrollIntoView({ behavior: 'smooth' });
                               }
                             }}
-                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            className="text-base text-blue-600 hover:text-blue-800 font-medium"
                           >
                             View all {events.length} events
                           </button>
                         )}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">Not added yet</p>
+                      <p className="text-gray-500 text-base">Not added yet</p>
                     )}
                   </div>
                 </div>
