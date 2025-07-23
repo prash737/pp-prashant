@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
           address = ${address || null},
           city = ${city || null},
           state = ${state || null},
-          zip_code = ${postalCode || null},
+          postal_code = ${postalCode || null},
           country = ${country || null},
           phone = ${phone || null},
           email = ${email || null},
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       // Insert new record
       await prisma.$queryRaw`
         INSERT INTO institution_contact_info 
-        (institution_id, address, city, state, zip_code, country, phone, email)
+        (institution_id, address, city, state, postal_code, country, phone, email)
         VALUES (${user.id}::uuid, ${address || null}, ${city || null}, ${state || null}, 
                 ${postalCode || null}, ${country || null}, ${phone || null}, ${email || null})
       `
