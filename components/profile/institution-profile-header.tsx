@@ -526,36 +526,46 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                       </div>
                     ) : quickFacts ? (
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <MapPin className="h-4 w-4 text-gray-500" />
+                        <div className="flex items-center gap-2 text-gray-600 text-xs">
+                          <MapPin className="h-3 w-3 text-gray-500" />
                           <span>{institutionData.location}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Globe className="h-4 w-4 text-gray-500" />
+                        <div className="flex items-center gap-2 text-gray-600 text-xs">
+                          <Globe className="h-3 w-3 text-gray-500" />
                           <span>{institutionData.website}</span>
                         </div>
-                        {quickFacts.campusSize && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Building className="h-4 w-4 text-gray-500" />
-                            <span>{quickFacts.campusSize}</span>
+                        {(quickFacts.campus_size_acres || quickFacts.campus_size_km2) && (
+                          <div className="flex items-center gap-2 text-gray-600 text-xs">
+                            <Building className="h-3 w-3 text-gray-500" />
+                            <span>
+                              {quickFacts.campus_size_acres 
+                                ? `${quickFacts.campus_size_acres.toLocaleString()} acres campus`
+                                : `${quickFacts.campus_size_km2.toLocaleString()} km² campus`}
+                            </span>
                           </div>
                         )}
-                        {quickFacts.studentCount && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Users className="h-4 w-4 text-gray-500" />
-                            <span>{quickFacts.studentCount.toLocaleString()} students</span>
+                        {(quickFacts.undergraduate_students || quickFacts.graduate_students) && (
+                          <div className="flex items-center gap-2 text-gray-600 text-xs">
+                            <Users className="h-3 w-3 text-gray-500" />
+                            <span>
+                              {quickFacts.undergraduate_students && quickFacts.graduate_students 
+                                ? `${(quickFacts.undergraduate_students + quickFacts.graduate_students).toLocaleString()} students`
+                                : quickFacts.undergraduate_students 
+                                  ? `${quickFacts.undergraduate_students.toLocaleString()} students`
+                                  : `${quickFacts.graduate_students.toLocaleString()} students`}
+                            </span>
                           </div>
                         )}
-                        {quickFacts.facultyCount && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Users className="h-4 w-4 text-gray-500" />
-                            <span>{quickFacts.facultyCount.toLocaleString()} faculty</span>
+                        {quickFacts.faculty_members && (
+                          <div className="flex items-center gap-2 text-gray-600 text-xs">
+                            <GraduationCap className="h-3 w-3 text-gray-500" />
+                            <span>{quickFacts.faculty_members.toLocaleString()} faculty</span>
                           </div>
                         )}
-                        {quickFacts.establishedYear && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Calendar className="h-4 w-4 text-gray-500" />
-                            <span>Established {quickFacts.establishedYear}</span>
+                        {institutionData.founded && (
+                          <div className="flex items-center gap-2 text-gray-600 text-xs">
+                            <Calendar className="h-3 w-3 text-gray-500" />
+                            <span>Established {institutionData.founded}</span>
                           </div>
                         )}
                       </div>
