@@ -235,6 +235,8 @@ model InstitutionProfile {
   gallery      InstitutionGallery[]
   facilities   InstitutionFacility[]
   faculty      InstitutionFaculty[]
+  quickFacts    InstitutionQuickFacts?
+  contactInfo   InstitutionContactInfo?
 
   @@map("institution_profiles")
   @@schema("public")
@@ -287,6 +289,44 @@ model InstitutionFaculty {
   institution    InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
   @@map("institution_faculty")
+  @@schema("public")
+}
+
+model InstitutionQuickFacts {
+  id                            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId                 String              @unique @map("institution_id") @db.Uuid
+  undergraduateStudents         Int?                @map("undergraduate_students")
+  graduateStudents              Int?                @map("graduate_students")
+  facultyMembers                Int?                @map("faculty_members")
+  campusSizeAcres               Float?              @map("campus_size_acres")
+  campusSizeKm2                 Float?              @map("campus_size_km2")
+  internationalStudentsCountries Int?               @map("international_students_countries")
+  globalRanking                 String?             @map("global_ranking")
+  createdAt                     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                     DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  institution                   InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_quick_facts")
+  @@schema("public")
+}
+
+model InstitutionContactInfo {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId String              @unique @map("institution_id") @db.Uuid
+  address       String?
+  city          String?
+  state         String?
+  country       String?
+  zipCode       String?             @map("zip_code")
+  phone         String?
+  email         String?
+  website       String?
+  socialLinks   Json?               @map("social_links") @default("{}")
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  institution   InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_contact_info")
   @@schema("public")
 }
 
