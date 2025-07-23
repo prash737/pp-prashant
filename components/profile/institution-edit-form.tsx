@@ -161,6 +161,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingQuickFacts, setIsLoadingQuickFacts] = useState(false)
   const [isLoadingContactInfo, setIsLoadingContactInfo] = useState(false)
+  const [isLoadingFacultyStats, setIsLoadingFacultyStats] = useState(false)
 
   // Refs for scroll-to-section functionality
   const sectionRefs = {
@@ -325,6 +326,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
       fetchPrograms()
       fetchQuickFacts()
       fetchContactInfo()
+      fetchFacultyStats()
     }
   }, [institutionData])
 
@@ -380,6 +382,31 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
       console.error('Error fetching contact info:', error)
     } finally {
       setIsLoadingContactInfo(false)
+    }
+  }
+
+  const fetchFacultyStats = async () => {
+    try {
+      setIsLoadingFacultyStats(true)
+      const response = await fetch('/api/institution/faculty-stats')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.facultyStats) {
+          const fs = data.facultyStats
+          setFormData(prev => ({
+            ...prev,
+            totalFaculty: fs.totalFaculty?.toString() || '',
+            studentFacultyRatioStudent: fs.studentFacultyRatioStudents?.toString() || '',
+            studentFacultyRatioFaculty: fs.studentFacultyRatioFaculty?.toString() || '',
+            facultyWithPhds: fs.facultyWithPhdsPercentage?.toString() || '',
+            internationalFacultyPercentage: fs.internationalFacultyPercentage?.toString() || ''
+          }))
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching faculty stats:', error)
+    } finally {
+      setIsLoadingFacultyStats(false)
     }
   }
 
@@ -2132,7 +2159,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               setIsLoading(true)
               try {
                 const response = await fetch('/api/institution/faculty-stats', {
-                  method: 'POST',
+                  method: 'PATCH',
                   headers: {
                     'Content-Type': 'application/json',
                   },
@@ -2164,7 +2191,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 setIsLoading(false)
               }
             }}
-            disabled={isLoading}
+            disabled={isLoading || isLoadingFacultyStats}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Save className="h-4 w-4 mr-2" />

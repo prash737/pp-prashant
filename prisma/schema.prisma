@@ -237,6 +237,7 @@ model InstitutionProfile {
   faculty      InstitutionFaculty[]
   quickFacts    InstitutionQuickFacts?
   contactInfo   InstitutionContactInfo?
+  facultyStats  InstitutionFacultyStats?
 
   @@map("institution_profiles")
   @@schema("public")
@@ -327,6 +328,22 @@ model InstitutionContactInfo {
   institution   InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
   @@map("institution_contact_info")
+  @@schema("public")
+}
+
+model InstitutionFacultyStats {
+  id                            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId                 String              @unique @map("institution_id") @db.Uuid
+  totalFaculty                  Int?                @map("total_faculty")
+  studentFacultyRatioStudents   Int?                @map("student_faculty_ratio_students")
+  studentFacultyRatioFaculty    Int?                @map("student_faculty_ratio_faculty")
+  facultyWithPhdsPercentage     Int?                @map("faculty_with_phds_percentage")
+  internationalFacultyPercentage Int?               @map("international_faculty_percentage")
+  createdAt                     DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                     DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  institution                   InstitutionProfile  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@map("institution_faculty_stats")
   @@schema("public")
 }
 

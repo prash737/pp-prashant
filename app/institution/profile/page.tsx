@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return {
         title: "Institution Profile | PathPiper",
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return {
         title: "Institution Profile | PathPiper", 
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 
     const institution = await getCurrentUserInstitution(user.id)
-    
+
     return {
       title: `${institution?.name || 'Institution'} | PathPiper`,
       description: `${institution?.name || 'Institution'} profile on PathPiper - Connecting students with educational opportunities`,
@@ -52,19 +52,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function InstitutionProfilePage() {
   const cookieStore = await cookies()
   const token = cookieStore.get('sb-access-token')?.value
-  
+
   if (!token) {
     redirect('/login')
   }
 
   const { data: { user } } = await supabase.auth.getUser(token)
-  
+
   if (!user) {
     redirect('/login')
   }
 
   const institution = await getCurrentUserInstitution(user.id)
-  
+
   if (!institution) {
     redirect('/institution-onboarding')
   }
