@@ -46,7 +46,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to search institutions' }, { status: 500 })
     }
 
-    return NextResponse.json({ institutions: institutions || [] })
+    // Map the response to match the expected interface
+    const mappedInstitutions = (institutions || []).map(institution => ({
+      id: institution.id,
+      name: institution.institution_name,
+      logo: institution.logo_url,
+      type: institution.institution_type,
+      location: '', // Add location field if available in your schema
+      verified: institution.verified
+    }))
+
+    return NextResponse.json({ institutions: mappedInstitutions })
   } catch (error) {
     console.error('Error in GET /api/institutions/search:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
