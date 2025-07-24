@@ -65,21 +65,24 @@ export function InstitutionNavbar() {
       const data = await response.json()
 
       if (response.ok) {
-        // Import the enhanced cache clearing function
-        const { clearAllUserData } = await import('@/hooks/use-auth')
-
-        // Clear all user data and storage
-        clearAllUserData()
-
-        // Clear any additional browser storage
+        // Clear all user data and storage without dynamic import
         if (typeof window !== 'undefined') {
+          // Clear localStorage
+          localStorage.clear()
+          
+          // Clear sessionStorage
+          sessionStorage.clear()
+          
           // Clear all cookies by setting them to expire
-          document.cookie.split(";").forEach(cookie => {
+          const cookies = document.cookie.split(";")
+          cookies.forEach(cookie => {
             const eqPos = cookie.indexOf("=")
             const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
-            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
+            if (name) {
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
+              document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
+            }
           })
 
           // Force a hard reload after a brief delay to ensure all storage is cleared
