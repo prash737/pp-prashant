@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
@@ -22,11 +21,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile
+    // Get institution profile - using profiles table
     const { data: institution } = await supabase
-      .from('institution_profiles')
+      .from('profiles')
       .select('id')
       .eq('auth_id', user.id)
+      .eq('role', 'institution')
       .single()
 
     if (!institution) {
@@ -69,11 +69,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile
+    // Get institution profile - using profiles table
     const { data: institution } = await supabase
-      .from('institution_profiles')
+      .from('profiles')
       .select('id')
       .eq('auth_id', user.id)
+      .eq('role', 'institution')
       .single()
 
     if (!institution) {
