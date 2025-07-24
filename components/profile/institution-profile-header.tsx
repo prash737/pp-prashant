@@ -101,69 +101,81 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
     }
   }
 
-  // Fetch all profile header data from dedicated API
+  // Fetch actual follower count, quick facts, events, and academic communities
   useEffect(() => {
-    const fetchProfileHeaderData = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch follower count
         setLoading(true)
-        setQuickFactsLoading(true)
-        setContactInfoLoading(true)
-        setEventsLoading(true)
-        setCommunitiesLoading(true)
-
-        console.log('🔄 Fetching profile header data for institution:', institutionData.id)
-
-        const response = await fetch('/api/institution/profile-header-data', {
+        const followerResponse = await fetch(`/api/institutions/followers?institutionId=${institutionData.id}`, {
           credentials: 'include'
         })
 
-        if (response.ok) {
-          const result = await response.json()
-          if (result.success && result.data) {
-            const { quickFacts, contactInfo, events, followersCount, academicCommunities } = result.data
-            
-            console.log('✅ Profile header data received:', {
-              quickFacts: !!quickFacts,
-              contactInfo: !!contactInfo,
-              eventsCount: events?.length || 0,
-              followersCount,
-              academicCommunitiesCount: academicCommunities?.length || 0
-            })
-
-            setQuickFacts(quickFacts)
-            setContactInfo(contactInfo)
-            setEvents(events || [])
-            setFollowerCount(followersCount || 0)
-            setAcademicCommunities(academicCommunities || [])
+        if (followerResponse.ok) {
+          const followerData = await followerResponse.json()
+          if (followerData.success) {
+            setFollowerCount(followerData.count || 0)
           }
-        } else {
-          console.error('❌ Failed to fetch profile header data:', response.status)
-          // Set defaults
-          setQuickFacts(null)
-          setContactInfo(null)
-          setEvents([])
-          setFollowerCount(0)
-          setAcademicCommunities([])
         }
+
+        // Fetch quick facts
+        setQuickFactsLoading(true)
+        const quickFactsResponse = await fetch('/api/institution/quick-facts', {
+          credentials: 'include'
+        })
+
+        if (quickFactsResponse.ok) {
+          const quickFactsData = await quickFactsResponse.json()
+          setQuickFacts(quickFactsData.quickFacts)
+        }
+
+        // Fetch contact info
+        setContactInfoLoading(true)
+        const contactInfoResponse = await fetch('/api/institution/contact-info', {
+          credentials: 'include'
+        })
+
+        if (contactInfoResponse.ok) {
+          const contactInfoData = await contactInfoResponse.json()
+          setContactInfo(contactInfoData.contactInfo)
+        }
+
+        // Fetch events
+        setEventsLoading(true)
+        const eventsResponse = await fetch('/api/institution/events', {
+          credentials: 'include'
+        })
+
+        if (eventsResponse.ok) {
+          const eventsData = await eventsResponse.json()
+          if (eventsData.success && eventsData.events) {
+            // Sort by start date and take top 5 most recent
+            const sortedEvents = eventsData.events
+              .sort((a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+              .slice(0, 5)
+            setEvents(sortedEvents)
+          }
+        }
+
+        // Fetch academic communities
+        await fetchAcademicCommunities()
       } catch (error) {
-        console.error('❌ Error fetching profile header data:', error)
-        // Set defaults
+        console.error('Error fetching data:', error)
+        setFollowerCount(0)
         setQuickFacts(null)
         setContactInfo(null)
         setEvents([])
-        setFollowerCount(0)
         setAcademicCommunities([])
       } finally {
         setLoading(false)
         setQuickFactsLoading(false)
         setContactInfoLoading(false)
         setEventsLoading(false)
-        setCommunitiesLoading(false)
       }
     }
 
     if (institutionData.id) {
-      fetchProfileHeaderData()
+      fetchData()
     }
   }, [institutionData.id])
 
@@ -682,63 +694,48 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                       </div>
-                    ) : (() => {
-                        console.log('🎯 Events display check:', {
-                          events,
-                          isArray: Array.isArray(events),
-                          length: events?.length,
-                          firstEvent: events?.[0]
-                        })
-                        return Array.isArray(events) && events.length > 0
-                      })() ? (
+                    ) : events && Array.isArray(events) && events.length > 0 ? (
                       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                         <div className="flex space-x-3 pb-2" style={{ minWidth: 'max-content' }}>
-                          {events.map((event: any) => {
-                            console.log('🎪 Rendering event:', event)
-                            return (
-                              <div key={event.id} className="flex-shrink-0 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm">
-                                {(event.imageUrl || event.image_url) && (
-                                  <div className="w-full h-24 mb-2 rounded-md overflow-hidden">
-                                    <img 
-                                      src={event.imageUrl || event.image_url} 
-                                      alt={event.title}
-                                      className="w-full h-full object-cover"
-                                    />
+                          {events.map((event: any) => (
+                            <div key={event.id} className="flex-shrink-0 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm">
+                              {(event.imageUrl || event.image_url) && (
+                                <div className="w-full h-24 mb-2 rounded-md overflow-hidden">
+                                  <img 
+                                    src={event.imageUrl || event.image_url} 
+                                    alt={event.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <div className="space-y-1">
+                                <div className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2">{event.title}</div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                  {new Date(event.startDate || event.start_date).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                {(event.eventType || event.event_type) && (
+                                  <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                    {event.eventType || event.event_type}
                                   </div>
                                 )}
-                                <div className="space-y-1">
-                                  <div className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2">{event.title}</div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                                    {new Date(event.startDate || event.start_date).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    })}
+                                {event.location && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    📍 {event.location}
                                   </div>
-                                  {(event.eventType || event.event_type) && (
-                                    <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-                                      {event.eventType || event.event_type}
-                                    </div>
-                                  )}
-                                  {event.location && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                      📍 {event.location}
-                                    </div>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                            )
-                          })}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-4">
                         <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-gray-500 text-sm">No events added yet</p>
-                        {/* Debug info */}
-                        <p className="text-xs text-gray-400 mt-1">
-                          Debug: events={JSON.stringify(events)} | length={events?.length}
-                        </p>
                       </div>
                     )}
                   </div>
