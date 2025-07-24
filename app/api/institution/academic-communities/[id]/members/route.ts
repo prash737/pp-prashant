@@ -10,7 +10,7 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const cookieStore = await cookies()
@@ -25,19 +25,20 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const communityId = parseInt(params.id)
+    const resolvedParams = await params
+    const communityId = parseInt(resolvedParams.id)
 
     // Fetch community members
     const { data: memberships, error } = await supabase
       .from('academic_communities_memberships')
       .select(`
         *,
-        profiles!member_id(
+        institution_profiles!member_id(
           id,
-          first_name,
-          last_name,
-          profile_image_url,
-          role
+          institution_name,
+          logo_url,
+          institution_type,
+          verified
         )
       `)
       .eq('community_id', communityId)
@@ -56,7 +57,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const cookieStore = await cookies()
@@ -71,7 +72,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const communityId = parseInt(params.id)
+    const resolvedParams = await params
+    const communityId = parseInt(resolvedParams.id)
     const { member_id } = await request.json()
 
     if (!member_id) {

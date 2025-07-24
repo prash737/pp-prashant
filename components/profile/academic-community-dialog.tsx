@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -207,7 +206,7 @@ export default function AcademicCommunityDialog({
               ) : (
                 <span className="text-sm text-gray-500">No members yet</span>
               )}
-              
+
               {members.length > 8 && (
                 <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
                   +{members.length - 8} more
@@ -260,7 +259,7 @@ export default function AcademicCommunityDialog({
                             {institution.name[0]}
                           </AvatarFallback>
                         </Avatar>
-                        
+
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {institution.name}
@@ -276,7 +275,7 @@ export default function AcademicCommunityDialog({
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex-shrink-0">
                           {alreadyMember ? (
                             <Badge variant="secondary" className="text-xs">
