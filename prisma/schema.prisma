@@ -108,6 +108,7 @@ model Profile {
   postReactions  PostReaction[]
   institutionFollowers InstitutionFollowConnection[] @relation("InstitutionFollowers")
   institutionFollowing InstitutionFollowConnection[] @relation("InstitutionFollowing")
+  academicCommunityMemberships AcademicCommunityMember[]
 
 
   @@map("profiles")
@@ -238,6 +239,7 @@ model InstitutionProfile {
   quickFacts    InstitutionQuickFacts?
   contactInfo   InstitutionContactInfo?
   facultyStats  InstitutionFacultyStats?
+  academicCommunities AcademicCommunity[]
 
   @@map("institution_profiles")
   @@schema("public")
@@ -811,6 +813,39 @@ model InstitutionFollowConnection {
 
   @@unique([senderId, receiverId])
   @@map("institution_follow_connections")
+  @@schema("public")
+}
+
+model AcademicCommunity {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  institutionId  String    @map("institution_id") @db.Uuid
+  name           String
+  description    String?
+  iconUrl        String?   @map("icon_url")
+  isPrivate      Boolean   @default(false) @map("is_private")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  institution    InstitutionProfile @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  members        AcademicCommunityMember[]
+
+  @@map("academic_communities")
+  @@schema("public")
+}
+
+model AcademicCommunityMember {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  communityId String    @map("community_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  role        String    @default("member") // 'admin', 'moderator', 'member'
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  community   AcademicCommunity @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@map("academic_community_members")
   @@schema("public")
 }
 
