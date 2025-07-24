@@ -25,11 +25,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('Fetching events for institution:', user.id)
+
     // Fetch events for this institution
     const events = await prisma.institutionEvents.findMany({
       where: { institutionId: user.id },
-      orderBy: { startDate: 'asc' }
+      orderBy: { startDate: 'desc' }
     })
+
+    console.log('Found events:', events.length)
 
     return NextResponse.json({ events })
   } catch (error) {
