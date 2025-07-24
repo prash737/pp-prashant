@@ -1,0 +1,69 @@
+ed_at" FROM "public"."connection_requests" WHERE "public"."connection_requests"."receiver_id" = $1 ORDER BY "public"."connection_requests"."created_at" DESC OFFSET $2
+ ○ Compiling /api/institution/academic-communities/[id]/members ...
+ GET /api/connections/requests?type=received 200 in 775ms
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."role"::text, "public"."profiles"."bio", "public"."profiles"."location" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1) OFFSET $2
+ ✓ Compiled /api/institution/academic-communities/[id]/members in 1005ms (1455 modules)
+Error: Route "/api/institution/academic-communities/[id]/members" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/institution/academic-communities/[id]/members/route.ts:28:40)
+  26 |     }
+  27 |
+> 28 |     const communityId = parseInt(params.id)
+     |                                        ^
+  29 |
+  30 |     // Fetch community members
+  31 |     const { data: memberships, error } = await supabase
+Error fetching community members: {
+  code: 'PGRST200',
+  details: "Searched for a foreign key relationship between 'academic_communities_memberships' and 'profiles' using the hint 'member_id' in the schema 'public', but no matches were found.",
+  hint: "Perhaps you meant 'institution_profiles' instead of 'profiles'.",
+  message: "Could not find a relationship between 'academic_communities_memberships' and 'profiles' in the schema cache"
+}
+ GET /api/institution/academic-communities/1/members 500 in 1640ms
+ ⨯ ./app/api/institutions/search/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (54:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { createClient } from '@supabase/supabase-js';
+| import { cookies } from 'next/headers';
+
+Import trace for requested module:
+./app/api/institutions/search/route.ts
+ ○ Compiling /api/institutions/search ...
+ ⨯ ./app/api/institutions/search/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (54:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { createClient } from '@supabase/supabase-js';
+| import { cookies } from 'next/headers';
+
+Import trace for requested module:
+./app/api/institutions/search/route.ts
+ ⨯ ./app/api/institutions/search/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (54:9)
+|     }
+| }
+> import { NextResponse } from 'next/server';
+| import { createClient } from '@supabase/supabase-js';
+| import { cookies } from 'next/headers';
+
+Import trace for requested module:
+./app/api/institutions/search/route.ts
+ GET /api/institutions/search?q=mi 500 in 2945ms
+ GET /api/institutions/search?q=mit 500 in 12ms
+ GET /api/institutions/search?q=mi 500 in 13ms
+ GET /api/education/verification 500 in 51ms
+ GET /api/connections/requests?type=received 500 in 61ms
+ GET /api/circles/invitations?type=received 500 in 61ms
+ GET /api/institutions/search?q=mi 500 in 27ms
+ GET /api/education/verification 500 in 37ms
+ GET /api/circles/invitations?type=received 500 in 44ms
+ GET /api/connections/requests?type=received 500 in 35ms
+ GET /api/connections/requests?type=received 500 in 81ms
+ GET /api/education/verification 500 in 96ms
+ GET /api/circles/invitations?type=received 500 in 96ms
+ GET /api/connections/requests?type=received 500 in 48ms
+ GET /api/education/verification 500 in 57ms
+ GET /api/circles/invitations?type=received 500 in 58ms
+ GET /api/education/verification 500
