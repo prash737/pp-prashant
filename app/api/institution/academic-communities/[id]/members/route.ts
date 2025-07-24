@@ -29,10 +29,10 @@ export async function GET(
 
     // Fetch community members
     const { data: memberships, error } = await supabase
-      .from('academic_community_members')
+      .from('academic_communities_memberships')
       .select(`
         *,
-        profiles!user_id(
+        profiles!member_id(
           id,
           first_name,
           last_name,
@@ -80,10 +80,10 @@ export async function POST(
 
     // Check if already a member
     const { data: existing } = await supabase
-      .from('academic_community_members')
+      .from('academic_communities_memberships')
       .select('id')
       .eq('community_id', communityId)
-      .eq('user_id', member_id)
+      .eq('member_id', member_id)
       .single()
 
     if (existing) {
@@ -92,11 +92,10 @@ export async function POST(
 
     // Add member to community
     const { data: membership, error } = await supabase
-      .from('academic_community_members')
+      .from('academic_communities_memberships')
       .insert({
         community_id: communityId,
-        user_id: member_id,
-        role: 'member'
+        member_id: member_id
       })
       .select()
       .single()

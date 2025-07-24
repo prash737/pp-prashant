@@ -566,7 +566,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           </div>
                         ) : (
                           academicCommunities.map((community) => {
-                            const memberCount = community.academic_communities_memberships?.[0]?.count || 0
+                            const memberCount = community.academic_communities_memberships?.[0]?.count || 1
                             const colorOption = colorOptions.find(c => c.value === community.color) || colorOptions[0]
                             
                             return (

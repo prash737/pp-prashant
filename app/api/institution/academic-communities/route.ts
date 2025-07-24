@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
       .from('academic_communities')
       .select(`
         *,
-        academic_community_members(count)
+        academic_communities_memberships(count)
       `)
-      .eq('institution_id', institution.id)
+      .eq('creator_id', institution.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
       .insert({
         name,
         description: description || '',
-        icon_url: iconUrl || '',
-        institution_id: institution.id
+        image_url: iconUrl || '',
+        creator_id: institution.id
       })
       .select()
       .single()
@@ -102,13 +102,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create community' }, { status: 500 })
     }
 
-    // Auto-add the creator institution as a member (admin role)
+    // Auto-add the creator institution as a member
     const { error: memberError } = await supabase
-      .from('academic_community_members')
+      .from('academic_communities_memberships')
       .insert({
         community_id: community.id,
-        user_id: institution.id,
-        role: 'admin'
+        member_id: institution.id
       })
 
     if (memberError) {
