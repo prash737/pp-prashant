@@ -935,77 +935,13 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                   {/* Recent Badges section */}
                   <div className="mt-3">
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Recent Badges</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="flex flex-col items-center">
-                        <div className="bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 h-12 w-12 rounded-full flex items-center justify-center">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 024 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-6 w-6 text-blue-600 dark:text-blue-400"
-                          >
-                            <path d="M12 2v20"></path>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                          </svg>
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg flex items-center justify-center h-20">
+                      <div className="text-center">
+                        <div className="bg-gray-100 dark:bg-gray-700 h-8 w-8 rounded-full flex items-center justify-center mx-auto mb-1">
+                          <Award className="h-4 w-4 text-gray-400" />
                         </div>
-                        <span className="text-[10px] text-center mt-1 text-gray-600 dark:text-gray-400">Math Whiz</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Coming Soon</span>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 h-12 w-12 rounded-full flex items-center justify-center">
-                          <svg
-xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-6 w-6 text-purple-600 dark:text-purple-400"
-                          >
-                            <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path>
-                          </svg>
-                        </div>
-                        <span className="text-[10px] text-center mt-1 text-gray-600 dark:text-gray-400">
-                          Coding Pro
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <div className="bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 h-12 w-12 rounded-full flex items-center justify-center">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-6 w-6 text-amber-600 dark:text-amber-400"
-                          >
-                            <path d="M12 17.8 5.8 21 7 14.1 2 9.3l7-1L12 2l3 6.3 7 1-5 4.8 1.2 6.9-6.2-3.2Z"></path>
-                          </svg>
-                        </div>
-                        <span className="text-[10px] text-center mt-1 text-gray-600 dark:text-gray-400">
-                          Top Achiever
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-center">
-                      <a
-                        href="#"
-                        className="text-[10px] text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300 font-medium"
-                      >
-                        View All Badges
-                      </a>
                     </div>
                   </div>
 
