@@ -694,36 +694,36 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                         </div>
                       </div>
-                    ) : events && events.length > 0 ? (
+                    ) : events && Array.isArray(events) && events.length > 0 ? (
                       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                         <div className="flex space-x-3 pb-2" style={{ minWidth: 'max-content' }}>
                           {events.map((event: any) => (
-                            <div key={event.id} className="flex-shrink-0 w-48 bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
-                              {event.imageUrl && (
+                            <div key={event.id} className="flex-shrink-0 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm">
+                              {(event.imageUrl || event.image_url) && (
                                 <div className="w-full h-24 mb-2 rounded-md overflow-hidden">
                                   <img 
-                                    src={event.imageUrl} 
+                                    src={event.imageUrl || event.image_url} 
                                     alt={event.title}
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
                               )}
                               <div className="space-y-1">
-                                <div className="font-medium text-sm text-gray-900 line-clamp-2">{event.title}</div>
-                                <div className="text-xs text-gray-600">
-                                  {new Date(event.startDate).toLocaleDateString('en-US', {
+                                <div className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2">{event.title}</div>
+                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                  {new Date(event.startDate || event.start_date).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric'
                                   })}
                                 </div>
-                                {event.eventType && (
-                                  <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {event.eventType}
+                                {(event.eventType || event.event_type) && (
+                                  <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                    {event.eventType || event.event_type}
                                   </div>
                                 )}
                                 {event.location && (
-                                  <div className="text-xs text-gray-500 truncate">
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     📍 {event.location}
                                   </div>
                                 )}
@@ -733,7 +733,10 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         </div>
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-base">Not added yet</p>
+                      <div className="text-center py-4">
+                        <Calendar className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">No events added yet</p>
+                      </div>
                     )}
                   </div>
                 </div>
