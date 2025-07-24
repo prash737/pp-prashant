@@ -21,12 +21,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile - using profiles table
+    // Get institution profile - using institution_profiles table
     const { data: institution } = await supabase
-      .from('profiles')
+      .from('institution_profiles')
       .select('id')
-      .eq('auth_id', user.id)
-      .eq('role', 'institution')
+      .eq('id', user.id)
       .single()
 
     if (!institution) {
@@ -69,12 +68,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile - using profiles table
+    // Get institution profile - using institution_profiles table
     const { data: institution } = await supabase
-      .from('profiles')
+      .from('institution_profiles')
       .select('id')
-      .eq('auth_id', user.id)
-      .eq('role', 'institution')
+      .eq('id', user.id)
       .single()
 
     if (!institution) {

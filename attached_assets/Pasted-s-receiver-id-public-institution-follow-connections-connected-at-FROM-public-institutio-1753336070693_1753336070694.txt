@@ -1,0 +1,68 @@
+s"."receiver_id", "public"."institution_follow_connections"."connected_at" FROM "public"."institution_follow_connections" WHERE "public"."institution_follow_connections"."receiver_id" = $1 ORDER BY "public"."institution_follow_connections"."connected_at" DESC OFFSET $2
+prisma:query 
+      SELECT * FROM institution_quick_facts WHERE institution_id = $1::uuid
+    
+ GET /api/institution/quick-facts 200 in 362ms
+ GET /api/institution/facilities 200 in 347ms
+prisma:query SELECT "public"."institution_facilities"."id", "public"."institution_facilities"."institution_id", "public"."institution_facilities"."name", "public"."institution_facilities"."description", "public"."institution_facilities"."features", "public"."institution_facilities"."images", "public"."institution_facilities"."learn_more_link", "public"."institution_facilities"."created_at", "public"."institution_facilities"."updated_at" FROM "public"."institution_facilities" WHERE "public"."institution_facilities"."institution_id" = $1 ORDER BY "public"."institution_facilities"."created_at" DESC OFFSET $2
+ GET /api/institutions/followers?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 200 in 660ms
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."role"::text, "public"."profiles"."bio", "public"."profiles"."location" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1) OFFSET $2
+ GET /api/institution/events 200 in 271ms
+prisma:query SELECT "public"."institution_events"."id", "public"."institution_events"."institution_id", "public"."institution_events"."title", "public"."institution_events"."description", "public"."institution_events"."event_type", "public"."institution_events"."start_date", "public"."institution_events"."end_date", "public"."institution_events"."location", "public"."institution_events"."image_url", "public"."institution_events"."registration_url", "public"."institution_events"."created_at", "public"."institution_events"."updated_at" FROM "public"."institution_events" WHERE "public"."institution_events"."institution_id" = $1 ORDER BY "public"."institution_events"."start_date" ASC OFFSET $2
+prisma:query 
+      SELECT * FROM institution_contact_info WHERE institution_id = $1::uuid
+    
+ GET /api/institution/contact-info 200 in 317ms
+prisma:query SELECT "public"."institution_events"."id", "public"."institution_events"."institution_id", "public"."institution_events"."title", "public"."institution_events"."description", "public"."institution_events"."event_type", "public"."institution_events"."start_date", "public"."institution_events"."end_date", "public"."institution_events"."location", "public"."institution_events"."image_url", "public"."institution_events"."registration_url", "public"."institution_events"."created_at", "public"."institution_events"."updated_at" FROM "public"."institution_events" WHERE "public"."institution_events"."institution_id" = $1 ORDER BY "public"."institution_events"."start_date" ASC OFFSET $2
+ GET /api/institution/events 200 in 262ms
+ GET /api/institution/contact-info 200 in 269ms
+prisma:query 
+      SELECT * FROM institution_contact_info WHERE institution_id = $1::uuid
+    
+ GET /api/institution/quick-facts 200 in 262ms
+prisma:query 
+      SELECT * FROM institution_quick_facts WHERE institution_id = $1::uuid
+    
+ ○ Compiling /api/institution/academic-communities ...
+ ✓ Compiled /api/institution/academic-communities in 925ms (2087 modules)
+prisma:query SELECT "public"."institution_events"."id", "public"."institution_events"."institution_id", "public"."institution_events"."title", "public"."institution_events"."description", "public"."institution_events"."event_type", "public"."institution_events"."start_date", "public"."institution_events"."end_date", "public"."institution_events"."location", "public"."institution_events"."image_url", "public"."institution_events"."registration_url", "public"."institution_events"."created_at", "public"."institution_events"."updated_at" FROM "public"."institution_events" WHERE "public"."institution_events"."institution_id" = $1 ORDER BY "public"."institution_events"."start_date" ASC OFFSET $2
+ GET /api/institution/events 200 in 1261ms
+prisma:query 
+      SELECT * FROM institution_contact_info WHERE institution_id = $1::uuid
+    
+ GET /api/institution/contact-info 200 in 1196ms
+Error fetching communities: {
+  code: 'PGRST200',
+  details: "Searched for a foreign key relationship between 'academic_communities' and 'academic_community_members' in the schema 'public', but no matches were found.",
+  hint: "Perhaps you meant 'academic_communities_memberships' instead of 'academic_community_members'.",
+  message: "Could not find a relationship between 'academic_communities' and 'academic_community_members' in the schema cache"
+}
+ GET /api/institution/academic-communities 500 in 1562ms
+prisma:query SELECT "public"."institution_events"."id", "public"."institution_events"."institution_id", "public"."institution_events"."title", "public"."institution_events"."description", "public"."institution_events"."event_type", "public"."institution_events"."start_date", "public"."institution_events"."end_date", "public"."institution_events"."location", "public"."institution_events"."image_url", "public"."institution_events"."registration_url", "public"."institution_events"."created_at", "public"."institution_events"."updated_at" FROM "public"."institution_events" WHERE "public"."institution_events"."institution_id" = $1 ORDER BY "public"."institution_events"."start_date" ASC OFFSET $2
+ GET /api/institution/events 200 in 261ms
+Error fetching communities: {
+  code: 'PGRST200',
+  details: "Searched for a foreign key relationship between 'academic_communities' and 'academic_community_members' in the schema 'public', but no matches were found.",
+  hint: "Perhaps you meant 'academic_communities_memberships' instead of 'academic_community_members'.",
+  message: "Could not find a relationship between 'academic_communities' and 'academic_community_members' in the schema cache"
+}
+ GET /api/institution/academic-communities 500 in 528ms
+Error fetching communities: {
+  code: 'PGRST200',
+  details: "Searched for a foreign key relationship between 'academic_communities' and 'academic_community_members' in the schema 'public', but no matches were found.",
+  hint: "Perhaps you meant 'academic_communities_memberships' instead of 'academic_community_members'.",
+  message: "Could not find a relationship between 'academic_communities' and 'academic_community_members' in the schema cache"
+}
+ GET /api/institution/academic-communities 500 in 534ms
+ ✓ Compiled /api/upload/academic-community-icon in 361ms (2090 modules)
+ POST /api/upload/academic-community-icon 200 in 395ms
+ ✓ Compiled in 839ms (926 modules)
+Error creating community: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'icon_url' column of 'academic_communities' in the schema cache"
+}
+ POST /api/institution/academic-communities 500 in 1024ms
+prisma:query SELECT 1
+prisma:query SELECT "public"."connection_requests"."id", "public"."connection_requests"."sender_id",
