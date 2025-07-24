@@ -35,6 +35,7 @@ interface Membership {
   community_id: number
   member_id: string
   created_at: string
+  isCreator?: boolean
   institution_profiles: Institution
 }
 
@@ -143,7 +144,7 @@ export default function AcademicCommunityDialog({
   }
 
   const isAlreadyMember = (institutionId: string) => {
-    return members.some(member => member.institution_profiles?.id === institutionId)
+    return members.some(member => member.member_id === institutionId)
   }
 
   if (!community) return null
@@ -193,14 +194,19 @@ export default function AcademicCommunityDialog({
                 members.slice(0, 8).map((member) => (
                   <div key={member.id} className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
                     <Avatar className="h-5 w-5">
-                      <AvatarImage src={member.institution_profiles?.logo} />
+                      <AvatarImage src={member.institution_profiles?.logo_url} />
                       <AvatarFallback className="text-xs">
-                        {member.institution_profiles?.name?.[0]}
+                        {member.institution_profiles?.institution_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate max-w-16">
-                      {member.institution_profiles?.name}
+                      {member.institution_profiles?.institution_name}
                     </span>
+                    {member.isCreator && (
+                      <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3">
+                        Creator
+                      </Badge>
+                    )}
                   </div>
                 ))
               ) : (
@@ -216,6 +222,47 @@ export default function AcademicCommunityDialog({
           </div>
 
           <Separator />
+
+          {/* Detailed member list */}
+          {!loading && members.length > 0 && (
+            <>
+              <div>
+                <h4 className="text-sm font-medium mb-3">All Members</h4>
+                <div className="max-h-32 overflow-y-auto space-y-2">
+                  {members.map((member) => (
+                    <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.institution_profiles?.logo_url} />
+                        <AvatarFallback className="text-xs">
+                          {member.institution_profiles?.institution_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {member.institution_profiles?.institution_name}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {member.institution_profiles?.institution_type}
+                        </p>
+                      </div>
+                      {member.isCreator && (
+                        <Badge variant="secondary" className="text-xs">
+                          Creator
+                        </Badge>
+                      )}
+                      {member.institution_profiles?.verified && (
+                        <Badge variant="outline" className="text-xs">
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+            </>
+          )}
 
           {/* Search and add institutions */}
           <div>

@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
@@ -28,12 +27,27 @@ export async function GET(
     const resolvedParams = await params
     const communityId = parseInt(resolvedParams.id)
 
+    // First get the community creator info
+    const { data: community, error: communityError } = await supabase
+      .from('academic_communities')
+      .select('creator_id')
+      .eq('id', communityId)
+      .single()
+
+    if (communityError) {
+      console.error('Error fetching community info:', communityError)
+      return NextResponse.json({ error: 'Failed to fetch community info' }, { status: 500 })
+    }
+
     // Fetch community members
     const { data: memberships, error } = await supabase
       .from('academic_communities_memberships')
       .select(`
-        *,
-        institution_profiles!member_id(
+        id,
+        community_id,
+        member_id,
+        created_at,
+        institution_profiles!inner (
           id,
           institution_name,
           logo_url,
@@ -48,7 +62,13 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 })
     }
 
-    return NextResponse.json({ memberships })
+    // Add creator flag to memberships
+    const enrichedMemberships = (memberships || []).map(membership => ({
+      ...membership,
+      isCreator: membership.member_id === community.creator_id
+    }))
+
+    return NextResponse.json({ memberships: enrichedMemberships })
   } catch (error) {
     console.error('Error in GET /api/institution/academic-communities/[id]/members:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
