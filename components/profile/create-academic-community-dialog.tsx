@@ -120,7 +120,7 @@ export default function CreateAcademicCommunityDialog({
         body: JSON.stringify({
           name: formData.name.trim(),
           description: formData.description.trim(),
-          image_url: iconUrl
+          iconUrl: iconUrl
         })
       })
 

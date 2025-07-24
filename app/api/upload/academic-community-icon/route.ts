@@ -1,71 +1,55 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { writeFile } from 'fs/promises'
+import { mkdir } from 'fs/promises'
+import path from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('sb-access-token')?.value
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: { user } } = await supabase.auth.getUser(token)
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const formData = await request.formData()
-    const file = formData.get('file') as File
+    const data = await request.formData()
+    const file: File | null = data.get('file') as unknown as File
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'No file uploaded' })
     }
 
-    // Validate file type
+    // Check file type
     if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Only image files are allowed' })
     }
 
-    // Validate file size (5MB limit)
+    // Check file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'File size too large. Maximum 5MB allowed.' })
     }
 
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${user.id}_${Date.now()}.${fileExt}`
-    const filePath = `academic-communities/${fileName}`
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('uploads')
-      .upload(filePath, file)
+    // Create unique filename
+    const timestamp = Date.now()
+    const randomId = Math.random().toString(36).substring(2, 15)
+    const extension = path.extname(file.name)
+    const filename = `${randomId}_${timestamp}${extension}`
 
-    if (error) {
-      console.error('Upload error:', error)
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
-    }
+    // Create directory if it doesn't exist
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'academic-communities')
+    await mkdir(uploadDir, { recursive: true })
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('uploads')
-      .getPublicUrl(filePath)
+    // Write file
+    const filepath = path.join(uploadDir, filename)
+    await writeFile(filepath, buffer)
+
+    // Return public URL
+    const publicUrl = `/uploads/academic-communities/${filename}`
 
     return NextResponse.json({ 
       success: true, 
       url: publicUrl,
-      path: filePath 
+      filename: filename
     })
 
   } catch (error) {
-    console.error('Error uploading community icon:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error uploading academic community icon:', error)
+    return NextResponse.json({ success: false, error: 'Failed to upload image' })
   }
 }
