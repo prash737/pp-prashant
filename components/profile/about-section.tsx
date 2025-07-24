@@ -205,13 +205,12 @@ export default function AboutSection({ student: studentProp, currentUser, isView
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              {/* Academic Excellence Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center mb-1">
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="bg-gray-100 dark:bg-gray-700 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-500"
+                    className="h-6 w-6 text-gray-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -219,115 +218,11 @@ export default function AboutSection({ student: studentProp, currentUser, isView
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
+                    <path d="M12 1v4M18 8l2.5-2.5M19 14h4M16 18l2.5 2.5M12 19v4M8 18l-2.5 2.5M5 14H1M8 8L5.5 5.5" />
+                    <circle cx="12" cy="12" r="4" />
                   </svg>
                 </div>
-                <span className="text-xs font-medium text-center">Academic Excellence</span>
-              </div>
-
-              {/* Coding Ninja Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 flex items-center justify-center mb-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-purple-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="16 18 22 12 16 6" />
-                    <polyline points="8 6 2 12 8 18" />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-center">Coding Ninja</span>
-              </div>
-
-              {/* Team Player Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 flex items-center justify-center mb-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-green-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-center">Team Player</span>
-              </div>
-
-              {/* Creative Thinker Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 dark:from-pink-900 dark:to-pink-800 flex items-center justify-center mb-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-pink-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M2 12h1M7 12h1M12 2v1M12 7v1M12 12h1M17 12h1M22 12h1M12 17v1M12 22v1" />
-                    <path d="M4.93 4.93l.7.7M12 12l-1.41-1.41" />
-                    <path d="M19.07 4.93l-.7.7M15.5 8.5l.7.7" />
-                    <path d="M4.93 19.07l.7-.7M12 12l-1.41 1.41" />
-                    <path d="M19.07 19.07l-.7-.7M15.5 15.5l.7-.7" />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-center">Creative Thinker</span>
-              </div>
-
-              {/* Science Whiz Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-teal-100 to-teal-200 dark:from-teal-900 dark:to-teal-800 flex items-center justify-center mb-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-teal-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2 2h3M3 16h3a2 2 0 0 1 2 2v3" />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-center">Science Whiz</span>
-              </div>
-
-              {/* Early Bird Badge */}
-              <div className="flex flex-col items-center">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 flex items-center justify-center mb-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-orange-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-center">Early Bird</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">Coming Soon</span>
               </div>
             </div>
           </motion.div>
