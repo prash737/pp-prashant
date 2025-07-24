@@ -31,6 +31,7 @@ export default function SelfAnalysisPage() {
   const [query, setQuery] = useState("")
   const [analysis, setAnalysis] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (loading) return
@@ -54,7 +55,7 @@ export default function SelfAnalysisPage() {
     }
   }, [user, loading, router, profileData, profileDataLoading])
 
-  // Parse analysis into sections for horizontal layout
+  // Parse analysis into sections and consolidate short content
   const parseAnalysisIntoSections = (text: string) => {
     const sections = [];
     
@@ -97,7 +98,29 @@ export default function SelfAnalysisPage() {
       });
     }
     
-    return sections;
+    // Consolidate sections with less than 10 words
+    const consolidatedSections = [];
+    let i = 0;
+    
+    while (i < sections.length) {
+      const currentSection = sections[i];
+      const wordCount = currentSection.content.split(/\s+/).length;
+      
+      if (wordCount < 10 && i < sections.length - 1) {
+        // Merge with next section
+        const nextSection = sections[i + 1];
+        consolidatedSections.push({
+          title: currentSection.title,
+          content: currentSection.content + '\n\n' + nextSection.content
+        });
+        i += 2; // Skip the next section as it's been merged
+      } else {
+        consolidatedSections.push(currentSection);
+        i++;
+      }
+    }
+    
+    return consolidatedSections;
   };
 
   // Get icon for section based on title
@@ -122,6 +145,17 @@ export default function SelfAnalysisPage() {
   };
 
   // Format analysis text with proper HTML formatting
+  // Toggle expanded state for sections
+  const toggleSection = (index: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedSections(newExpanded);
+  };
+
   const formatAnalysisText = (text: string) => {
     return text
       // Convert markdown-style headers to HTML
@@ -520,54 +554,80 @@ export default function SelfAnalysisPage() {
                         AI Analysis Results
                       </CardTitle>
                       <CardDescription>
-                        Personalized insights based on your complete profile
+                        Personalized insights based on your complete profile - Click on titles to expand
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="w-full">
-                        {/* Horizontal Scrollable Container */}
-                        <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                          {(() => {
-                            // Parse the analysis into sections
-                            const sections = parseAnalysisIntoSections(analysis);
-                            return sections.map((section, index) => (
-                              <div
-                                key={index}
-                                className="flex-shrink-0 w-80 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
+                      <div className="space-y-4">
+                        {(() => {
+                          // Parse the analysis into sections with content consolidation
+                          const sections = parseAnalysisIntoSections(analysis);
+                          return sections.map((section, index) => (
+                            <div
+                              key={index}
+                              className="border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                              {/* Collapsible Header */}
+                              <button
+                                onClick={() => toggleSection(index)}
+                                className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg transition-colors"
                               >
-                                <div className="mb-4">
-                                  <div className="flex items-center gap-2 mb-3">
-                                    {getSectionIcon(section.title)}
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                      {section.title}
-                                    </h3>
+                                <div className="flex items-center gap-3">
+                                  {getSectionIcon(section.title)}
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {section.title}
+                                  </h3>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+                                  <svg
+                                    className={`h-5 w-5 text-gray-500 transform transition-transform ${
+                                      expandedSections.has(index) ? 'rotate-180' : ''
+                                    }`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </button>
+                              
+                              {/* Collapsible Content */}
+                              {expandedSections.has(index) && (
+                                <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700">
+                                  <div className="pt-4 space-y-3">
+                                    <div 
+                                      className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                                      dangerouslySetInnerHTML={{ 
+                                        __html: formatAnalysisText(section.content) 
+                                      }}
+                                    />
                                   </div>
-                                  <div className="h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mb-4"></div>
                                 </div>
-                                
-                                <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                                  <div 
-                                    className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                    dangerouslySetInnerHTML={{ 
-                                      __html: formatAnalysisText(section.content) 
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            ));
-                          })()}
-                        </div>
-                        
-                        {/* Navigation Hint */}
-                        <div className="flex items-center justify-center mt-4 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-2">
-                            <div className="flex gap-1">
-                              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                              )}
                             </div>
-                            <span>Scroll horizontally to explore all insights</span>
-                          </div>
+                          ));
+                        })()}
+                        
+                        {/* Expand All / Collapse All Controls */}
+                        <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <button
+                            onClick={() => {
+                              const sections = parseAnalysisIntoSections(analysis);
+                              setExpandedSections(new Set(Array.from({ length: sections.length }, (_, i) => i)));
+                            }}
+                            className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+                          >
+                            Expand All
+                          </button>
+                          <span className="text-gray-300 dark:text-gray-600">|</span>
+                          <button
+                            onClick={() => setExpandedSections(new Set())}
+                            className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
+                          >
+                            Collapse All
+                          </button>
                         </div>
                       </div>
                     </CardContent>
