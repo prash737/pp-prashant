@@ -530,49 +530,99 @@ export default function InstitutionSelfAnalysisPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="w-full">
-                        {/* Horizontal Scrollable Container */}
-                        <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                          {(() => {
-                            // Parse the analysis into sections
-                            const sections = parseAnalysisIntoSections(analysis);
-                            return sections.map((section, index) => (
-                              <div
-                                key={index}
-                                className="flex-shrink-0 w-80 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
+                      <div className="space-y-4">
+                        {(() => {
+                          // Parse the analysis into sections and merge small sections
+                          const rawSections = parseAnalysisIntoSections(analysis);
+                          const mergedSections = [];
+                          
+                          for (let i = 0; i < rawSections.length; i++) {
+                            const section = rawSections[i];
+                            const wordCount = section.content.split(/\s+/).length;
+                            
+                            // If section has less than 10 words, merge with next section
+                            if (wordCount < 10 && i < rawSections.length - 1) {
+                              const nextSection = rawSections[i + 1];
+                              mergedSections.push({
+                                title: section.title,
+                                content: section.content + "\n\n" + nextSection.content
+                              });
+                              i++; // Skip the next section as it's merged
+                            } else if (wordCount < 10 && mergedSections.length > 0) {
+                              // Merge with previous section if it's the last one
+                              const lastSection = mergedSections[mergedSections.length - 1];
+                              lastSection.content += "\n\n**" + section.title + ":** " + section.content;
+                            } else {
+                              mergedSections.push(section);
+                            }
+                          }
+                          
+                          return mergedSections.map((section, index) => (
+                            <div
+                              key={index}
+                              className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                              <div 
+                                className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-xl"
+                                onClick={() => {
+                                  const content = document.getElementById(`section-content-${index}`);
+                                  const icon = document.getElementById(`section-icon-${index}`);
+                                  if (content && icon) {
+                                    const isHidden = content.style.display === 'none' || !content.style.display;
+                                    content.style.display = isHidden ? 'block' : 'none';
+                                    icon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+                                  }
+                                }}
                               >
-                                <div className="mb-4">
-                                  <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
                                     {getSectionIcon(section.title)}
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                       {section.title}
                                     </h3>
                                   </div>
-                                  <div className="h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mb-4"></div>
-                                </div>
-
-                                <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                                   <div 
-                                    className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                    dangerouslySetInnerHTML={{ 
-                                      __html: formatAnalysisText(section.content) 
-                                    }}
-                                  />
+                                    id={`section-icon-${index}`}
+                                    className="transition-transform duration-200"
+                                  >
+                                    <svg 
+                                      className="w-5 h-5 text-gray-500" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </div>
                                 </div>
+                                <div className="h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mt-3"></div>
                               </div>
-                            ));
-                          })()}
-                        </div>
 
-                        {/* Navigation Hint */}
-                        <div className="flex items-center justify-center mt-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div 
+                                id={`section-content-${index}`}
+                                className="px-4 pb-4"
+                                style={{ display: 'none' }}
+                              >
+                                <div 
+                                  className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed pt-2 border-t border-gray-200 dark:border-gray-600"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: formatAnalysisText(section.content) 
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                        
+                        {/* Expandable hint */}
+                        <div className="flex items-center justify-center mt-6 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-2">
                             <div className="flex gap-1">
                               <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                               <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                             </div>
-                            <span>Scroll horizontally to explore all insights</span>
+                            <span>Click on any section title to expand and view detailed insights</span>
                           </div>
                         </div>
                       </div>
