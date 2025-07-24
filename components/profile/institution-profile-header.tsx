@@ -24,6 +24,8 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import FollowersDialog from "./followers-dialog"
+import CreateAcademicCommunityDialog from "./create-academic-community-dialog"
+import AcademicCommunityDialog from "./academic-community-dialog"
 
 interface InstitutionData {
   id: string
@@ -79,7 +81,27 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
     followers: followerCount, // Use actual count from API
   }
 
-  // Fetch actual follower count, quick facts, and events
+  // Fetch academic communities
+  const fetchAcademicCommunities = async () => {
+    setCommunitiesLoading(true)
+    try {
+      const response = await fetch('/api/institution/academic-communities', {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAcademicCommunities(data.communities || [])
+      }
+    } catch (error) {
+      console.error('Error fetching academic communities:', error)
+      setAcademicCommunities([])
+    } finally {
+      setCommunitiesLoading(false)
+    }
+  }
+
+  // Fetch actual follower count, quick facts, events, and academic communities
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -134,12 +156,16 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
             setEvents(sortedEvents)
           }
         }
+
+        // Fetch academic communities
+        await fetchAcademicCommunities()
       } catch (error) {
         console.error('Error fetching data:', error)
         setFollowerCount(0)
         setQuickFacts(null)
         setContactInfo(null)
         setEvents([])
+        setAcademicCommunities([])
       } finally {
         setLoading(false)
         setQuickFactsLoading(false)
@@ -153,50 +179,21 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
     }
   }, [institutionData.id])
 
-  // Mock circles data
-  const academicCommunities = [
-    {
-      id: 1,
-      name: "Computer Science",
-      count: 1250,
-      image: "/multiple-monitor-coding.png",
-      color: "from-blue-400 to-cyan-500",
-    },
-    {
-      id: 2,
-      name: "Engineering",
-      count: 980,
-      image: "/university-laboratory.png",
-      color: "from-purple-400 to-indigo-500",
-    },
-    {
-      id: 3,
-      name: "Business",
-      count: 750,
-      image: "/bustling-university-campus.png",
-      color: "from-amber-400 to-orange-500",
-    },
-    {
-      id: 4,
-      name: "Medicine",
-      count: 620,
-      image: "/college-library.png",
-      color: "from-teal-400 to-emerald-500",
-    },
-    {
-      id: 5,
-      name: "Law",
-      count: 480,
-      image: "/placeholder.svg?key=law-school",
-      color: "from-red-400 to-rose-500",
-    },
-    {
-      id: 6,
-      name: "Arts",
-      count: 350,
-      image: "/placeholder.svg?key=arts-department",
-      color: "from-green-400 to-emerald-500",
-    },
+  // Real academic communities state
+  const [academicCommunities, setAcademicCommunities] = useState<any[]>([])
+  const [communitiesLoading, setCommunitiesLoading] = useState(true)
+  const [showCreateCommunityDialog, setShowCreateCommunityDialog] = useState(false)
+  const [selectedCommunity, setSelectedCommunity] = useState<any>(null)
+  const [showCommunityDialog, setShowCommunityDialog] = useState(false)
+
+  // Color options for communities (same as circles)
+  const colorOptions = [
+    { name: 'Blue', value: '#3B82F6', gradient: 'from-blue-400 to-cyan-500' },
+    { name: 'Purple', value: '#8B5CF6', gradient: 'from-purple-400 to-indigo-500' },
+    { name: 'Green', value: '#10B981', gradient: 'from-green-400 to-emerald-500' },
+    { name: 'Orange', value: '#F59E0B', gradient: 'from-amber-400 to-orange-500' },
+    { name: 'Red', value: '#EF4444', gradient: 'from-red-400 to-rose-500' },
+    { name: 'Teal', value: '#14B8A6', gradient: 'from-teal-400 to-emerald-500' }
   ]
 
   // Custom tooltip styles
@@ -526,31 +523,89 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
 
                     <div className="relative">
                       <div className="flex overflow-x-auto pb-2 hide-scrollbar gap-4">
-                        {academicCommunities.map((community) => (
-                          <div key={community.id} className="flex flex-col items-center min-w-[72px]">
-                            <div className="relative mb-1">
-                              <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${community.color} p-[3px]`}>
-                                <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
-                                  <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                                    <Image
-                                      src={community.image || "/placeholder.svg"}
-                                      alt={community.name}
-                                      width={64}
-                                      height={64}
-                                      className="object-cover"
+                        {/* Add Community Button */}
+                        <div className="flex flex-col items-center min-w-[72px]">
+                          <button
+                            onClick={() => setShowCreateCommunityDialog(true)}
+                            className="relative mb-1 group"
+                          >
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 p-[3px] group-hover:from-gray-300 group-hover:to-gray-400 dark:group-hover:from-gray-500 dark:group-hover:to-gray-600 transition-all">
+                              <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
+                                <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                  <svg
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                  >
+                                    <path
+                                      d="M12 5V19M5 12H19"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
                                     />
-                                  </div>
+                                  </svg>
                                 </div>
                               </div>
                             </div>
-                            <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
-                              {community.name}
-                            </span>
-                            <span className="text-[10px] text-center text-gray-500 dark:text-gray-500 truncate w-full">
-                              {community.count} members
-                            </span>
+                          </button>
+                          <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
+                            Add
+                          </span>
+                          <span className="text-[10px] text-center text-gray-500 dark:text-gray-500 truncate w-full">
+                            Community
+                          </span>
+                        </div>
+
+                        {communitiesLoading ? (
+                          <div className="flex items-center">
+                            <span className="text-xs text-gray-500">Loading communities...</span>
                           </div>
-                        ))}
+                        ) : (
+                          academicCommunities.map((community) => {
+                            const memberCount = community.academic_communities_memberships?.[0]?.count || 0
+                            const colorOption = colorOptions.find(c => c.value === community.color) || colorOptions[0]
+                            
+                            return (
+                              <div key={community.id} className="flex flex-col items-center min-w-[72px]">
+                                <button
+                                  onClick={() => {
+                                    setSelectedCommunity(community)
+                                    setShowCommunityDialog(true)
+                                  }}
+                                  className="relative mb-1 group"
+                                >
+                                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${colorOption.gradient} p-[3px] group-hover:scale-105 transition-transform`}>
+                                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
+                                      <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                                        {community.image_url ? (
+                                          <Image
+                                            src={community.image_url}
+                                            alt={community.name}
+                                            width={64}
+                                            height={64}
+                                            className="object-cover w-full h-full"
+                                          />
+                                        ) : (
+                                          <Building className="h-6 w-6 text-gray-400" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                                <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
+                                  {community.name}
+                                </span>
+                                <span className="text-[10px] text-center text-gray-500 dark:text-gray-500 truncate w-full">
+                                  {memberCount} members
+                                </span>
+                              </div>
+                            )
+                          })
+                        )}
                       </div>
                     </div>
                   </div>
@@ -690,6 +745,21 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
         isOpen={showFollowersDialog}
         onClose={() => setShowFollowersDialog(false)}
         followerCount={followerCount}
+      />
+
+      {/* Create Academic Community Dialog */}
+      <CreateAcademicCommunityDialog
+        open={showCreateCommunityDialog}
+        onOpenChange={setShowCreateCommunityDialog}
+        onCommunityCreated={fetchAcademicCommunities}
+      />
+
+      {/* Academic Community Management Dialog */}
+      <AcademicCommunityDialog
+        community={selectedCommunity}
+        open={showCommunityDialog}
+        onOpenChange={setShowCommunityDialog}
+        onCommunityUpdated={fetchAcademicCommunities}
       />
     </>
   )
