@@ -38,9 +38,9 @@ export async function GET(request: NextRequest) {
       .from('academic_communities')
       .select(`
         *,
-        academic_communities_memberships(count)
+        academic_community_members(count)
       `)
-      .eq('creator_id', institution.id)
+      .eq('institution_id', institution.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
     }
 
-    const { name, description, image_url } = await request.json()
+    const { name, description, iconUrl } = await request.json()
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
       .insert({
         name,
         description: description || '',
-        image_url: image_url || '',
-        creator_id: institution.id
+        icon_url: iconUrl || '',
+        institution_id: institution.id
       })
       .select()
       .single()
@@ -101,6 +101,20 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating community:', error)
       return NextResponse.json({ error: 'Failed to create community' }, { status: 500 })
+    }
+
+    // Auto-add the creator institution as a member (admin role)
+    const { error: memberError } = await supabase
+      .from('academic_community_members')
+      .insert({
+        community_id: community.id,
+        user_id: institution.id,
+        role: 'admin'
+      })
+
+    if (memberError) {
+      console.error('Error adding creator as member:', memberError)
+      // Don't fail the creation, just log the error
     }
 
     return NextResponse.json({ success: true, community })
