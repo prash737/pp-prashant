@@ -384,9 +384,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           {institution.tagline}
                         </p>
                       )}
-                      <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                        {institution.type}{institution.founded ? ` • Est. ${institution.founded}` : ''}
-                      </p>
+                      
                     </div>
                   </div>
 
@@ -398,10 +396,7 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                         Edit Profile
                       </Button>
                     </Link>
-                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none w-full sm:w-auto h-9 px-4 text-sm font-medium">
-                      <Users className="h-4 w-4 mr-2" />
-                      Connect
-                    </Button>
+                    
                     {contactInfo?.website ? (
                       <Button 
                         variant="outline" 
