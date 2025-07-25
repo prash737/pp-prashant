@@ -500,7 +500,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                             {actualConnectionCounts?.mentors || 0}
                           </span>
                         </div>
-                        
+
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full">
@@ -597,7 +597,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                 {/* Dynamic Circles from Database */}
                                 {circles.map((circle) => {
                                   const isDisabled = isCircleDisabled(circle, studentProp.id);
-                                  
+
                                   return (
                                     <div 
                                       key={circle.id}
@@ -659,11 +659,11 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                   );
                                 })}
 
-                                
+
                               </div>
                             </div>
 
-                            
+
                           </>
                         );
                       })()}
@@ -766,6 +766,81 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
 
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
+                  {/* Social Links */}
+                  {student.socialLinks && student.socialLinks.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {student.socialLinks.map((link: any, index: number) => {
+                        const getSocialIcon = (platform: string) => {
+                          switch (platform.toLowerCase()) {
+                            case 'instagram':
+                              return <Instagram className="h-4 w-4 text-pink-500" />
+                            case 'twitter':
+                            case 'x':
+                              return <Twitter className="h-4 w-4 text-blue-500" />
+                            case 'linkedin':
+                              return <Linkedin className="h-4 w-4 text-blue-600" />
+                            case 'github':
+                              return <Github className="h-4 w-4 text-gray-800 dark:text-gray-200" />
+                            case 'youtube':
+                              return <Youtube className="h-4 w-4 text-red-500" />
+                            case 'facebook':
+                              return <Facebook className="h-4 w-4 text-blue-600" />
+                            case 'portfolio':
+                            case 'website':
+                              return <Globe className="h-4 w-4 text-green-500" />
+                            case 'behance':
+                              return <Globe className="h-4 w-4 text-blue-500" />
+                            case 'dribbble':
+                              return <Globe className="h-4 w-4 text-pink-500" />
+                            default:
+                              return <Globe className="h-4 w-4 text-gray-500" />
+                          }
+                        }
+
+                        const getPlatformLabel = (platform: string) => {
+                          switch (platform.toLowerCase()) {
+                            case 'x':
+                              return 'X (Twitter)'
+                            case 'linkedin':
+                              return 'LinkedIn'
+                            case 'github':
+                              return 'GitHub'
+                            case 'youtube':
+                              return 'YouTube'
+                            case 'behance':
+                              return 'Behance'
+                            case 'dribbble':
+                              return 'Dribbble'
+                            case 'portfolio':
+                              return 'Portfolio'
+                            case 'website':
+                              return 'Website'
+                            default:
+                              return platform.charAt(0).toUpperCase() + platform.slice(1)
+                          }
+                        }
+
+                        return (
+                          <a
+                            key={`social-${link.id || index}`}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs font-medium group"
+                            title={`Visit ${getPlatformLabel(link.platform)}`}
+                          >
+                            <span className="group-hover:scale-110 transition-transform">
+                              {getSocialIcon(link.platform)}
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {getPlatformLabel(link.platform)}
+                            </span>
+                          </a>
+                        )
+                      })}
+                    </div>
+                  )}
+
                   {/* Circle Invitations Section - Only show for own profile */}
                   {isOwnProfile && (
                     <div className="mb-6">
