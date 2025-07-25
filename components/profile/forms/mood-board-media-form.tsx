@@ -1,15 +1,17 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Upload, X, Image as ImageIcon, Plus } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 interface MoodBoardItem {
   id: string
-  url: string
-  type: 'image' | 'video'
+  imageUrl: string
   caption?: string
+  position: number
 }
 
 interface MoodBoardMediaFormProps {
@@ -18,48 +20,102 @@ interface MoodBoardMediaFormProps {
 }
 
 export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFormProps) {
+  const { user } = useAuth()
   const [moodBoard, setMoodBoard] = useState<MoodBoardItem[]>([])
   const [draggedItem, setDraggedItem] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Update mood board when data changes
+  // Load existing mood board items from database
   useEffect(() => {
-    if (data?.moodBoard) {
-      setMoodBoard(data.moodBoard)
+    const fetchMoodBoard = async () => {
+      if (!user) return
+      
+      try {
+        const response = await fetch(`/api/mood-board?userId=${user.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setMoodBoard(data.moodBoard || [])
+        }
+      } catch (error) {
+        console.error('Error fetching mood board:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [data])
+
+    fetchMoodBoard()
+  }, [user])
 
   // Notify parent of changes
   useEffect(() => {
     onChange("media", { moodBoard })
-  }, [moodBoard])
+  }, [moodBoard, onChange])
 
-  const handleImageUpload = (files: FileList) => {
-    Array.from(files).forEach(file => {
+  const handleImageUpload = async (files: FileList) => {
+    if (!user) return
+
+    Array.from(files).forEach(async (file) => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader()
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           const result = e.target?.result as string
-          const newItem: MoodBoardItem = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            url: result,
-            type: 'image',
-            caption: ''
+          
+          try {
+            // Save to database
+            const response = await fetch('/api/mood-board', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId: user.id,
+                imageUrl: result,
+                caption: '',
+                position: moodBoard.length
+              })
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              setMoodBoard(prev => [...prev, data.item])
+            }
+          } catch (error) {
+            console.error('Error saving mood board item:', error)
           }
-          setMoodBoard(prev => [...prev, newItem])
         }
         reader.readAsDataURL(file)
       }
     })
   }
 
-  const removeItem = (id: string) => {
-    setMoodBoard(prev => prev.filter(item => item.id !== id))
+  const removeItem = async (id: string) => {
+    try {
+      const response = await fetch(`/api/mood-board?itemId=${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setMoodBoard(prev => prev.filter(item => item.id !== id))
+      }
+    } catch (error) {
+      console.error('Error removing mood board item:', error)
+    }
   }
 
-  const updateCaption = (id: string, caption: string) => {
-    setMoodBoard(prev => prev.map(item => 
+  const updateCaption = async (id: string, caption: string) => {
+    const updatedItems = moodBoard.map(item => 
       item.id === id ? { ...item, caption } : item
-    ))
+    )
+    setMoodBoard(updatedItems)
+
+    // Update in database
+    try {
+      await fetch('/api/mood-board', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: updatedItems })
+      })
+    } catch (error) {
+      console.error('Error updating caption:', error)
+    }
   }
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -70,7 +126,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, targetId: string) => {
+  const handleDrop = async (e: React.DragEvent, targetId: string) => {
     e.preventDefault()
     if (!draggedItem) return
 
@@ -82,11 +138,22 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
       const [draggedElement] = newMoodBoard.splice(draggedIndex, 1)
       newMoodBoard.splice(targetIndex, 0, draggedElement)
       setMoodBoard(newMoodBoard)
+
+      // Update positions in database
+      try {
+        await fetch('/api/mood-board', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: newMoodBoard })
+        })
+      } catch (error) {
+        console.error('Error updating positions:', error)
+      }
     }
     setDraggedItem(null)
   }
 
-  // Predefined inspirational images (you could fetch these from an API)
+  // Predefined inspirational images
   const inspirationalImages = [
     { id: 'preset1', url: '/images/coding-topic.png', caption: 'Programming' },
     { id: 'preset2', url: '/images/science-topic.png', caption: 'Science' },
@@ -96,16 +163,39 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
     { id: 'preset6', url: '/images/math-topic.png', caption: 'Mathematics' },
   ]
 
-  const addPresetImage = (presetImage: { id: string; url: string; caption: string }) => {
-    if (moodBoard.some(item => item.url === presetImage.url)) return
+  const addPresetImage = async (presetImage: { id: string; url: string; caption: string }) => {
+    if (!user || moodBoard.some(item => item.imageUrl === presetImage.url)) return
 
-    const newItem: MoodBoardItem = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      url: presetImage.url,
-      type: 'image',
-      caption: presetImage.caption
+    try {
+      const response = await fetch('/api/mood-board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          imageUrl: presetImage.url,
+          caption: presetImage.caption,
+          position: moodBoard.length
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setMoodBoard(prev => [...prev, data.item])
+      }
+    } catch (error) {
+      console.error('Error adding preset image:', error)
     }
-    setMoodBoard(prev => [...prev, newItem])
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mood Board & Media</h3>
+          <p className="text-gray-600 dark:text-gray-400">Loading your mood board...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -154,7 +244,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                 <button
                   onClick={() => addPresetImage(preset)}
                   className="w-full aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 hover:ring-2 hover:ring-pathpiper-teal transition-all"
-                  disabled={moodBoard.some(item => item.url === preset.url)}
+                  disabled={moodBoard.some(item => item.imageUrl === preset.url)}
                 >
                   <img
                     src={preset.url}
@@ -202,7 +292,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                   className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-move"
                 >
                   <img
-                    src={item.url}
+                    src={item.imageUrl}
                     alt={item.caption || 'Mood board item'}
                     className="w-full h-full object-cover"
                   />

@@ -68,7 +68,6 @@ export async function GET(
       )
     }
 
-    // Fetch student profile with all related data
     const studentProfile = await prisma.studentProfile.findUnique({
       where: { id: studentId },
       include: {
@@ -93,14 +92,38 @@ export async function GET(
               }
             },
             socialLinks: true,
-            goals: {
+            customBadges: true,
+            goals: true,
+            achievements: true,
+            moodBoard: {
               orderBy: {
-                createdAt: 'desc'
+                position: 'asc'
               }
             },
-            customBadges: {
-              orderBy: {
-                earnedDate: 'desc'
+            connections1: {
+              include: {
+                user2: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImageUrl: true,
+                    role: true
+                  }
+                }
+              }
+            },
+            connections2: {
+              include: {
+                user1: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImageUrl: true,
+                    role: true
+                  }
+                }
               }
             }
           }
@@ -161,7 +184,8 @@ export async function GET(
         // Only show sensitive contact info for own profile
         socialLinks: isOwnProfile ? studentProfile.profile.socialLinks : [],
         goals: studentProfile.profile.goals,
-        customBadges: studentProfile.profile.customBadges
+        customBadges: studentProfile.profile.customBadges,
+        moodBoard: studentProfile.profile.moodBoard
       },
       educationHistory: studentProfile.educationHistory.map(edu => {
         // Debug log for complete raw database record

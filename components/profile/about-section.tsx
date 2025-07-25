@@ -7,6 +7,7 @@ import { GlobeIcon, BrainIcon, EditIcon, Users, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import EducationCards from "./education-cards"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import MoodBoardSection from "./mood-board-section"
 
 interface AboutSectionProps {
   student?: any
@@ -300,38 +301,7 @@ export default function AboutSection({ student: studentProp, currentUser, isView
           )}
 
           {/* Mood Board */}
-          <motion.div
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <BrainIcon className="h-5 w-5 text-purple-500" />
-              <h3 className="font-semibold">Mood Board</h3>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {studentProp?.moodBoard && studentProp.moodBoard.length > 0 ? (
-                studentProp.moodBoard.map((image, index) => (
-                  <div key={index} className="aspect-square rounded-lg overflow-hidden relative">
-                    <Image src={image || "/placeholder.svg"} alt="Mood board image" fill className="object-cover" />
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center py-8 text-gray-500 dark:text-gray-400">
-                  <BrainIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No mood board images yet</p>
-                </div>
-              )}
-
-              {isEditing && (
-                <div className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <span className="text-2xl text-gray-400">+</span>
-                </div>
-              )}
-            </div>
-          </motion.div>
+          <MoodBoardSection studentId={studentProp.id} />
         </div>
       </div>
     </div>
