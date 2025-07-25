@@ -120,19 +120,19 @@ function CircleBadgesSection({
   }, []);
 
   // Function to check if circle should be disabled for current user
-  const isCircleDisabled = (circle: Circle, currentUserId: string) => {
+  const isCircleDisabled = (circle: any, currentUserId: string) => {
     // 1. Check if circle is globally disabled
     if (circle.isDisabled) {
       return true;
     }
 
     // 2. Check if creator is disabled and current user is the creator
-    if (circle.isCreatorDisabled && circle.creator.id === currentUserId) {
+    if (circle.isCreatorDisabled && circle.creator?.id === currentUserId) {
       return true;
     }
 
     // 3. Check if current user's membership is disabled
-    const userMembership = circle.memberships.find(
+    const userMembership = circle.memberships?.find(
       (membership: any) => membership.user.id === currentUserId
     );
     if (userMembership && userMembership.isDisabledMember) {
