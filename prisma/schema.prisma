@@ -111,7 +111,8 @@ model Profile {
   academicCommunityMemberships AcademicCommunityMember[]
 
   //Moderation
-  moderationLogs ModerationLog[]
+  moderationLogs ModerationLog[] @relation("ModeratedProfile")
+  moderatorLogs  ModerationLog[] @relation("ModeratorProfile")
   @@map("profiles")
   @@schema("public")
 }
@@ -936,8 +937,8 @@ model ModerationLog {
   details     Json?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  moderator Profile?  @relation(fields: [moderatorId], references: [id])
+  profile   Profile   @relation("ModeratedProfile", fields: [profileId], references: [id], onDelete: Cascade)
+  moderator Profile?  @relation("ModeratorProfile", fields: [moderatorId], references: [id])
 
   @@map("moderation_logs")
   @@schema("public")
