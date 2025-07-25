@@ -307,26 +307,29 @@ function CircleBadgesSection({
                   <div
                     key={circle.id}
                     className={`flex flex-col items-center group ${
-                      isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                      isDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                     }`}
                     onClick={() => !isDisabled && onCircleSelect(circle)}
                   >
                     {/* Circle Badge */}
                     <div className="relative mb-2">
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 overflow-hidden ${
+                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 overflow-hidden relative ${
                           isDisabled 
-                            ? 'grayscale cursor-not-allowed' 
+                            ? 'grayscale cursor-not-allowed bg-gray-400' 
                             : 'group-hover:shadow-xl group-hover:scale-105'
                         }`}
-                        style={{ backgroundColor: isDisabled ? '#9CA3AF' : circle.color }}
+                        style={{ 
+                          backgroundColor: isDisabled ? '#9CA3AF' : circle.color,
+                          filter: isDisabled ? 'grayscale(1) brightness(0.8)' : 'none'
+                        }}
                       >
                         {circle.icon && (circle.icon.startsWith('data:image') || circle.icon.startsWith('/uploads/')) ? (
                           <img
                             src={circle.icon}
                             alt={circle.name}
                             className={`w-full h-full object-cover rounded-full ${
-                              isDisabled ? 'grayscale' : ''
+                              isDisabled ? 'grayscale brightness-75' : ''
                             }`}
                           />
                         ) : (
@@ -334,15 +337,18 @@ function CircleBadgesSection({
                             {getIconComponent(circle.icon)}
                           </div>
                         )}
+                        
+                        {/* Disabled overlay with cross */}
+                        {isDisabled && (
+                          <div className="absolute inset-0 rounded-full bg-gray-600 bg-opacity-40 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                      {isDisabled && (
-                        <div className="absolute inset-0 rounded-full bg-gray-500 bg-opacity-30 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636" />
-                          </svg>
-                        </div>
-                      )}
-                  {/* Member count indicator */}
+                      
+                      {/* Member count indicator */}
                       <div className={`absolute -top-0.5 -right-0.5 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center ${
                         isDisabled ? 'bg-gray-500' : 'bg-gray-900'
                       }`}>
@@ -350,6 +356,7 @@ function CircleBadgesSection({
                           {circle._count.memberships + 1}
                         </span>
                       </div>
+                      
                       {/* Default badge indicator */}
                       {circle.isDefault && (
                         <div className={`absolute -bottom-0.5 -right-0.5 text-white rounded-full w-3 h-3 flex items-center justify-center ${
@@ -368,7 +375,7 @@ function CircleBadgesSection({
                     }`}>
                       {circle.name}
                       {isDisabled && (
-                        <div className="text-[10px] text-gray-400">Disabled</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">Disabled</div>
                       )}
                     </span>
                   </div>
