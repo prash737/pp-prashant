@@ -121,6 +121,8 @@ function CircleBadgesSection({
 
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
+    if (!currentUserId) return false;
+    
     // 1. Check if circle is globally disabled
     if (circle.isDisabled) {
       return true;
@@ -133,7 +135,7 @@ function CircleBadgesSection({
 
     // 3. Check if current user's membership is disabled
     const userMembership = circle.memberships?.find(
-      (membership: any) => membership.user.id === currentUserId
+      (membership: any) => membership.user?.id === currentUserId
     );
     if (userMembership && userMembership.isDisabledMember) {
       return true;
@@ -302,6 +304,15 @@ function CircleBadgesSection({
             <div className="grid grid-cols-3 gap-4 py-3">
               {circles.map((circle) => {
                 const isDisabled = currentUserId ? isCircleDisabled(circle, currentUserId) : false;
+                
+                // Debug logging
+                if (isDisabled) {
+                  console.log(`🔒 Circle "${circle.name}" is disabled for user ${currentUserId}:`, {
+                    isGloballyDisabled: circle.isDisabled,
+                    isCreatorDisabled: circle.isCreatorDisabled && circle.creator?.id === currentUserId,
+                    isMemberDisabled: circle.memberships?.find(m => m.user?.id === currentUserId)?.isDisabledMember
+                  });
+                }
 
                 return (
                   <div
@@ -316,12 +327,12 @@ function CircleBadgesSection({
                       <div
                         className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 overflow-hidden relative ${
                           isDisabled 
-                            ? 'grayscale cursor-not-allowed bg-gray-400' 
+                            ? 'grayscale cursor-not-allowed bg-gray-400 opacity-50' 
                             : 'group-hover:shadow-xl group-hover:scale-105'
                         }`}
                         style={{ 
-                          backgroundColor: isDisabled ? '#9CA3AF' : circle.color,
-                          filter: isDisabled ? 'grayscale(1) brightness(0.8)' : 'none'
+                          backgroundColor: isDisabled ? '#6B7280' : circle.color,
+                          filter: isDisabled ? 'grayscale(1) brightness(0.6) contrast(0.8)' : 'none'
                         }}
                       >
                         {circle.icon && (circle.icon.startsWith('data:image') || circle.icon.startsWith('/uploads/')) ? (
@@ -340,9 +351,9 @@ function CircleBadgesSection({
                         
                         {/* Disabled overlay with cross */}
                         {isDisabled && (
-                          <div className="absolute inset-0 rounded-full bg-gray-600 bg-opacity-40 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
+                          <div className="absolute inset-0 rounded-full bg-black bg-opacity-60 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-red-500 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
                             </svg>
                           </div>
                         )}
@@ -734,7 +745,7 @@ export default function CircleView({ student, currentUserId }: CircleViewProps) 
             <div className="lg:col-span-4">
               <CircleBadgesSection 
                 onCircleSelect={handleCircleSelect} 
-                currentUserId={currentUserId}
+                currentUserId={student?.id || currentUserId}
               />
             </div>
 
