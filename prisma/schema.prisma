@@ -110,7 +110,8 @@ model Profile {
   institutionFollowing InstitutionFollowConnection[] @relation("InstitutionFollowing")
   academicCommunityMemberships AcademicCommunityMember[]
 
-
+  //Moderation
+  moderationLogs ModerationLog[]
   @@map("profiles")
   @@schema("public")
 }
@@ -722,6 +723,8 @@ model FeedPost {
   trails       FeedPost[]  @relation("PostTrails")
   parentPost   FeedPost?   @relation("PostTrails", fields: [parentPostId], references: [id], onDelete: Cascade)
 
+  //Moderation
+  reviewQueue HumanReviewQueue?
   @@map("feed_posts")
   @@schema("public")
 }
@@ -920,5 +923,36 @@ model ChatbotTheme {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("chatbot_themes")
+  @@schema("public")
+}
+
+//Moderation Models
+model ModerationLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId   String   @map("profile_id") @db.Uuid
+  moderatorId String?   @map("moderator_id") @db.Uuid
+  action      String
+  reason      String?
+  details     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  moderator Profile?  @relation(fields: [moderatorId], references: [id])
+
+  @@map("moderation_logs")
+  @@schema("public")
+}
+
+model HumanReviewQueue {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  reason    String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("human_review_queue")
   @@schema("public")
 }
