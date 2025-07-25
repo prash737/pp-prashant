@@ -946,7 +946,7 @@ model ModerationLog {
 
 model HumanReviewQueue {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  postId    String   @map("post_id") @db.Uuid
+  postId    String   @unique @map("post_id") @db.Uuid
   reason    String?
   status    String   @default("pending")
   createdAt DateTime @default(now()) @map("created_at")
