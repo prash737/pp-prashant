@@ -12,7 +12,6 @@ import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefca
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
 import CircleManagementDialog from "./circle-management-dialog"
-import { Crown } from 'lucide-react';
 
 interface ProfileHeaderProps {
   student: any
@@ -595,10 +594,11 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                   </div>
                                 )}
 
-                                {/* Dynamic Circles from Database - Filter out disabled circles */}
-                                {circles
-                                  .filter((circle) => !isCircleDisabled(circle, studentProp.id))
-                                  .map((circle) => (
+                                {/* Dynamic Circles from Database */}
+                                {circles.map((circle) => {
+                                  const isDisabled = isCircleDisabled(circle, studentProp.id);
+
+                                  return (
                                     <div 
                                       key={circle.id}
                                       className="flex flex-col items-center min-w-[72px] shrink-0"
@@ -606,9 +606,16 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                       <div className="relative mb-1">
                                         <button
                                           onClick={() => handleCircleClick(circle)}
-                                          className="w-16 h-16 rounded-full p-[3px] transition-all duration-200 hover:opacity-80"
+                                          disabled={isDisabled}
+                                          className={`w-16 h-16 rounded-full p-[3px] transition-all duration-200 relative ${
+                                            isDisabled 
+                                              ? 'cursor-not-allowed opacity-50 grayscale' 
+                                              : 'hover:opacity-80'
+                                          }`}
                                           style={{ 
-                                            background: `linear-gradient(135deg, ${circle.color}, ${circle.color}dd)`
+                                            background: isDisabled 
+                                              ? 'linear-gradient(135deg, #9CA3AF, #9CA3AFdd)'
+                                              : `linear-gradient(135deg, ${circle.color}, ${circle.color}dd)`
                                           }}
                                         >
                                           <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
@@ -617,40 +624,40 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                                 <img
                                                   src={circle.icon}
                                                   alt={circle.name}
-                                                  className="w-full h-full object-cover rounded-full"
+                                                  className={`w-full h-full object-cover rounded-full ${
+                                                    isDisabled ? 'grayscale' : ''
+                                                  }`}
                                                 />
                                               ) : (
                                                 <div 
                                                   className="w-3 h-3 rounded-full"
-                                                  style={{ backgroundColor: circle.color }}
+                                                  style={{ backgroundColor: isDisabled ? '#9CA3AF' : circle.color }}
                                                 />
                                               )}
                                             </div>
                                           </div>
+                                          {isDisabled && (
+                                            <div className="absolute inset-0 rounded-full bg-gray-500 bg-opacity-30 flex items-center justify-center">
+                                              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636" />
+                                              </svg>
+                                            </div>
+                                          )}
                                         </button>
                                       </div>
-
-                                      {/* Member count indicator */}
-                                      <div className="absolute -top-0.5 -right-0.5 bg-gray-900 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                                        <span className="text-xs leading-none">
-                                          {circle._count.memberships + 1}
-                                        </span>
-                                      </div>
-
-                                      {/* Default badge indicator */}
-                                      {circle.isDefault && (
-                                        <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full w-3 h-3 flex items-center justify-center">
-                                          <Crown className="h-1.5 w-1.5" />
-                                        </div>
-                                      )}
+                                      <span className={`text-xs text-center truncate w-full ${
+                                        isDisabled 
+                                          ? 'text-gray-400 dark:text-gray-500' 
+                                          : 'text-gray-600 dark:text-gray-400'
+                                      }`}>
+                                        {circle.name} ({(circle._count?.memberships || 0) + 1})
+                                        {isDisabled && (
+                                          <div className="text-[10px] text-gray-400">Disabled</div>
+                                        )}
+                                      </span>
                                     </div>
-
-                                    {/* Circle Name */}
-                                    <span className="text-xs text-center font-medium truncate w-16 text-gray-700 dark:text-gray-300">
-                                      {circle.name}
-                                    </span>
-                                  </div>
-                                ))}
+                                  );
+                                })}
 
 
                               </div>
