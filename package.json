@@ -57,6 +57,7 @@
     "embla-carousel-react": "8.5.1",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
+    "isomorphic-dompurify": "^2.26.0",
     "lucide-react": "^0.454.0",
     "markdown-it": "^14.1.0",
     "next": "15.2.4",

@@ -63,7 +63,7 @@ const useDOMPurify = () => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      import("isomorphic-dompurify").then((module) => {
+      import("dompurify").then((module) => {
         setDOMPurify(module.default);
       });
     }
