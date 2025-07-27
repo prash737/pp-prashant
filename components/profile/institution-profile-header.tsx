@@ -103,99 +103,88 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
 
   // Fetch actual follower count, quick facts, events, and academic communities
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFollowerCount = async () => {
       try {
-        // Fetch follower count
         setLoading(true)
-        const followerResponse = await fetch(`/api/institutions/followers?institutionId=${institutionData.id}`, {
-          credentials: 'include'
-        })
-
-        if (followerResponse.ok) {
-          const followerData = await followerResponse.json()
-          if (followerData.success) {
-            setFollowerCount(followerData.count || 0)
-          }
+        const response = await fetch(`/api/institutions/followers?institutionId=${institutionData.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setFollowerCount(data.followerCount || 0)
         }
-
-        // Fetch quick facts
-        setQuickFactsLoading(true)
-        const quickFactsResponse = await fetch(`/api/institution/quick-facts?institutionId=${institutionData.id}`, {
-          credentials: 'include'
-        })
-
-        if (quickFactsResponse.ok) {
-          const quickFactsData = await quickFactsResponse.json()
-          setQuickFacts(quickFactsData.quickFacts)
-        }
-
-        // Fetch contact info
-        setContactInfoLoading(true)
-        const contactInfoResponse = await fetch(`/api/institution/contact-info?institutionId=${institutionData.id}`, {
-          credentials: 'include'
-        })
-
-        if (contactInfoResponse.ok) {
-          const contactInfoData = await contactInfoResponse.json()
-          setContactInfo(contactInfoData.contactInfo)
-        }
-
-        // Fetch events
-        setEventsLoading(true)
-        const eventsResponse = await fetch(`/api/institution/events?institutionId=${institutionData.id}`, {
-          credentials: 'include'
-        })
-
-        if (eventsResponse.ok) {
-          const eventsData = await eventsResponse.json()
-          console.log('🎉 Events data received in header:', eventsData)
-          
-          // Handle both response formats - direct events array or wrapped in success object
-          let eventsList = []
-          if (eventsData.events && Array.isArray(eventsData.events)) {
-            eventsList = eventsData.events
-          } else if (Array.isArray(eventsData)) {
-            eventsList = eventsData
-          }
-          
-          if (eventsList.length > 0) {
-            // Sort by start date and take top 5 most recent
-            const sortedEvents = eventsList
-              .sort((a: any, b: any) => {
-                const dateA = new Date(a.startDate || a.start_date)
-                const dateB = new Date(b.startDate || b.start_date)
-                return dateB.getTime() - dateA.getTime()
-              })
-              .slice(0, 5)
-            console.log('🎉 Setting sorted events:', sortedEvents)
-            setEvents(sortedEvents)
-          } else {
-            console.log('🎉 No events found in response')
-            setEvents([])
-          }
-        }
-
-        // Fetch academic communities
-        await fetchAcademicCommunities()
       } catch (error) {
-        console.error('Error fetching data:', error)
-        setFollowerCount(0)
-        setQuickFacts(null)
-        setContactInfo(null)
-        setEvents([])
-        setAcademicCommunities([])
+        console.error('Error fetching follower count:', error)
       } finally {
         setLoading(false)
+      }
+    }
+
+    if (institutionData.id) {
+      fetchFollowerCount()
+    }
+  }, [institutionData.id])
+
+  useEffect(() => {
+    const fetchQuickFacts = async () => {
+      try {
+        setQuickFactsLoading(true)
+        const response = await fetch(`/api/institution/quick-facts?institutionId=${institutionData.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setQuickFacts(data)
+        }
+      } catch (error) {
+        console.error('Error fetching quick facts:', error)
+      } finally {
         setQuickFactsLoading(false)
+      }
+    }
+
+    if (institutionData.id) {
+      fetchQuickFacts()
+    }
+  }, [institutionData.id])
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        setContactInfoLoading(true)
+        const response = await fetch(`/api/institution/contact-info?institutionId=${institutionData.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setContactInfo(data)
+        }
+      } catch (error) {
+        console.error('Error fetching contact info:', error)
+      } finally {
         setContactInfoLoading(false)
+      }
+    }
+
+    if (institutionData.id) {
+      fetchContactInfo()
+    }
+  }, [institutionData.id])
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true)
+        const response = await fetch(`/api/institution/events?institutionId=${institutionData.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setEvents(data.events || [])
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error)
+      } finally {
         setEventsLoading(false)
       }
     }
 
     if (institutionData.id) {
-      fetchData()
+      fetchEvents()
     }
-  }, [institutionData.id, isViewMode])
+  }, [institutionData.id])
 
   // Real academic communities state
   const [academicCommunities, setAcademicCommunities] = useState<any[]>([])

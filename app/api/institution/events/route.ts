@@ -37,11 +37,11 @@ export async function GET(request: NextRequest) {
     })
 
     console.log('Found events:', events.length)
-    console.log('Events details:', events.map(e => ({
-      id: e.id,
-      title: e.title,
-      eventType: e.event_type,
-      startDate: e.start_date
+    console.log('Events details:', events.map(event => ({
+      id: event.id,
+      title: event.title,
+      eventType: event.event_type,
+      startDate: event.start_date
     })))
 
     return NextResponse.json({ events })

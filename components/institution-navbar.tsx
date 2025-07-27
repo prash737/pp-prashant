@@ -201,7 +201,10 @@ export function InstitutionNavbar() {
   // Function to handle profile navigation with reload
   const handleProfileNavigation = (e: React.MouseEvent) => {
     e.preventDefault();
-    window.location.href = '/institution/profile';
+    // Only redirect if we're not already on the institution profile page
+    if (pathname !== '/institution/profile') {
+      window.location.href = '/institution/profile';
+    }
   };
 
   // Navigation items for institutions - fixed profile URL
@@ -284,10 +287,11 @@ export function InstitutionNavbar() {
                         onClick={() => {
                           setShowSearchResults(false);
                           setSearchQuery("");
+                          // Use window.location.href for reliable navigation
                           if (searchUser.role === 'student') {
-                            router.push(`/public-view/student/profile/${searchUser.id}`);
+                            window.location.href = `/public-view/student/profile/${searchUser.id}`;
                           } else if (searchUser.role === 'institution') {
-                            router.push(`/public-view/institution/profile/${searchUser.id}`);
+                            window.location.href = `/public-view/institution/profile/${searchUser.id}`;
                           } else {
                             // Handle other roles or provide a default
                             console.warn('Unsupported role:', searchUser.role);
