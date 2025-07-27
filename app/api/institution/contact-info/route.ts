@@ -24,6 +24,18 @@ export async function GET(request: NextRequest) {
     // Use provided institutionId or current user's id
     const targetInstitutionId = institutionId || user.id
 
+    // Verify the institution exists
+    const institutionExists = await prisma.profile.findFirst({
+      where: { 
+        id: targetInstitutionId,
+        role: 'institution'
+      }
+    })
+
+    if (!institutionExists) {
+      return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
+    }
+
     // Get contact info
     const contactInfo = (await prisma.$queryRaw`
       SELECT * FROM institution_contact_info WHERE institution_id = ${targetInstitutionId}::uuid

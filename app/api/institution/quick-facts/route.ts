@@ -22,21 +22,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Use provided institutionId or get from user profile
-    let targetInstitutionId = institutionId
+    // Use provided institutionId or current user's id
+    const targetInstitutionId = institutionId || user.id
 
-    if (!targetInstitutionId) {
-      // Get institution profile
-      const profile = await prisma.profile.findUnique({
-        where: { id: user.id },
-        include: { institution: true }
-      })
-
-      if (!profile?.institution) {
-        return NextResponse.json({ error: 'Institution profile not found' }, { status: 404 })
+    // Verify the institution exists
+    const institutionExists = await prisma.profile.findFirst({
+      where: { 
+        id: targetInstitutionId,
+        role: 'institution'
       }
+    })
 
-      targetInstitutionId = user.id
+    if (!institutionExists) {
+      return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
     }
 
     // Get quick facts

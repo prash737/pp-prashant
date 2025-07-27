@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { supabase } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,12 +17,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile - using institution_profiles table
-    const { data: institution } = await supabase
-      .from('institution_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single()
+    // Verify institution exists in profiles table
+    const institution = await prisma.profile.findFirst({
+      where: { 
+        id: user.id,
+        role: 'institution'
+      }
+    })
 
     if (!institution) {
       return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
@@ -68,12 +65,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get institution profile - using institution_profiles table
-    const { data: institution } = await supabase
-      .from('institution_profiles')
-      .select('id')
-      .eq('id', user.id)
-      .single()
+    // Verify institution exists in profiles table
+    const institution = await prisma.profile.findFirst({
+      where: { 
+        id: user.id,
+        role: 'institution'
+      }
+    })
 
     if (!institution) {
       return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
