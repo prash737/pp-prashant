@@ -36,7 +36,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
   const [isExpanded, setIsExpanded] = useState(false)
   const [quickFacts, setQuickFacts] = useState<any>(null)
   const [contactInfo, setContactInfo] = useState<any>(null)
-  const [facultyStats, setFacultyStats] = useState<any>(null)
+  
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -71,17 +71,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
         setContactInfo(contactInfoData.contactInfo)
       }
 
-      // Fetch faculty stats - include institutionId for public view
-      const facultyStatsUrl = isViewMode
-        ? `/api/institution/faculty-stats?institutionId=${institutionData.id}`
-        : '/api/institution/faculty-stats'
-      const facultyStatsResponse = await fetch(facultyStatsUrl, {
-        credentials: 'include'
-      })
-      if (facultyStatsResponse.ok) {
-        const facultyStatsData = await facultyStatsResponse.json()
-        setFacultyStats(facultyStatsData.facultyStats)
-      }
+      
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -242,43 +232,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                       </span>
                     </div>
                   </li>
-                  {facultyStats && (
-                    <>
-                      <li className="flex items-start gap-3">
-                        <Users className="h-5 w-5 text-gray-500 mt-0.5" />
-                        <div>
-                          <span className="font-medium block">Student-Faculty Ratio</span>
-                          <span className="text-gray-600">
-                            {facultyStats.studentFacultyRatioStudents && facultyStats.studentFacultyRatioFaculty 
-                              ? `${facultyStats.studentFacultyRatioStudents}:${facultyStats.studentFacultyRatioFaculty}`
-                              : 'Not added yet'}
-                          </span>
-                        </div>
-                      </li>
-                      {facultyStats.facultyWithPhdsPercentage && (
-                        <li className="flex items-start gap-3">
-                          <GraduationCap className="h-5 w-5 text-gray-500 mt-0.5" />
-                          <div>
-                            <span className="font-medium block">Faculty with PhDs</span>
-                            <span className="text-gray-600">
-                              {facultyStats.facultyWithPhdsPercentage}%
-                            </span>
-                          </div>
-                        </li>
-                      )}
-                      {facultyStats.internationalFacultyPercentage && (
-                        <li className="flex items-start gap-3">
-                          <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
-                          <div>
-                            <span className="font-medium block">International Faculty</span>
-                            <span className="text-gray-600">
-                              {facultyStats.internationalFacultyPercentage}%
-                            </span>
-                          </div>
-                        </li>
-                      )}
-                    </>
-                  )}
+                  
                 </ul>
               )}
             </CardContent>

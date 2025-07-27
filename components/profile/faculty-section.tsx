@@ -54,7 +54,12 @@ export default function FacultySection({ institutionId, isViewMode, faculty }: F
   const fetchFaculty = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/institution/faculty')
+      const facultyUrl = isViewMode
+        ? `/api/institution/faculty?institutionId=${institutionId}`
+        : '/api/institution/faculty'
+      const response = await fetch(facultyUrl, {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setFacultyMembers(data.faculty || [])
@@ -71,7 +76,12 @@ export default function FacultySection({ institutionId, isViewMode, faculty }: F
 
   const fetchFacultyStats = async () => {
     try {
-      const response = await fetch('/api/institution/faculty-stats')
+      const facultyStatsUrl = isViewMode
+        ? `/api/institution/faculty-stats?institutionId=${institutionId}`
+        : '/api/institution/faculty-stats'
+      const response = await fetch(facultyStatsUrl, {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setFacultyStats(data.facultyStats)
