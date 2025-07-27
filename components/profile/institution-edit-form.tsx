@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -313,8 +313,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   ])
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false)
 
+  const initialDataLoaded = useRef(false)
+
   useEffect(() => {
-    if (institutionData) {
+    if (institutionData && !initialDataLoaded.current) {
       setFormData(prev => ({
         ...prev,
         overview: institutionData.overview || '',
@@ -322,13 +324,14 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         coreValues: Array.isArray(institutionData.coreValues) ? institutionData.coreValues : [''],
       }))
 
-      // Fetch existing data
+      // Fetch existing data only once
       fetchPrograms()
       fetchQuickFacts()
       fetchContactInfo()
       fetchFacultyStats()
+      initialDataLoaded.current = true
     }
-  }, [institutionData])
+  }, [institutionData.id])
 
   const fetchQuickFacts = async () => {
     try {
@@ -471,17 +474,21 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [existingFaculty, setExistingFaculty] = useState<any[]>([])
   const [newFaculty, setNewFaculty] = useState<any[]>([])
   const [isLoadingFaculty, setIsLoadingFaculty] = useState(false)
+  const facultyLoaded = useRef(false)
 
   useEffect(() => {
-    if (institutionData) {
-      // Fetch existing faculty once
+    if (institutionData && !facultyLoaded.current) {
+      // Fetch existing faculty only once
       fetchFaculty()
     }
   }, [institutionData.id]) // Only depend on institution ID
 
   const fetchFaculty = async () => {
+    if (isLoadingFaculty || facultyLoaded.current) return
+
     try {
       setIsLoadingFaculty(true)
+      facultyLoaded.current = true
       const response = await fetch('/api/institution/faculty')
       if (response.ok) {
         const data = await response.json()
@@ -531,17 +538,21 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [existingFacilities, setExistingFacilities] = useState<any[]>([])
   const [newFacilities, setNewFacilities] = useState<any[]>([])
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(false)
+  const facilitiesLoaded = useRef(false)
 
   useEffect(() => {
-    if (institutionData) {
-      // Fetch existing facilities once
+    if (institutionData && !facilitiesLoaded.current) {
+      // Fetch existing facilities only once
       fetchFacilities()
     }
   }, [institutionData.id]) // Only depend on institution ID
 
   const fetchFacilities = async () => {
+    if (isLoadingFacilities || facilitiesLoaded.current) return
+
     try {
       setIsLoadingFacilities(true)
+      facilitiesLoaded.current = true
       const response = await fetch('/api/institution/facilities')
       if (response.ok) {
         const data = await response.json()
@@ -584,19 +595,21 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   // Event handlers
   const [existingEvents, setExistingEvents] = useState<any[]>([])
   const [isLoadingEvents, setIsLoadingEvents] = useState(false)
+  const eventsLoaded = useRef(false)
 
   useEffect(() => {
-    if (institutionData) {
-      // Fetch existing events
+    if (institutionData && !eventsLoaded.current) {
+      // Fetch existing events only once
       fetchEvents()
     }
-  }, [institutionData])
+  }, [institutionData.id]) // Only depend on institution ID
 
   const fetchEvents = useCallback(async () => {
-    if (isLoadingEvents) return // Prevent multiple simultaneous calls
+    if (isLoadingEvents || eventsLoaded.current) return // Prevent multiple simultaneous calls
 
     try {
       setIsLoadingEvents(true)
+      eventsLoaded.current = true
       const response = await fetch('/api/institution/events')
       if (response.ok) {
         const data = await response.json()
@@ -609,7 +622,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     } finally {
       setIsLoadingEvents(false)
     }
-  }, [isLoadingEvents])
+  }, [])
 
   const addEvent = () => {
     setFormData(prev => ({
@@ -678,17 +691,21 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [existingGallery, setExistingGallery] = useState<any[]>([])
   const [newGalleryItems, setNewGalleryItems] = useState<any[]>([])
   const [isLoadingGallery, setIsLoadingGallery] = useState(false)
+  const galleryLoaded = useRef(false)
 
   useEffect(() => {
-    if (institutionData) {
-      // Fetch existing gallery
+    if (institutionData && !galleryLoaded.current) {
+      // Fetch existing gallery only once
       fetchGallery()
     }
   }, [institutionData.id])
 
   const fetchGallery = async () => {
+    if (isLoadingGallery || galleryLoaded.current) return
+
     try {
       setIsLoadingGallery(true)
+      galleryLoaded.current = true
       const response = await fetch(`/api/institution/gallery?institutionId=${institutionData.id}`)
       if (response.ok) {
         const data = await response.json()
