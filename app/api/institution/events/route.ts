@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
@@ -11,25 +10,29 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: { user } } = await supabase.auth.getUser(token)
-    
-    if (!user) {
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('Fetching events for institution:', user.id)
+    // Check if institutionId is provided (for public view)
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+    const targetInstitutionId = institutionId || user.id
+
+    console.log('Fetching events for institution:', targetInstitutionId)
 
     // Fetch events for this institution
     const events = await prisma.institutionEvents.findMany({
-      where: { institutionId: user.id },
+      where: { institutionId: targetInstitutionId },
       orderBy: { startDate: 'desc' }
     })
 
@@ -47,13 +50,13 @@ export async function DELETE(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -85,13 +88,13 @@ export async function POST(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

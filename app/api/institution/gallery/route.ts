@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
@@ -11,19 +10,38 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const institutionId = searchParams.get('institutionId')
+    console.log('🖼️ Institution gallery GET request received')
 
-    if (!institutionId) {
-      return NextResponse.json({ error: 'Institution ID is required' }, { status: 400 })
+    // Get auth token from cookies
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const galleryImages = await prisma.institutionGallery.findMany({
-      where: { institutionId },
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('Auth error:', error)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if institutionId is provided (for public view)
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+    const targetInstitutionId = institutionId || user.id
+
+    console.log('🔍 Fetching gallery for institution:', targetInstitutionId)
+
+    // Get gallery images for this institution
+    const gallery = await prisma.institutionGallery.findMany({
+      where: { institutionId: targetInstitutionId },
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ images: galleryImages })
+    return NextResponse.json({ images: gallery })
   } catch (error) {
     console.error('Error fetching gallery images:', error)
     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
@@ -35,13 +53,13 @@ export async function POST(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -78,13 +96,13 @@ export async function DELETE(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

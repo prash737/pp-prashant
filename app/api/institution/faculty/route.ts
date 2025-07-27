@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
@@ -11,23 +10,34 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    // Get user from auth
+    console.log('👨‍🏫 Institution faculty GET request received')
+
+    // Get auth token from cookies
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: { user } } = await supabase.auth.getUser(token)
-    
-    if (!user) {
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('Auth error:', error)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch faculty for the institution
+    // Check if institutionId is provided (for public view)
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+    const targetInstitutionId = institutionId || user.id
+
+    console.log('🔍 Fetching faculty for institution:', targetInstitutionId)
+
+    // Get faculty for this institution
     const faculty = await prisma.institutionFaculty.findMany({
-      where: { institutionId: user.id },
+      where: { institutionId: targetInstitutionId },
       orderBy: { createdAt: 'desc' }
     })
 
@@ -43,13 +53,13 @@ export async function POST(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -99,13 +109,13 @@ export async function PUT(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -156,13 +166,13 @@ export async function DELETE(request: NextRequest) {
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { data: { user } } = await supabase.auth.getUser(token)
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

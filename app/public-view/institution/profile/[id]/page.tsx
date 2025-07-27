@@ -22,11 +22,19 @@ interface InstitutionData {
   verified: boolean
   founded?: number | null
   tagline: string
+  overview?: string
+  mission?: string
+  coreValues?: string[]
   gallery?: Array<{
     id: string
     url: string
     caption?: string
   }>
+  programs?: any[]
+  faculty?: any[]
+  facilities?: any[]
+  events?: any[]
+  followers?: number
 }
 
 export default function PublicViewInstitutionProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,20 +68,37 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
       return
     }
 
-    // Fetch institution data for the profile being viewed
+    // Fetch comprehensive institution data using the same approach as institution profile page
     const fetchInstitutionData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/institution/public-profile/${profileId}`, {
-          credentials: 'include'
-        })
+        console.log('🏛️ Fetching comprehensive institution data for public view:', profileId)
 
-        if (!response.ok) {
-          if (response.status === 404) {
+        // Fetch all data in parallel using the same approach as institution profile page
+        const [
+          profileResponse,
+          programsResponse,
+          facultyResponse,
+          facilitiesResponse,
+          eventsResponse,
+          galleryResponse,
+          followersResponse
+        ] = await Promise.all([
+          fetch(`/api/institution/public-profile/${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institution/programs?institutionId=${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institution/faculty?institutionId=${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institution/facilities?institutionId=${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institution/events?institutionId=${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institution/gallery?institutionId=${profileId}`, { credentials: 'include' }),
+          fetch(`/api/institutions/followers?institutionId=${profileId}`, { credentials: 'include' })
+        ])
+
+        if (!profileResponse.ok) {
+          if (profileResponse.status === 404) {
             setError('Institution profile not found')
-          } else if (response.status === 403) {
+          } else if (profileResponse.status === 403) {
             setError('Access denied')
           } else {
             setError('Failed to load institution profile')
@@ -81,10 +106,63 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
           return
         }
 
-        const data = await response.json()
-        setInstitutionData(data)
+        // Parse all responses
+        const [
+          profileData,
+          programsData,
+          facultyData,
+          facilitiesData,
+          eventsData,
+          galleryData,
+          followersData
+        ] = await Promise.all([
+          profileResponse.json(),
+          programsResponse.ok ? programsResponse.json() : { programs: [] },
+          facultyResponse.ok ? facultyResponse.json() : { faculty: [] },
+          facilitiesResponse.ok ? facilitiesResponse.json() : { facilities: [] },
+          eventsResponse.ok ? eventsResponse.json() : { events: [] },
+          galleryResponse.ok ? galleryResponse.json() : { gallery: [] },
+          followersResponse.ok ? followersResponse.json() : { followers: [] }
+        ])
+
+        // Combine all data into comprehensive institution object
+        const comprehensiveInstitutionData: InstitutionData = {
+          id: profileData.id,
+          name: profileData.name,
+          type: profileData.type,
+          category: profileData.category,
+          location: profileData.location,
+          bio: profileData.bio || '',
+          logo: profileData.logo || '/images/pathpiper-logo.png',
+          coverImage: profileData.coverImage || '/university-classroom.png',
+          website: profileData.website || '',
+          verified: profileData.verified || false,
+          founded: profileData.founded,
+          tagline: profileData.tagline || '',
+          overview: profileData.overview || '',
+          mission: profileData.mission || '',
+          coreValues: profileData.coreValues || [],
+          gallery: galleryData.gallery || profileData.gallery || [],
+          programs: programsData.programs || [],
+          faculty: facultyData.faculty || [],
+          facilities: facilitiesData.facilities || [],
+          events: eventsData.events || [],
+          followers: followersData?.followers?.length || 0
+        }
+
+        console.log('✅ Comprehensive institution data loaded for public view:', {
+          name: comprehensiveInstitutionData.name,
+          programs: comprehensiveInstitutionData.programs?.length || 0,
+          faculty: comprehensiveInstitutionData.faculty?.length || 0,
+          facilities: comprehensiveInstitutionData.facilities?.length || 0,
+          events: comprehensiveInstitutionData.events?.length || 0,
+          gallery: comprehensiveInstitutionData.gallery?.length || 0,
+          followers: comprehensiveInstitutionData.followers
+        })
+
+        setInstitutionData(comprehensiveInstitutionData)
       } catch (err) {
-        console.error('Error fetching institution data:', err)
+        console.error('Error fetching comprehensive institution data:', err)
         setError('Failed to load institution profile')
       } finally {
         setLoading(false)
