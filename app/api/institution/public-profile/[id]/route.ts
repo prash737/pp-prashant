@@ -32,7 +32,22 @@ export async function GET(
             facilities: true,
             faculty: true,
             quickFacts: true,
-            contactInfo: true,
+            contactInfo: {
+              select: {
+                id: true,
+                institutionId: true,
+                address: true,
+                city: true,
+                state: true,
+                country: true,
+                postalCode: true,
+                phone: true,
+                email: true,
+                website: true,
+                createdAt: true,
+                updatedAt: true
+              }
+            },
             facultyStats: true,
             academicCommunities: true
           }
