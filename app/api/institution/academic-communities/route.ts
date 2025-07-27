@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
 
@@ -17,10 +20,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Use provided institutionId or current user's id
+    const targetInstitutionId = institutionId || user.id
+
     // Verify institution exists in profiles table
     const institution = await prisma.profile.findFirst({
       where: { 
-        id: user.id,
+        id: targetInstitutionId,
         role: 'institution'
       }
     })
@@ -36,7 +42,7 @@ export async function GET(request: NextRequest) {
         *,
         academic_communities_memberships(count)
       `)
-      .eq('creator_id', institution.id)
+      .eq('creator_id', targetInstitutionId)
       .order('created_at', { ascending: false })
 
     if (error) {

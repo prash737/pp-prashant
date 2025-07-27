@@ -128,7 +128,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
 
         // Fetch quick facts
         setQuickFactsLoading(true)
-        const quickFactsResponse = await fetch('/api/institution/quick-facts', {
+        const quickFactsResponse = await fetch(`/api/institution/quick-facts?institutionId=${institutionData.id}`, {
           credentials: 'include'
         })
 
@@ -139,7 +139,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
 
         // Fetch contact info
         setContactInfoLoading(true)
-        const contactInfoResponse = await fetch('/api/institution/contact-info', {
+        const contactInfoResponse = await fetch(`/api/institution/contact-info?institutionId=${institutionData.id}`, {
           credentials: 'include'
         })
 
@@ -150,7 +150,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
 
         // Fetch events
         setEventsLoading(true)
-        const eventsResponse = await fetch('/api/institution/events', {
+        const eventsResponse = await fetch(`/api/institution/events?institutionId=${institutionData.id}`, {
           credentials: 'include'
         })
 
