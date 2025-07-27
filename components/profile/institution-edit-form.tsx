@@ -316,7 +316,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const initialDataLoaded = useRef(false)
 
   useEffect(() => {
-    if (institutionData && !initialDataLoaded.current) {
+    if (institutionData?.id && !initialDataLoaded.current) {
       setFormData(prev => ({
         ...prev,
         overview: institutionData.overview || '',
@@ -331,7 +331,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
       fetchFacultyStats()
       initialDataLoaded.current = true
     }
-  }, [institutionData.id])
+  }, [institutionData?.id])
 
   const fetchQuickFacts = async () => {
     try {
@@ -475,33 +475,42 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [newFaculty, setNewFaculty] = useState<any[]>([])
   const [isLoadingFaculty, setIsLoadingFaculty] = useState(false)
   const facultyLoaded = useRef(false)
+  const facultyFetchPromise = useRef<Promise<void> | null>(null)
+
+  const fetchFaculty = useCallback(async () => {
+    // If already loading or loaded, return existing promise or do nothing
+    if (facultyLoaded.current) return
+    if (facultyFetchPromise.current) return facultyFetchPromise.current
+
+    facultyLoaded.current = true
+    setIsLoadingFaculty(true)
+
+    facultyFetchPromise.current = (async () => {
+      try {
+        const response = await fetch('/api/institution/faculty')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.faculty && data.faculty.length > 0) {
+            setExistingFaculty(data.faculty)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching faculty:', error)
+        facultyLoaded.current = false // Reset on error
+      } finally {
+        setIsLoadingFaculty(false)
+        facultyFetchPromise.current = null
+      }
+    })()
+
+    return facultyFetchPromise.current
+  }, [])
 
   useEffect(() => {
-    if (institutionData && !facultyLoaded.current) {
-      // Fetch existing faculty only once
+    if (institutionData?.id && !facultyLoaded.current) {
       fetchFaculty()
     }
-  }, [institutionData.id]) // Only depend on institution ID
-
-  const fetchFaculty = async () => {
-    if (isLoadingFaculty || facultyLoaded.current) return
-
-    try {
-      setIsLoadingFaculty(true)
-      facultyLoaded.current = true
-      const response = await fetch('/api/institution/faculty')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.faculty && data.faculty.length > 0) {
-          setExistingFaculty(data.faculty)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching faculty:', error)
-    } finally {
-      setIsLoadingFaculty(false)
-    }
-  }
+  }, [institutionData?.id, fetchFaculty])
 
   // Faculty handlers - Simplified for separate state
   const addFaculty = () => {
@@ -539,33 +548,42 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [newFacilities, setNewFacilities] = useState<any[]>([])
   const [isLoadingFacilities, setIsLoadingFacilities] = useState(false)
   const facilitiesLoaded = useRef(false)
+  const facilitiesFetchPromise = useRef<Promise<void> | null>(null)
+
+  const fetchFacilities = useCallback(async () => {
+    // If already loading or loaded, return existing promise or do nothing
+    if (facilitiesLoaded.current) return
+    if (facilitiesFetchPromise.current) return facilitiesFetchPromise.current
+
+    facilitiesLoaded.current = true
+    setIsLoadingFacilities(true)
+
+    facilitiesFetchPromise.current = (async () => {
+      try {
+        const response = await fetch('/api/institution/facilities')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.facilities && data.facilities.length > 0) {
+            setExistingFacilities(data.facilities)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching facilities:', error)
+        facilitiesLoaded.current = false // Reset on error
+      } finally {
+        setIsLoadingFacilities(false)
+        facilitiesFetchPromise.current = null
+      }
+    })()
+
+    return facilitiesFetchPromise.current
+  }, [])
 
   useEffect(() => {
-    if (institutionData && !facilitiesLoaded.current) {
-      // Fetch existing facilities only once
+    if (institutionData?.id && !facilitiesLoaded.current) {
       fetchFacilities()
     }
-  }, [institutionData.id]) // Only depend on institution ID
-
-  const fetchFacilities = async () => {
-    if (isLoadingFacilities || facilitiesLoaded.current) return
-
-    try {
-      setIsLoadingFacilities(true)
-      facilitiesLoaded.current = true
-      const response = await fetch('/api/institution/facilities')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.facilities && data.facilities.length > 0) {
-          setExistingFacilities(data.facilities)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching facilities:', error)
-    } finally {
-      setIsLoadingFacilities(false)
-    }
-  }
+  }, [institutionData?.id, fetchFacilities])
 
   // Facility handlers - Simplified for separate state
   const addFacility = () => {
@@ -596,33 +614,42 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [existingEvents, setExistingEvents] = useState<any[]>([])
   const [isLoadingEvents, setIsLoadingEvents] = useState(false)
   const eventsLoaded = useRef(false)
-
-  useEffect(() => {
-    if (institutionData && !eventsLoaded.current) {
-      // Fetch existing events only once
-      fetchEvents()
-    }
-  }, [institutionData.id]) // Only depend on institution ID
+  const eventsFetchPromise = useRef<Promise<void> | null>(null)
 
   const fetchEvents = useCallback(async () => {
-    if (isLoadingEvents || eventsLoaded.current) return // Prevent multiple simultaneous calls
+    // If already loading or loaded, return existing promise or do nothing
+    if (eventsLoaded.current) return
+    if (eventsFetchPromise.current) return eventsFetchPromise.current
 
-    try {
-      setIsLoadingEvents(true)
-      eventsLoaded.current = true
-      const response = await fetch('/api/institution/events')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.events && data.events.length > 0) {
-          setExistingEvents(data.events)
+    eventsLoaded.current = true
+    setIsLoadingEvents(true)
+
+    eventsFetchPromise.current = (async () => {
+      try {
+        const response = await fetch('/api/institution/events')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.events && data.events.length > 0) {
+            setExistingEvents(data.events)
+          }
         }
+      } catch (error) {
+        console.error('Error fetching events:', error)
+        eventsLoaded.current = false // Reset on error
+      } finally {
+        setIsLoadingEvents(false)
+        eventsFetchPromise.current = null
       }
-    } catch (error) {
-      console.error('Error fetching events:', error)
-    } finally {
-      setIsLoadingEvents(false)
-    }
+    })()
+
+    return eventsFetchPromise.current
   }, [])
+
+  useEffect(() => {
+    if (institutionData?.id && !eventsLoaded.current) {
+      fetchEvents()
+    }
+  }, [institutionData?.id, fetchEvents])
 
   const addEvent = () => {
     setFormData(prev => ({
@@ -692,33 +719,42 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const [newGalleryItems, setNewGalleryItems] = useState<any[]>([])
   const [isLoadingGallery, setIsLoadingGallery] = useState(false)
   const galleryLoaded = useRef(false)
+  const galleryFetchPromise = useRef<Promise<void> | null>(null)
 
-  useEffect(() => {
-    if (institutionData && !galleryLoaded.current) {
-      // Fetch existing gallery only once
-      fetchGallery()
-    }
+  const fetchGallery = useCallback(async () => {
+    // If already loading or loaded, return existing promise or do nothing
+    if (galleryLoaded.current) return
+    if (galleryFetchPromise.current) return galleryFetchPromise.current
+
+    galleryLoaded.current = true
+    setIsLoadingGallery(true)
+
+    galleryFetchPromise.current = (async () => {
+      try {
+        const response = await fetch(`/api/institution/gallery?institutionId=${institutionData.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.images && data.images.length > 0) {
+            setExistingGallery(data.images)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching gallery:', error)
+        galleryLoaded.current = false // Reset on error
+      } finally {
+        setIsLoadingGallery(false)
+        galleryFetchPromise.current = null
+      }
+    })()
+
+    return galleryFetchPromise.current
   }, [institutionData.id])
 
-  const fetchGallery = async () => {
-    if (isLoadingGallery || galleryLoaded.current) return
-
-    try {
-      setIsLoadingGallery(true)
-      galleryLoaded.current = true
-      const response = await fetch(`/api/institution/gallery?institutionId=${institutionData.id}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.images && data.images.length > 0) {
-          setExistingGallery(data.images)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching gallery:', error)
-    } finally {
-      setIsLoadingGallery(false)
+  useEffect(() => {
+    if (institutionData?.id && !galleryLoaded.current) {
+      fetchGallery()
     }
-  }
+  }, [institutionData?.id, fetchGallery])
 
   const addGalleryItem = () => {
     const newItem = {
