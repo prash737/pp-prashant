@@ -67,13 +67,31 @@ export default function GallerySection({ images: propImages, isViewMode = false,
       const url = institutionId 
         ? `/api/institution/gallery?institutionId=${institutionId}`
         : '/api/institution/gallery'
+      console.log('🖼️ Fetching gallery from:', url)
       const response = await fetch(url, {
         credentials: 'include'
       })
+      
+      if (!response.ok) {
+        console.error('Gallery fetch failed:', response.status, response.statusText)
+        return
+      }
+      
       const data = await response.json()
-      setImages(data)
+      console.log('🖼️ Gallery data received in component:', data)
+      
+      // Handle different response formats
+      if (data.images && Array.isArray(data.images)) {
+        setImages(data.images)
+      } else if (Array.isArray(data)) {
+        setImages(data)
+      } else {
+        console.warn('Unexpected gallery data format:', data)
+        setImages([])
+      }
     } catch (error) {
       console.error("Failed to fetch gallery:", error)
+      setImages([])
     } finally {
       setLoading(false)
     }
