@@ -142,7 +142,9 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
           overview: profileData.overview || '',
           mission: profileData.mission || '',
           coreValues: profileData.coreValues || [],
-          gallery: galleryData.gallery || profileData.gallery || [],
+          gallery: Array.isArray(galleryData.gallery) ? galleryData.gallery : 
+                   Array.isArray(galleryData) ? galleryData :
+                   Array.isArray(profileData.gallery) ? profileData.gallery : [],
           programs: programsData.programs || [],
           faculty: facultyData.faculty || [],
           facilities: facilitiesData.facilities || [],

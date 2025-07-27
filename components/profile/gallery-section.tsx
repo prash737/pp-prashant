@@ -90,7 +90,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
     )
   }
 
-  if (images.length === 0) {
+  if (!Array.isArray(images) || images.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Gallery</h2>
@@ -112,7 +112,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {images.map((image, index) => (
+          {Array.isArray(images) && images.map((image, index) => (
             <div
               key={image.id}
               className="group relative bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-200"
