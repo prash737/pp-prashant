@@ -25,7 +25,16 @@ export async function GET(
       include: {
         institution: {
           include: {
-            institutionProfile: true
+            institutionTypeRef: true,
+            programs: true,
+            events: true,
+            gallery: true,
+            facilities: true,
+            faculty: true,
+            quickFacts: true,
+            contactInfo: true,
+            facultyStats: true,
+            academicCommunities: true
           }
         }
       }
@@ -44,21 +53,21 @@ export async function GET(
     })
 
     // Transform data to match the expected format
-    const institutionProfile = profile.institution?.institutionProfile;
+    const institution = profile.institution;
     const institutionData = {
       id: profile.id,
-      name: institutionProfile?.institutionName || profile.firstName + ' ' + profile.lastName,
-      type: institutionProfile?.institutionType || 'Unknown',
-      category: institutionProfile?.category || '',
+      name: institution?.institutionName || profile.firstName + ' ' + profile.lastName,
+      type: institution?.institutionType || 'Unknown',
+      category: institution?.institutionTypeRef?.name || '',
       location: profile.location || '',
       bio: profile.bio || '',
-      logo: profile.profileImageUrl || '/images/pathpiper-logo.png',
-      coverImage: institutionProfile?.coverImageUrl || '',
-      website: institutionProfile?.website || '',
-      verified: institutionProfile?.verified || false,
-      founded: institutionProfile?.founded || null,
-      tagline: institutionProfile?.tagline || '',
-      overview: institutionProfile?.overview || '',
+      logo: profile.profileImageUrl || institution?.logoUrl || '/images/pathpiper-logo.png',
+      coverImage: institution?.coverImageUrl || '',
+      website: institution?.website || '',
+      verified: institution?.verified || false,
+      founded: null, // Add founded field to schema if needed
+      tagline: profile.tagline || '',
+      overview: institution?.overview || '',
       gallery: galleryImages.map(img => ({
         id: img.id,
         url: img.imageUrl,
