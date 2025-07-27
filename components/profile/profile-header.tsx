@@ -165,19 +165,19 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
             credentials: 'include'
           });
         }
-        
+
         if (response.ok) {
           const data = await response.json()
           // Filter out disabled circles
           const enabledCircles = data.filter((circle: any) => {
             // Check if circle is globally disabled
             if (circle.isDisabled) return false;
-            
+
             // Check if creator is disabled and current user is the creator
             if (circle.isCreatorDisabled && circle.creator?.id === (isViewMode ? student?.id : currentUser?.id)) {
               return false;
             }
-            
+
             // Check if current user's membership is disabled
             const userId = isViewMode ? student?.id : currentUser?.id;
             const userMembership = circle.memberships?.find(
@@ -186,10 +186,10 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
             if (userMembership && userMembership.isDisabledMember) {
               return false;
             }
-            
+
             return true;
           });
-          
+
           setCircles(enabledCircles)
         } else {
           console.error('Error fetching circles:', response.status)
@@ -260,10 +260,10 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     if (isOwnProfile) {
       fetchConnections()
     }
-    
+
     // Always fetch circles (for both own profile and view mode)
     fetchCircles()
-    
+
     if (student) {
       fetchRecentAchievements()
     }
@@ -436,6 +436,8 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       console.error('Error unfollowing institution:', error)
     }
   }
+
+  const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
 
   return (
     <div>
@@ -749,6 +751,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                               <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                   <Input
+                                    ```
                                     type="file"
                                     accept="image/*"
                                     onChange={handleImageUpload}
@@ -1121,6 +1124,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
         open={showCircleManagement}
         onOpenChange={setShowCircleManagement}
         onCircleUpdated={handleCircleUpdated}
+        isViewMode={isViewMode}
       />
 
       {/* Following Institutions Dialog */}

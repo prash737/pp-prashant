@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -58,13 +57,15 @@ interface CircleManagementDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCircleUpdated: () => void
+  isViewMode?: boolean // Add isViewMode prop
 }
 
 export default function CircleManagementDialog({
   circle,
   open,
   onOpenChange,
-  onCircleUpdated
+  onCircleUpdated,
+  isViewMode = false // Default to false if not provided
 }: CircleManagementDialogProps) {
   const [connections, setConnections] = useState<Connection[]>([])
   const [selectedConnections, setSelectedConnections] = useState<string[]>([])
@@ -171,10 +172,10 @@ export default function CircleManagementDialog({
 
   const isAlreadyMember = (userId: string) => {
     if (!circle) return false
-    
+
     // Check if user is the creator
     if (circle.creator?.id === userId) return true
-    
+
     // Check if user is in memberships
     return circle.memberships?.some(membership => membership.user.id === userId) || false
   }
@@ -183,7 +184,7 @@ export default function CircleManagementDialog({
     // Don't allow selection if there's already an invitation or if they're already a member
     const status = getInvitationStatus(connectionId)
     const isMember = isAlreadyMember(connectionId)
-    
+
     if ((status && status !== 'declined') || isMember) return
 
     setSelectedConnections(prev =>
@@ -197,7 +198,7 @@ export default function CircleManagementDialog({
     if (isAlreadyMember(userId)) {
       return { text: 'Already Member', variant: 'secondary' as const }
     }
-    
+
     const invitationStatus = getInvitationStatus(userId)
     if (invitationStatus === 'pending') {
       return { text: 'Request Pending', variant: 'outline' as const }
@@ -205,7 +206,7 @@ export default function CircleManagementDialog({
     if (invitationStatus === 'accepted') {
       return { text: 'Accepted', variant: 'default' as const }
     }
-    
+
     return null
   }
 
@@ -286,7 +287,7 @@ export default function CircleManagementDialog({
                   </span>
                 </div>
               ))}
-              
+
               {(circle.memberships?.length || 0) > (circle.id === 'friends' ? 8 : 5) && (
                 <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
                   +{(circle.memberships?.length || 0) - (circle.id === 'friends' ? 8 : 5)} more
@@ -298,20 +299,22 @@ export default function CircleManagementDialog({
           <Separator />
 
           {/* Search Bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+          {circle.id !== 'friends' && !isViewMode && (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <Input
+                placeholder={circle.id === 'friends' ? "Search connections..." : "Search connections to invite..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <Input
-              placeholder={circle.id === 'friends' ? "Search connections..." : "Search connections to invite..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          )}
 
           {/* Connections list - Only for custom circles */}
-          {circle.id !== 'friends' && (
+          {circle.id !== 'friends' && !isViewMode && (
             <div>
               <h4 className="text-sm font-medium mb-3">
                 All Connections ({filteredConnections.length})
@@ -345,7 +348,7 @@ export default function CircleManagementDialog({
                               {connection.user.firstName[0]}{connection.user.lastName[0]}
                             </AvatarFallback>
                           </Avatar>
-                          
+
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
                               {connection.user.firstName} {connection.user.lastName}
@@ -354,7 +357,7 @@ export default function CircleManagementDialog({
                               {connection.user.role}
                             </Badge>
                           </div>
-                          
+
                           <div className="flex-shrink-0">
                             {statusDisplay ? (
                               <Badge variant={statusDisplay.variant} className="text-xs">
@@ -394,7 +397,7 @@ export default function CircleManagementDialog({
                           {circle.creator.firstName[0]}{circle.creator.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {circle.creator.firstName} {circle.creator.lastName}
@@ -410,7 +413,7 @@ export default function CircleManagementDialog({
                       </div>
                     </div>
                   )}
-                  
+
                   {filteredConnections.length === 0 ? (
                     <p className="text-sm text-gray-500 col-span-2">
                       {searchQuery ? 'No connections found matching your search' : 'No connections available'}
@@ -427,7 +430,7 @@ export default function CircleManagementDialog({
                             {connection.user.firstName[0]}{connection.user.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
-                        
+
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
                             {connection.user.firstName} {connection.user.lastName}
@@ -445,7 +448,7 @@ export default function CircleManagementDialog({
           )}
 
           {/* Invitation message - Only for custom circles */}
-          {circle.id !== 'friends' && selectedConnections.length > 0 && (
+          {circle.id !== 'friends' && selectedConnections.length > 0 && !isViewMode && (
             <div>
               <label className="text-sm font-medium mb-2 block">Invitation Message</label>
               <Input
@@ -462,7 +465,7 @@ export default function CircleManagementDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Close
             </Button>
-            {circle.id !== 'friends' && (
+            {circle.id !== 'friends' && !isViewMode && (
               <Button 
                 onClick={handleSendInvitations}
                 disabled={selectedConnections.length === 0 || loading}
