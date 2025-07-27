@@ -63,7 +63,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Welcome to PathPiper!</h2>
@@ -98,7 +98,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Parent Approval Request</h2>
@@ -137,7 +137,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Account Approval Request</h2>
@@ -172,7 +172,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Registration & Approval Required</h2>
@@ -207,7 +207,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Reset Your Password</h2>
@@ -248,11 +248,14 @@ export async function sendEmail(
           </div>
         `;
         break;
-        
+
         case 'parent-email-verification':
         subject = 'Verify Your PathPiper Parent Account Email';
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+           <div style="text-align: center; margin-bottom: 30px;">
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
+            </div>
             <h2 style="color: #2D5AA0;">Verify Your Email Address</h2>
             <p>Hello ${data.parentName},</p>
             <p>Thank you for creating a PathPiper parent account! To complete your registration and access your dashboard, please verify your email address.</p>
@@ -270,7 +273,7 @@ export async function sendEmail(
         html = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #14b8a6; margin: 0;">PathPiper</h1>
+              <img src="https://pathpiper.replit.app/images/pathpiper-logo-full.png" alt="PathPiper" style="height: 60px; width: auto;" />
             </div>
 
             <h2 style="color: #1f2937; margin-bottom: 20px;">Verify Your Email Address</h2>
