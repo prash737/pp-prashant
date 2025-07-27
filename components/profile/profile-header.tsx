@@ -153,12 +153,44 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   useEffect(() => {
     const fetchCircles = async () => {
       try {
-        const response = await fetch('/api/circles', {
-          credentials: 'include'
-        })
+        let response;
+        if (isViewMode && student?.id) {
+          // In view mode, fetch circles for the student being viewed
+          response = await fetch(`/api/student/profile/${student.id}/circles`, {
+            credentials: 'include'
+          });
+        } else {
+          // In own profile mode, fetch circles for the current user
+          response = await fetch('/api/circles', {
+            credentials: 'include'
+          });
+        }
+        
         if (response.ok) {
           const data = await response.json()
-          setCircles(data)
+          // Filter out disabled circles
+          const enabledCircles = data.filter((circle: any) => {
+            // Check if circle is globally disabled
+            if (circle.isDisabled) return false;
+            
+            // Check if creator is disabled and current user is the creator
+            if (circle.isCreatorDisabled && circle.creator?.id === (isViewMode ? student?.id : currentUser?.id)) {
+              return false;
+            }
+            
+            // Check if current user's membership is disabled
+            const userId = isViewMode ? student?.id : currentUser?.id;
+            const userMembership = circle.memberships?.find(
+              (membership: any) => membership.user?.id === userId
+            );
+            if (userMembership && userMembership.isDisabledMember) {
+              return false;
+            }
+            
+            return true;
+          });
+          
+          setCircles(enabledCircles)
         } else {
           console.error('Error fetching circles:', response.status)
         }
@@ -226,14 +258,17 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     }
 
     if (isOwnProfile) {
-      fetchCircles()
       fetchConnections()
     }
+    
+    // Always fetch circles (for both own profile and view mode)
+    fetchCircles()
+    
     if (student) {
       fetchRecentAchievements()
     }
     fetchFollowingInstitutions()
-  }, [isOwnProfile,student, isViewMode, student?.id])
+  }, [isOwnProfile, student, isViewMode, student?.id])
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) return
@@ -548,7 +583,9 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                   {/* Circle preview - Friends circle with add button */}
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">My Circles</h3>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {isViewMode ? 'Circles' : 'My Circles'}
+                      </h3>
                       {isOwnProfile && !isViewMode && (
                         <button
                           onClick={() => setShowCreateCircle(true)}
