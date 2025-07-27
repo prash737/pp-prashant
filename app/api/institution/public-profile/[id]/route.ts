@@ -48,6 +48,8 @@ export async function GET(
       founded: profile.institution.founded,
       tagline: profile.institution.tagline || '',
       overview: profile.institution.overview || '',
+      mission: profile.institution.mission || '',
+      coreValues: profile.institution.core_values || [],
       gallery: profile.institution.gallery || []
     }
 
