@@ -193,7 +193,17 @@ export default function AddConnectionDialog({ onConnectionRequestSent }: AddConn
             )}
 
             {searchResults.map((user) => (
-              <div key={user.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+              <div 
+                key={user.id} 
+                className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  if (user.role === 'student') {
+                    window.open(`/public-view/student/profile/${user.id}`, '_blank');
+                  } else if (user.role === 'institution') {
+                    window.open(`/public-view/institution/profile/${user.id}`, '_blank');
+                  }
+                }}
+              >
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={user.profileImageUrl} alt={`${user.firstName} ${user.lastName}`} />
                   <AvatarFallback>
@@ -225,7 +235,10 @@ export default function AddConnectionDialog({ onConnectionRequestSent }: AddConn
                 ) : (
                   <Button
                     size="sm"
-                    onClick={() => sendConnectionRequest(user.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sendConnectionRequest(user.id);
+                    }}
                     disabled={sendingRequest === user.id}
                     className="shrink-0"
                   >

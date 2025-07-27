@@ -275,7 +275,10 @@ export default function CircleManagementDialog({
 
               {/* Show other members */}
               {circle.memberships?.slice(0, circle.id === 'friends' ? 8 : 5).map((membership) => (
-                <div key={membership.user.id} className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
+                <div 
+                  key={membership.user.id}
+                  className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1"
+                >
                   <Avatar className="h-5 w-5">
                     <AvatarImage src={membership.user.profileImageUrl} />
                     <AvatarFallback className="text-xs">

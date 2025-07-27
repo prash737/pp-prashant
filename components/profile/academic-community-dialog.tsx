@@ -301,7 +301,10 @@ export default function AcademicCommunityDialog({
                       return (
                         <div 
                           key={institution.id}
-                          className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
+                          className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => {
+                            window.open(`/public-view/institution/profile/${institution.id}`, '_blank');
+                          }}
                         >
                           <Avatar className="h-10 w-10 flex-shrink-0">
                             <AvatarImage src={institution.logo} />
@@ -334,7 +337,10 @@ export default function AcademicCommunityDialog({
                             ) : (
                               <Button
                                 size="sm"
-                                onClick={() => addMember(institution.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addMember(institution.id);
+                                }}
                                 disabled={isAdding}
                                 className="text-xs"
                               >
