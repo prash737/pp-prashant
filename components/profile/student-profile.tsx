@@ -34,6 +34,9 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
     institutions: 0
   })
 
+  // Determine if this is the current user's own profile
+  const isOwnProfile = currentUser?.id === student?.id
+
   // Fetch connections data
   const fetchConnections = async () => {
     try {
