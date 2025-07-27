@@ -18,7 +18,7 @@ interface HorizontalNavigationProps {
 export default function HorizontalNavigation({ tabs, activeTab, setActiveTab }: HorizontalNavigationProps) {
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 sm:top-24 z-40">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="flex space-x-1 overflow-x-auto scrollbar-hide py-2">
           {tabs.map((tab) => (
             <Button
