@@ -1,0 +1,71 @@
+ ○ Compiling /student/profile ...
+ ✓ Compiled /student/profile in 647ms (2323 modules)
+ GET /student/profile 200 in 714ms
+ ○ Compiling /student/profile/[handle] ...
+ ⨯ ./components/profile/profile-header.tsx
+Error:   × Expression expected
+     ╭─[/home/runner/workspace/components/profile/profile-header.tsx:443:1]
+ 440 │   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
+ 441 │ 
+ 442 │   return (
+ 443 │     <>
+     ·      ─
+ 444 │       <div className="relative">
+ 445 │         {/* Customizable banner */}
+ 446 │         <div className={`h-48 w-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue`}></div>
+     ╰────
+  × Unexpected token `Dialog`. Expected jsx identifier
+     ╭─[/home/runner/workspace/components/profile/profile-header.tsx:723:1]
+ 720 │ 
+ 721 │                     {/* Create Circle Modal */}
+ 722 │                     {showCreateCircle && (
+ 723 │                       <Dialog open={showCreateCircle} onOpenChange={setShowCreateCircle}>
+     ·                        ──────
+ 724 │                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+ 725 │                           <DialogHeader>
+ 726 │                             <DialogTitle>Create New Circle Badge</DialogTitle>
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/profile-header.tsx
+./components/profile/student-profile.tsx
+./app/student/profile/[handle]/page.tsx
+ ⨯ ./components/profile/profile-header.tsx
+Error:   × Expression expected
+     ╭─[/home/runner/workspace/components/profile/profile-header.tsx:443:1]
+ 440 │   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
+ 441 │ 
+ 442 │   return (
+ 443 │     <>
+     ·      ─
+ 444 │       <div className="relative">
+ 445 │         {/* Customizable banner */}
+ 446 │         <div className={`h-48 w-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue`}></div>
+     ╰────
+  × Unexpected token `Dialog`. Expected jsx identifier
+     ╭─[/home/runner/workspace/components/profile/profile-header.tsx:723:1]
+ 720 │ 
+ 721 │                     {/* Create Circle Modal */}
+ 722 │                     {showCreateCircle && (
+ 723 │                       <Dialog open={showCreateCircle} onOpenChange={setShowCreateCircle}>
+     ·                        ──────
+ 724 │                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+ 725 │                           <DialogHeader>
+ 726 │                             <DialogTitle>Create New Circle Badge</DialogTitle>
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/profile-header.tsx
+./components/profile/student-profile.tsx
+./app/student/profile/[handle]/page.tsx
+ GET /student/profile/59a87f63-a96e-483a-a848-c859bb0a53dc 500 in 6918ms
+ GET /student/profile/59a87f63-a96e-483a-a848-c859bb0a53dc 500 in 24ms
+ GET /api/education/verification 500 in 44ms
+ GET /api/connections/requests?type=received 500 in 54ms
+ GET /api/circles/invitations?type=received 500 in 54ms
