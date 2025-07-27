@@ -30,11 +30,19 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, isViewMode }) => {
 
   useEffect(() => {
     fetchGoals();
-  }, []);
+  }, [isViewMode, student?.id]);
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals');
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch goals for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/goals`);
+      } else {
+        // In own profile mode, fetch goals for the current user
+        response = await fetch('/api/goals');
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setGoals(data.goals || []);
