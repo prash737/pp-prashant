@@ -240,10 +240,17 @@ export function InstitutionNavbar() {
     }
   };
 
-  const handleProfileClick = (userId: string) => {
+  const handleProfileClick = (userId: string, userRole: string) => {
     setShowSearchResults(false);
     setSearchQuery("");
-    router.push(`/student/profile/view/${userId}`);
+    if (userRole === 'student') {
+      router.push(`/public-view/student/profile/${userId}`);
+    } else if (userRole === 'institution') {
+      router.push(`/public-view/institution/profile/${userId}`);
+    } else {
+      // Handle other roles or provide a default
+      console.warn('Unsupported role:', userRole);
+    }
   };
 
   const getRoleColor = (role: string) => {
@@ -365,7 +372,7 @@ export function InstitutionNavbar() {
                       >
                         <div
                           className="flex items-start space-x-3 flex-1 cursor-pointer"
-                          onClick={() => handleProfileClick(searchUser.id)}
+                          onClick={() => handleProfileClick(searchUser.id, searchUser.role)}
                         >
                           <div className="relative">
                             <Image
