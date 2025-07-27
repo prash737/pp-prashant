@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -217,7 +216,7 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <InternalNavbar />
-      
+
       {/* Profile content */}
       <main className="flex-grow">
         <Button

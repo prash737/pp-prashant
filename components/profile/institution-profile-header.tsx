@@ -43,24 +43,11 @@ interface InstitutionData {
 }
 
 interface InstitutionProfileHeaderProps {
-  institutionData: {
-    id: string
-    name: string
-    type: string
-    category?: string
-    location: string
-    bio: string
-    logo: string
-    coverImage: string
-    website: string
-    verified: boolean
-    founded?: number | null
-    tagline: string
-  }
+  institutionData: InstitutionData
   isViewMode?: boolean
 }
 
-export default function InstitutionProfileHeader({ institutionData, isViewMode }: InstitutionProfileHeaderProps) {
+export default function InstitutionProfileHeader({ institutionData, isViewMode = false }: InstitutionProfileHeaderProps) {
   const [showFollowersDialog, setShowFollowersDialog] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -93,7 +80,11 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
   const fetchAcademicCommunities = async () => {
     setCommunitiesLoading(true)
     try {
-      const response = await fetch('/api/institution/academic-communities', {
+      let url = '/api/institution/academic-communities';
+      if (isViewMode && institutionData.id) {
+          url = `/api/institution/academic-communities?institutionId=${institutionData.id}`;
+      }
+      const response = await fetch(url, {
         credentials: 'include'
       })
 
@@ -185,7 +176,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
     if (institutionData.id) {
       fetchData()
     }
-  }, [institutionData.id])
+  }, [institutionData.id, isViewMode])
 
   // Real academic communities state
   const [academicCommunities, setAcademicCommunities] = useState<any[]>([])
