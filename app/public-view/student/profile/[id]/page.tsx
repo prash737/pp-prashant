@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import StudentProfile from "@/components/profile/student-profile"
+import InternalNavbar from "@/components/internal-navbar"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -124,8 +125,9 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <InternalNavbar />
         {/* Back button */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <Button
             variant="ghost"
             size="sm"
@@ -137,7 +139,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
           </Button>
         </div>
         
-        <main className="flex-grow flex items-center justify-center">
+        <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
             <p className="mt-4 text-gray-600">Loading profile...</p>
@@ -150,8 +152,9 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <InternalNavbar />
         {/* Back button */}
-        <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <Button
             variant="ghost"
             size="sm"
@@ -163,7 +166,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
           </Button>
         </div>
         
-        <main className="flex-grow flex items-center justify-center">
+        <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
             <p className="text-gray-600 mb-4">{error}</p>
@@ -187,8 +190,9 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <InternalNavbar />
       {/* Back button - Sticky header */}
-      <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <Button
           variant="ghost"
           size="sm"
@@ -200,7 +204,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         </Button>
       </div>
       
-      {/* Profile content - No navbar or footer */}
+      {/* Profile content */}
       <main className="flex-grow">
         {studentData && (
           <StudentProfile
