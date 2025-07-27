@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -582,6 +582,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   }
 
   // Event handlers
+  const [existingEvents, setExistingEvents] = useState<any[]>([])
   const [isLoadingEvents, setIsLoadingEvents] = useState(false)
 
   useEffect(() => {
@@ -591,28 +592,16 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     }
   }, [institutionData])
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
+    if (isLoadingEvents) return // Prevent multiple simultaneous calls
+
     try {
       setIsLoadingEvents(true)
       const response = await fetch('/api/institution/events')
       if (response.ok) {
         const data = await response.json()
         if (data.events && data.events.length > 0) {
-          const formattedEvents = data.events.map((event: any) => ({
-            id: event.id,
-            title: event.title,
-            description: event.description,
-            eventType: event.eventType,
-            startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : "",
-            endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : "",
-            location: event.location || "",
-            imageUrl: event.imageUrl || "",
-            registrationUrl: event.registrationUrl || ""
-          }))
-          setFormData(prev => ({
-            ...prev,
-            events: formattedEvents
-          }))
+          setExistingEvents(data.events)
         }
       }
     } catch (error) {
@@ -620,7 +609,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     } finally {
       setIsLoadingEvents(false)
     }
-  }
+  }, [isLoadingEvents])
 
   const addEvent = () => {
     setFormData(prev => ({
@@ -756,10 +745,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           const data = await response.json()
           // Clean up the preview URL
           URL.revokeObjectURL(previewUrl)
-          
+
           // Update with server URL
           updateNewGalleryItem(tempId, 'imageUrl', data.url)
-          
+
           toast({
             title: "Success",
             description: "Image uploaded successfully!",
@@ -770,7 +759,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           URL.revokeObjectURL(previewUrl)
           // Reset to empty
           updateNewGalleryItem(tempId, 'imageUrl', '')
-          
+
           toast({
             title: "Error",
             description: "Failed to upload gallery image. Please try again.",
@@ -836,10 +825,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           const data = await response.json()
           // Clean up the preview URL
           URL.revokeObjectURL(previewUrl)
-          
+
           // Update with server URL
           updateNewFacility(tempId, 'images', [data.url])
-          
+
           toast({
             title: "Success",
             description: "Image uploaded successfully!",
@@ -850,7 +839,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           URL.revokeObjectURL(previewUrl)
           // Reset to empty
           updateNewFacility(tempId, 'images', [''])
-          
+
           toast({
             title: "Error",
             description: "Failed to upload facility image. Please try again.",
@@ -1990,7 +1979,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 <p className="text-gray-500 text-sm">{member.department}</p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <span className="text-sm font-medium text-gray-500">Email:</span>
@@ -2040,7 +2029,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               </div>
             )}
           </div>
-          
+
           <div className="flex gap-2 ml-4">
             <Button
               type="button"
@@ -2278,10 +2267,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                                     const data = await response.json()
                                     // Clean up the preview URL
                                     URL.revokeObjectURL(previewUrl)
-                                    
+
                                     // Update with server URL
                                     updateNewFaculty(member.tempId, 'image', data.url)
-                                    
+
                                     toast({
                                       title: "Success",
                                       description: "Faculty image uploaded successfully!",
@@ -2292,7 +2281,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                                     URL.revokeObjectURL(previewUrl)
                                     // Reset to empty
                                     updateNewFaculty(member.tempId, 'image', '')
-                                    
+
                                     toast({
                                       title: "Error",
                                       description: "Failed to upload faculty image. Please try again.",
@@ -2739,9 +2728,9 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 Edit
               </Button>
             </div>
-            
+
             <p className="text-gray-600 mb-3">{facility.description}</p>
-            
+
             {facility.features && facility.features.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                 {facility.features.map((feature: string, index: number) => (
@@ -2764,7 +2753,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               </a>
             )}
           </div>
-          
+
           {facility.images?.[0] && (
             <div className="ml-4">
               <img 
@@ -3157,10 +3146,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                             const data = await response.json()
                             // Clean up the preview URL
                             URL.revokeObjectURL(previewUrl)
-                            
+
                             // Update with server URL
                             updateEvent(index, 'imageUrl', data.url)
-                            
+
                             toast({
                               title: "Success",
                               description: "Event image uploaded successfully!",
@@ -3171,7 +3160,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                             URL.revokeObjectURL(previewUrl)
                             // Reset to empty
                             updateEvent(index, 'imageUrl', '')
-                            
+
                             toast({
                               title: "Error",
                               description: "Failed to upload event image. Please try again.",
@@ -3488,7 +3477,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               {renderEventsSection()}
               {renderGallerySection()}
 
-              
+
             </div>
           </form>
         </div>
