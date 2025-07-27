@@ -10,61 +10,44 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const institutionId = searchParams.get('institutionId');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
 
-    if (!institutionId) {
-      return NextResponse.json({ error: 'Institution ID is required' }, { status: 400 });
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Add a small delay to prevent rapid successive calls
-    await new Promise(resolve => setTimeout(resolve, 50));
+    const { data: { user }, error } = await supabase.auth.getUser(token)
 
-    console.log('Fetching events for institution:', institutionId);
-
-    const events = await prisma.institutionEvent.findMany({
-      where: {
-        institutionId: institutionId,
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
-      take: limit,
-      skip: offset,
-    });
-
-    console.log('Found events:', events.length);
-    if (events.length > 0) {
-      console.log('Events details:', events.map(e => ({
-        id: e.id,
-        title: e.title,
-        eventType: e.eventType,
-        startDate: e.startDate
-      })));
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    return NextResponse.json({
-      events: events.map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        eventType: event.eventType,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        location: event.location,
-        imageUrl: event.imageUrl,
-        registrationUrl: event.registrationUrl,
-      })),
-      hasMore: events.length === limit,
-    });
+    // Check if institutionId is provided (for public view)
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+    const targetInstitutionId = institutionId || user.id
+
+    console.log('Fetching events for institution:', targetInstitutionId)
+
+    // Fetch events for this institution
+    const events = await prisma.institutionEvents.findMany({
+      where: { institutionId: targetInstitutionId },
+      orderBy: { startDate: 'desc' }
+    })
+
+    console.log('Found events:', events.length)
+    console.log('Events details:', events.map(e => ({
+      id: e.id,
+      title: e.title,
+      eventType: e.event_type,
+      startDate: e.start_date
+    })))
+
+    return NextResponse.json({ events })
   } catch (error) {
-    console.error('Error fetching institution events:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch events' },
-      { status: 500 }
-    );
+    console.error('Error fetching institution events:', error)
+    return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 })
   }
 }
 
