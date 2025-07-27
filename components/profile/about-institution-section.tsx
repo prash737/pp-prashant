@@ -28,9 +28,10 @@ interface InstitutionData {
 
 interface AboutInstitutionSectionProps {
   institutionData: InstitutionData
+  isViewMode?: boolean
 }
 
-export default function AboutInstitutionSection({ institutionData }: AboutInstitutionSectionProps) {
+export default function AboutInstitutionSection({ institutionData, isViewMode = false }: AboutInstitutionSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [quickFacts, setQuickFacts] = useState<any>(null)
   const [contactInfo, setContactInfo] = useState<any>(null)

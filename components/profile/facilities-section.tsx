@@ -14,7 +14,11 @@ interface Facility {
   learnMoreLink?: string
 }
 
-export default function FacilitiesSection() {
+interface FacilitiesSectionProps {
+  isViewMode?: boolean
+}
+
+export default function FacilitiesSection({ isViewMode }: FacilitiesSectionProps) {
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

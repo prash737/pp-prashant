@@ -436,7 +436,14 @@ export function InternalNavbar() {
                             if (searchUser.id === user?.id) {
                               router.push(`/student/profile`);
                             } else {
-                              router.push(`/public-view/student/profile/${searchUser.id}`);
+                              if (searchUser.role === 'student') {
+                                router.push(`/public-view/student/profile/${searchUser.id}`);
+                              } else if (searchUser.role === 'institution') {
+                                router.push(`/public-view/institution/profile/${searchUser.id}`);
+                              } else {
+                                // Handle other roles or provide a default
+                                console.warn('Unsupported role:', searchUser.role);
+                              }
                             }
                           }}
                         >

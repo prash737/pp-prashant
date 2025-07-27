@@ -32,9 +32,10 @@ interface InstitutionData {
 interface InstitutionProfileProps {
   institutionData: InstitutionData
   institutionId?: string
+  isViewMode?: boolean
 }
 
-export default function InstitutionProfile({ institutionData, institutionId }: InstitutionProfileProps) {
+export default function InstitutionProfile({ institutionData, institutionId, isViewMode = false }: InstitutionProfileProps) {
   const [activeSection, setActiveSection] = useState("about")
   const containerRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -185,7 +186,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <InstitutionProfileHeader institutionData={institutionData} />
+      <InstitutionProfileHeader institutionData={institutionData} isViewMode={isViewMode} />
 
       {/* Mobile: Sticky Top Navigation */}
       <div className="lg:hidden sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 mb-6 -mx-4 px-4 py-3">
@@ -255,7 +256,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="about"
                     className="scroll-mt-6"
                   >
-                    <AboutInstitutionSection institutionData={institutionData} />
+                    <AboutInstitutionSection institutionData={institutionData} isViewMode={isViewMode} />
                   </div>
 
                   <div 
@@ -263,7 +264,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="programs"
                     className="scroll-mt-6"
                   >
-                    <ProgramsSection institutionId={institutionData.id} />
+                    <ProgramsSection institutionId={institutionData.id} isViewMode={isViewMode} />
                   </div>
 
                   <div 
@@ -271,7 +272,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="faculty"
                     className="scroll-mt-6"
                   >
-                    <FacultySection institutionId={institutionId || institutionData?.id} />
+                    <FacultySection institutionId={institutionId || institutionData?.id} isViewMode={isViewMode} />
                   </div>
 
                   <div 
@@ -279,7 +280,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="facilities"
                     className="scroll-mt-6"
                   >
-                    <FacilitiesSection />
+                    <FacilitiesSection isViewMode={isViewMode} />
                   </div>
 
                   <div 
@@ -287,7 +288,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="events"
                     className="scroll-mt-6"
                   >
-                    <EventsSection />
+                    <EventsSection isViewMode={isViewMode} />
                   </div>
 
                   <div 
@@ -295,7 +296,7 @@ export default function InstitutionProfile({ institutionData, institutionId }: I
                     id="gallery"
                     className="scroll-mt-6"
                   >
-                    <GallerySection images={institutionData.gallery} />
+                    <GallerySection images={institutionData.gallery} isViewMode={isViewMode} />
                   </div>
                 </div>
               </div>

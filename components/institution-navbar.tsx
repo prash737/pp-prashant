@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -69,10 +68,10 @@ export function InstitutionNavbar() {
         if (typeof window !== 'undefined') {
           // Clear localStorage
           localStorage.clear()
-          
+
           // Clear sessionStorage
           sessionStorage.clear()
-          
+
           // Clear all cookies by setting them to expire
           const cookies = document.cookie.split(";")
           cookies.forEach(cookie => {

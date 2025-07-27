@@ -43,16 +43,24 @@ interface InstitutionData {
 }
 
 interface InstitutionProfileHeaderProps {
-  institutionData: InstitutionData & {
-    gallery?: Array<{
-      id: string
-      url: string
-      caption?: string
-    }>
+  institutionData: {
+    id: string
+    name: string
+    type: string
+    category?: string
+    location: string
+    bio: string
+    logo: string
+    coverImage: string
+    website: string
+    verified: boolean
+    founded?: number | null
+    tagline: string
   }
+  isViewMode?: boolean
 }
 
-export default function InstitutionProfileHeader({ institutionData }: InstitutionProfileHeaderProps) {
+export default function InstitutionProfileHeader({ institutionData, isViewMode }: InstitutionProfileHeaderProps) {
   const [showFollowersDialog, setShowFollowersDialog] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -384,19 +392,21 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                           {institution.tagline}
                         </p>
                       )}
-                      
+
                     </div>
                   </div>
 
                   {/* Action buttons - Connect, Visit Website, Share */}
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-6">
-                    <Link href="/institution/profile/edit" className="flex-1 sm:flex-none">
-                      <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 px-4 text-sm font-medium">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
-                    </Link>
-                    
+                    {!isViewMode && (
+                      <Link href="/institution/profile/edit" className="flex-1 sm:flex-none">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 px-4 text-sm font-medium">
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                      </Link>
+                    )}
+
                     {contactInfo?.website ? (
                       <Button 
                         variant="outline" 
@@ -519,41 +529,43 @@ export default function InstitutionProfileHeader({ institutionData }: Institutio
                     <div className="relative">
                       <div className="flex overflow-x-auto pb-2 hide-scrollbar gap-4">
                         {/* Add Community Button */}
-                        <div className="flex flex-col items-center min-w-[72px]">
-                          <button
-                            onClick={() => setShowCreateCommunityDialog(true)}
-                            className="relative mb-1 group"
-                          >
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 p-[3px] group-hover:from-gray-300 group-hover:to-gray-400 dark:group-hover:from-gray-500 dark:group-hover:to-gray-600 transition-all">
-                              <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
-                                <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                  <svg
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"
-                                  >
-                                    <path
-                                      d="M12 5V19M5 12H19"
-                                      stroke="currentColor"
-                                      strokeWidth="2"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
+                        {!isViewMode && (
+                          <div className="flex flex-col items-center min-w-[72px]">
+                            <button
+                              onClick={() => setShowCreateCommunityDialog(true)}
+                              className="relative mb-1 group"
+                            >
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 p-[3px] group-hover:from-gray-300 group-hover:to-gray-400 dark:group-hover:from-gray-500 dark:group-hover:to-gray-600 transition-all">
+                                <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
+                                  <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                    <svg
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300"
+                                    >
+                                      <path
+                                        d="M12 5V19M5 12H19"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </button>
-                          <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
-                            Add
-                          </span>
-                          <span className="text-[10px] text-center text-gray-500 dark:text-gray-500 truncate w-full">
-                            Community
-                          </span>
-                        </div>
+                            </button>
+                            <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
+                              Add
+                            </span>
+                            <span className="text-[10px] text-center text-gray-500 dark:text-gray-500 truncate w-full">
+                              Community
+                            </span>
+                          </div>
+                        )}
 
                         {communitiesLoading ? (
                           <div className="flex items-center">

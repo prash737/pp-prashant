@@ -13,10 +13,15 @@ interface GalleryImage {
 }
 
 interface GallerySectionProps {
-  images?: GalleryImage[]
+  images?: Array<{
+    id: string
+    url: string
+    caption?: string
+  }>
+  isViewMode?: boolean
 }
 
-export default function GallerySection({ images = [] }: GallerySectionProps) {
+export default function GallerySection({ images = [], isViewMode = false }: GallerySectionProps) {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 

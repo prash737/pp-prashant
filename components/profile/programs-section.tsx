@@ -21,9 +21,10 @@ interface Program {
 interface ProgramsSectionProps {
   institutionId?: string
   className?: string
+  isViewMode?: boolean
 }
 
-export default function ProgramsSection({ institutionId, className = "" }: ProgramsSectionProps) {
+export default function ProgramsSection({ institutionId, className = "", isViewMode = false }: ProgramsSectionProps) {
   const [expandedProgram, setExpandedProgram] = useState<string | null>(null)
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -116,18 +117,20 @@ export default function ProgramsSection({ institutionId, className = "" }: Progr
                     <Badge variant="outline">{program.level}</Badge>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleExpanded(program.id)}
-                  className="shrink-0"
-                >
-                  {expandedProgram === program.id ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
+                {!isViewMode && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleExpanded(program.id)}
+                    className="shrink-0"
+                  >
+                    {expandedProgram === program.id ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
               </div>
 
               <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">

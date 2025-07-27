@@ -15,7 +15,11 @@ interface Event {
   registrationUrl?: string
 }
 
-export default function EventsSection() {
+interface EventsSectionProps {
+  isViewMode?: boolean
+}
+
+export default function EventsSection({ isViewMode }: EventsSectionProps) {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
