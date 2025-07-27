@@ -707,24 +707,26 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
-            My Connections
+            {isViewMode ? 'Connections' : 'My Connections'}
           </button>
-          <button
-            onClick={() => setActiveView("requests")}
-            className={`px-4 py-2 border-b-2 transition-colors flex items-center space-x-2 ${
-              activeView === "requests"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            <Inbox className="h-4 w-4" />
-            <span>Requests</span>
-            {pendingRequests > 0 && (
-              <Badge variant="destructive" className="ml-1">
-                {pendingRequests}
-              </Badge>
-            )}
-          </button>
+          {!isViewMode && (
+            <button
+              onClick={() => setActiveView("requests")}
+              className={`px-4 py-2 border-b-2 transition-colors flex items-center space-x-2 ${
+                activeView === "requests"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Inbox className="h-4 w-4" />
+              <span>Requests</span>
+              {pendingRequests > 0 && (
+                <Badge variant="destructive" className="ml-1">
+                  {pendingRequests}
+                </Badge>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Action Buttons - Only show for connections view and when not in view mode */}
