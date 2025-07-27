@@ -23,35 +23,7 @@ export async function GET(
         role: 'institution'
       },
       include: {
-        institution: {
-          include: {
-            institutionTypeRef: true,
-            programs: true,
-            events: true,
-            gallery: true,
-            facilities: true,
-            faculty: true,
-            quickFacts: true,
-            contactInfo: {
-              select: {
-                id: true,
-                institutionId: true,
-                address: true,
-                city: true,
-                state: true,
-                country: true,
-                postalCode: true,
-                phone: true,
-                email: true,
-                website: true,
-                createdAt: true,
-                updatedAt: true
-              }
-            },
-            facultyStats: true,
-            academicCommunities: true
-          }
-        }
+        institution: true
       }
     })
 
@@ -61,33 +33,22 @@ export async function GET(
 
     console.log('✅ Institution profile found:', profile.institution.institutionName)
 
-    // Fetch gallery images for this institution
-    const galleryImages = await prisma.institutionGallery.findMany({
-      where: { institutionId: institutionId },
-      orderBy: { createdAt: 'desc' }
-    })
-
     // Transform data to match the expected format
-    const institution = profile.institution;
     const institutionData = {
       id: profile.id,
-      name: institution?.institutionName || profile.firstName + ' ' + profile.lastName,
-      type: institution?.institutionType || 'Unknown',
-      category: institution?.institutionTypeRef?.name || '',
-      location: profile.location || '',
+      name: profile.institution.institutionName,
+      type: profile.institution.institutionType,
+      category: profile.institution.category,
+      location: profile.institution.location,
       bio: profile.bio || '',
-      logo: profile.profileImageUrl || institution?.logoUrl || '/images/pathpiper-logo.png',
-      coverImage: institution?.coverImageUrl || '',
-      website: institution?.website || '',
-      verified: institution?.verified || false,
-      founded: null, // Add founded field to schema if needed
-      tagline: profile.tagline || '',
-      overview: institution?.overview || '',
-      gallery: galleryImages.map(img => ({
-        id: img.id,
-        url: img.imageUrl,
-        caption: img.caption || ''
-      }))
+      logo: profile.institution.logo || '/images/pathpiper-logo.png',
+      coverImage: profile.institution.coverImage || '',
+      website: profile.institution.website || '',
+      verified: profile.institution.verified || false,
+      founded: profile.institution.founded,
+      tagline: profile.institution.tagline || '',
+      overview: profile.institution.overview || '',
+      gallery: profile.institution.gallery || []
     }
 
     return NextResponse.json(institutionData)
