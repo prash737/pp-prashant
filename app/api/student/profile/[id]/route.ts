@@ -35,15 +35,15 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if the current user is a student (only students can view student profiles)
+    // Check if the current user has permission to view student profiles
     const currentUserProfile = await prisma.profile.findUnique({
       where: { id: user.id },
       select: { role: true }
     })
 
-    if (!currentUserProfile || currentUserProfile.role !== 'student') {
+    if (!currentUserProfile || !['student', 'institution'].includes(currentUserProfile.role)) {
       return NextResponse.json(
-        { error: 'Only students can view student profiles' },
+        { error: 'Access denied' },
         { status: 403 }
       )
     }
