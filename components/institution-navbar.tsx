@@ -243,7 +243,7 @@ export function InstitutionNavbar() {
   const handleProfileClick = (userId: string, userRole: string) => {
     setShowSearchResults(false);
     setSearchQuery("");
-    
+
     // Always use public view for cross-role profile viewing
     if (userRole === 'student') {
       router.push(`/public-view/student/profile/${userId}`);
@@ -417,52 +417,6 @@ export function InstitutionNavbar() {
                             )}
                           </div>
                         </div>
-
-                        {(() => {
-                          const status = getConnectionStatus(searchUser.id);
-                          if (status === 'connected') {
-                            return (
-                              <Button
-                                size="sm"
-                                disabled
-                                className="shrink-0 bg-green-100 text-green-800 px-3 py-1.5 text-xs font-medium cursor-not-allowed"
-                              >
-                                Connected
-                              </Button>
-                            );
-                          } else if (status === 'pending') {
-                            return (
-                              <Button
-                                size="sm"
-                                disabled
-                                className="shrink-0 bg-yellow-100 text-yellow-800 px-3 py-1.5 text-xs font-medium cursor-not-allowed"
-                              >
-                                Pending
-                              </Button>
-                            );
-                          } else {
-                            return (
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  sendConnectionRequest(searchUser.id);
-                                }}
-                                disabled={sendingRequest === searchUser.id}
-                                className="shrink-0 bg-pathpiper-teal hover:bg-pathpiper-teal/90 text-white px-3 py-1.5 text-xs font-medium"
-                              >
-                                {sendingRequest === searchUser.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <>
-                                    <UserPlus className="h-3 w-3 mr-1" />
-                                    Connect
-                                  </>
-                                )}
-                              </Button>
-                            );
-                          }
-                        })()}
                       </div>
                     ))}
 
