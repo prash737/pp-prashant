@@ -226,4 +226,3 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
     </div>
   )
 }
-`
