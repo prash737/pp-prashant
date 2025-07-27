@@ -440,7 +440,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
 
   return (
-    <div>
+    <>
       <div className="relative">
         {/* Customizable banner */}
         <div className={`h-48 w-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue`}></div>
@@ -1181,7 +1181,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
 
