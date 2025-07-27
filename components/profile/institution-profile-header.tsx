@@ -147,12 +147,30 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
 
         if (eventsResponse.ok) {
           const eventsData = await eventsResponse.json()
-          if (eventsData.success && eventsData.events) {
+          console.log('🎉 Events data received in header:', eventsData)
+          
+          // Handle both response formats - direct events array or wrapped in success object
+          let eventsList = []
+          if (eventsData.events && Array.isArray(eventsData.events)) {
+            eventsList = eventsData.events
+          } else if (Array.isArray(eventsData)) {
+            eventsList = eventsData
+          }
+          
+          if (eventsList.length > 0) {
             // Sort by start date and take top 5 most recent
-            const sortedEvents = eventsData.events
-              .sort((a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+            const sortedEvents = eventsList
+              .sort((a: any, b: any) => {
+                const dateA = new Date(a.startDate || a.start_date)
+                const dateB = new Date(b.startDate || b.start_date)
+                return dateB.getTime() - dateA.getTime()
+              })
               .slice(0, 5)
+            console.log('🎉 Setting sorted events:', sortedEvents)
             setEvents(sortedEvents)
+          } else {
+            console.log('🎉 No events found in response')
+            setEvents([])
           }
         }
 
