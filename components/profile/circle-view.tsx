@@ -87,10 +87,12 @@ interface Circle {
 // Circle Badges Section Component
 function CircleBadgesSection({ 
   onCircleSelect, 
-  currentUserId 
+  currentUserId,
+  isViewMode = false
 }: { 
   onCircleSelect: (circle: Circle) => void;
   currentUserId?: string;
+  isViewMode?: boolean;
 }) {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,21 +276,23 @@ function CircleBadgesSection({
           <div className="flex items-center gap-2">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-600" />
-              My Circles
+              {isViewMode ? 'Circles' : 'My Circles'}
             </CardTitle>
             <Badge variant="secondary" className="ml-2">{circles.length} circles</Badge>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 w-8 p-0"
-            title="Create new circle"
-            onClick={() => setShowCreateCircle(true)}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </Button>
+          {!isViewMode && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              title="Create new circle"
+              onClick={() => setShowCreateCircle(true)}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="py-6">
@@ -723,8 +727,8 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
           </button>
         </div>
 
-        {/* Action Buttons - Only show for connections view */}
-        {activeView === "connections" && (
+        {/* Action Buttons - Only show for connections view and when not in view mode */}
+        {activeView === "connections" && !isViewMode && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
@@ -747,6 +751,7 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
               <CircleBadgesSection 
                 onCircleSelect={handleCircleSelect} 
                 currentUserId={student?.id || currentUserId}
+                isViewMode={isViewMode}
               />
             </div>
 
