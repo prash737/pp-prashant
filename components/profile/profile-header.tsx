@@ -647,8 +647,8 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                         </div>
                         {/* Edit Profile button for own profile or Connect button for viewing others */}
                         <div className="flex items-center gap-2">
-                          {/* Share Profile button - Show for all profiles in view mode */}
-                          {isViewMode && (
+                          {/* Share Profile button - Show for view mode and own profile */}
+                          {(isViewMode || isOwnProfile) && (
                             <Button 
                               variant="outline" 
                               size="sm"
