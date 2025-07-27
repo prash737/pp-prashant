@@ -29,17 +29,23 @@ interface FacultyStats {
 interface FacultySectionProps {
   institutionId: string
   isViewMode?: boolean
+  faculty?: Faculty[]
 }
 
-export default function FacultySection({ institutionId, isViewMode }: FacultySectionProps) {
+export default function FacultySection({ institutionId, isViewMode, faculty }: FacultySectionProps) {
   const [facultyMembers, setFacultyMembers] = useState<Faculty[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [facultyStats, setFacultyStats] = useState<FacultyStats | null>(null)
 
   useEffect(() => {
-    fetchFaculty()
-  }, [])
+    if (faculty && faculty.length > 0) {
+      setFacultyMembers(faculty)
+      setIsLoading(false)
+    } else {
+      fetchFaculty()
+    }
+  }, [institutionId, faculty])
 
   useEffect(() => {
     fetchFacultyStats()

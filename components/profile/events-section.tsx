@@ -17,19 +17,32 @@ interface Event {
 
 interface EventsSectionProps {
   isViewMode?: boolean
+  events?: Event[]
+  institutionId?: string
 }
 
-export default function EventsSection({ isViewMode }: EventsSectionProps) {
+export default function EventsSection({ isViewMode = false, events: propsEvents = [], institutionId }: EventsSectionProps) {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchEvents()
-  }, [])
+    if (propsEvents && propsEvents.length > 0) {
+      setEvents(propsEvents)
+      setLoading(false)
+    } else {
+      fetchEvents()
+    }
+  }, [propsEvents, institutionId])
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/institution/events')
+      setLoading(true)
+      const url = institutionId 
+        ? `/api/institution/events?institutionId=${institutionId}`
+        : '/api/institution/events'
+      const response = await fetch(url, {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setEvents(data.events || [])

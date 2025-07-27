@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from "@/hooks/use-auth"
 
 interface GalleryImage {
   id: string
@@ -19,9 +20,23 @@ interface GallerySectionProps {
     caption?: string
   }>
   isViewMode?: boolean
+  institutionId?: string
 }
 
-export default function GallerySection({ images = [], isViewMode = false }: GallerySectionProps) {
+export default function GallerySection({ images: propImages, isViewMode = false, institutionId }: GallerySectionProps) {
+  const { user } = useAuth()
+  const [images, setImages] = useState<any[]>(propImages || [])
+  const [loading, setLoading] = useState(!propImages || propImages.length === 0)
+
+  useEffect(() => {
+    if (propImages && propImages.length > 0) {
+      setImages(propImages)
+      setLoading(false)
+    } else {
+      fetchGallery()
+    }
+  }, [propImages, institutionId])
+
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -44,6 +59,35 @@ export default function GallerySection({ images = [], isViewMode = false }: Gall
     const newIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0
     setCurrentIndex(newIndex)
     setSelectedImage(images[newIndex])
+  }
+
+  const fetchGallery = async () => {
+    try {
+      setLoading(true)
+      const url = institutionId 
+        ? `/api/institution/gallery?institutionId=${institutionId}`
+        : '/api/institution/gallery'
+      const response = await fetch(url, {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      setImages(data)
+    } catch (error) {
+      console.error("Failed to fetch gallery:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Gallery</h2>
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading images...</p>
+        </div>
+      </div>
+    )
   }
 
   if (images.length === 0) {

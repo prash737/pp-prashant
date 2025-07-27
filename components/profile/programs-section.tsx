@@ -22,16 +22,22 @@ interface ProgramsSectionProps {
   institutionId?: string
   className?: string
   isViewMode?: boolean
+  programs?: any[]
 }
 
-export default function ProgramsSection({ institutionId, className = "", isViewMode = false }: ProgramsSectionProps) {
+export default function ProgramsSection({ institutionId, className = "", isViewMode = false, programs: propPrograms }: ProgramsSectionProps) {
   const [expandedProgram, setExpandedProgram] = useState<string | null>(null)
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetchPrograms()
-  }, [institutionId])
+    if (propPrograms) {
+      setPrograms(propPrograms);
+      setIsLoading(false);
+    } else {
+      fetchPrograms();
+    }
+  }, [institutionId, propPrograms]);
 
   const fetchPrograms = async () => {
     try {

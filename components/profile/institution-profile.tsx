@@ -22,11 +22,19 @@ interface InstitutionData {
   verified: boolean
   founded?: number | null
   tagline: string
+  overview?: string
+  mission?: string
+  coreValues?: string[]
   gallery?: Array<{
     id: string
     url: string
     caption?: string
   }>
+  programs?: any[]
+  faculty?: any[]
+  facilities?: any[]
+  events?: any[]
+  followers?: number
 }
 
 interface InstitutionProfileProps {
@@ -260,7 +268,11 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
                     id="programs"
                     className="scroll-mt-6"
                   >
-                    <ProgramsSection institutionId={institutionData.id} isViewMode={isViewMode} />
+                    <ProgramsSection 
+                      institutionId={institutionData.id} 
+                      isViewMode={isViewMode} 
+                      programs={institutionData.programs}
+                    />
                   </div>
 
                   <div 
@@ -268,7 +280,11 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
                     id="faculty"
                     className="scroll-mt-6"
                   >
-                    <FacultySection institutionId={institutionId || institutionData?.id} isViewMode={isViewMode} />
+                    <FacultySection 
+                      institutionId={institutionId || institutionData?.id} 
+                      isViewMode={isViewMode} 
+                      faculty={institutionData.faculty}
+                    />
                   </div>
 
                   <div 
@@ -276,7 +292,11 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
                     id="facilities"
                     className="scroll-mt-6"
                   >
-                    <FacilitiesSection isViewMode={isViewMode} />
+                    <FacilitiesSection 
+                      isViewMode={isViewMode} 
+                      facilities={institutionData.facilities}
+                      institutionId={institutionData.id}
+                    />
                   </div>
 
                   <div 
@@ -284,7 +304,11 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
                     id="events"
                     className="scroll-mt-6"
                   >
-                    <EventsSection isViewMode={isViewMode} />
+                    <EventsSection 
+                      isViewMode={isViewMode} 
+                      events={institutionData.events}
+                      institutionId={institutionData.id}
+                    />
                   </div>
 
                   <div 
@@ -292,7 +316,11 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
                     id="gallery"
                     className="scroll-mt-6"
                   >
-                    <GallerySection images={institutionData.gallery} isViewMode={isViewMode} />
+                    <GallerySection 
+                      images={institutionData.gallery} 
+                      isViewMode={isViewMode} 
+                      institutionId={institutionData.id}
+                    />
                   </div>
                 </div>
               </div>

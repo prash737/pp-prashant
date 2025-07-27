@@ -1,3 +1,6 @@
+The code change involves updating the AboutInstitutionSection component to support receiving data as props when in view mode.
+```
+```replit_final_file
 "use client"
 
 import { useState, useEffect } from "react"
@@ -38,8 +41,10 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetchQuickFactsAndContactInfo()
-  }, [])
+    if (!isViewMode) {
+      fetchQuickFactsAndContactInfo()
+    }
+  }, [isViewMode])
 
   const fetchQuickFactsAndContactInfo = async () => {
     try {
@@ -64,6 +69,9 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
       setIsLoading(false)
     }
   }
+
+  const quickFactsData = isViewMode ? institutionData?.quickFacts : quickFacts
+  const contactInfoData = isViewMode ? institutionData?.contactInfo : contactInfo
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -158,7 +166,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {isLoading && !isViewMode ? (
                 <div className="space-y-4">
                   <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
                   <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
@@ -171,10 +179,10 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Student Body</span>
                       <span className="text-gray-600">
-                        {quickFacts?.undergraduate_students ? `${quickFacts.undergraduate_students.toLocaleString()} Undergraduate` : 'Not added yet'}
+                        {quickFactsData?.undergraduate_students ? `${quickFactsData.undergraduate_students.toLocaleString()} Undergraduate` : 'Not added yet'}
                       </span>
-                      {quickFacts?.graduate_students && (
-                        <span className="text-gray-600 block">{quickFacts.graduate_students.toLocaleString()} Graduate</span>
+                      {quickFactsData?.graduate_students && (
+                        <span className="text-gray-600 block">{quickFactsData.graduate_students.toLocaleString()} Graduate</span>
                       )}
                     </div>
                   </li>
@@ -183,7 +191,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Faculty</span>
                       <span className="text-gray-600">
-                        {quickFacts?.faculty_members ? `${quickFacts.faculty_members.toLocaleString()} Faculty members` : 'Not added yet'}
+                        {quickFactsData?.faculty_members ? `${quickFactsData.faculty_members.toLocaleString()} Faculty members` : 'Not added yet'}
                       </span>
                     </div>
                   </li>
@@ -192,8 +200,8 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Campus Size</span>
                       <span className="text-gray-600">
-                        {quickFacts?.campus_size_acres ? `${quickFacts.campus_size_acres.toLocaleString()} acres` : 
-                         quickFacts?.campus_size_km2 ? `${quickFacts.campus_size_km2.toLocaleString()} km²` : 'Not added yet'}
+                        {quickFactsData?.campus_size_acres ? `${quickFactsData.campus_size_acres.toLocaleString()} acres` : 
+                         quickFactsData?.campus_size_km2 ? `${quickFactsData.campus_size_km2.toLocaleString()} km²` : 'Not added yet'}
                       </span>
                     </div>
                   </li>
@@ -202,7 +210,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">International Students</span>
                       <span className="text-gray-600">
-                        {quickFacts?.international_students_countries ? `Students from ${quickFacts.international_students_countries}+ countries` : 'Not added yet'}
+                        {quickFactsData?.international_students_countries ? `Students from ${quickFactsData.international_students_countries}+ countries` : 'Not added yet'}
                       </span>
                     </div>
                   </li>
@@ -211,7 +219,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Ranking</span>
                       <span className="text-gray-600">
-                        {quickFacts?.global_ranking || 'Not added yet'}
+                        {quickFactsData?.global_ranking || 'Not added yet'}
                       </span>
                     </div>
                   </li>
@@ -229,7 +237,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {isLoading && !isViewMode ? (
                 <div className="space-y-4">
                   <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
                   <div className="animate-pulse bg-gray-200 h-4 rounded"></div>
@@ -242,8 +250,8 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Address</span>
                       <span className="text-gray-600">
-                        {contactInfo?.address || contactInfo?.city || contactInfo?.state || contactInfo?.country ? (
-                          `${contactInfo?.address || ''} ${contactInfo?.city || ''} ${contactInfo?.state || ''} ${contactInfo?.postal_code || ''} ${contactInfo?.country || ''}`.trim()
+                        {contactInfoData?.address || contactInfoData?.city || contactInfoData?.state || contactInfoData?.country ? (
+                          `${contactInfoData?.address || ''} ${contactInfoData?.city || ''} ${contactInfoData?.state || ''} ${contactInfoData?.postal_code || ''} ${contactInfoData?.country || ''}`.trim()
                         ) : (
                           'Not added yet'
                         )}
@@ -254,14 +262,14 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <Phone className="h-5 w-5 text-gray-500 mt-0.5" />
                     <div>
                       <span className="font-medium block">Phone</span>
-                      <span className="text-gray-600">{contactInfo?.phone || 'Not added yet'}</span>
+                      <span className="text-gray-600">{contactInfoData?.phone || 'Not added yet'}</span>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Mail className="h-5 w-5 text-gray-500 mt-0.5" />
                     <div>
                       <span className="font-medium block">Email</span>
-                      <span className="text-gray-600">{contactInfo?.email || 'Not added yet'}</span>
+                      <span className="text-gray-600">{contactInfoData?.email || 'Not added yet'}</span>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -269,7 +277,7 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                     <div>
                       <span className="font-medium block">Website</span>
                       <span className="text-gray-600">
-                        {contactInfo?.website || institutionData?.website || 'Not added yet'}
+                        {contactInfoData?.website || institutionData?.website || 'Not added yet'}
                       </span>
                     </div>
                   </div>
