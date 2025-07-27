@@ -36,30 +36,51 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
   const [isExpanded, setIsExpanded] = useState(false)
   const [quickFacts, setQuickFacts] = useState<any>(null)
   const [contactInfo, setContactInfo] = useState<any>(null)
+  const [facultyStats, setFacultyStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!isViewMode) {
-      fetchQuickFactsAndContactInfo()
-    }
-  }, [isViewMode])
+    fetchQuickFactsAndContactInfo()
+  }, [institutionData.id])
 
   const fetchQuickFactsAndContactInfo = async () => {
     try {
       setIsLoading(true)
 
-      // Fetch quick facts
-      const quickFactsResponse = await fetch('/api/institution/quick-facts')
+      // Fetch quick facts - include institutionId for public view
+      const quickFactsUrl = isViewMode 
+        ? `/api/institution/quick-facts?institutionId=${institutionData.id}`
+        : '/api/institution/quick-facts'
+      const quickFactsResponse = await fetch(quickFactsUrl, {
+        credentials: 'include'
+      })
       if (quickFactsResponse.ok) {
         const quickFactsData = await quickFactsResponse.json()
         setQuickFacts(quickFactsData.quickFacts)
       }
 
-      // Fetch contact info
-      const contactInfoResponse = await fetch('/api/institution/contact-info')
+      // Fetch contact info - include institutionId for public view
+      const contactInfoUrl = isViewMode
+        ? `/api/institution/contact-info?institutionId=${institutionData.id}`
+        : '/api/institution/contact-info'
+      const contactInfoResponse = await fetch(contactInfoUrl, {
+        credentials: 'include'
+      })
       if (contactInfoResponse.ok) {
         const contactInfoData = await contactInfoResponse.json()
         setContactInfo(contactInfoData.contactInfo)
+      }
+
+      // Fetch faculty stats - include institutionId for public view
+      const facultyStatsUrl = isViewMode
+        ? `/api/institution/faculty-stats?institutionId=${institutionData.id}`
+        : '/api/institution/faculty-stats'
+      const facultyStatsResponse = await fetch(facultyStatsUrl, {
+        credentials: 'include'
+      })
+      if (facultyStatsResponse.ok) {
+        const facultyStatsData = await facultyStatsResponse.json()
+        setFacultyStats(facultyStatsData.facultyStats)
       }
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -68,8 +89,8 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
     }
   }
 
-  const quickFactsData = isViewMode ? institutionData?.quickFacts : quickFacts
-  const contactInfoData = isViewMode ? institutionData?.contactInfo : contactInfo
+  const quickFactsData = quickFacts
+  const contactInfoData = contactInfo
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -221,6 +242,43 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
                       </span>
                     </div>
                   </li>
+                  {facultyStats && (
+                    <>
+                      <li className="flex items-start gap-3">
+                        <Users className="h-5 w-5 text-gray-500 mt-0.5" />
+                        <div>
+                          <span className="font-medium block">Student-Faculty Ratio</span>
+                          <span className="text-gray-600">
+                            {facultyStats.studentFacultyRatioStudents && facultyStats.studentFacultyRatioFaculty 
+                              ? `${facultyStats.studentFacultyRatioStudents}:${facultyStats.studentFacultyRatioFaculty}`
+                              : 'Not added yet'}
+                          </span>
+                        </div>
+                      </li>
+                      {facultyStats.facultyWithPhdsPercentage && (
+                        <li className="flex items-start gap-3">
+                          <GraduationCap className="h-5 w-5 text-gray-500 mt-0.5" />
+                          <div>
+                            <span className="font-medium block">Faculty with PhDs</span>
+                            <span className="text-gray-600">
+                              {facultyStats.facultyWithPhdsPercentage}%
+                            </span>
+                          </div>
+                        </li>
+                      )}
+                      {facultyStats.internationalFacultyPercentage && (
+                        <li className="flex items-start gap-3">
+                          <Globe className="h-5 w-5 text-gray-500 mt-0.5" />
+                          <div>
+                            <span className="font-medium block">International Faculty</span>
+                            <span className="text-gray-600">
+                              {facultyStats.internationalFacultyPercentage}%
+                            </span>
+                          </div>
+                        </li>
+                      )}
+                    </>
+                  )}
                 </ul>
               )}
             </CardContent>

@@ -11,6 +11,9 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
+
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
@@ -25,9 +28,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Use provided institutionId or current user's id
+    const targetInstitutionId = institutionId || user.id
+
+    // Verify the institution exists
+    const institutionExists = await prisma.profile.findFirst({
+      where: { 
+        id: targetInstitutionId,
+        role: 'institution'
+      }
+    })
+
+    if (!institutionExists) {
+      return NextResponse.json({ error: 'Institution not found' }, { status: 404 })
+    }
+
     // Fetch faculty stats for the institution
     const facultyStats = await prisma.institutionFacultyStats.findUnique({
-      where: { institutionId: user.id }
+      where: { institutionId: targetInstitutionId }
     })
 
     return NextResponse.json({ facultyStats })
