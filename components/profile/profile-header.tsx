@@ -33,7 +33,8 @@ import {
   UserMinus,
   MessageCircle,
   Send,
-  ArrowLeft
+  ArrowLeft,
+  Brain
 } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
@@ -764,7 +765,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
-                      <BrainIcon className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
+                      <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
                         Skills: {student?.skills?.length || 0}
                       </span>
