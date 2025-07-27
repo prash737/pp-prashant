@@ -1,6 +1,4 @@
-The code change involves updating the AboutInstitutionSection component to support receiving data as props when in view mode.
-```
-```replit_final_file
+
 "use client"
 
 import { useState, useEffect } from "react"
