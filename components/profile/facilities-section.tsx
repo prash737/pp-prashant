@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Home, Book, Microscope, Coffee, Building2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 interface Facility {
   id: string
@@ -24,36 +24,51 @@ export default function FacilitiesSection({ isViewMode = false, facilities: prop
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const facilitiesLoaded = useRef(false)
+  const facilitiesFetchPromise = useRef<Promise<void> | null>(null)
+
+  const fetchFacilities = useCallback(async () => {
+    // If already loading or loaded, return existing promise or do nothing
+    if (facilitiesLoaded.current) return
+    if (facilitiesFetchPromise.current) return facilitiesFetchPromise.current
+
+    facilitiesLoaded.current = true
+    setIsLoading(true)
+
+    facilitiesFetchPromise.current = (async () => {
+      try {
+        const url = institutionId
+          ? `/api/institution/facilities?institutionId=${institutionId}`
+          : '/api/institution/facilities'
+        const response = await fetch(url)
+        if (response.ok) {
+          const data = await response.json()
+          setFacilities(data.facilities || [])
+        } else {
+          throw new Error('Failed to fetch facilities')
+        }
+      } catch (error) {
+        console.error('Error fetching facilities:', error)
+        setError('Failed to load facilities')
+        facilitiesLoaded.current = false // Reset on error
+      } finally {
+        setIsLoading(false)
+        facilitiesFetchPromise.current = null
+      }
+    })()
+
+    return facilitiesFetchPromise.current
+  }, [institutionId])
 
   useEffect(() => {
     if (propsFacilities && propsFacilities.length > 0) {
       setFacilities(propsFacilities)
       setIsLoading(false)
-    } else {
+      facilitiesLoaded.current = true
+    } else if (!facilitiesLoaded.current) {
       fetchFacilities()
     }
-  }, [propsFacilities, institutionId])
-
-  const fetchFacilities = async () => {
-    try {
-      setIsLoading(true)
-      const url = institutionId
-        ? `/api/institution/facilities?institutionId=${institutionId}`
-        : '/api/institution/facilities'
-      const response = await fetch(url)
-      if (response.ok) {
-        const data = await response.json()
-        setFacilities(data.facilities || [])
-      } else {
-        throw new Error('Failed to fetch facilities')
-      }
-    } catch (error) {
-      console.error('Error fetching facilities:', error)
-      setError('Failed to load facilities')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [propsFacilities, fetchFacilities])
 
   if (isLoading) {
     return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Clock, MapPin, Users, ArrowRight } from "lucide-react"
@@ -24,35 +24,50 @@ interface EventsSectionProps {
 export default function EventsSection({ isViewMode = false, events: propsEvents = [], institutionId }: EventsSectionProps) {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const eventsLoaded = useRef(false)
+  const eventsFetchPromise = useRef<Promise<void> | null>(null)
+
+  const fetchEvents = useCallback(async () => {
+    // If already loading or loaded, return existing promise or do nothing
+    if (eventsLoaded.current) return
+    if (eventsFetchPromise.current) return eventsFetchPromise.current
+
+    eventsLoaded.current = true
+    setLoading(true)
+
+    eventsFetchPromise.current = (async () => {
+      try {
+        const url = institutionId 
+          ? `/api/institution/events?institutionId=${institutionId}`
+          : '/api/institution/events'
+        const response = await fetch(url, {
+          credentials: 'include'
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setEvents(data.events || [])
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error)
+        eventsLoaded.current = false // Reset on error
+      } finally {
+        setLoading(false)
+        eventsFetchPromise.current = null
+      }
+    })()
+
+    return eventsFetchPromise.current
+  }, [institutionId])
 
   useEffect(() => {
     if (propsEvents && propsEvents.length > 0) {
       setEvents(propsEvents)
       setLoading(false)
-    } else {
+      eventsLoaded.current = true
+    } else if (!eventsLoaded.current) {
       fetchEvents()
     }
-  }, [propsEvents, institutionId])
-
-  const fetchEvents = async () => {
-    try {
-      setLoading(true)
-      const url = institutionId 
-        ? `/api/institution/events?institutionId=${institutionId}`
-        : '/api/institution/events'
-      const response = await fetch(url, {
-        credentials: 'include'
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setEvents(data.events || [])
-      }
-    } catch (error) {
-      console.error('Error fetching events:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [propsEvents, fetchEvents])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
