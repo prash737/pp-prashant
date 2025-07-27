@@ -398,16 +398,9 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
               <p className="text-white/80 text-sm">Complete your profile to help others connect with you</p>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold">{completionPercentage}%</div>
-            <div className="text-sm text-white/80">Complete</div>
-          </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4">
-          <Progress value={completionPercentage} className="h-2 bg-white/20" />
-        </div>
       </div>
 
       <div className="flex">
@@ -440,13 +433,6 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
                           <span className="text-xs text-red-500">*</span>
                         )}
                       </div>
-                    </div>
-                    <div className="flex-shrink-0">
-                      {isComplete ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
-                      )}
                     </div>
                   </button>
                 )
