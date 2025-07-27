@@ -473,8 +473,8 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                           <h1 className="text-xl sm:text-3xl font-bold truncate">{displayName}</h1>
                           {true && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
                         </div>
-                        {/* Edit Profile button moved here */}
-                        {isOwnProfile && !isViewMode && (
+                        {/* Edit Profile button for own profile or Connect button for viewing others */}
+                        {isOwnProfile && !isViewMode ? (
                           <Button 
                             size="sm" 
                             className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
@@ -482,6 +482,40 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Profile
+                          </Button>
+                        ) : !isOwnProfile && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="shrink-0"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch('/api/connections/request', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  credentials: 'include',
+                                  body: JSON.stringify({
+                                    receiverId: studentProp.id,
+                                    message: `Hi! I'd like to connect with you on PathPiper.`
+                                  }),
+                                })
+
+                                if (response.ok) {
+                                  alert('Connection request sent successfully!')
+                                } else {
+                                  const error = await response.json()
+                                  alert(`Failed to send connection request: ${error.error || 'Unknown error'}`)
+                                }
+                              } catch (error) {
+                                console.error('Error sending connection request:', error)
+                                alert('Failed to send connection request')
+                              }
+                            }}
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Connect
                           </Button>
                         )}
                       </div>
@@ -1069,49 +1103,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                     </div>
                   </div>
 
-                  {!isOwnProfile && (
-                    <div className="mt-6">
-                      {/* Action buttons for viewing other profiles */}
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <Button size="lg" className="bg-pathpiper-teal hover:bg-pathpiper-teal/90">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Message
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="lg"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/connections/request', {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                },
-                                credentials: 'include',
-                                body: JSON.stringify({
-                                  receiverId: studentProp.id,
-                                  message: `Hi! I'd like to connect with you on PathPiper.`
-                                }),
-                              })
-
-                              if (response.ok) {
-                                alert('Connection request sent successfully!')
-                              } else {
-                                const error = await response.json()
-                                alert(`Failed to send connection request: ${error.error || 'Unknown error'}`)
-                              }
-                            } catch (error) {
-                              console.error('Error sending connection request:', error)
-                              alert('Failed to send connection request')
-                            }
-                          }}
-                        >
-                          <UserPlus className="h-4 w-4 mr-2" />
-                          Connect
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
               </div>
             </div>
