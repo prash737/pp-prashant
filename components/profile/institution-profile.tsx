@@ -180,10 +180,6 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
     }
   }
 
-  const isViewMode = false;
-  const currentUser = {};
-  const student = {};
-
   return (
     <div className="min-h-screen bg-gray-50">
       <InstitutionProfileHeader institutionData={institutionData} isViewMode={isViewMode} />
