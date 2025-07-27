@@ -201,6 +201,7 @@ export function InstitutionNavbar() {
   // Function to handle profile navigation with reload
   const handleProfileNavigation = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     // Only redirect if we're not already on the institution profile page
     if (pathname !== '/institution/profile') {
       window.location.href = '/institution/profile';
@@ -284,18 +285,22 @@ export function InstitutionNavbar() {
                       <div
                         key={searchUser.id}
                         className="flex items-start space-x-3 p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setShowSearchResults(false);
                           setSearchQuery("");
-                          // Use window.location.href for reliable navigation
-                          if (searchUser.role === 'student') {
-                            window.location.href = `/public-view/student/profile/${searchUser.id}`;
-                          } else if (searchUser.role === 'institution') {
-                            window.location.href = `/public-view/institution/profile/${searchUser.id}`;
-                          } else {
-                            // Handle other roles or provide a default
-                            console.warn('Unsupported role:', searchUser.role);
-                          }
+                          
+                          // Use a slight delay to ensure state updates complete
+                          setTimeout(() => {
+                            if (searchUser.role === 'student') {
+                              window.location.href = `/public-view/student/profile/${searchUser.id}`;
+                            } else if (searchUser.role === 'institution') {
+                              window.location.href = `/public-view/institution/profile/${searchUser.id}`;
+                            } else {
+                              console.warn('Unsupported role:', searchUser.role);
+                            }
+                          }, 100);
                         }}
                       >
                         <div className="relative">

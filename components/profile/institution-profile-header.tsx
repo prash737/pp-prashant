@@ -25,7 +25,7 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import FollowersDialog from "./followers-dialog"
-import CreateAcademicCommunityDialog from "./create-academic-community-dialog"
+import CreateAcademicCommunityDialog from "./create-academic-academic-community-dialog"
 import AcademicCommunityDialog from "./academic-community-dialog"
 
 interface InstitutionData {
@@ -167,24 +167,38 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
 
   useEffect(() => {
     const fetchEvents = async () => {
+      if (!institutionData.id) return;
+
+      console.log('Fetching events for institution:', institutionData.id);
       try {
-        setEventsLoading(true)
-        const response = await fetch(`/api/institution/events?institutionId=${institutionData.id}`)
+        const response = await fetch(`/api/institution/events?institutionId=${institutionData.id}`);
         if (response.ok) {
-          const data = await response.json()
-          setEvents(data.events || [])
+          const data = await response.json();
+          setEvents(data.events || []);
         }
       } catch (error) {
-        console.error('Error fetching events:', error)
-      } finally {
-        setEventsLoading(false)
+        console.error('Error fetching events:', error);
       }
-    }
+    };
 
-    if (institutionData.id) {
-      fetchEvents()
-    }
-  }, [institutionData.id])
+    const fetchFacilities = async () => {
+      if (!institutionData.id) return;
+
+      try {
+        const response = await fetch(`/api/institution/facilities?institutionId=${institutionData.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Assuming you have a state variable for facilities
+          // setFacilities(data.facilities || []);
+        }
+      } catch (error) {
+        console.error('Error fetching facilities:', error);
+      }
+    };
+
+    fetchEvents();
+    fetchFacilities();
+  }, [institutionData.id]); // Add institutionId as dependency
 
   // Real academic communities state
   const [academicCommunities, setAcademicCommunities] = useState<any[]>([])
