@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import InstitutionProfile from "@/components/profile/institution-profile"
 import InternalNavbar from "@/components/internal-navbar"
+import InstitutionNavbar from "@/components/institution-navbar"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -183,10 +184,13 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
     router.back()
   }
 
+  // Determine which navbar to use based on logged-in user's role
+  const NavbarComponent = currentUser?.role === 'institution' ? InstitutionNavbar : InternalNavbar
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <InternalNavbar />
+        <NavbarComponent />
 
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
@@ -201,7 +205,7 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <InternalNavbar />
+        <NavbarComponent />
 
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
@@ -221,7 +225,7 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <InternalNavbar />
+      <NavbarComponent />
 
       {/* Profile content */}
       <main className="flex-grow">
