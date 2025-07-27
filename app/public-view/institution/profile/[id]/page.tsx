@@ -67,6 +67,9 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
       return
     }
 
+    // Allow other roles to view institution profiles through public view
+    // Don't redirect based on role unless it's their own profile
+
     // Fetch comprehensive institution data using the same approach as institution profile page
     const fetchInstitutionData = async () => {
       try {

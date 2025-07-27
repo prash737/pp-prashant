@@ -65,9 +65,12 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
       return
     }
 
-    // Redirect non-students to their appropriate profile pages
-    if (currentUser.role !== 'student') {
-      if (currentUser.role === 'mentor') {
+    // Only redirect if trying to view own profile, allow other roles to view student profiles
+    // Prevent viewing your own profile through public view
+    if (profileId === currentUser.id) {
+      if (currentUser.role === 'student') {
+        router.push(`/student/profile/${currentUser.id}`)
+      } else if (currentUser.role === 'mentor') {
         router.push('/mentor/profile')
       } else if (currentUser.role === 'institution') {
         router.push('/institution/profile')
