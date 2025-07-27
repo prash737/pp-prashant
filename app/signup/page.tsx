@@ -11,7 +11,7 @@ import StudentRegistration from "@/components/registration/student-registration"
 import MentorRegistration from "@/components/registration/mentor-registration"
 import InstitutionRegistration from "@/components/registration/institution-registration"
 
-export type UserRole = "student" | "mentor" | "institution" | null
+export type UserRole = "student" | "mentor" | "institution" | "parent" | null
 
 export default function Signup() {
   const [step, setStep] = useState(1)
