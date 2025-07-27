@@ -23,7 +23,11 @@ export async function GET(
         role: 'institution'
       },
       include: {
-        institution: true
+        institution: {
+          include: {
+            institutionProfile: true
+          }
+        }
       }
     })
 
@@ -33,22 +37,33 @@ export async function GET(
 
     console.log('✅ Institution profile found:', profile.institution.institutionName)
 
+    // Fetch gallery images for this institution
+    const galleryImages = await prisma.institutionGallery.findMany({
+      where: { institutionId: institutionId },
+      orderBy: { createdAt: 'desc' }
+    })
+
     // Transform data to match the expected format
+    const institutionProfile = profile.institution?.institutionProfile;
     const institutionData = {
       id: profile.id,
-      name: profile.institution.institutionName,
-      type: profile.institution.institutionType,
-      category: profile.institution.category,
-      location: profile.institution.location,
+      name: institutionProfile?.institutionName || profile.firstName + ' ' + profile.lastName,
+      type: institutionProfile?.institutionType || 'Unknown',
+      category: institutionProfile?.category || '',
+      location: profile.location || '',
       bio: profile.bio || '',
-      logo: profile.institution.logo || '/images/pathpiper-logo.png',
-      coverImage: profile.institution.coverImage || '',
-      website: profile.institution.website || '',
-      verified: profile.institution.verified || false,
-      founded: profile.institution.founded,
-      tagline: profile.institution.tagline || '',
-      overview: profile.institution.overview || '',
-      gallery: profile.institution.gallery || []
+      logo: profile.profileImageUrl || '/images/pathpiper-logo.png',
+      coverImage: institutionProfile?.coverImageUrl || '',
+      website: institutionProfile?.website || '',
+      verified: institutionProfile?.verified || false,
+      founded: institutionProfile?.founded || null,
+      tagline: institutionProfile?.tagline || '',
+      overview: institutionProfile?.overview || '',
+      gallery: galleryImages.map(img => ({
+        id: img.id,
+        url: img.imageUrl,
+        caption: img.caption || ''
+      }))
     }
 
     return NextResponse.json(institutionData)
