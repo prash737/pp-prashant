@@ -766,6 +766,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
         open={showCommunityDialog}
         onOpenChange={setShowCommunityDialog}
         onCommunityUpdated={fetchAcademicCommunities}
+        isViewMode={isViewMode}
       />
     </>
   )

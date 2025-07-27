@@ -44,13 +44,15 @@ interface AcademicCommunityDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCommunityUpdated: () => void
+  isViewMode?: boolean
 }
 
 export default function AcademicCommunityDialog({
   community,
   open,
   onOpenChange,
-  onCommunityUpdated
+  onCommunityUpdated,
+  isViewMode = false
 }: AcademicCommunityDialogProps) {
   const [members, setMembers] = useState<Membership[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -264,99 +266,101 @@ export default function AcademicCommunityDialog({
             </>
           )}
 
-          {/* Search and add institutions */}
-          <div>
-            <h4 className="text-sm font-medium mb-3">
-              Add Institutions to Community
-            </h4>
-            <div className="relative mb-4">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+          {/* Search and add institutions - Only show if not in view mode */}
+          {!isViewMode && (
+            <div>
+              <h4 className="text-sm font-medium mb-3">
+                Add Institutions to Community
+              </h4>
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <Input
+                  placeholder="Search institutions to add..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <Input
-                placeholder="Search institutions to add..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
 
-            {searchLoading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-gray-500">Searching...</span>
-              </div>
-            )}
+              {searchLoading && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span className="text-sm text-gray-500">Searching...</span>
+                </div>
+              )}
 
-            {searchResults.length > 0 && (
-              <div className="max-h-60 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {searchResults.map((institution) => {
-                    const alreadyMember = isAlreadyMember(institution.id)
-                    const isAdding = addingMember === institution.id
+              {searchResults.length > 0 && (
+                <div className="max-h-60 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {searchResults.map((institution) => {
+                      const alreadyMember = isAlreadyMember(institution.id)
+                      const isAdding = addingMember === institution.id
 
-                    return (
-                      <div 
-                        key={institution.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
-                      >
-                        <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarImage src={institution.logo} />
-                          <AvatarFallback className="text-xs">
-                            {institution.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
+                      return (
+                        <div 
+                          key={institution.id}
+                          className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
+                        >
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarImage src={institution.logo} />
+                            <AvatarFallback className="text-xs">
+                              {institution.name[0]}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {institution.name}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {institution.type}
-                            </Badge>
-                            {institution.location && (
-                              <span className="text-xs text-gray-500 truncate">
-                                {institution.location}
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {institution.name}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {institution.type}
+                              </Badge>
+                              {institution.location && (
+                                <span className="text-xs text-gray-500 truncate">
+                                  {institution.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex-shrink-0">
+                            {alreadyMember ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Already Member
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => addMember(institution.id)}
+                                disabled={isAdding}
+                                className="text-xs"
+                              >
+                                {isAdding ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : (
+                                  <Plus className="h-3 w-3 mr-1" />
+                                )}
+                                Add to Community
+                              </Button>
                             )}
                           </div>
                         </div>
-
-                        <div className="flex-shrink-0">
-                          {alreadyMember ? (
-                            <Badge variant="secondary" className="text-xs">
-                              Already Member
-                            </Badge>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => addMember(institution.id)}
-                              disabled={isAdding}
-                              className="text-xs"
-                            >
-                              {isAdding ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : (
-                                <Plus className="h-3 w-3 mr-1" />
-                              )}
-                              Add to Community
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
-              <p className="text-sm text-gray-500 text-center py-4">
-                No institutions found matching your search
-              </p>
-            )}
-          </div>
+              {searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No institutions found matching your search
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="flex gap-2 pt-2">
