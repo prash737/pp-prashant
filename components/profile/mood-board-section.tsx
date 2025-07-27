@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,9 +14,12 @@ interface MoodBoardItem {
 
 interface MoodBoardSectionProps {
   studentId: string
+  isOwnProfile: boolean
+  onEdit?: () => void
+  isViewMode?: boolean
 }
 
-export default function MoodBoardSection({ studentId }: MoodBoardSectionProps) {
+export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isViewMode = false }: MoodBoardSectionProps) {
   const [moodBoard, setMoodBoard] = useState<MoodBoardItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -78,14 +80,16 @@ export default function MoodBoardSection({ studentId }: MoodBoardSectionProps) {
               </div>
             ))
           ) : (
+            (!isViewMode) ? (
             <div className="col-span-3 text-center py-8 text-gray-500 dark:text-gray-400">
               <BrainIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No mood board images yet</p>
             </div>
+          ): null
           )}
         </div>
       )}
-      
+
       {moodBoard.length > 9 && (
         <div className="mt-3 text-center">
           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>

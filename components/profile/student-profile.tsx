@@ -175,14 +175,18 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
 
   const tabs = [
     { id: "about", label: "About" },
-    { id: "interests", label: "Interests" },
+    // Only show interests tab if student has interests or if it's not view mode
+    ...((!isViewMode || (student?.interests && student.interests.length > 0)) ? [{ id: "interests", label: "Interests" }] : []),
     ...(isViewMode ? [] : [{ id: "suggested", label: "Suggested Connections" }]),
     { id: "circle", label: isViewMode ? "Circles" : "My Circle" },
     { id: "following", label: "Following" },
-    { id: "skills", label: "Skills Canvas" },
-    { id: "projects", label: "Projects" },
+    // Only show skills tab if student has skills or if it's not view mode
+    ...((!isViewMode || (student?.skills && student.skills.length > 0)) ? [{ id: "skills", label: "Skills Canvas" }] : []),
+    // Only show projects tab if student has projects or if it's not view mode
+    ...((!isViewMode || (student?.projects && student.projects.length > 0)) ? [{ id: "projects", label: "Projects" }] : []),
     { id: "achievements", label: "Achievements" },
-    { id: "goals", label: "Goals" },
+    // Only show goals tab if student has goals or if it's not view mode
+    ...((!isViewMode || (student?.careerGoals && student.careerGoals.length > 0)) ? [{ id: "goals", label: "Goals" }] : []),
   ]
 
   return (

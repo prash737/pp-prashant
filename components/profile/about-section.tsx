@@ -31,6 +31,7 @@ export default function AboutSection({ student: studentProp, currentUser, isView
   const [isEditing, setIsEditing] = useState(false)
   const [connections, setConnections] = useState<Connection[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasMoodBoardImages, setHasMoodBoardImages] = useState(false)
 
   // Use passed student data or empty defaults
   const student = studentProp || {
@@ -301,7 +302,7 @@ export default function AboutSection({ student: studentProp, currentUser, isView
           )}
 
           {/* Mood Board */}
-          <MoodBoardSection studentId={studentProp.id} />
+          <MoodBoardSection studentId={studentProp.id} isViewMode={isViewMode} />
         </div>
       </div>
     </div>
