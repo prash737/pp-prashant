@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefcase, GraduationCap, Mail, Phone, Globe, Instagram, Twitter, Linkedin, Github, Youtube, Facebook, UserPlus, BadgeCheck, Edit, MessageCircle, UserIcon, FolderKanban, Award, BrainIcon, UserCheck, UserX, Building2 } from "lucide-react"
+import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefcase, GraduationCap, Mail, Phone, Globe, Instagram, Twitter, Linkedin, Github, Youtube, Facebook, UserPlus, BadgeCheck, Edit, MessageCircle, UserIcon, FolderKanban, Award, BrainIcon, UserCheck, UserX, Building2, Clock } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
 import CircleManagementDialog from "./circle-management-dialog"
@@ -51,6 +51,8 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   const [showFollowingDialog, setShowFollowingDialog] = useState(false)
   const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
   const [followingCount, setFollowingCount] = useState(0)
+  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
+  const [sendingRequest, setSendingRequest] = useState(false)
 
   // Use passed student data or fallback to mock data
   const studentProp = student || {
@@ -82,6 +84,70 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
 
   // Check if this is the current user's own profile
   const isOwnProfile = currentUser && currentUser.id === studentProp.id
+
+  // Function to check connection status
+  const checkConnectionStatus = async () => {
+    if (!currentUser || isOwnProfile) return
+    
+    setConnectionStatus('loading')
+    try {
+      // Check if they are already connected
+      const connectionsResponse = await fetch('/api/connections', {
+        credentials: 'include'
+      })
+      
+      if (connectionsResponse.ok) {
+        const connections = await connectionsResponse.json()
+        const isConnected = connections.some((conn: any) => 
+          conn.user.id === studentProp.id
+        )
+        
+        if (isConnected) {
+          setConnectionStatus('connected')
+          return
+        }
+      }
+
+      // Check if there's a pending request
+      const requestsResponse = await fetch('/api/connections/requests?type=sent', {
+        credentials: 'include'
+      })
+      
+      if (requestsResponse.ok) {
+        const sentRequests = await requestsResponse.json()
+        const pendingRequest = sentRequests.find((req: any) => 
+          req.receiverId === studentProp.id && req.status === 'pending'
+        )
+        
+        if (pendingRequest) {
+          setConnectionStatus('pending')
+          return
+        }
+      }
+
+      // Check if there's a pending request from the other user
+      const receivedRequestsResponse = await fetch('/api/connections/requests?type=received', {
+        credentials: 'include'
+      })
+      
+      if (receivedRequestsResponse.ok) {
+        const receivedRequests = await receivedRequestsResponse.json()
+        const pendingRequest = receivedRequests.find((req: any) => 
+          req.sender?.id === studentProp.id && req.status === 'pending'
+        )
+        
+        if (pendingRequest) {
+          setConnectionStatus('pending')
+          return
+        }
+      }
+
+      setConnectionStatus('none')
+    } catch (error) {
+      console.error('Error checking connection status:', error)
+      setConnectionStatus('none')
+    }
+  }
 
   // Initialize and fetch connection counts
   React.useEffect(() => {
@@ -268,7 +334,12 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       fetchRecentAchievements()
     }
     fetchFollowingInstitutions()
-  }, [isOwnProfile, student, isViewMode, student?.id])
+    
+    // Check connection status for non-own profiles
+    if (!isOwnProfile && currentUser && studentProp.id) {
+      checkConnectionStatus()
+    }
+  }, [isOwnProfile, student, isViewMode, student?.id, currentUser])
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) return
@@ -437,6 +508,38 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     }
   }
 
+  const handleSendConnectionRequest = async () => {
+    if (!currentUser || isOwnProfile || connectionStatus !== 'none') return
+    
+    setSendingRequest(true)
+    try {
+      const response = await fetch('/api/connections/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          receiverId: studentProp.id,
+          message: `Hi! I'd like to connect with you on PathPiper.`
+        }),
+      })
+
+      if (response.ok) {
+        setConnectionStatus('pending')
+        alert('Connection request sent successfully!')
+      } else {
+        const error = await response.json()
+        alert(`Failed to send connection request: ${error.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error sending connection request:', error)
+      alert('Failed to send connection request')
+    } finally {
+      setSendingRequest(false)
+    }
+  }
+
   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
 
   return (
@@ -484,39 +587,59 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                             Edit Profile
                           </Button>
                         ) : !isOwnProfile && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="shrink-0"
-                            onClick={async () => {
-                              try {
-                                const response = await fetch('/api/connections/request', {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  credentials: 'include',
-                                  body: JSON.stringify({
-                                    receiverId: studentProp.id,
-                                    message: `Hi! I'd like to connect with you on PathPiper.`
-                                  }),
-                                })
-
-                                if (response.ok) {
-                                  alert('Connection request sent successfully!')
-                                } else {
-                                  const error = await response.json()
-                                  alert(`Failed to send connection request: ${error.error || 'Unknown error'}`)
-                                }
-                              } catch (error) {
-                                console.error('Error sending connection request:', error)
-                                alert('Failed to send connection request')
-                              }
-                            }}
-                          >
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Connect
-                          </Button>
+                          <>
+                            {connectionStatus === 'connected' ? (
+                              <Button 
+                                variant="secondary" 
+                                size="sm"
+                                className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100 cursor-not-allowed"
+                                disabled
+                              >
+                                <UserCheck className="h-4 w-4 mr-2" />
+                                Already Connected
+                              </Button>
+                            ) : connectionStatus === 'pending' ? (
+                              <Button 
+                                variant="secondary" 
+                                size="sm"
+                                className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-not-allowed"
+                                disabled
+                              >
+                                <Clock className="h-4 w-4 mr-2" />
+                                Pending
+                              </Button>
+                            ) : connectionStatus === 'loading' ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="shrink-0"
+                                disabled
+                              >
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                Loading...
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="shrink-0"
+                                onClick={handleSendConnectionRequest}
+                                disabled={sendingRequest}
+                              >
+                                {sendingRequest ? (
+                                  <>
+                                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                    Sending...
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Connect
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                       {tagline && (

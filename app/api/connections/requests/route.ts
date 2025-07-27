@@ -30,13 +30,34 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') || 'received'
+    const type = searchParams.get('type') || 'received' // 'received' or 'sent'
 
-    let requests;
+    let connectionRequests
 
-    if (type === 'sent') {
-      // Get connection requests where user is the sender
-      requests = await prisma.connectionRequest.findMany({
+    if (type === 'received') {
+      connectionRequests = await prisma.connectionRequest.findMany({
+        where: {
+          receiverId: user.id
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profileImageUrl: true,
+              role: true,
+              bio: true,
+              location: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+    } else if (type === 'sent') {
+      connectionRequests = await prisma.connectionRequest.findMany({
         where: {
           senderId: user.id
         },
@@ -58,31 +79,10 @@ export async function GET(request: NextRequest) {
         }
       })
     } else {
-      // Get connection requests where user is the receiver
-      requests = await prisma.connectionRequest.findMany({
-        where: {
-          receiverId: user.id
-        },
-        include: {
-          sender: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profileImageUrl: true,
-              role: true,
-              bio: true,
-              location: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      })
+      connectionRequests = []
     }
 
-    return NextResponse.json(requests)
+    return NextResponse.json(connectionRequests)
 
   } catch (error) {
     console.error('Error fetching connection requests:', error)
