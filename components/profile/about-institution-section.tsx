@@ -131,6 +131,14 @@ export default function AboutInstitutionSection({ institutionData, isViewMode = 
             <CardContent className="space-y-4">
               {institutionData?.mission || (institutionData?.coreValues && institutionData.coreValues.length > 0) ? (
                 <>
+                  {/* Debug logging for core values */}
+                  {console.log('🎯 About Institution Section - Core Values Debug:', {
+                    coreValues: institutionData?.coreValues,
+                    coreValuesType: typeof institutionData?.coreValues,
+                    coreValuesLength: institutionData?.coreValues?.length,
+                    isArray: Array.isArray(institutionData?.coreValues)
+                  })}
+                  
                   {institutionData?.mission && (
                     <>
                       <h3 className="font-semibold text-lg">Our Mission</h3>

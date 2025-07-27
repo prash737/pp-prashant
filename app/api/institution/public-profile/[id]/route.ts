@@ -52,6 +52,14 @@ export async function GET(
       gallery: profile.institution.gallery || []
     }
 
+    console.log('📤 Institution data being sent:', {
+      name: institutionData.name,
+      mission: institutionData.mission,
+      coreValues: institutionData.coreValues,
+      coreValuesType: typeof institutionData.coreValues,
+      coreValuesIsArray: Array.isArray(institutionData.coreValues)
+    })
+
     return NextResponse.json(institutionData)
 
   } catch (error) {
