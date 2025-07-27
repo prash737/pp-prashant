@@ -751,7 +751,6 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                               <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                   <Input
-                                    ```
                                     type="file"
                                     accept="image/*"
                                     onChange={handleImageUpload}
