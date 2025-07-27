@@ -40,7 +40,7 @@ export async function GET(
       category: profile.institution.category,
       location: profile.institution.location,
       bio: profile.bio || '',
-      logo: profile.institution.logo || '/images/pathpiper-logo.png',
+      logo: profile.profileImageUrl || profile.institution.logoUrl || profile.institution.logo || '/images/pathpiper-logo.png',
       coverImage: profile.institution.coverImage || '',
       website: profile.institution.website || '',
       verified: profile.institution.verified || false,
