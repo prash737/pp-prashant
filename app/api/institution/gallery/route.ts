@@ -41,16 +41,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    console.log('🖼️ Gallery images found:', gallery.length)
-
-    // Format the response consistently
-    const formattedGallery = gallery.map(img => ({
-      id: img.id,
-      url: img.imageUrl,
-      caption: img.caption || ''
-    }))
-
-    return NextResponse.json({ images: formattedGallery })
+    return NextResponse.json({ images: gallery })
   } catch (error) {
     console.error('Error fetching gallery images:', error)
     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })

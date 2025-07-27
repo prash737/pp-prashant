@@ -120,29 +120,9 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
           facultyResponse.ok ? facultyResponse.json() : { faculty: [] },
           facilitiesResponse.ok ? facilitiesResponse.json() : { facilities: [] },
           eventsResponse.ok ? eventsResponse.json() : { events: [] },
-          galleryResponse.ok ? galleryResponse.json() : { images: [] },
+          galleryResponse.ok ? galleryResponse.json() : { gallery: [] },
           followersResponse.ok ? followersResponse.json() : { followers: [] }
         ])
-
-        console.log('🖼️ Gallery data received:', galleryData)
-
-        // Process gallery data correctly
-        let processedGallery = []
-        if (galleryData && Array.isArray(galleryData.images)) {
-          processedGallery = galleryData.images.map((img: any) => ({
-            id: img.id,
-            url: img.imageUrl || img.url,
-            caption: img.caption || ''
-          }))
-        } else if (Array.isArray(galleryData)) {
-          processedGallery = galleryData.map((img: any) => ({
-            id: img.id,
-            url: img.imageUrl || img.url,
-            caption: img.caption || ''
-          }))
-        } else if (profileData.gallery && Array.isArray(profileData.gallery)) {
-          processedGallery = profileData.gallery
-        }
 
         // Combine all data into comprehensive institution object
         const comprehensiveInstitutionData: InstitutionData = {
@@ -161,7 +141,9 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
           overview: profileData.overview || '',
           mission: profileData.mission || '',
           coreValues: profileData.coreValues || [],
-          gallery: processedGallery,
+          gallery: Array.isArray(galleryData.gallery) ? galleryData.gallery : 
+                   Array.isArray(galleryData) ? galleryData :
+                   Array.isArray(profileData.gallery) ? profileData.gallery : [],
           programs: programsData.programs || [],
           faculty: facultyData.faculty || [],
           facilities: facilitiesData.facilities || [],
