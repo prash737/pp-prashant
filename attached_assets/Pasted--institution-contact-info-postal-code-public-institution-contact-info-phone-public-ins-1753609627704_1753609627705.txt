@@ -1,0 +1,28 @@
+"institution_contact_info"."postal_code", "public"."institution_contact_info"."phone", "public"."institution_contact_info"."email", "public"."institution_contact_info"."website", "public"."institution_contact_info"."social_links", "public"."institution_contact_info"."created_at", "public"."institution_contact_info"."updated_at" FROM "public"."institution_contact_info" WHERE "public"."institution_contact_info"."institution_id" IN ($1) OFFSET $2
+prisma:error 
+Invalid `prisma.profile.findUnique()` invocation:
+
+
+The column `institution_contact_info.social_links` does not exist in the current database.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Public institution profile fetch error: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.profile.findUnique()` invocation:
+
+
+The column `institution_contact_info.social_links` does not exist in the current database.
+    at async GET (app/api/institution/public-profile/[id]/route.ts:20:20)
+  18 |
+  19 |     // Get institution profile with all related data
+> 20 |     const profile = await prisma.profile.findUnique({
+     |                    ^
+  21 |       where: { 
+  22 |         id: institutionId,
+  23 |         role: 'institution' {
+  code: 'P2022',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ GET /api/institution/public-profile/cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 3796ms
