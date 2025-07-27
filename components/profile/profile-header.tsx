@@ -34,7 +34,8 @@ import {
   MessageCircle,
   Send,
   ArrowLeft,
-  Brain
+  Brain,
+  Share2
 } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
@@ -81,6 +82,32 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
   const [followingCount, setFollowingCount] = useState(0)
   const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
   const [sendingRequest, setSendingRequest] = useState(false)
+
+  const handleShareProfile = async () => {
+    const profileUrl = `https://path-piper.replit.app/public-view/student/profile/${student.id}`
+    
+    try {
+      await navigator.clipboard.writeText(profileUrl)
+      // You can add a toast notification here if you have a toast system
+      alert('Profile link copied to clipboard!')
+    } catch (err) {
+      console.error('Failed to copy profile link:', err)
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = profileUrl
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        alert('Profile link copied to clipboard!')
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed:', fallbackErr)
+        alert('Failed to copy link. Please copy manually: ' + profileUrl)
+      }
+      document.body.removeChild(textArea)
+    }
+  }
 
   // Use passed student data or fallback to mock data
   const student = studentProp || {
@@ -619,70 +646,85 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                           {true && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
                         </div>
                         {/* Edit Profile button for own profile or Connect button for viewing others */}
-                        {isOwnProfile && !isViewMode ? (
-                          <Button 
-                            size="sm" 
-                            className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
-                            onClick={() => router.push('/student/profile/edit')}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Profile
-                          </Button>
-                        ) : !isOwnProfile && (
-                          <>
-                            {connectionStatus === 'connected' ? (
-                              <Button 
-                                variant="secondary" 
-                                size="sm"
-                                className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100 cursor-not-allowed"
-                                disabled
-                              >
-                                <UserCheck className="h-4 w-4 mr-2" />
-                                Already Connected
-                              </Button>
-                            ) : connectionStatus === 'pending' ? (
-                              <Button 
-                                variant="secondary" 
-                                size="sm"
-                                className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-not-allowed"
-                                disabled
-                              >
-                                <Clock className="h-4 w-4 mr-2" />
-                                Pending
-                              </Button>
-                            ) : connectionStatus === 'loading' ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="shrink-0"
-                                disabled
-                              >
-                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                                Loading...
-                              </Button>
-                            ) : (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="shrink-0"
-                                onClick={handleSendConnectionRequest}
-                                disabled={sendingRequest}
-                              >
-                                {sendingRequest ? (
-                                  <>
-                                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                                    Sending...
-                                  </>
-                                ) : (
-                                  <>
-                                    <UserPlus className="h-4 w-4 mr-2" />
-                                    Connect
-                                  </>
-                                )}
-                              </Button>
-                            )}
-                          </>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {/* Share Profile button - Show for all profiles in view mode */}
+                          {isViewMode && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="shrink-0"
+                              onClick={handleShareProfile}
+                            >
+                              <Share2 className="h-4 w-4 mr-2" />
+                              Share Profile
+                            </Button>
+                          )}
+                          
+                          {isOwnProfile && !isViewMode ? (
+                            <Button 
+                              size="sm" 
+                              className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
+                              onClick={() => router.push('/student/profile/edit')}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Profile
+                            </Button>
+                          ) : !isOwnProfile && (
+                            <>
+                              {connectionStatus === 'connected' ? (
+                                <Button 
+                                  variant="secondary" 
+                                  size="sm"
+                                  className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100 cursor-not-allowed"
+                                  disabled
+                                >
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Already Connected
+                                </Button>
+                              ) : connectionStatus === 'pending' ? (
+                                <Button 
+                                  variant="secondary" 
+                                  size="sm"
+                                  className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-not-allowed"
+                                  disabled
+                                >
+                                  <Clock className="h-4 w-4 mr-2" />
+                                  Pending
+                                </Button>
+                              ) : connectionStatus === 'loading' ? (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="shrink-0"
+                                  disabled
+                                >
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                  Loading...
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="shrink-0"
+                                  onClick={handleSendConnectionRequest}
+                                  disabled={sendingRequest}
+                                >
+                                  {sendingRequest ? (
+                                    <>
+                                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                      Sending...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserPlus className="h-4 w-4 mr-2" />
+                                      Connect
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                       {tagline && (
                         <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base truncate">
