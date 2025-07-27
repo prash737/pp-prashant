@@ -88,11 +88,13 @@ interface Circle {
 function CircleBadgesSection({ 
   onCircleSelect, 
   currentUserId,
-  isViewMode = false
+  isViewMode = false,
+  studentId
 }: { 
   onCircleSelect: (circle: Circle) => void;
   currentUserId?: string;
   isViewMode?: boolean;
+  studentId?: string;
 }) {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +108,15 @@ function CircleBadgesSection({
   useEffect(() => {
     const fetchCircles = async () => {
       try {
-        const response = await fetch("/api/circles");
+        let response;
+        if (isViewMode && studentId) {
+          // In view mode, fetch circles for the student being viewed
+          response = await fetch(`/api/student/profile/${studentId}/circles`);
+        } else {
+          // In own profile mode, fetch circles for the current user
+          response = await fetch("/api/circles");
+        }
+        
         if (response.ok) {
           const data = await response.json();
           setCircles(data);
@@ -119,7 +129,7 @@ function CircleBadgesSection({
     };
 
     fetchCircles();
-  }, []);
+  }, [isViewMode, studentId]);
 
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
@@ -754,6 +764,7 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
                 onCircleSelect={handleCircleSelect} 
                 currentUserId={student?.id || currentUserId}
                 isViewMode={isViewMode}
+                studentId={student?.id}
               />
             </div>
 
