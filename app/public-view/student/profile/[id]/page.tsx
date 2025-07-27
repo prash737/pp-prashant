@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -126,19 +125,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <InternalNavbar />
-        {/* Back button */}
-        <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        
+
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
@@ -153,19 +140,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <InternalNavbar />
-        {/* Back button */}
-        <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        
+
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
@@ -192,8 +167,11 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <InternalNavbar />
       {/* Back button - Sticky header */}
-      <div className="sticky top-16 sm:top-24 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-        <Button
+      
+
+      {/* Profile content */}
+      <main className="flex-grow">
+      <Button
           variant="ghost"
           size="sm"
           onClick={handleGoBack}
@@ -202,10 +180,6 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-      </div>
-      
-      {/* Profile content */}
-      <main className="flex-grow">
         {studentData && (
           <StudentProfile
             studentId={profileId!}

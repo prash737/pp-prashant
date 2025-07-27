@@ -8,7 +8,33 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Settings, Plus, Users, MessageSquare, Share2, Calendar, MapPin, Briefcase, GraduationCap, Mail, Phone, Globe, Instagram, Twitter, Linkedin, Github, Youtube, Facebook, UserPlus, BadgeCheck, Edit, MessageCircle, UserIcon, FolderKanban, Award, BrainIcon, UserCheck, UserX, Building2, Clock } from "lucide-react"
+import { 
+  MapPin, 
+  Calendar, 
+  Users, 
+  Edit, 
+  UserPlus, 
+  UserCheck, 
+  Clock, 
+  BadgeCheck,
+  Star,
+  Award,
+  FolderKanban,
+  ExternalLink,
+  Globe,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Github,
+  Youtube,
+  Facebook,
+  Eye,
+  EyeOff,
+  UserMinus,
+  MessageCircle,
+  Send,
+  ArrowLeft
+} from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
 import CircleManagementDialog from "./circle-management-dialog"
@@ -23,6 +49,7 @@ interface ProfileHeaderProps {
     institutions: number
   }
   isViewMode?: boolean
+  onGoBack?: () => void
 }
 
 interface Achievement {
@@ -34,7 +61,7 @@ interface Achievement {
   achievementImageIcon?: string
 }
 
-export default function ProfileHeader({ student, currentUser, connectionCounts, isViewMode = false }: ProfileHeaderProps) {
+export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, onGoBack }: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
@@ -55,7 +82,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   const [sendingRequest, setSendingRequest] = useState(false)
 
   // Use passed student data or fallback to mock data
-  const studentProp = student || {
+  const student = studentProp || {
     id: "",
     profile: {
       firstName: "Alex",
@@ -74,34 +101,34 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     skills: []
   }
 
-  const displayName = studentProp.profile ? `${studentProp.profile.firstName} ${studentProp.profile.lastName}` : "Student"
-  const currentEducation = studentProp.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
+  const displayName = student.profile ? `${student.profile.firstName} ${student.profile.lastName}` : "Student"
+  const currentEducation = student.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
-  const profileImage = studentProp.profile?.profileImageUrl || "/images/student-profile.png"
+  const profileImage = student.profile?.profileImageUrl || "/images/student-profile.png"
   // Fix tagline access - check multiple possible locations
-  const tagline = studentProp.profile?.tagline || studentProp.tagline || studentProp.profile?.bio || "Passionate learner exploring new horizons"
+  const tagline = student.profile?.tagline || student.tagline || student.profile?.bio || "Passionate learner exploring new horizons"
 
   // Check if this is the current user's own profile
-  const isOwnProfile = currentUser && currentUser.id === studentProp.id
+  const isOwnProfile = currentUser && currentUser.id === student.id
 
   // Function to check connection status
   const checkConnectionStatus = async () => {
     if (!currentUser || isOwnProfile) return
-    
+
     setConnectionStatus('loading')
     try {
       // Check if they are already connected
       const connectionsResponse = await fetch('/api/connections', {
         credentials: 'include'
       })
-      
+
       if (connectionsResponse.ok) {
         const connections = await connectionsResponse.json()
         const isConnected = connections.some((conn: any) => 
-          conn.user.id === studentProp.id
+          conn.user.id === student.id
         )
-        
+
         if (isConnected) {
           setConnectionStatus('connected')
           return
@@ -112,13 +139,13 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       const requestsResponse = await fetch('/api/connections/requests?type=sent', {
         credentials: 'include'
       })
-      
+
       if (requestsResponse.ok) {
         const sentRequests = await requestsResponse.json()
         const pendingRequest = sentRequests.find((req: any) => 
-          req.receiverId === studentProp.id && req.status === 'pending'
+          req.receiverId === student.id && req.status === 'pending'
         )
-        
+
         if (pendingRequest) {
           setConnectionStatus('pending')
           return
@@ -129,13 +156,13 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       const receivedRequestsResponse = await fetch('/api/connections/requests?type=received', {
         credentials: 'include'
       })
-      
+
       if (receivedRequestsResponse.ok) {
         const receivedRequests = await receivedRequestsResponse.json()
         const pendingRequest = receivedRequests.find((req: any) => 
-          req.sender?.id === studentProp.id && req.status === 'pending'
+          req.sender?.id === student.id && req.status === 'pending'
         )
-        
+
         if (pendingRequest) {
           setConnectionStatus('pending')
           return
@@ -184,7 +211,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       // For viewing someone else's profile, always fetch their connection counts
       const fetchViewedUserConnectionCounts = async () => {
         try {
-          const response = await fetch(`/api/connections?userId=${studentProp.id}`, {
+          const response = await fetch(`/api/connections?userId=${student.id}`, {
             credentials: 'include'
           })
           if (response.ok) {
@@ -205,11 +232,11 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
         }
       }
 
-      if (studentProp.id) {
+      if (student.id) {
         fetchViewedUserConnectionCounts()
       }
     }
-  }, [isOwnProfile, studentProp.id, connectionCounts])
+  }, [isOwnProfile, student.id, connectionCounts])
 
   // State for recent achievements
   const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([])
@@ -334,9 +361,9 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
       fetchRecentAchievements()
     }
     fetchFollowingInstitutions()
-    
+
     // Check connection status for non-own profiles
-    if (!isOwnProfile && currentUser && studentProp.id) {
+    if (!isOwnProfile && currentUser && student.id) {
       checkConnectionStatus()
     }
   }, [isOwnProfile, student, isViewMode, student?.id, currentUser])
@@ -424,7 +451,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
   };
 
   const handleCircleClick = (circle: any) => {
-    const disabled = isCircleDisabled(circle, studentProp.id);
+    const disabled = isCircleDisabled(circle, student.id);
     if (!disabled) {
       setSelectedCircle(circle)
       setShowCircleManagement(true)
@@ -510,7 +537,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
 
   const handleSendConnectionRequest = async () => {
     if (!currentUser || isOwnProfile || connectionStatus !== 'none') return
-    
+
     setSendingRequest(true)
     try {
       const response = await fetch('/api/connections/request', {
@@ -520,7 +547,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
         },
         credentials: 'include',
         body: JSON.stringify({
-          receiverId: studentProp.id,
+          receiverId: student.id,
           message: `Hi! I'd like to connect with you on PathPiper.`
         }),
       })
@@ -550,6 +577,20 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
 
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="relative -mt-24 sm:-mt-16 mb-6">
+            {/* Back button - positioned below cover image */}
+          {isViewMode && onGoBack && (
+            <div className="mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onGoBack}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
+          )}
             {/* Profile info - With profile pic inside */}
             <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -713,19 +754,19 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                         data-tooltip={`Projects ${isOwnProfile ? "you've" : "they've"} created or contributed to`}
                       />
                       <span data-tooltip={`Projects ${isOwnProfile ? "you've" : "they've"} created or contributed to`}>
-                        Projects: {studentProp?.projects?.length || 0}
+                        Projects: {student?.projects?.length || 0}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 text-amber-600 dark:text-amber-300 px-3 py-1.5 rounded-full">
                       <Award className="h-3.5 w-3.5 text-amber-500" data-tooltip={`Badges ${isOwnProfile ? "you've" : "they've"} earned`} />
                       <span data-tooltip={`Badges ${isOwnProfile ? "you've" : "they've"} earned`}>
-                        Badges: {studentProp?.customBadges?.length || 0}
+                        Badges: {student?.customBadges?.length || 0}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <BrainIcon className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {studentProp?.skills?.length || 0}
+                        Skills: {student?.skills?.length || 0}
                       </span>
                     </div>
                     <div 
@@ -782,7 +823,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                                           _count: {
                                             memberships: actualConnectionCounts?.total || 0
                                           },
-                                          creator: studentProp.profile,
+                                          creator: student.profile,
                                           isDefault: true
                                         })}
                                         className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 p-[3px] hover:from-pink-500 hover:to-purple-600 transition-all duration-200"
@@ -802,7 +843,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
 
                                 {/* Dynamic Circles from Database */}
                                 {circles.map((circle) => {
-                                  const isDisabled = isCircleDisabled(circle, studentProp.id);
+                                  const isDisabled = isCircleDisabled(circle, student.id);
 
                                   return (
                                     <div 
@@ -1226,7 +1267,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                     </div>
                   </div>
 
-                  
+
                 </div>
               </div>
             </div>
