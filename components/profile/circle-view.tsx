@@ -122,7 +122,7 @@ function CircleBadgesSection({
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
     if (!currentUserId) return false;
-    
+
     // 1. Check if circle is globally disabled
     if (circle.isDisabled) {
       return true;
@@ -304,7 +304,7 @@ function CircleBadgesSection({
             <div className="grid grid-cols-3 gap-4 py-3">
               {circles.map((circle) => {
                 const isDisabled = currentUserId ? isCircleDisabled(circle, currentUserId) : false;
-                
+
                 // Debug logging
                 if (isDisabled) {
                   console.log(`🔒 Circle "${circle.name}" is disabled for user ${currentUserId}:`, {
@@ -348,7 +348,7 @@ function CircleBadgesSection({
                             {getIconComponent(circle.icon)}
                           </div>
                         )}
-                        
+
                         {/* Disabled overlay with cross */}
                         {isDisabled && (
                           <div className="absolute inset-0 rounded-full bg-black bg-opacity-60 flex items-center justify-center">
@@ -358,7 +358,7 @@ function CircleBadgesSection({
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Member count indicator */}
                       <div className={`absolute -top-0.5 -right-0.5 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center ${
                         isDisabled ? 'bg-gray-500' : 'bg-gray-900'
@@ -367,7 +367,7 @@ function CircleBadgesSection({
                           {circle._count.memberships + 1}
                         </span>
                       </div>
-                      
+
                       {/* Default badge indicator */}
                       {circle.isDefault && (
                         <div className={`absolute -bottom-0.5 -right-0.5 text-white rounded-full w-3 h-3 flex items-center justify-center ${
@@ -496,9 +496,10 @@ function CircleBadgesSection({
 interface CircleViewProps {
   student: any;
   currentUserId?: string;
+  isViewMode?: boolean;
 }
 
-export default function CircleView({ student, currentUserId }: CircleViewProps) {
+export default function CircleView({ student, currentUserId, isViewMode }: CircleViewProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);

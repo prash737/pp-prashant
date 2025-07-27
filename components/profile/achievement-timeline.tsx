@@ -1,3 +1,6 @@
+The code modifies the AchievementTimeline component to remove the manage achievements button when in view mode.
+```
+```replit_final_file
 "use client"
 
 import { useState, useEffect } from "react"
@@ -20,9 +23,10 @@ interface Achievement {
 interface AchievementTimelineProps {
   userId?: string
   isOwnProfile?: boolean
+  isViewMode?: boolean
 }
 
-export default function AchievementTimeline({ userId, isOwnProfile = false }: AchievementTimelineProps) {
+export default function AchievementTimeline({ userId, isOwnProfile = false, isViewMode = false }: AchievementTimelineProps) {
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -95,7 +99,7 @@ export default function AchievementTimeline({ userId, isOwnProfile = false }: Ac
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Achievement Timeline
             </h3>
-            {isOwnProfile && (
+            {isOwnProfile && !isViewMode && (
               <Button onClick={handleManageAchievements} variant="outline" size="sm" className="px-4 py-2">
                 <Plus className="w-4 h-4 mr-2" />
                 Manage

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -431,7 +430,15 @@ export function InternalNavbar() {
                       >
                         <div
                           className="flex items-start space-x-3 flex-1 cursor-pointer"
-                          onClick={() => handleProfileClick(searchUser.id)}
+                          onClick={() => {
+                            setShowSearchResults(false);
+                            setSearchQuery("");
+                            if (searchUser.id === user?.id) {
+                              router.push(`/student/profile`);
+                            } else {
+                              router.push(`/public-view/student/profile/${searchUser.id}`);
+                            }
+                          }}
                         >
                           <div className="relative">
                             <Image

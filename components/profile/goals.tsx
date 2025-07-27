@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,9 +19,10 @@ interface Goal {
 interface GoalsProps {
   student: any;
   currentUser: any;
+  isViewMode?: boolean;
 }
 
-const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
+const Goals: React.FC<GoalsProps> = ({ student, currentUser, isViewMode }) => {
   const router = useRouter();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,14 +77,14 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Goals</h2>
             <p className="text-gray-600 dark:text-gray-400">Track your aspirations and achievements</p>
           </div>
-          {isOwnProfile && (
+          {isOwnProfile && !isViewMode && (
             <Button variant="outline" size="sm" onClick={handleManage}>
               <Plus className="h-4 w-4 mr-2" />
               Manage
             </Button>
           )}
         </div>
-        
+
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
@@ -97,7 +97,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
                 : "This user hasn't added any goals yet."
               }
             </p>
-            {isOwnProfile && (
+            {isOwnProfile && !isViewMode && (
               <Button className="mt-4 bg-pathpiper-teal hover:bg-pathpiper-teal/90" onClick={handleManage}>
                 Add Your First Goal
               </Button>
@@ -115,7 +115,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Goals</h2>
           <p className="text-gray-600 dark:text-gray-400">Track your aspirations and achievements</p>
         </div>
-        {isOwnProfile && (
+        {isOwnProfile && !isViewMode && (
           <Button variant="outline" size="sm" onClick={handleManage}>
             <Plus className="h-4 w-4 mr-2" />
             Manage
@@ -153,7 +153,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
                     </span>
                   )}
                 </div>
-                
+
                 {goal.description && (
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
                     {goal.description}
@@ -184,7 +184,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser }) => {
         ))}
       </div>
 
-      
+
     </div>
   );
 };

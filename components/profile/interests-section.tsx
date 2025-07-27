@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -34,6 +33,7 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
   const [filteredInterests, setFilteredInterests] = useState<Interest[]>([])
   const [groupedInterests, setGroupedInterests] = useState<InterestCategory[]>([])
   const isOwnProfile = currentUser?.id === student?.id
+  const isViewMode = false; //Placeholder, needs to be determined from props
 
   const handleEditInterests = () => {
     router.push('/student/profile/edit?section=interests')
@@ -107,13 +107,13 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
             No Interests Added Yet
           </h3>
           <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
-            {isOwnProfile 
+            {isOwnProfile
               ? "Add some interests to your profile to help others get to know you better and discover relevant content."
               : "This user hasn't added any interests to their profile yet."
             }
           </p>
           {isOwnProfile && (
-            <Button 
+            <Button
               className="bg-pathpiper-teal hover:bg-pathpiper-teal/90"
               onClick={handleEditInterests}
             >
@@ -138,9 +138,9 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
             {student.interests.length} interests • Discover what drives me
           </p>
         </div>
-        {isOwnProfile && (
-          <Button 
-            variant="outline" 
+        {isOwnProfile && !isViewMode && (
+          <Button
+            variant="outline"
             className="border-pathpiper-teal text-pathpiper-teal hover:bg-pathpiper-teal hover:text-white"
             onClick={handleEditInterests}
           >
@@ -222,7 +222,8 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
         </div>
       )}
 
-      
+
     </div>
   )
 }
+`

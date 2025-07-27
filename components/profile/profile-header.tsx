@@ -427,7 +427,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                           {true && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
                         </div>
                         {/* Edit Profile button moved here */}
-                        {isOwnProfile && (
+                        {isOwnProfile && !isViewMode && (
                           <Button 
                             size="sm" 
                             className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
@@ -539,7 +539,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">My Circles</h3>
-                      {isOwnProfile && (
+                      {isOwnProfile && !isViewMode && (
                         <button
                           onClick={() => setShowCreateCircle(true)}
                           className="text-xs text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"
@@ -882,7 +882,7 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">Recent Achievements</h3>
-                      {isOwnProfile && (
+                      {isOwnProfile && !isViewMode && (
                         <button
                           onClick={() => router.push('/student/profile/edit?section=achievements')}
                           className="text-xs text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"

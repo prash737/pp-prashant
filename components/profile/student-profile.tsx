@@ -174,7 +174,7 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
     { id: "about", label: "About" },
     { id: "interests", label: "Interests" },
     ...(isViewMode ? [] : [{ id: "suggested", label: "Suggested Connections" }]),
-    ...(isViewMode ? [] : [{ id: "circle", label: "My Circle" }]),
+    { id: "circle", label: isViewMode ? "Circles" : "My Circle" },
     { id: "following", label: "Following" },
     { id: "skills", label: "Skills Canvas" },
     { id: "projects", label: "Projects" },
@@ -204,8 +204,8 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
 
       {!isViewMode && <ActionBar student={student} currentUser={currentUser} />}
 
-      {/* Self Analysis Floating Button */}
-      {!isViewMode && (
+      {/* Self Analysis Floating Button - Only show for own profile and not in view mode */}
+      {!isViewMode && isOwnProfile && (
         <div className="fixed bottom-6 right-6 z-50">
           <a
             href="/student/self-analysis"
