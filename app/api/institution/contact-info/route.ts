@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { supabase } from "@/lib/supabase"
@@ -6,26 +5,29 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
-    // Get auth token from cookies
-    const cookieStore = await cookies()
-    const token = cookieStore.get('sb-access-token')?.value
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
 
-    if (!token) {
+    const cookieStore = request.cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
+
+    if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token)
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
 
     if (error || !user) {
-      console.error('Auth error:', error)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch contact info for the institution
-    const contactInfo = await prisma.$queryRaw`
-      SELECT * FROM institution_contact_info WHERE institution_id = ${user.id}::uuid
-    `
+    // Use provided institutionId or current user's id
+    const targetInstitutionId = institutionId || user.id
+
+    // Get contact info
+    const contactInfo = (await prisma.$queryRaw`
+      SELECT * FROM institution_contact_info WHERE institution_id = ${targetInstitutionId}::uuid
+    `) as any[]
 
     return NextResponse.json({ contactInfo: Array.isArray(contactInfo) ? contactInfo[0] : null })
   } catch (error) {

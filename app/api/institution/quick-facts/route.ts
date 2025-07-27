@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { supabase } from "@/lib/supabase"
@@ -6,26 +5,44 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
-    // Get auth token from cookies
-    const cookieStore = await cookies()
-    const token = cookieStore.get('sb-access-token')?.value
+    const { searchParams } = new URL(request.url)
+    const institutionId = searchParams.get('institutionId')
 
-    if (!token) {
+    const cookieStore = request.cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
+
+    if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify token with Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token)
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
 
     if (error || !user) {
       console.error('Auth error:', error)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch quick facts for the institution
-    const quickFacts = await prisma.$queryRaw`
-      SELECT * FROM institution_quick_facts WHERE institution_id = ${user.id}::uuid
-    `
+    // Use provided institutionId or get from user profile
+    let targetInstitutionId = institutionId
+
+    if (!targetInstitutionId) {
+      // Get institution profile
+      const profile = await prisma.profile.findUnique({
+        where: { id: user.id },
+        include: { institution: true }
+      })
+
+      if (!profile?.institution) {
+        return NextResponse.json({ error: 'Institution profile not found' }, { status: 404 })
+      }
+
+      targetInstitutionId = user.id
+    }
+
+    // Get quick facts
+    const quickFacts = (await prisma.$queryRaw`
+      SELECT * FROM institution_quick_facts WHERE institution_id = ${targetInstitutionId}::uuid
+    `) as any[]
 
     return NextResponse.json({ quickFacts: Array.isArray(quickFacts) ? quickFacts[0] : null })
   } catch (error) {

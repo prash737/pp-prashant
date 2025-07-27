@@ -644,10 +644,10 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode }
                             )}
                           </span>
                         </div>
-                        {institutionData.website && (
+                        {(contactInfo?.website || institutionData.website) && (
                           <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300 text-base">
                             <Globe className="h-5 w-5 text-gray-500" />
-                            <span>{institutionData.website}</span>
+                            <span>{contactInfo?.website || institutionData.website}</span>
                           </div>
                         )}
                         {(quickFacts.campus_size_acres || quickFacts.campus_size_km2) && (
