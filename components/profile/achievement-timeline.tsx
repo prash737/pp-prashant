@@ -1,6 +1,4 @@
-The code modifies the AchievementTimeline component to remove the manage achievements button when in view mode.
-```
-```replit_final_file
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -86,7 +84,7 @@ export default function AchievementTimeline({ userId, isOwnProfile = false, isVi
               : "This user hasn't added any achievements yet."
             }
           </p>
-          {isOwnProfile && (
+          {isOwnProfile && !isViewMode && (
             <Button onClick={handleManageAchievements} variant="outline" className="px-6 py-2">
               <Plus className="w-4 h-4 mr-2" />
               Add Achievement
