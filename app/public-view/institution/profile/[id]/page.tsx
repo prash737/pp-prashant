@@ -141,7 +141,8 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
           overview: profileData.overview || '',
           mission: profileData.mission || '',
           coreValues: profileData.coreValues || [],
-          gallery: Array.isArray(galleryData.gallery) ? galleryData.gallery : 
+          gallery: galleryData.images && Array.isArray(galleryData.images) ? galleryData.images : 
+                   galleryData.gallery && Array.isArray(galleryData.gallery) ? galleryData.gallery :
                    Array.isArray(galleryData) ? galleryData :
                    Array.isArray(profileData.gallery) ? profileData.gallery : [],
           programs: programsData.programs || [],
@@ -235,12 +236,13 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
               <div className="container mx-auto px-4 max-w-7xl">
                 {/* Dynamic gallery collage or fallback */}
                 <div className="h-64 w-full relative overflow-hidden">
-                  {institutionData.gallery && institutionData.gallery.length >= 3 ? (
+                  {/* Only show gallery collage if we have actual gallery images, not cover image */}
+                  {institutionData.gallery && Array.isArray(institutionData.gallery) && institutionData.gallery.length >= 3 ? (
                     // 3+ images: Large image on left, two smaller on right
                     <div className="flex h-full gap-1">
                       <div className="flex-[2] relative">
                         <img
-                          src={institutionData.gallery[0].url}
+                          src={institutionData.gallery[0].url || institutionData.gallery[0].imageUrl}
                           alt="Institution gallery image 1"
                           className="w-full h-full object-cover"
                         />
@@ -248,14 +250,14 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
                       <div className="flex-1 flex flex-col gap-1">
                         <div className="flex-1 relative">
                           <img
-                            src={institutionData.gallery[1].url}
+                            src={institutionData.gallery[1].url || institutionData.gallery[1].imageUrl}
                             alt="Institution gallery image 2"
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="flex-1 relative">
                           <img
-                            src={institutionData.gallery[2].url}
+                            src={institutionData.gallery[2].url || institutionData.gallery[2].imageUrl}
                             alt="Institution gallery image 3"
                             className="w-full h-full object-cover"
                           />
@@ -269,35 +271,35 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
                         </div>
                       </div>
                     </div>
-                  ) : institutionData.gallery && institutionData.gallery.length === 2 ? (
+                  ) : institutionData.gallery && Array.isArray(institutionData.gallery) && institutionData.gallery.length === 2 ? (
                     // 2 images: Side by side
                     <div className="flex h-full gap-1">
                       <div className="flex-1 relative">
                         <img
-                          src={institutionData.gallery[0].url}
+                          src={institutionData.gallery[0].url || institutionData.gallery[0].imageUrl}
                           alt="Institution gallery image 1"
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="flex-1 relative">
                         <img
-                          src={institutionData.gallery[1].url}
+                          src={institutionData.gallery[1].url || institutionData.gallery[1].imageUrl}
                           alt="Institution gallery image 2"
                           className="w-full h-full object-cover"
                         />
                       </div>
                     </div>
-                  ) : institutionData.gallery && institutionData.gallery.length === 1 ? (
+                  ) : institutionData.gallery && Array.isArray(institutionData.gallery) && institutionData.gallery.length === 1 ? (
                     // 1 image: Single image
                     <div className="w-full h-full relative">
                       <img
-                        src={institutionData.gallery[0].url}
+                        src={institutionData.gallery[0].url || institutionData.gallery[0].imageUrl}
                         alt="Institution gallery image"
                         className="w-full h-full object-cover"
                       />
                     </div>
                   ) : institutionData.coverImage ? (
-                    // Cover image fallback
+                    // Cover image fallback only when no gallery images exist
                     <div 
                       className="w-full h-full bg-cover bg-center bg-no-repeat"
                       style={{
@@ -312,8 +314,8 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
                     <div className="w-full h-full bg-gradient-to-r from-blue-600 to-blue-800"></div>
                   )}
 
-                  {/* View all photos button */}
-                  {institutionData.gallery && institutionData.gallery.length > 0 && (
+                  {/* View all photos button - only show if we have gallery images */}
+                  {institutionData.gallery && Array.isArray(institutionData.gallery) && institutionData.gallery.length > 0 && (
                     <div className="absolute top-4 right-4">
                       <button 
                         onClick={() => {
@@ -339,7 +341,7 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
                           <circle cx="9" cy="9" r="2"/>
                           <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
                         </svg>
-                        View all photos
+                        View all photos ({institutionData.gallery.length})
                       </button>
                     </div>
                   )}
