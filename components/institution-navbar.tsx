@@ -243,12 +243,16 @@ export function InstitutionNavbar() {
   const handleProfileClick = (userId: string, userRole: string) => {
     setShowSearchResults(false);
     setSearchQuery("");
+    
+    // Always use public view for cross-role profile viewing
     if (userRole === 'student') {
       router.push(`/public-view/student/profile/${userId}`);
     } else if (userRole === 'institution') {
       router.push(`/public-view/institution/profile/${userId}`);
+    } else if (userRole === 'mentor') {
+      // When mentor public view is implemented
+      console.log('Mentor profile view not yet implemented');
     } else {
-      // Handle other roles or provide a default
       console.warn('Unsupported role:', userRole);
     }
   };

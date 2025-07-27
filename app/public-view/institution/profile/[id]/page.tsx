@@ -67,6 +67,8 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
       return
     }
 
+    // Allow students and other roles to view institution profiles
+
     // Allow other roles to view institution profiles through public view
     // Don't redirect based on role unless it's their own profile
 

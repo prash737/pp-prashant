@@ -80,12 +80,6 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
       return
     }
 
-    // Prevent viewing your own profile through public view
-    if (profileId === currentUser.id) {
-      router.push(`/student/profile/${currentUser.id}`)
-      return
-    }
-
     // Fetch student data for the profile being viewed
     const fetchStudentData = async () => {
       try {

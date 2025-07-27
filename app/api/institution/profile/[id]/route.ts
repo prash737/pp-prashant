@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { createClient } from "@supabase/supabase-js"
@@ -13,9 +14,9 @@ export async function GET(
   try {
     const { id: institutionId } = await params
 
-    console.log('🏛️ Fetching public institution profile for ID:', institutionId)
+    console.log('🏛️ Fetching institution profile for cross-role access, ID:', institutionId)
 
-    // Check authentication (optional for public profiles, but helps with personalization)
+    // Get user from session cookie to verify authentication
     const cookieStore = request.headers.get('cookie') || ''
     const cookies = Object.fromEntries(
       cookieStore.split(';').map(cookie => {
@@ -25,13 +26,48 @@ export async function GET(
     )
 
     const accessToken = cookies['sb-access-token']
-    let currentUser = null
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    if (accessToken) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
-      if (!authError && user) {
-        currentUser = user
-      }
+    // Verify token with Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if the current user has permission to view institution profiles
+    const currentUserProfile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      select: { role: true }
+    })
+
+    if (!currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      )
+    }
+
+    // Check if the target profile exists and is an institution
+    const targetProfile = await prisma.profile.findUnique({
+      where: { id: institutionId },
+      select: { role: true }
+    })
+
+    if (!targetProfile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      )
+    }
+
+    if (targetProfile.role !== 'institution') {
+      return NextResponse.json(
+        { error: 'Profile is not an institution profile' },
+        { status: 403 }
+      )
     }
 
     // Get institution profile with all related data
@@ -51,13 +87,16 @@ export async function GET(
 
     console.log('✅ Institution profile found:', profile.institution.institutionName)
 
+    // Check if viewing own profile
+    const isOwnProfile = institutionId === user.id
+
     // Transform data to match the expected format
     const institutionData = {
       id: profile.id,
       name: profile.institution.institutionName,
       type: profile.institution.institutionType,
       category: profile.institution.category,
-      location: profile.institution.location,
+      location: profile.institution.location || profile.location,
       bio: profile.bio || '',
       logo: profile.profileImageUrl || profile.institution.logoUrl || profile.institution.logo || '/images/pathpiper-logo.png',
       coverImage: profile.institution.coverImage || '',
@@ -68,21 +107,14 @@ export async function GET(
       overview: profile.institution.overview || '',
       mission: profile.institution.mission || '',
       coreValues: profile.institution.core_values || [],
-      gallery: profile.institution.gallery || []
+      gallery: profile.institution.gallery || [],
+      isOwnProfile
     }
-
-    console.log('📤 Institution data being sent:', {
-      name: institutionData.name,
-      mission: institutionData.mission,
-      coreValues: institutionData.coreValues,
-      coreValuesType: typeof institutionData.coreValues,
-      coreValuesIsArray: Array.isArray(institutionData.coreValues)
-    })
 
     return NextResponse.json(institutionData)
 
   } catch (error) {
-    console.error('Public institution profile fetch error:', error)
+    console.error('Institution profile fetch error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch institution profile' },
       { status: 500 }

@@ -41,7 +41,7 @@ export async function GET(
       select: { role: true }
     })
 
-    if (!currentUserProfile || !['student', 'institution'].includes(currentUserProfile.role)) {
+    if (!currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
