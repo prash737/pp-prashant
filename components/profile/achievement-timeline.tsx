@@ -22,22 +22,32 @@ interface AchievementTimelineProps {
   userId?: string
   isOwnProfile?: boolean
   isViewMode?: boolean
+  student?: any
 }
 
-export default function AchievementTimeline({ userId, isOwnProfile = false, isViewMode = false }: AchievementTimelineProps) {
+export default function AchievementTimeline({ userId, isOwnProfile = false, isViewMode = false, student }: AchievementTimelineProps) {
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     fetchAchievements()
-  }, [])
+  }, [isViewMode, student?.id])
 
   const fetchAchievements = async () => {
     try {
-      const response = await fetch('/api/achievements', {
-        credentials: 'include'
-      })
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch achievements for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/achievements`, {
+          credentials: 'include'
+        });
+      } else {
+        // In own profile mode, fetch achievements for the current user
+        response = await fetch('/api/achievements', {
+          credentials: 'include'
+        });
+      }
 
       if (response.ok) {
         const data = await response.json()

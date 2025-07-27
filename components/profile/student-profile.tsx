@@ -198,7 +198,14 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
           {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} />}
           {activeTab === "skills" && <SkillsCanvas userId={student.id} skills={student.skills} isViewMode={isViewMode} />}
           {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
-          {activeTab === "achievements" && <AchievementTimeline userId={student.id} isOwnProfile={!isViewMode} />}
+          {activeTab === "achievements" && (
+            <AchievementTimeline 
+              userId={student?.id} 
+              isOwnProfile={isOwnProfile}
+              isViewMode={isViewMode}
+              student={student}
+            />
+          )}
           {activeTab === "circle" && <CircleView student={student} isViewMode={isViewMode} />}
           {activeTab === "goals" && <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "following" && <FollowingInstitutions userId={studentId} />}

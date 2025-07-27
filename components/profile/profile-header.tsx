@@ -182,23 +182,33 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     }
 
     const fetchRecentAchievements = async () => {
-      try {
-        const response = await fetch('/api/achievements', {
+    try {
+      setAchievementLoading(true)
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch achievements for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/achievements`, {
           credentials: 'include'
-        })
-        if (response.ok) {
-          const data = await response.json()
-          // Get the recent achievements (they're already sorted by date desc in the API)
-          if (data.achievements && data.achievements.length > 0) {
-            setRecentAchievements(data.achievements)
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching achievements:', error)
-      } finally {
-        setAchievementLoading(false)
+        });
+      } else {
+        // In own profile mode, fetch achievements for the current user
+        response = await fetch('/api/achievements', {
+          credentials: 'include'
+        });
       }
+      if (response.ok) {
+        const data = await response.json()
+        // Get the recent achievements (they're already sorted by date desc in the API)
+        if (data.achievements && data.achievements.length > 0) {
+          setRecentAchievements(data.achievements)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching achievements:', error)
+    } finally {
+      setAchievementLoading(false)
     }
+  }
 
     const fetchFollowingInstitutions = async () => {
       try {
@@ -218,12 +228,12 @@ export default function ProfileHeader({ student, currentUser, connectionCounts, 
     if (isOwnProfile) {
       fetchCircles()
       fetchConnections()
-      fetchRecentAchievements()
-      fetchFollowingInstitutions()
-    } else {
-      setAchievementLoading(false)
     }
-  }, [isOwnProfile])
+    if (student) {
+      fetchRecentAchievements()
+    }
+    fetchFollowingInstitutions()
+  }, [isOwnProfile,student, isViewMode, student?.id])
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) return
