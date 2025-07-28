@@ -19,19 +19,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause for collections based on public view
-    const collectionsWhere: any = { userId }
+    let collectionsWhere: any = { userId }
     
-    // Only filter private collections if it's a public view (not the user's own profile)
+    // Only filter private collections if it's a public view (viewing someone else's profile)
     if (isPublicView) {
-      collectionsWhere.AND = [
-        { userId },
-        {
-          OR: [
-            { isPrivate: false },
-            { isPrivate: null }
-          ]
-        }
-      ]
+      collectionsWhere = {
+        userId,
+        OR: [
+          { isPrivate: false },
+          { isPrivate: null }
+        ]
+      }
     }
 
     // Get collections with their mood board items
