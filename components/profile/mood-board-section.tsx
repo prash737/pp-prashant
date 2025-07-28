@@ -125,13 +125,6 @@ export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isVi
               size="sm" 
               onClick={() => window.location.href = '/student/profile/edit?section=media'}
             >
-              Add
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.location.href = '/student/profile/edit?section=media'}
-            >
               Manage
             </Button>
             {onEdit && (
