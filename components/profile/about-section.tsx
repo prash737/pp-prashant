@@ -7,7 +7,7 @@ import { GlobeIcon, BrainIcon, EditIcon, Users, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import EducationCards from "./education-cards"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import MoodBoardSection from "./mood-board-section"
+
 
 interface AboutSectionProps {
   student?: any
@@ -301,9 +301,7 @@ export default function AboutSection({ student: studentProp, currentUser, isView
             </motion.div>
           )}
 
-          {/* Mood Board */}
-          <MoodBoardSection studentId={studentProp.id} isViewMode={isViewMode} />
-        </div>
+          </div>
       </div>
     </div>
   )
