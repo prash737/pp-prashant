@@ -88,6 +88,7 @@ model Profile {
   userLanguages       UserLanguage[]
   userHobbies         UserHobby[]
   moodBoard           MoodBoard[]
+  userCollections     UserCollection[]
   customBadges        CustomBadge[]
   sentConnections     ConnectionRequest[] @relation("SentConnections")
   receivedConnections ConnectionRequest[] @relation("ReceivedConnections")
@@ -553,15 +554,30 @@ model Goal {
   @@schema("public")
 }
 
+model UserCollection {
+  id          Int         @id @default(autoincrement())
+  userId      String      @map("user_id") @db.Uuid
+  name        String
+  description String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  user        Profile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodBoard   MoodBoard[]
+
+  @@map("user_collections")
+  @@schema("public")
+}
+
 model MoodBoard {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  imageUrl  String   @map("image_url")
-  caption   String?
-  position  Int      @default(0)
-  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  imageUrl     String          @map("image_url")
+  caption      String?
+  position     Int             @default(0)
+  collectionId Int?            @map("collection_id")
+  user         Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection   UserCollection? @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
 
   @@map("mood_board")
   @@schema("public")

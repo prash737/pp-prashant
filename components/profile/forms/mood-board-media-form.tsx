@@ -4,7 +4,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Upload, X, Image as ImageIcon, Plus } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Upload, X, Image as ImageIcon, Plus, Folder, FolderPlus } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
 interface MoodBoardItem {
@@ -12,46 +15,84 @@ interface MoodBoardItem {
   imageUrl: string
   caption?: string
   position: number
+  collectionId?: number
+}
+
+interface UserCollection {
+  id: number
+  name: string
+  description?: string
+  moodBoard: MoodBoardItem[]
 }
 
 interface MoodBoardMediaFormProps {
   data: any
-  onChange: (sectionId: string, data: { moodBoard: MoodBoardItem[] }) => void
+  onChange: (sectionId: string, data: { collections: UserCollection[], uncategorizedItems: MoodBoardItem[] }) => void
 }
 
 export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFormProps) {
   const { user } = useAuth()
-  const [moodBoard, setMoodBoard] = useState<MoodBoardItem[]>([])
-  const [draggedItem, setDraggedItem] = useState<string | null>(null)
+  const [collections, setCollections] = useState<UserCollection[]>([])
+  const [uncategorizedItems, setUncategorizedItems] = useState<MoodBoardItem[]>([])
+  const [selectedCollection, setSelectedCollection] = useState<UserCollection | null>(null)
+  const [isCreateCollectionOpen, setIsCreateCollectionOpen] = useState(false)
+  const [newCollectionName, setNewCollectionName] = useState("")
+  const [newCollectionDescription, setNewCollectionDescription] = useState("")
   const [loading, setLoading] = useState(true)
 
-  // Load existing mood board items from database
+  // Load existing collections and mood board items
   useEffect(() => {
-    const fetchMoodBoard = async () => {
+    const fetchData = async () => {
       if (!user) return
       
       try {
         const response = await fetch(`/api/mood-board?userId=${user.id}`)
         if (response.ok) {
           const data = await response.json()
-          setMoodBoard(data.moodBoard || [])
+          setCollections(data.collections || [])
+          setUncategorizedItems(data.uncategorizedItems || [])
         }
       } catch (error) {
-        console.error('Error fetching mood board:', error)
+        console.error('Error fetching mood board data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMoodBoard()
+    fetchData()
   }, [user])
 
   // Notify parent of changes
   useEffect(() => {
-    onChange("media", { moodBoard })
-  }, [moodBoard, onChange])
+    onChange("media", { collections, uncategorizedItems })
+  }, [collections, uncategorizedItems, onChange])
 
-  const handleImageUpload = async (files: FileList) => {
+  const handleCreateCollection = async () => {
+    if (!user || !newCollectionName.trim()) return
+
+    try {
+      const response = await fetch('/api/user-collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCollectionName,
+          description: newCollectionDescription
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCollections(prev => [data.collection, ...prev])
+        setNewCollectionName("")
+        setNewCollectionDescription("")
+        setIsCreateCollectionOpen(false)
+      }
+    } catch (error) {
+      console.error('Error creating collection:', error)
+    }
+  }
+
+  const handleImageUpload = async (files: FileList, collection?: UserCollection) => {
     if (!user) return
 
     Array.from(files).forEach(async (file) => {
@@ -61,7 +102,6 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
           const result = e.target?.result as string
           
           try {
-            // Save to database
             const response = await fetch('/api/mood-board', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -69,13 +109,23 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                 userId: user.id,
                 imageUrl: result,
                 caption: '',
-                position: moodBoard.length
+                position: collection ? collection.moodBoard.length : uncategorizedItems.length,
+                collectionId: collection?.id
               })
             })
 
             if (response.ok) {
               const data = await response.json()
-              setMoodBoard(prev => [...prev, data.item])
+              
+              if (collection) {
+                setCollections(prev => prev.map(c => 
+                  c.id === collection.id 
+                    ? { ...c, moodBoard: [...c.moodBoard, data.item] }
+                    : c
+                ))
+              } else {
+                setUncategorizedItems(prev => [...prev, data.item])
+              }
             }
           } catch (error) {
             console.error('Error saving mood board item:', error)
@@ -86,104 +136,71 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
     })
   }
 
-  const removeItem = async (id: string) => {
+  const removeItem = async (itemId: string, collectionId?: number) => {
     try {
-      const response = await fetch(`/api/mood-board?itemId=${id}`, {
+      const response = await fetch(`/api/mood-board?itemId=${itemId}`, {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        setMoodBoard(prev => prev.filter(item => item.id !== id))
+        if (collectionId) {
+          setCollections(prev => prev.map(c => 
+            c.id === collectionId
+              ? { ...c, moodBoard: c.moodBoard.filter(item => item.id !== itemId) }
+              : c
+          ))
+        } else {
+          setUncategorizedItems(prev => prev.filter(item => item.id !== itemId))
+        }
       }
     } catch (error) {
       console.error('Error removing mood board item:', error)
     }
   }
 
-  const updateCaption = async (id: string, caption: string) => {
-    const updatedItems = moodBoard.map(item => 
-      item.id === id ? { ...item, caption } : item
-    )
-    setMoodBoard(updatedItems)
-
-    // Update in database
+  const updateCaption = async (itemId: string, caption: string, collectionId?: number) => {
     try {
       await fetch('/api/mood-board', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: updatedItems })
+        body: JSON.stringify({ 
+          itemId, 
+          caption 
+        })
       })
+
+      if (collectionId) {
+        setCollections(prev => prev.map(c => 
+          c.id === collectionId
+            ? { 
+                ...c, 
+                moodBoard: c.moodBoard.map(item => 
+                  item.id === itemId ? { ...item, caption } : item
+                )
+              }
+            : c
+        ))
+      } else {
+        setUncategorizedItems(prev => prev.map(item => 
+          item.id === itemId ? { ...item, caption } : item
+        ))
+      }
     } catch (error) {
       console.error('Error updating caption:', error)
     }
   }
 
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    setDraggedItem(id)
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-  }
-
-  const handleDrop = async (e: React.DragEvent, targetId: string) => {
-    e.preventDefault()
-    if (!draggedItem) return
-
-    const draggedIndex = moodBoard.findIndex(item => item.id === draggedItem)
-    const targetIndex = moodBoard.findIndex(item => item.id === targetId)
-
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      const newMoodBoard = [...moodBoard]
-      const [draggedElement] = newMoodBoard.splice(draggedIndex, 1)
-      newMoodBoard.splice(targetIndex, 0, draggedElement)
-      setMoodBoard(newMoodBoard)
-
-      // Update positions in database
-      try {
-        await fetch('/api/mood-board', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: newMoodBoard })
-        })
-      } catch (error) {
-        console.error('Error updating positions:', error)
-      }
-    }
-    setDraggedItem(null)
-  }
-
-  // Predefined inspirational images
-  const inspirationalImages = [
-    { id: 'preset1', url: '/images/coding-topic.png', caption: 'Programming' },
-    { id: 'preset2', url: '/images/science-topic.png', caption: 'Science' },
-    { id: 'preset3', url: '/images/arts-topic.png', caption: 'Arts' },
-    { id: 'preset4', url: '/images/music-topic.png', caption: 'Music' },
-    { id: 'preset5', url: '/images/sports-topic.png', caption: 'Sports' },
-    { id: 'preset6', url: '/images/math-topic.png', caption: 'Mathematics' },
-  ]
-
-  const addPresetImage = async (presetImage: { id: string; url: string; caption: string }) => {
-    if (!user || moodBoard.some(item => item.imageUrl === presetImage.url)) return
-
+  const removeCollection = async (collectionId: number) => {
     try {
-      const response = await fetch('/api/mood-board', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          imageUrl: presetImage.url,
-          caption: presetImage.caption,
-          position: moodBoard.length
-        })
+      const response = await fetch(`/api/user-collections?collectionId=${collectionId}`, {
+        method: 'DELETE'
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setMoodBoard(prev => [...prev, data.item])
+        setCollections(prev => prev.filter(c => c.id !== collectionId))
       }
     } catch (error) {
-      console.error('Error adding preset image:', error)
+      console.error('Error removing collection:', error)
     }
   }
 
@@ -192,7 +209,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
       <div className="space-y-8">
         <div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mood Board & Media</h3>
-          <p className="text-gray-600 dark:text-gray-400">Loading your mood board...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your collections...</p>
         </div>
       </div>
     )
@@ -203,101 +220,172 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
       <div>
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mood Board & Media</h3>
         <p className="text-gray-600 dark:text-gray-400">
-          Create a visual representation of your interests, goals, and inspiration. Add up to 12 images that represent who you are.
+          Organize your visual inspiration into collections. Create themed collections and add images that represent your interests and goals.
         </p>
       </div>
 
       <div className="space-y-6">
-        {/* Upload Section */}
+        {/* Create Collection Section */}
         <div>
-          <Label className="text-lg font-medium mb-4 block">Upload Your Images</Label>
-          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
-              className="hidden"
-              id="mood-board-upload"
-            />
-            <label htmlFor="mood-board-upload" className="cursor-pointer">
-              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Upload Images
-              </p>
-              <p className="text-gray-500">
-                Click to browse or drag and drop images here
-              </p>
-              <p className="text-sm text-gray-400 mt-2">
-                JPG, PNG up to 5MB each
-              </p>
-            </label>
-          </div>
-        </div>
-
-        {/* Preset Images */}
-        <div>
-          <Label className="text-lg font-medium mb-4 block">Choose from Our Collection</Label>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {inspirationalImages.map((preset) => (
-              <div key={preset.id} className="relative group">
-                <button
-                  onClick={() => addPresetImage(preset)}
-                  className="w-full aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 hover:ring-2 hover:ring-pathpiper-teal transition-all"
-                  disabled={moodBoard.some(item => item.imageUrl === preset.url)}
-                >
-                  <img
-                    src={preset.url}
-                    alt={preset.caption}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-                    <Plus className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex items-center justify-between mb-4">
+            <Label className="text-lg font-medium">Collections</Label>
+            <Dialog open={isCreateCollectionOpen} onOpenChange={setIsCreateCollectionOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Create Collection
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Collection</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="collection-name">Collection Name</Label>
+                    <Input
+                      id="collection-name"
+                      value={newCollectionName}
+                      onChange={(e) => setNewCollectionName(e.target.value)}
+                      placeholder="Enter collection name..."
+                      className="mt-1"
+                    />
                   </div>
-                </button>
-                <p className="text-xs text-center mt-2 text-gray-600 dark:text-gray-400">
-                  {preset.caption}
-                </p>
+                  <div>
+                    <Label htmlFor="collection-description">Description (Optional)</Label>
+                    <Textarea
+                      id="collection-description"
+                      value={newCollectionDescription}
+                      onChange={(e) => setNewCollectionDescription(e.target.value)}
+                      placeholder="Describe your collection..."
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsCreateCollectionOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateCollection} disabled={!newCollectionName.trim()}>
+                      Create
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Collections List */}
+          <div className="space-y-6">
+            {collections.map((collection) => (
+              <div key={collection.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Folder className="h-5 w-5 text-blue-500" />
+                    <h4 className="font-medium text-gray-900 dark:text-white">{collection.name}</h4>
+                    <span className="text-sm text-gray-500">({collection.moodBoard.length} images)</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeCollection(collection.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {collection.description && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{collection.description}</p>
+                )}
+
+                {/* Upload Area for Collection */}
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 mb-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => e.target.files && handleImageUpload(e.target.files, collection)}
+                    className="hidden"
+                    id={`collection-upload-${collection.id}`}
+                  />
+                  <label htmlFor={`collection-upload-${collection.id}`} className="cursor-pointer block text-center">
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Add images to {collection.name}
+                    </p>
+                  </label>
+                </div>
+
+                {/* Collection Images */}
+                {collection.moodBoard.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {collection.moodBoard.map((item) => (
+                      <div
+                        key={item.id}
+                        className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
+                      >
+                        <img
+                          src={item.imageUrl}
+                          alt={item.caption || 'Mood board item'}
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* Remove button */}
+                        <button
+                          onClick={() => removeItem(item.id, collection.id)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={14} />
+                        </button>
+
+                        {/* Caption overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <input
+                            type="text"
+                            value={item.caption || ''}
+                            onChange={(e) => updateCaption(item.id, e.target.value, collection.id)}
+                            placeholder="Add caption..."
+                            className="w-full bg-transparent text-xs placeholder-gray-300 outline-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No images in this collection yet</p>
+                  </div>
+                )}
               </div>
             ))}
+
+            {collections.length === 0 && (
+              <div className="text-center py-12 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <Folder className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 mb-2">No collections created yet</p>
+                <p className="text-sm text-gray-400">Create your first collection to organize your inspiration</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Mood Board Grid */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <Label className="text-lg font-medium">Your Mood Board ({moodBoard.length}/12)</Label>
-            {moodBoard.length > 0 && (
-              <p className="text-sm text-gray-500">Drag to reorder</p>
-            )}
-          </div>
-
-          {moodBoard.length === 0 ? (
-            <div className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center bg-gray-50 dark:bg-gray-800">
-              <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-2">Your mood board is empty</p>
-              <p className="text-sm text-gray-400">
-                Upload images or choose from our collection to get started
-              </p>
-            </div>
-          ) : (
+        {/* Uncategorized Items (for backward compatibility) */}
+        {uncategorizedItems.length > 0 && (
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-4">Uncategorized Items</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {moodBoard.map((item) => (
+              {uncategorizedItems.map((item) => (
                 <div
                   key={item.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, item.id)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, item.id)}
-                  className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-move"
+                  className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
                 >
                   <img
                     src={item.imageUrl}
                     alt={item.caption || 'Mood board item'}
                     className="w-full h-full object-cover"
                   />
-
-                  {/* Remove button */}
+                  
                   <button
                     onClick={() => removeItem(item.id)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -305,7 +393,6 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                     <X size={14} />
                   </button>
 
-                  {/* Caption overlay */}
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <input
                       type="text"
@@ -317,28 +404,18 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                   </div>
                 </div>
               ))}
-
-              {/* Add more placeholder */}
-              {moodBoard.length < 12 && (
-                <label htmlFor="mood-board-upload" className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:border-pathpiper-teal transition-colors">
-                  <div className="text-center">
-                    <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500">Add Image</p>
-                  </div>
-                </label>
-              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Tips */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Mood Board Tips</h5>
+          <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Collection Tips</h5>
           <ul className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
-            <li>• Include images that represent your interests, goals, and values</li>
-            <li>• Add captions to help others understand what inspires you</li>
-            <li>• You can rearrange images by dragging them around</li>
-            <li>• Keep it authentic - choose images that truly represent you</li>
+            <li>• Create themed collections like "Career Goals", "Hobbies", or "Travel Dreams"</li>
+            <li>• Add meaningful captions to help others understand your inspiration</li>
+            <li>• Collections help organize your mood board and make it easier to find images</li>
+            <li>• You can delete entire collections or individual images anytime</li>
           </ul>
         </div>
       </div>

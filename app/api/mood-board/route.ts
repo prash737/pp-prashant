@@ -17,12 +17,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    const moodBoardItems = await prisma.moodBoard.findMany({
+    // Get all collections with their mood board items
+    const collections = await prisma.userCollection.findMany({
       where: { userId },
+      include: {
+        moodBoard: {
+          orderBy: { position: 'asc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // Also get mood board items without collections (legacy support)
+    const uncategorizedItems = await prisma.moodBoard.findMany({
+      where: { 
+        userId,
+        collectionId: null
+      },
       orderBy: { position: 'asc' }
     })
 
-    return NextResponse.json({ moodBoard: moodBoardItems })
+    return NextResponse.json({ 
+      collections,
+      uncategorizedItems
+    })
   } catch (error) {
     console.error('Error fetching mood board:', error)
     return NextResponse.json({ error: 'Failed to fetch mood board' }, { status: 500 })
@@ -31,7 +49,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, imageUrl, caption, position } = await request.json()
+    const { userId, imageUrl, caption, position, collectionId } = await request.json()
 
     if (!userId || !imageUrl) {
       return NextResponse.json({ error: 'User ID and image URL are required' }, { status: 400 })
@@ -42,7 +60,8 @@ export async function POST(request: NextRequest) {
         userId,
         imageUrl,
         caption: caption || '',
-        position: position || 0
+        position: position || 0,
+        collectionId: collectionId || null
       }
     })
 
@@ -55,24 +74,32 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { items } = await request.json()
+    const { items, itemId, caption } = await request.json()
 
-    if (!Array.isArray(items)) {
-      return NextResponse.json({ error: 'Items array is required' }, { status: 400 })
-    }
-
-    // Update positions for all items
-    for (let i = 0; i < items.length; i++) {
+    // Handle single item caption update
+    if (itemId && caption !== undefined) {
       await prisma.moodBoard.update({
-        where: { id: items[i].id },
-        data: { 
-          position: i,
-          caption: items[i].caption || ''
-        }
+        where: { id: itemId },
+        data: { caption }
       })
+      return NextResponse.json({ success: true })
     }
 
-    return NextResponse.json({ success: true })
+    // Handle bulk update (for backward compatibility)
+    if (Array.isArray(items)) {
+      for (let i = 0; i < items.length; i++) {
+        await prisma.moodBoard.update({
+          where: { id: items[i].id },
+          data: { 
+            position: i,
+            caption: items[i].caption || ''
+          }
+        })
+      }
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ error: 'Invalid request data' }, { status: 400 })
   } catch (error) {
     console.error('Error updating mood board:', error)
     return NextResponse.json({ error: 'Failed to update mood board' }, { status: 500 })
