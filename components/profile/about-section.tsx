@@ -302,7 +302,11 @@ export default function AboutSection({ student: studentProp, currentUser, isView
           )}
 
           {/* Mood Board */}
-          <MoodBoardSection studentId={studentProp.id} isViewMode={isViewMode} />
+          <MoodBoardSection 
+            studentId={studentProp.id} 
+            isOwnProfile={isOwnProfile} 
+            isViewMode={isViewMode} 
+          />
         </div>
       </div>
     </div>
