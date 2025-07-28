@@ -343,14 +343,34 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                         >
                           <X size={16} />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteCollection(collection.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{collection.name}"? This will permanently delete the collection and all {collection.moodBoard.length} images in it. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteCollection(collection.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete Collection
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
 
