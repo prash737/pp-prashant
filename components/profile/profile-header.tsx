@@ -1067,9 +1067,9 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {((student.socialLinks && student.socialLinks.length > 0) || (student.profile?.socialLinks && student.profile.socialLinks.length > 0)) && (
+                  {student.socialLinks && student.socialLinks.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {(student.socialLinks || student.profile?.socialLinks || []).map((link: any, index: number) => {
+                      {student.socialLinks.map((link: any, index: number) => {
                         const getSocialIcon = (platform: string) => {
                           switch (platform.toLowerCase()) {
                             case 'instagram':
@@ -1126,11 +1126,14 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs font-medium group"
                             title={`Visit ${getPlatformLabel(link.platform)}`}
                           >
                             <span className="group-hover:scale-110 transition-transform">
                               {getSocialIcon(link.platform)}
+                            </span>
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {getPlatformLabel(link.platform)}
                             </span>
                           </a>
                         )
