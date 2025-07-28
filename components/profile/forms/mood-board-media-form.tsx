@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
-import { Plus, Upload, X, Folder, Trash2, ImageIcon } from "lucide-react"
+import { Plus, Upload, X, Folder, FolderPlus, Trash2, ImageIcon } from "lucide-react"
 
 interface MoodBoardItem {
   id: string
