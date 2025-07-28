@@ -13,6 +13,7 @@ import Goals from "./goals"
 import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
+import MoodBoardSection from "./moodboard-section"
 
 interface StudentProfileProps {
   studentId?: string
@@ -214,6 +215,12 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
           {activeTab === "circle" && <CircleView student={student} isViewMode={isViewMode} />}
           {activeTab === "goals" && <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "following" && <FollowingInstitutions userId={studentId} />}
+          {/* Mood Board */}
+          <MoodBoardSection 
+            studentId={student?.id} 
+            isOwnProfile={isOwnProfile}
+            isViewMode={isViewMode} 
+          />
         </div>
       </div>
 
