@@ -714,7 +714,19 @@ export default function PostWithTrails({
               className={`flex items-center gap-2 ${showTrails ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{trails.length}</span>
+              <span>{trails.length} Comments</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCreateTrail(!showCreateTrail)}
+              className={`flex items-center gap-2 ${showCreateTrail ? "text-purple-600" : "text-gray-600 hover:text-purple-600"}`}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+              </svg>
+              <span>Add Trail</span>
             </Button>
 
             <Button
@@ -751,15 +763,8 @@ export default function PostWithTrails({
           <div className="mt-6 border-t border-gray-100 pt-4">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium text-gray-900 dark:text-white">
-                Trail Discussion
+                Trail Discussion ({trails.length} {trails.length === 1 ? 'message' : 'messages'})
               </h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCreateTrail(!showCreateTrail)}
-              >
-                Add to Trail
-              </Button>
             </div>
 
             {/* Create Trail Form */}
