@@ -600,8 +600,18 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
   return (
     <>
       <div className="relative">
-        {/* Customizable banner */}
-        <div className={`h-48 w-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue`}></div>
+        {/* Customizable banner - Use cover photo if available, otherwise show blue gradient */}
+        <div className="h-48 w-full relative overflow-hidden">
+          {student?.profile?.coverImageUrl ? (
+            <img
+              src={student.profile.coverImageUrl}
+              alt="Cover photo"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
+          )}
+        </div>
 
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="relative -mt-24 sm:-mt-16 mb-6">
