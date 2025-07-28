@@ -181,8 +181,8 @@ export async function GET(
             categoryName: userSkill.skill.category?.name || 'Uncategorized'
           }
         })),
-        // Only show sensitive contact info for own profile
-        socialLinks: isOwnProfile ? studentProfile.profile.socialLinks : [],
+        // Social links are public, but sensitive contact info is private
+        socialLinks: studentProfile.profile.socialLinks || [],
         goals: studentProfile.profile.goals,
         customBadges: studentProfile.profile.customBadges,
         moodBoard: studentProfile.profile.moodBoard
