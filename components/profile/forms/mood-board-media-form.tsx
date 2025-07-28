@@ -34,6 +34,7 @@ interface UserCollection {
   id: number
   name: string
   description?: string
+  isPrivate?: boolean
   moodBoard: MoodBoardItem[]
 }
 
@@ -246,6 +247,27 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
     }
   };
 
+  const updateCollectionPrivacy = async (collectionId: number, isPrivate: boolean) => {
+    try {
+      const response = await fetch('/api/user-collections', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          collectionId,
+          isPrivate
+        })
+      });
+
+      if (response.ok) {
+        setCollections(prev => prev.map(c => 
+          c.id === collectionId ? { ...c, isPrivate } : c
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating collection privacy:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -333,7 +355,22 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`private-${collection.id}`}
+                            checked={collection.isPrivate || false}
+                            onChange={(e) => updateCollectionPrivacy(collection.id, e.target.checked)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label 
+                            htmlFor={`private-${collection.id}`}
+                            className="text-sm text-gray-600 dark:text-gray-400"
+                          >
+                            Keep private
+                          </label>
+                        </div>
                         <span className="text-sm text-gray-500">{collection.moodBoard.length} images</span>
                         <Button
                           variant="ghost"

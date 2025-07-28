@@ -37,7 +37,8 @@ export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isVi
   useEffect(() => {
     const fetchMoodBoard = async () => {
       try {
-        const response = await fetch(`/api/mood-board?userId=${studentId}`)
+        const isPublicView = !isOwnProfile
+        const response = await fetch(`/api/mood-board?userId=${studentId}&isPublicView=${isPublicView}`)
         if (response.ok) {
           const data = await response.json()
           setCollections(data.collections || [])
@@ -55,7 +56,7 @@ export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isVi
     if (studentId) {
       fetchMoodBoard()
     }
-  }, [studentId])
+  }, [studentId, isOwnProfile])
 
   const toggleCollection = (collectionId: number) => {
     setExpandedCollections(prev => {

@@ -137,3 +137,43 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to delete collection' }, { status: 500 })
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const cookieStore = request.cookies
+    const accessToken = cookieStore.get("sb-access-token")?.value
+
+    if (!accessToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { collectionId, isPrivate } = await request.json()
+
+    if (!collectionId) {
+      return NextResponse.json({ error: 'Collection ID is required' }, { status: 400 })
+    }
+
+    // Update collection privacy
+    const updatedCollection = await prisma.userCollection.update({
+      where: { 
+        id: collectionId,
+        userId: user.id // Ensure user owns the collection
+      },
+      data: { isPrivate }
+    })
+
+    return NextResponse.json({ success: true, collection: updatedCollection })
+  } catch (error) {
+    console.error('Error updating collection privacy:', error)
+    return NextResponse.json({ error: 'Failed to update collection privacy' }, { status: 500 })
+  }
+}

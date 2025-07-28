@@ -12,14 +12,26 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const isPublicView = searchParams.get('isPublicView') === 'true'
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Get all collections with their mood board items
+    // Build where clause for collections based on public view
+    const collectionsWhere: any = { userId }
+    
+    // If it's a public view, only show non-private collections
+    if (isPublicView) {
+      collectionsWhere.OR = [
+        { isPrivate: false },
+        { isPrivate: null }
+      ]
+    }
+
+    // Get collections with their mood board items
     const collections = await prisma.userCollection.findMany({
-      where: { userId },
+      where: collectionsWhere,
       include: {
         moodBoard: {
           orderBy: { position: 'asc' }
