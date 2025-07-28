@@ -13,7 +13,7 @@ import Goals from "./goals"
 import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
-import MoodBoardSection from "./moodboard-section"
+import MoodBoardSection from "./mood-board-section"
 
 interface StudentProfileProps {
   studentId?: string
