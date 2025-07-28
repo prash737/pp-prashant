@@ -121,6 +121,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 })
     }
 
+    // First delete all mood board items associated with this collection
+    await prisma.moodBoard.deleteMany({
+      where: { collectionId: parseInt(collectionId) }
+    })
+
+    // Then delete the collection itself
     await prisma.userCollection.delete({
       where: { id: parseInt(collectionId) }
     })

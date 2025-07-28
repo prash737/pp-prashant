@@ -10,6 +10,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
 import { Plus, Upload, X, Folder, FolderPlus, Trash2, ImageIcon } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface MoodBoardItem {
   id: string
@@ -448,9 +459,38 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between">
                       <span className="text-gray-500">{collection.moodBoard.length} images</span>
-                      <span className="text-pathpiper-teal">Click to expand</span>
+                      <div className="flex items-center gap-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button 
+                              className="text-red-500 hover:text-red-700 p-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{collection.name}"? This will permanently delete the collection and all {collection.moodBoard.length} images in it. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deleteCollection(collection.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete Collection
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        <span className="text-pathpiper-teal text-sm">Click to expand</span>
+                      </div>
                     </div>
                   </div>
                 )}
