@@ -1,0 +1,30 @@
+invitations" WHERE "public"."circle_invitations"."invitee_id" = $1 ORDER BY "public"."circle_invitations"."created_at" DESC OFFSET $2
+prisma:query SELECT 1
+prisma:query ROLLBACK
+prisma:error 
+Invalid `prisma.userCollection.create()` invocation:
+
+
+The column `user_id` does not exist in the current database.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error creating collection: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.userCollection.create()` invocation:
+
+
+The column `user_id` does not exist in the current database.
+    at async POST (app/api/user-collections/route.ts:70:26)
+  68 |     }
+  69 |
+> 70 |     const newCollection = await prisma.userCollection.create({
+     |                          ^
+  71 |       data: {
+  72 |         userId: user.id,
+  73 |         name: name.trim(), {
+  code: 'P2022',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ POST /api/user-collections 500 in 548ms
