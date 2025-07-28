@@ -38,9 +38,25 @@ export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isVi
     const fetchMoodBoard = async () => {
       try {
         const isPublicView = !isOwnProfile
+        console.log('🎨 Mood Board Section Debug:', {
+          studentId: studentId?.substring(0, 8) + '...',
+          isOwnProfile,
+          isPublicView,
+          componentProps: { isOwnProfile, isViewMode }
+        })
+        
         const response = await fetch(`/api/mood-board?userId=${studentId}&isPublicView=${isPublicView}`)
         if (response.ok) {
           const data = await response.json()
+          console.log('🎨 Mood Board Response:', {
+            collectionsCount: data.collections?.length || 0,
+            collections: data.collections?.map((c: UserCollection) => ({
+              id: c.id,
+              name: c.name,
+              isPrivate: (c as any).isPrivate,
+              itemCount: c.moodBoard?.length || 0
+            }))
+          })
           setCollections(data.collections || [])
           setUncategorizedItems(data.uncategorizedItems || [])
           // Expand all collections by default

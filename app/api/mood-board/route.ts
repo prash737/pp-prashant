@@ -14,10 +14,29 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const isPublicView = searchParams.get('isPublicView') === 'true'
 
+    // Get the current user to check if they're viewing their own profile
+    const cookieStore = request.cookies
+    const accessToken = cookieStore.get("sb-access-token")?.value
+    let currentUserId = null
+    
+    if (accessToken) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser(accessToken)
+        currentUserId = user?.id
+      } catch (error) {
+        console.error('Error getting current user:', error)
+      }
+    }
+
+    const isViewingOwnProfile = currentUserId === userId
+    
     console.log('🎯 Mood Board API called:', { 
       userId: userId?.substring(0, 8) + '...', 
+      currentUserId: currentUserId?.substring(0, 8) + '...',
       isPublicView,
-      rawIsPublicView: searchParams.get('isPublicView')
+      rawIsPublicView: searchParams.get('isPublicView'),
+      isViewingOwnProfile,
+      shouldShowPrivate: isViewingOwnProfile || !isPublicView
     })
 
     if (!userId) {
@@ -27,9 +46,11 @@ export async function GET(request: NextRequest) {
     // Build where clause for collections based on public view
     let collectionsWhere: any = { userId }
     
-    // Only filter private collections if it's a public view (viewing someone else's profile)
-    // isPublicView should be true only when viewing another user's profile
-    if (isPublicView === true) {
+    // Only filter private collections if it's truly a public view (someone else viewing this profile)
+    // AND the current user is not the profile owner
+    const shouldFilterPrivate = isPublicView === true && !isViewingOwnProfile
+    
+    if (shouldFilterPrivate) {
       collectionsWhere = {
         userId,
         OR: [
@@ -38,9 +59,13 @@ export async function GET(request: NextRequest) {
         ]
       }
     }
-    // If isPublicView is false or not set, show all collections (including private ones)
+    // If it's the user's own profile OR not a public view, show all collections (including private ones)
 
-    console.log('🔍 Collections where clause:', collectionsWhere)
+    console.log('🔍 Collections where clause:', {
+      collectionsWhere,
+      shouldFilterPrivate,
+      reasoning: shouldFilterPrivate ? 'Filtering private collections' : 'Showing all collections including private'
+    })
 
     // Get collections with their mood board items
     const collections = await prisma.userCollection.findMany({
