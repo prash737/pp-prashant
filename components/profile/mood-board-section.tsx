@@ -116,7 +116,6 @@ export default function MoodBoardSection({ studentId, isOwnProfile, onEdit, isVi
           <div className="flex items-center gap-2">
             <BrainIcon className="h-5 w-5 text-purple-500" />
             <h3 className="font-semibold">Mood Board</h3>
-            <span className="text-sm text-gray-500">({totalImages} images, {collections.length} collections)</span>
           </div>
           {isOwnProfile && !isViewMode && (
             <div className="flex items-center gap-2">
