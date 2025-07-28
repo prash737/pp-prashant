@@ -91,7 +91,11 @@ export async function GET(
                 }
               }
             },
-            socialLinks: true,
+            socialLinks: {
+              orderBy: {
+                createdAt: 'asc'
+              }
+            },
             customBadges: true,
             goals: true,
             achievements: true,

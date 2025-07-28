@@ -192,7 +192,16 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader student={student} currentUser={currentUser} connectionCounts={connectionCounts} isViewMode={isViewMode} onGoBack={onGoBack} />
+      <ProfileHeader 
+          student={{
+            ...studentData,
+            socialLinks: studentData.socialLinks || studentData.profile?.socialLinks || []
+          }} 
+          currentUser={currentUser}
+          connectionCounts={connectionCounts}
+          isViewMode={isViewMode}
+          onGoBack={onGoBack}
+        />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 

@@ -1067,9 +1067,9 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {(student.socialLinks || student.profile?.socialLinks) && (student.socialLinks || student.profile?.socialLinks).length > 0 && (
+                  {((student.socialLinks && student.socialLinks.length > 0) || (student.profile?.socialLinks && student.profile.socialLinks.length > 0)) && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {(student.socialLinks || student.profile?.socialLinks).map((link: any, index: number) => {
+                      {(student.socialLinks || student.profile?.socialLinks || []).map((link: any, index: number) => {
                         const getSocialIcon = (platform: string) => {
                           switch (platform.toLowerCase()) {
                             case 'instagram':
