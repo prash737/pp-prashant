@@ -41,6 +41,7 @@ interface SocialLink {
 export default function SocialContactForm({ data, onChange, userId }: SocialContactFormProps) {
   const [loading, setLoading] = useState(false)
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   const form = useForm<SocialContactData>({
     resolver: zodResolver(socialContactSchema),
@@ -254,9 +255,15 @@ export default function SocialContactForm({ data, onChange, userId }: SocialCont
       }
 
       toast({
-        title: "Success",
-        description: "Social & contact information saved successfully",
+        title: "✅ Changes Saved Successfully!",
+        description: "Your social & contact information has been updated and is now visible on your profile.",
+        duration: 4000,
+        className: "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200",
       })
+
+      // Show success animation
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
 
     } catch (error) {
       console.error('❌ Error saving social contact data:', error)
@@ -481,15 +488,25 @@ export default function SocialContactForm({ data, onChange, userId }: SocialCont
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className={`px-6 py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl ${
+                saveSuccess 
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' 
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+              }`}
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Saving...</span>
+                  <span>Saving Changes...</span>
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <span className="animate-pulse">✅ Saved Successfully!</span>
                 </>
               ) : (
-                <span>Save Social & Contact Info</span>
+                <>
+                  <span>💾 Save Social & Contact Info</span>
+                </>
               )}
             </button>
           </div>
