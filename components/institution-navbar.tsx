@@ -17,6 +17,7 @@ import {
   UserPlus,
   Loader2,
   Users,
+  Building,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -35,6 +36,15 @@ interface SearchUser {
   location?: string;
 }
 
+interface Institution {
+  id: string;
+  name: string;
+  logo?: string;
+  type: string;
+  location?: string;
+  verified?: boolean;
+}
+
 export function InstitutionNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -42,6 +52,7 @@ export function InstitutionNavbar() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [institutionResults, setInstitutionResults] = useState<Institution[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [sendingRequest, setSendingRequest] = useState<string | null>(null);
@@ -178,20 +189,29 @@ export function InstitutionNavbar() {
   const searchUsers = async (query: string) => {
     if (!query.trim() || query.length < 2) {
       setSearchResults([]);
+      setInstitutionResults([]);
       setShowSearchResults(false);
       return;
     }
 
     setSearchLoading(true);
     try {
-      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
-      if (response.ok) {
-        const users = await response.json();
+      // Search for users
+      const userResponse = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      
+      // Search for institutions
+      const institutionResponse = await fetch(`/api/institutions/search?q=${encodeURIComponent(query)}`);
+      
+      if (userResponse.ok && institutionResponse.ok) {
+        const users = await userResponse.json();
+        const institutionData = await institutionResponse.json();
+        
         setSearchResults(users);
+        setInstitutionResults(institutionData.institutions || []);
         setShowSearchResults(true);
       }
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error("Error searching:", error);
     } finally {
       setSearchLoading(false);
     }
@@ -255,6 +275,12 @@ export function InstitutionNavbar() {
     } else {
       console.warn('Unsupported role:', userRole);
     }
+  };
+
+  const handleInstitutionClick = (institutionId: string) => {
+    setShowSearchResults(false);
+    setSearchQuery("");
+    router.push(`/public-view/institution/profile/${institutionId}`);
   };
 
   const getRoleColor = (role: string) => {
@@ -362,13 +388,72 @@ export function InstitutionNavbar() {
 
                     {!searchLoading &&
                       searchQuery.length >= 2 &&
-                      searchResults.length === 0 && (
+                      searchResults.length === 0 && 
+                      institutionResults.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
                           <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                          <p className="text-sm">No users found matching "{searchQuery}"</p>
+                          <p className="text-sm">No results found matching "{searchQuery}"</p>
                         </div>
                       )}
 
+                    {/* Institution Results */}
+                    {institutionResults.map((institution) => (
+                      <div
+                        key={`institution-${institution.id}`}
+                        className="flex items-start space-x-3 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => handleInstitutionClick(institution.id)}
+                      >
+                        <div className="relative">
+                          <Image
+                            src={institution.logo || "/images/placeholder-logo.png"}
+                            alt={institution.name}
+                            width={48}
+                            height={48}
+                            className="rounded-lg border-2 border-gray-100"
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-semibold text-sm text-gray-900">
+                              {institution.name}
+                            </h4>
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0.5 font-medium bg-purple-100 text-purple-800"
+                            >
+                              <Building className="w-3 h-3 mr-1" />
+                              Institution
+                            </Badge>
+                            {institution.verified && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs px-2 py-0.5 font-medium bg-green-100 text-green-800"
+                              >
+                                ✓ Verified
+                              </Badge>
+                            )}
+                          </div>
+
+                          {institution.type && (
+                            <p className="text-xs text-gray-600 leading-relaxed">
+                              {institution.type}
+                            </p>
+                          )}
+
+                          {institution.location && (
+                            <p className="text-xs text-gray-500 flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                              </svg>
+                              {institution.location}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* User Results */}
                     {searchResults.map((searchUser) => (
                       <div
                         key={searchUser.id}
