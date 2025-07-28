@@ -21,11 +21,16 @@ export async function GET(request: NextRequest) {
     // Build where clause for collections based on public view
     const collectionsWhere: any = { userId }
     
-    // If it's a public view, only show non-private collections
+    // Only filter private collections if it's a public view (not the user's own profile)
     if (isPublicView) {
-      collectionsWhere.OR = [
-        { isPrivate: false },
-        { isPrivate: null }
+      collectionsWhere.AND = [
+        { userId },
+        {
+          OR: [
+            { isPrivate: false },
+            { isPrivate: null }
+          ]
+        }
       ]
     }
 
