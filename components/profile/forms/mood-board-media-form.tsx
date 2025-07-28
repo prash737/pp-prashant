@@ -416,12 +416,16 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                                 <X size={14} />
                               </button>
 
-                              {/* Caption overlay */}
-                              {item.caption && (
-                                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <p className="text-xs">{item.caption}</p>
-                                </div>
-                              )}
+                              {/* Caption overlay with editing */}
+                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <input
+                                  type="text"
+                                  value={item.caption || ''}
+                                  onChange={(e) => updateCaption(item.id, e.target.value, collection.id)}
+                                  placeholder="Add caption..."
+                                  className="w-full bg-transparent text-xs placeholder-gray-300 outline-none"
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>
