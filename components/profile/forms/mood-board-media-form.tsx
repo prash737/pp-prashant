@@ -1,14 +1,15 @@
-
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Upload, X, Image as ImageIcon, Plus, Folder, FolderPlus } from "lucide-react"
+import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
+import { Plus, Upload, X, Folder, Trash2, ImageIcon } from "lucide-react"
 
 interface MoodBoardItem {
   id: string
@@ -39,12 +40,13 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
   const [newCollectionName, setNewCollectionName] = useState("")
   const [newCollectionDescription, setNewCollectionDescription] = useState("")
   const [loading, setLoading] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
   // Load existing collections and mood board items
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return
-      
+
       try {
         const response = await fetch(`/api/mood-board?userId=${user.id}`)
         if (response.ok) {
@@ -100,7 +102,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
         const reader = new FileReader()
         reader.onload = async (e) => {
           const result = e.target?.result as string
-          
+
           try {
             const response = await fetch('/api/mood-board', {
               method: 'POST',
@@ -116,7 +118,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
 
             if (response.ok) {
               const data = await response.json()
-              
+
               if (collection) {
                 setCollections(prev => prev.map(c => 
                   c.id === collection.id 
@@ -204,6 +206,35 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
     }
   }
 
+    const handleUploadClick = (collectionId: number) => {
+    // Programmatically trigger the file input
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = (e: any, collectionId: number) => {
+    if (e.target.files) {
+      handleImageUpload(e.target.files, collections.find(c => c.id === collectionId));
+    }
+  };
+
+    const deleteCollection = async (collectionId: number) => {
+    try {
+      const response = await fetch(`/api/user-collections?collectionId=${collectionId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setCollections((prev) => prev.filter((c) => c.id !== collectionId));
+        toast.success("Collection deleted successfully!");
+      } else {
+        toast.error("Failed to delete collection.");
+      }
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      toast.error("Error deleting collection.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -274,99 +305,157 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
             </Dialog>
           </div>
 
-          {/* Collections List */}
-          <div className="space-y-6">
+          {/* Collections - Horizontally Scrollable Cards */}
+          <div className="flex gap-4 overflow-x-auto pb-4">
             {collections.map((collection) => (
-              <div key={collection.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Folder className="h-5 w-5 text-blue-500" />
-                    <h4 className="font-medium text-gray-900 dark:text-white">{collection.name}</h4>
-                    <span className="text-sm text-gray-500">({collection.moodBoard.length} images)</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeCollection(collection.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                {collection.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{collection.description}</p>
-                )}
-
-                {/* Upload Area for Collection */}
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 mb-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => e.target.files && handleImageUpload(e.target.files, collection)}
-                    className="hidden"
-                    id={`collection-upload-${collection.id}`}
-                  />
-                  <label htmlFor={`collection-upload-${collection.id}`} className="cursor-pointer block text-center">
-                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Add images to {collection.name}
-                    </p>
-                  </label>
-                </div>
-
-                {/* Collection Images */}
-                {collection.moodBoard.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {collection.moodBoard.map((item) => (
-                      <div
-                        key={item.id}
-                        className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
-                      >
-                        <img
-                          src={item.imageUrl}
-                          alt={item.caption || 'Mood board item'}
-                          className="w-full h-full object-cover"
-                        />
-                        
-                        {/* Remove button */}
-                        <button
-                          onClick={() => removeItem(item.id, collection.id)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
-
-                        {/* Caption overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <input
-                            type="text"
-                            value={item.caption || ''}
-                            onChange={(e) => updateCaption(item.id, e.target.value, collection.id)}
-                            placeholder="Add caption..."
-                            className="w-full bg-transparent text-xs placeholder-gray-300 outline-none"
-                          />
+              <div key={collection.id} className="min-w-[300px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                {selectedCollection?.id === collection.id ? (
+                  // Expanded view
+                  <div className="w-full min-w-[600px]">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-3">
+                        <Folder className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-white">{collection.name}</h4>
+                          {collection.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{collection.description}</p>
+                          )}
                         </div>
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">{collection.moodBoard.length} images</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedCollection(null)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteCollection(collection.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Upload Area */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, collection.id)}
+                        multiple
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => handleUploadClick(collection.id)}
+                        className="w-full p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center hover:border-pathpiper-teal hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <p className="text-gray-600 dark:text-gray-400">Add images to {collection.name}</p>
+                      </button>
+                    </div>
+
+                    {/* Collection Images */}
+                    {collection.moodBoard.length > 0 ? (
+                      <div className="p-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {collection.moodBoard.map((item) => (
+                            <div
+                              key={item.id}
+                              className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
+                            >
+                              <img
+                                src={item.imageUrl}
+                                alt={item.caption || 'Mood board item'}
+                                className="w-full h-full object-cover"
+                              />
+
+                              {/* Remove button */}
+                              <button
+                                onClick={() => removeItem(item.id, collection.id)}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X size={14} />
+                              </button>
+
+                              {/* Caption overlay */}
+                              {item.caption && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <p className="text-xs">{item.caption}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center">
+                        <ImageIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-gray-500 text-sm">No images in this collection</p>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <ImageIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No images in this collection yet</p>
+                  // Compact card view
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    onClick={() => setSelectedCollection(collection)}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <Folder className="h-5 w-5 text-blue-500" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 dark:text-white truncate">{collection.name}</h4>
+                        {collection.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{collection.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteCollection(collection.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
+
+                    {/* Preview images */}
+                    {collection.moodBoard.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-1 mb-3">
+                        {collection.moodBoard.slice(0, 3).map((item, index) => (
+                          <div key={item.id} className="aspect-square rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
+                            <img
+                              src={item.imageUrl}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-300" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">{collection.moodBoard.length} images</span>
+                      <span className="text-pathpiper-teal">Click to expand</span>
+                    </div>
                   </div>
                 )}
               </div>
             ))}
-
-            {collections.length === 0 && (
-              <div className="text-center py-12 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-                <Folder className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 mb-2">No collections created yet</p>
-                <p className="text-sm text-gray-400">Create your first collection to organize your inspiration</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -385,7 +474,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                     alt={item.caption || 'Mood board item'}
                     className="w-full h-full object-cover"
                   />
-                  
+
                   <button
                     onClick={() => removeItem(item.id)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
