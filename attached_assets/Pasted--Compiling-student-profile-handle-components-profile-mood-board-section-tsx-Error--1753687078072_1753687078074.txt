@@ -1,0 +1,95 @@
+ ○ Compiling /student/profile/[handle] ...
+ ⨯ ./components/profile/mood-board-section.tsx
+Error:   × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·      ─
+ 253 │   )
+ 254 │ }
+     ╰────
+  × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·       ──────
+ 253 │   )
+ 254 │ }
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/mood-board-section.tsx
+./components/profile/about-section.tsx
+./components/profile/student-profile.tsx
+./app/student/profile/[handle]/page.tsx
+ ⨯ ./components/profile/mood-board-section.tsx
+Error:   × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·      ─
+ 253 │   )
+ 254 │ }
+     ╰────
+  × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·       ──────
+ 253 │   )
+ 254 │ }
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/mood-board-section.tsx
+./components/profile/about-section.tsx
+./components/profile/student-profile.tsx
+./app/student/profile/[handle]/page.tsx
+ ⨯ ./components/profile/mood-board-section.tsx
+Error:   × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·      ─
+ 253 │   )
+ 254 │ }
+     ╰────
+  × Expression expected
+     ╭─[/home/runner/workspace/components/profile/mood-board-section.tsx:252:1]
+ 249 │           <p className="text-sm text-gray-500">+{moodBoard.length - 9} more images</p>
+ 250 │         </div>
+ 251 │       )}
+ 252 │     </motion.div>
+     ·       ──────
+ 253 │   )
+ 254 │ }
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/mood-board-section.tsx
+./components/profile/about-section.tsx
+./components/profile/student-profile.tsx
+./app/student/profile/[handle]/page.tsx
+ GET /api/student/profile/59a87f63-a96e-483a-a848-c859bb0a53dc 500 in 14965ms
+ GET /student/profile/59a87f63-a96e-483a-a848-c859bb0a53dc 500 in 14860ms
+ GET /student/profile/59a87f63-a96e-483a-a848-c859bb0a53dc 500 in 20ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
