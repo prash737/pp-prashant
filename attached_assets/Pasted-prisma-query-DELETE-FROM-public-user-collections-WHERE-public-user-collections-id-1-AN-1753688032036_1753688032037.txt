@@ -1,0 +1,28 @@
+prisma:query DELETE FROM "public"."user_collections" WHERE ("public"."user_collections"."id" = $1 AND 1=1) RETURNING "public"."user_collections"."id", "public"."user_collections"."user_id", "public"."user_collections"."name", "public"."user_collections"."description", "public"."user_collections"."created_at"
+prisma:error 
+Invalid `prisma.userCollection.delete()` invocation:
+
+
+Foreign key constraint violated on the constraint: `mood_board_collection_id_fkey`
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error deleting collection: Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.userCollection.delete()` invocation:
+
+
+Foreign key constraint violated on the constraint: `mood_board_collection_id_fkey`
+    at async DELETE (app/api/user-collections/route.ts:124:4)
+  122 |     }
+  123 |
+> 124 |     await prisma.userCollection.delete({
+      |    ^
+  125 |       where: { id: parseInt(collectionId) }
+  126 |     })
+  127 | {
+  code: 'P2003',
+  meta: [Object],
+  clientVersion: '6.8.2'
+}
+ DELETE /api/user-collections?collectionId=1 500 in 1499ms
