@@ -109,16 +109,6 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json()
-
-    // Validate required fields
-    if (!body.userId || !body.firstName || !body.lastName) {
-      return NextResponse.json(
-        { error: 'User ID, first name, and last name are required' },
-        { status: 400 }
-      );
-    }
-
     const cookieStore = await cookies()
 
     // Get the access token from cookies
@@ -133,6 +123,16 @@ export async function PUT(request: NextRequest) {
 
     if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized - invalid token' }, { status: 401 })
+    }
+
+    const body = await request.json()
+
+    // Validate required fields (use authenticated user ID)
+    if (!body.firstName || !body.lastName) {
+      return NextResponse.json(
+        { error: 'First name and last name are required' },
+        { status: 400 }
+      );
     }
 
     // Separate profile data from student-specific data
