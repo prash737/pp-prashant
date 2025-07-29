@@ -32,7 +32,7 @@ export default function StudentProfiles() {
   ]
 
   return (
-    <section className="py-20 bg-slate-50">
+    <section id="profiles" className="py-20 bg-slate-50">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Left side - Content */}

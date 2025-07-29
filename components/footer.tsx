@@ -31,7 +31,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-slate-300">Platform</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#profiles" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/#profiles" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Student Profiles
                 </a>
               </li>
