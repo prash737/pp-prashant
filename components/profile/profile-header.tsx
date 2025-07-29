@@ -1088,6 +1088,8 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                             case 'portfolio':
                             case 'website':
                               return <Globe className="h-4 w-4 text-green-500" />
+                            case 'portfolio':
+                              return <FolderKanban className="h-4 w-4 text-purple-500" />
                             case 'behance':
                               return <ExternalLink className="h-4 w-4 text-blue-500" />
                             case 'dribbble':
