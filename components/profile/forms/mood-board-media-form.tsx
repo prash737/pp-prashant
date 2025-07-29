@@ -453,8 +453,8 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                                 <X size={14} />
                               </button>
 
-                              {/* Caption overlay with editing */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Caption overlay with editing - always visible */}
+                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2">
                                 <input
                                   type="text"
                                   value={item.caption || ''}
@@ -577,7 +577,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                     <X size={14} />
                   </button>
 
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2">
                     <input
                       type="text"
                       value={item.caption || ''}
