@@ -168,7 +168,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <NavbarComponent />
       {/* Back button - Sticky header */}
-      
+
 
       {/* Profile content */}
       <main className="flex-grow">
@@ -187,6 +187,14 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
             currentUser={currentUser}
             studentData={studentData}
             isViewMode={true} // This prop indicates it's a view-only mode
+            shareProfile={() => {
+                const profileUrl = `https://path-piper.replit.app/share-profile/student/profile/${profileId}`;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                  alert('Profile link copied to clipboard!');
+                }).catch(() => {
+                  alert('Failed to copy link');
+                });
+              }}
           />
         )}
       </main>

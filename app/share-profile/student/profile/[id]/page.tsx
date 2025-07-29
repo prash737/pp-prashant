@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -196,6 +195,14 @@ export default function ShareStudentProfilePage({
             studentId={profileId!}
             isViewMode={true}
             isShareMode={true}
+            onClick={() => {
+                const profileUrl = `https://path-piper.replit.app/share-profile/student/profile/${profileId}`;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                  alert('Profile link copied to clipboard!');
+                }).catch(() => {
+                  alert('Failed to copy link');
+                });
+              }}
           />
         )}
       </main>

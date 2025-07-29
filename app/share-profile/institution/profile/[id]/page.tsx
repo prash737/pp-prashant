@@ -204,6 +204,14 @@ export default function ShareInstitutionProfilePage({
             institutionId={profileId!}
             isViewMode={true}
             isShareMode={true}
+            onClick={() => {
+                const profileUrl = `https://path-piper.replit.app/share-profile/institution/profile/${profileId}`;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                  alert('Profile link copied to clipboard!');
+                }).catch(() => {
+                  alert('Failed to copy link');
+                });
+              }}
           />
         )}
       </main>

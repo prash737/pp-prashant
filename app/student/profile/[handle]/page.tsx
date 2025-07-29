@@ -47,6 +47,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
   const router = useRouter()
+  const shareProfileUrl = `https://path-piper.replit.app/share-profile/student/${currentUser?.id}`
 
   // Resolve params first
   useEffect(() => {
@@ -164,11 +165,24 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
           {studentData && (
-            <StudentProfile
-              studentId={currentUser.id}
-              currentUser={currentUser}
-              studentData={studentData}
-            />
+            <>
+              <StudentProfile
+                studentId={currentUser.id}
+                currentUser={currentUser}
+                studentData={studentData}
+              />
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareProfileUrl)
+                    alert("Profile link copied to clipboard!")
+                  }}
+                  className="bg-pathpiper-teal text-white px-4 py-2 rounded hover:bg-pathpiper-teal/90"
+                >
+                  Share Profile
+                </button>
+              </div>
+            </>
           )}
         </main>
         <Footer />
