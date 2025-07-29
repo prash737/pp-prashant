@@ -371,7 +371,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                             Keep private
                           </label>
                         </div>
-                        <span className="text-sm text-gray-500">{collection.moodBoard.length} images</span>
+                        
                         <Button
                           variant="ghost"
                           size="sm"
@@ -515,7 +515,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                     )}
 
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">{collection.moodBoard.length} images</span>
+                      <div></div>
                       <div className="flex items-center gap-2">
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
