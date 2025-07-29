@@ -15,24 +15,7 @@ export async function GET(
 
     console.log('🏛️ Fetching public institution profile for ID:', institutionId)
 
-    // Check authentication (optional for public profiles, but helps with personalization)
-    const cookieStore = request.headers.get('cookie') || ''
-    const cookies = Object.fromEntries(
-      cookieStore.split(';').map(cookie => {
-        const [name, ...rest] = cookie.trim().split('=')
-        return [name, decodeURIComponent(rest.join('='))]
-      })
-    )
-
-    const accessToken = cookies['sb-access-token']
-    let currentUser = null
-
-    if (accessToken) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
-      if (!authError && user) {
-        currentUser = user
-      }
-    }
+    // No authentication required for public profiles
 
     // Get institution profile with all related data
     const profile = await prisma.profile.findUnique({

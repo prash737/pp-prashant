@@ -74,13 +74,13 @@ export default function ShareInstitutionProfilePage({
           galleryResponse,
           followersResponse,
         ] = await Promise.all([
-          fetch(`/api/institution/public-profile/${profileId}`),
-          fetch(`/api/institution/programs?institutionId=${profileId}`),
-          fetch(`/api/institution/faculty?institutionId=${profileId}`),
-          fetch(`/api/institution/facilities?institutionId=${profileId}`),
-          fetch(`/api/institution/events?institutionId=${profileId}`),
-          fetch(`/api/institution/gallery?institutionId=${profileId}`),
-          fetch(`/api/institutions/followers?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-profile/${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-programs?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-faculty?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-facilities?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-events?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institution/public-gallery?institutionId=${profileId}`),
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/institutions/public-followers?institutionId=${profileId}`),
         ]);
 
         if (!profileResponse.ok) {

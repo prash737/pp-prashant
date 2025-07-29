@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   ];
   
   // Define public paths
-  const publicPaths = ['/login', '/register', '/signup', '/forgot-password', '/api'];
+  const publicPaths = ['/login', '/register', '/signup', '/forgot-password', '/api', '/share-profile'];
   
   // Check if the current path is protected
   const isProtectedPath = protectedPaths.some(pp => 
