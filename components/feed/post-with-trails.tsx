@@ -704,47 +704,7 @@ export default function PostWithTrails({
           </div>
         )}
 
-        {/* Add Trail Button - Positioned directly under post content */}
-        {user && (
-          <div className="mb-4 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCreateTrail(!showCreateTrail)}
-              className={`flex items-center gap-2 transition-all duration-200 ${
-                showCreateTrail 
-                  ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100" 
-                  : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-purple-600"
-              }`}
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-              </svg>
-              <span className="font-medium">
-                {showCreateTrail ? "Cancel Trail" : "Add Trail"}
-              </span>
-            </Button>
-          </div>
-        )}
-
-        {/* Create Trail Form - Positioned immediately after Add Trail button */}
-        {showCreateTrail && user && (
-          <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <div className="mb-3">
-              <h4 className="text-sm font-medium text-purple-800 mb-1">
-                Add to Trail Discussion
-              </h4>
-              <p className="text-xs text-purple-600">
-                Continue the conversation with your thoughts, questions, or additional insights.
-              </p>
-            </div>
-            <CreatePost
-              parentPostId={post.id}
-              isTrail={true}
-              onPostCreated={handleTrailCreated}
-            />
-          </div>
-        )}
+        
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -880,10 +840,47 @@ export default function PostWithTrails({
                 <p>
                   No trails yet. Be the first to add to this trail discussion!
                 </p>
-                {!showCreateTrail && (
-                  <p className="text-xs mt-2">
-                    Click the "Add Trail" button above to get started.
-                  </p>
+              </div>
+            )}
+
+            {/* Add Trail Button - Positioned after all trails */}
+            {user && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateTrail(!showCreateTrail)}
+                  className={`flex items-center gap-2 transition-all duration-200 ${
+                    showCreateTrail 
+                      ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100" 
+                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-purple-600"
+                  }`}
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                  </svg>
+                  <span className="font-medium">
+                    {showCreateTrail ? "Cancel Trail" : "Add Trail"}
+                  </span>
+                </Button>
+
+                {/* Create Trail Form - Positioned after Add Trail button */}
+                {showCreateTrail && (
+                  <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-purple-800 mb-1">
+                        Add to Trail Discussion
+                      </h4>
+                      <p className="text-xs text-purple-600">
+                        Continue the conversation with your thoughts, questions, or additional insights.
+                      </p>
+                    </div>
+                    <CreatePost
+                      parentPostId={post.id}
+                      isTrail={true}
+                      onPostCreated={handleTrailCreated}
+                    />
+                  </div>
                 )}
               </div>
             )}
