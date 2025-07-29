@@ -1202,17 +1202,17 @@ export default function ParentChildProfilePage() {
                                         <div className="space-y-3">
                                           <Button
                                             variant="outline"
-                                            className="w-full justify-start text-left h-auto p-3 min-h-[70px] overflow-hidden"
+                                            className="w-full justify-start text-left h-auto p-3 min-h-[70px] overflow-hidden hover:bg-orange-600 hover:text-white hover:border-orange-600 group"
                                             onClick={() => {
                                               setOptionsDialogOpen(false);
                                               handleCircleDisable(selectedCircleForOptions.id, 'child');
                                             }}
                                           >
                                             <div className="w-full overflow-hidden">
-                                              <div className="font-medium text-orange-600 mb-1 text-sm">
+                                              <div className="font-medium text-orange-600 group-hover:text-white mb-1 text-sm">
                                                 Disable for only my child
                                               </div>
-                                              <div className="text-xs text-gray-500 leading-relaxed break-words">
+                                              <div className="text-xs text-gray-500 group-hover:text-white leading-relaxed break-words">
                                                 Your child will be removed from this circle, but other members can continue using it.
                                               </div>
                                             </div>
@@ -1220,18 +1220,19 @@ export default function ParentChildProfilePage() {
 
                                           <Button
                                             variant="outline"
-                                            className="w-full justify-start text-left h-auto p-3 min-h-[70px] overflow-hidden"
+                                            className="w-full justify-start text-left h-auto p-3 min-h-[70px] overflow-hidden hover:bg-red-600 hover:text-white hover:border-red-600 group"
                                             onClick={() => {
                                               setOptionsDialogOpen(false);
                                               handleCircleDisable(selectedCircleForOptions.id, 'all');
                                             }}
                                           >
                                             <div className="w-full overflow-hidden">
-                                              <div className="font-medium text-red-600 mb-1 text-sm">
+                                              <div className="font-medium text-red-600 group-hover:text-white mb-1 text-sm">
                                                 Disable for all members
                                               </div>
-                                              <div className="text-xs text-gray-500 leading-relaxed break-words">
-                                                This entire circle will be disabled for all members. This action affects everyone in the circle.
+                                              <div className="text-xs text-gray-500 group-hover:text-white leading-relaxed break-words">
+                                                This entire circle will be disabled for ALL members, not just your child. 
+                                                All members will lose access to this circle.
                                               </div>
                                             </div>
                                           </Button>
