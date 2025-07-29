@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -83,19 +84,38 @@ export default function ShareStudentProfilePage({
         }
 
         // Parse all responses
-        const [profileData, achievementsData, goalsData, circlesData] =
-          await Promise.all([
-            profileResponse.json(),
-            achievementsResponse.ok
-              ? achievementsResponse.json()
-              : { achievements: [] },
-            goalsResponse.ok ? goalsResponse.json() : { goals: [] },
-            circlesResponse.ok ? circlesResponse.json() : { circles: [] },
-          ]);
+        const [
+          profileData,
+          achievementsData,
+          goalsData,
+          circlesData,
+        ] = await Promise.all([
+          profileResponse.json(),
+          achievementsResponse.ok ? achievementsResponse.json() : { achievements: [] },
+          goalsResponse.ok ? goalsResponse.json() : { goals: [] },
+          circlesResponse.ok ? circlesResponse.json() : { circles: [] },
+        ]);
 
         // Combine all data into comprehensive student object
         const comprehensiveStudentData: StudentData = {
-          ...profileData,
+          id: profileData.id,
+          firstName: profileData.profile?.firstName || "Student",
+          lastName: profileData.profile?.lastName || "",
+          profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+          bio: profileData.profile?.bio || "No bio available",
+          location: profileData.profile?.location || "Location not specified",
+          role: "student",
+          socialLinks: profileData.profile?.socialLinks || [],
+          student: {
+            age_group: profileData.ageGroup || "young_adult",
+            birthYear: profileData.birthYear,
+            birthMonth: profileData.birthMonth,
+            gradeLevel: profileData.educationHistory?.[0]?.gradeLevel,
+            gpa: profileData.educationHistory?.[0]?.gpa,
+            interests: profileData.profile?.userInterests?.map((ui: any) => ui.interest.name) || [],
+            skills: profileData.profile?.userSkills?.map((us: any) => us.skill.name) || [],
+          },
+          educationHistory: profileData.educationHistory || [],
           achievements: achievementsData.achievements || [],
           goals: goalsData.goals || [],
           circles: circlesData.circles || [],
