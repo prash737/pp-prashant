@@ -1089,9 +1089,9 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                             case 'website':
                               return <Globe className="h-4 w-4 text-green-500" />
                             case 'behance':
-                              return <Globe className="h-4 w-4 text-blue-500" />
+                              return <ExternalLink className="h-4 w-4 text-blue-500" />
                             case 'dribbble':
-                              return <Globe className="h-4 w-4 text-pink-500" />
+                              return <Star className="h-4 w-4 text-pink-500" />
                             default:
                               return <Globe className="h-4 w-4 text-gray-500" />
                           }
