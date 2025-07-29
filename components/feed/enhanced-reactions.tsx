@@ -206,8 +206,8 @@ export default function EnhancedReactions({
                 setIsHoveringReactions(false)
                 setShowReactions(false)
               }}
-              className={`${emojiSizes[size]} hover:scale-125 transition-transform duration-200 ${
-                currentReaction === reaction.type ? 'scale-110' : ''
+              className={`${emojiSizes[size]} hover:scale-125 transition-all duration-200 hover:bg-gray-100 rounded-full p-1 ${
+                currentReaction === reaction.type ? 'scale-110 bg-gray-100' : ''
               }`}
               title={reaction.label}
             >

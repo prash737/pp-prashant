@@ -102,33 +102,33 @@ export default function SelfAnalysisPage() {
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-lg hover:bg-green-50 transition-all cursor-pointer group">
               <CardHeader>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Target className="h-6 w-6 text-green-600" />
+                <div className="w-12 h-12 bg-green-100 group-hover:bg-green-200 rounded-lg flex items-center justify-center mx-auto mb-4 transition-colors">
+                  <Target className="h-6 w-6 text-green-600 group-hover:text-green-700" />
                 </div>
-                <CardTitle className="text-lg">Strengths & Skills</CardTitle>
+                <CardTitle className="text-lg group-hover:text-green-800 transition-colors">Strengths & Skills</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 group-hover:text-gray-700 mb-4 transition-colors">
                   Identify your natural talents and areas where you excel academically and personally.
                 </p>
-                <Badge variant="secondary" className="text-xs">20-minute assessment</Badge>
+                <Badge variant="secondary" className="text-xs group-hover:bg-green-100 group-hover:text-green-700 transition-colors">20-minute assessment</Badge>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-lg hover:bg-purple-50 transition-all cursor-pointer group">
               <CardHeader>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Lightbulb className="h-6 w-6 text-purple-600" />
+                <div className="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mx-auto mb-4 transition-colors">
+                  <Lightbulb className="h-6 w-6 text-purple-600 group-hover:text-purple-700" />
                 </div>
-                <CardTitle className="text-lg">Interest Mapping</CardTitle>
+                <CardTitle className="text-lg group-hover:text-purple-800 transition-colors">Interest Mapping</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 group-hover:text-gray-700 mb-4 transition-colors">
                   Explore your passions and interests to find academic subjects and careers that excite you.
                 </p>
-                <Badge variant="secondary" className="text-xs">25-minute assessment</Badge>
+                <Badge variant="secondary" className="text-xs group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors">25-minute assessment</Badge>
               </CardContent>
             </Card>
 

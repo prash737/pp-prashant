@@ -94,7 +94,7 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
               {/* Hover state - absolute positioning over the normal state */}
               {role.clickable && (
                 <div className="flex flex-col items-center justify-center absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className={`absolute inset-0 ${role.bgColor} opacity-90 z-0`}></div>
+                  <div className={`absolute inset-0 ${role.bgColor} opacity-95 z-0`}></div>
                   <div className="relative z-10 flex flex-col items-center p-6">
                     {/* Increased image size from w-24 h-24 to w-36 h-36 */}
                     <div className="w-24 h-24 rounded-full overflow-hidden mb-2 border-2 border-white shadow-lg">
@@ -106,7 +106,7 @@ export default function RoleSelection({ onSelectRole }: RoleSelectionProps) {
                         className="object-cover w-full h-full"
                       />
                     </div>
-                    <h3 className="text-xl font-bold text-white mt-1">{role.title}</h3>
+                    <h3 className="text-xl font-bold text-white mt-1 drop-shadow-lg">{role.title}</h3>
                   </div>
                 </div>
               )}

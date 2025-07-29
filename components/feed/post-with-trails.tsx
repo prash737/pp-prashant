@@ -732,32 +732,32 @@ export default function PostWithTrails({
                 // Handle actual comments functionality - placeholder for now
                 toast.info("Comments feature coming soon!");
               }}
-              className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+              className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{commentsCount} Comments</span>
+              <span className="font-medium">{commentsCount} Comments</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleTrails}
-              className={`flex items-center gap-2 ${showTrails ? "text-purple-600" : "text-gray-600 hover:text-purple-600"}`}
+              className={`flex items-center gap-2 transition-colors ${showTrails ? "text-purple-600 bg-purple-50" : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"}`}
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
               </svg>
-              <span>{trails.length} Trails</span>
+              <span className="font-medium">{trails.length} Trails</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={handleShare}
-              className="flex items-center gap-2 text-gray-600 hover:text-green-600"
+              className="flex items-center gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
             >
               <Share2 className="h-4 w-4" />
-              <span>Share</span>
+              <span className="font-medium">Share</span>
             </Button>
           </div>
 
@@ -765,7 +765,7 @@ export default function PostWithTrails({
             variant="ghost"
             size="sm"
             onClick={handleBookmark}
-            className={`${isBookmarked ? "text-blue-600" : "text-gray-600"} hover:text-blue-600`}
+            className={`transition-colors ${isBookmarked ? "text-blue-600 bg-blue-50" : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"}`}
           >
             <Bookmark
               className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
@@ -852,8 +852,8 @@ export default function PostWithTrails({
                   onClick={() => setShowCreateTrail(!showCreateTrail)}
                   className={`flex items-center gap-2 transition-all duration-200 ${
                     showCreateTrail 
-                      ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100" 
-                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-purple-600"
+                      ? "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 hover:text-purple-800" 
+                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200"
                   }`}
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

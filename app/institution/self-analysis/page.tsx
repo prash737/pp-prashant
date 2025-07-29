@@ -468,7 +468,7 @@ export default function InstitutionSelfAnalysisPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setQuery("What marketing strategies would work best for our institution type and location?")}
-                        className="text-left justify-start"
+                        className="text-left justify-start hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors"
                       >
                         Marketing Recommendations
                       </Button>
@@ -476,7 +476,7 @@ export default function InstitutionSelfAnalysisPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => setQuery("Compare our institution profile with industry standards and suggest areas for improvement.")}
-                        className="text-left justify-start"
+                        className="text-left justify-start hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors"
                       >
                         Competitive Analysis
                       </Button>

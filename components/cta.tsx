@@ -16,6 +16,17 @@ export default function CTA() {
               <div className="absolute top-1/2 right-0 w-40 h-40 rounded-full bg-white/10 blur-xl"></div>
               <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-white/10 blur-xl"></div>
             </div>
+            
+            {/* Ensure any buttons in this component have proper text contrast */}
+            <style jsx>{`
+              .cta-section button {
+                color: white !important;
+              }
+              .cta-section button:hover {
+                color: white !important;
+                background-color: rgba(255, 255, 255, 0.2) !important;
+              }
+            `}</style>
 
             <motion.div
               className="relative max-w-3xl mx-auto text-center"
