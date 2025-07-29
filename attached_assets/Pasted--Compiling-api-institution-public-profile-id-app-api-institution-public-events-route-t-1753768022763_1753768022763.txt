@@ -1,0 +1,53 @@
+ ○ Compiling /api/institution/public-profile/[id] ...
+ ⨯ ./app/api/institution/public-events/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-events/route.ts
+ ⨯ ./app/api/institution/public-events/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-events/route.ts
+ ⨯ ./app/api/institution/public-events/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-events/route.ts
+ GET /api/institution/public-facilities?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19881ms
+ GET /api/institution/public-gallery?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19866ms
+ GET /api/institution/public-programs?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19868ms
+ GET /api/institution/public-events?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19867ms
+ GET /api/institution/public-faculty?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19882ms
+ GET /api/institution/public-profile/cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 19861ms
+ ⨯ ./app/api/institution/public-events/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-events/route.ts
+ GET /api/institutions/public-followers?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 543ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
