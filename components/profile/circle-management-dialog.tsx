@@ -252,11 +252,11 @@ export default function CircleManagementDialog({
           {/* Current members summary */}
           <div>
             <h4 className="text-sm font-medium mb-2">
-              {circle.id === 'friends' ? 'All Connections' : 'Current Members'} ({(circle._count?.memberships || 0) + (circle.creator ? 1 : 0)})
+              Current Members ({(circle._count?.memberships || 0) + (circle.creator ? 1 : 0)})
             </h4>
             <div className="flex flex-wrap gap-2">
               {/* Show creator first for custom circles */}
-              {circle.id !== 'friends' && circle.creator && (
+              {circle.creator && (
                 <div className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
                   <Avatar className="h-5 w-5">
                     <AvatarImage src={circle.creator.profileImageUrl} />
@@ -274,7 +274,7 @@ export default function CircleManagementDialog({
               )}
 
               {/* Show other members */}
-              {circle.memberships?.slice(0, circle.id === 'friends' ? 8 : 5).map((membership) => (
+              {circle.memberships?.slice(0, 8).map((membership) => (
                 <div 
                   key={membership.user.id}
                   className="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1"
@@ -291,9 +291,9 @@ export default function CircleManagementDialog({
                 </div>
               ))}
 
-              {(circle.memberships?.length || 0) > (circle.id === 'friends' ? 8 : 5) && (
+              {(circle.memberships?.length || 0) > 8 && (
                 <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1">
-                  +{(circle.memberships?.length || 0) - (circle.id === 'friends' ? 8 : 5)} more
+                  +{(circle.memberships?.length || 0) - 8} more
                 </span>
               )}
             </div>
@@ -301,14 +301,14 @@ export default function CircleManagementDialog({
 
           <Separator />
 
-          {/* Search Bar */}
+          {/* Search Bar - Only for custom circles when not in view mode */}
           {circle.id !== 'friends' && !isViewMode && (
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
               </div>
               <Input
-                placeholder={circle.id === 'friends' ? "Search connections..." : "Search connections to invite..."}
+                placeholder="Search connections to invite..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -316,11 +316,11 @@ export default function CircleManagementDialog({
             </div>
           )}
 
-          {/* Connections list - Only for custom circles */}
+          {/* Connections list - Only for custom circles when not in view mode */}
           {circle.id !== 'friends' && !isViewMode && (
             <div>
               <h4 className="text-sm font-medium mb-3">
-                All Connections ({filteredConnections.length})
+                Invite Connections ({filteredConnections.length})
               </h4>
               <div className="max-h-60 overflow-y-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -377,73 +377,6 @@ export default function CircleManagementDialog({
                         </div>
                       )
                     })
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Show filtered connections for Friends circle */}
-          {circle.id === 'friends' && (
-            <div>
-              <h4 className="text-sm font-medium mb-3">
-                All Connections ({filteredConnections.length + 1})
-              </h4>
-              <div className="max-h-60 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {/* Show current user first */}
-                  {circle.creator && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
-                      <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage src={circle.creator.profileImageUrl} />
-                        <AvatarFallback className="text-xs">
-                          {circle.creator.firstName[0]}{circle.creator.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {circle.creator.firstName} {circle.creator.lastName}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            student
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            You
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {filteredConnections.length === 0 ? (
-                    <p className="text-sm text-gray-500 col-span-2">
-                      {searchQuery ? 'No connections found matching your search' : 'No connections available'}
-                    </p>
-                  ) : (
-                    filteredConnections.map((connection) => (
-                      <div 
-                        key={connection.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50"
-                      >
-                        <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarImage src={connection.user.profileImageUrl} />
-                          <AvatarFallback className="text-xs">
-                            {connection.user.firstName[0]}{connection.user.lastName[0]}
-                          </AvatarFallback>
-                        </Avatar>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {connection.user.firstName} {connection.user.lastName}
-                          </p>
-                          <Badge variant="outline" className="text-xs">
-                            {connection.user.role}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))
                   )}
                 </div>
               </div>
