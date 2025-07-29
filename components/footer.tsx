@@ -36,18 +36,13 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#mentorship" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/#mentorship" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Mentorship
                 </a>
               </li>
               <li>
-                <a href="#institutions" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/#institutions" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Institutions
-                </a>
-              </li>
-              <li>
-                <a href="/student/self-analysis" className="text-slate-400 hover:text-teal-400 transition-colors font-medium">
-                  Self Analysis
                 </a>
               </li>
             </ul>
