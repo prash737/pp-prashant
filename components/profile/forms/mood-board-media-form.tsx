@@ -339,9 +339,9 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
           </div>
 
           {/* Collections - Vertical Grid Layout */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-4">
             {collections.map((collection) => (
-              <div key={collection.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div key={collection.id} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 {selectedCollection?.id === collection.id ? (
                   // Expanded view
                   <div className="w-full">
