@@ -41,9 +41,10 @@ interface InstitutionProfileProps {
   institutionData: InstitutionData
   institutionId?: string
   isViewMode?: boolean
+  isShareMode?: boolean
 }
 
-export default function InstitutionProfile({ institutionData, institutionId, isViewMode = false }: InstitutionProfileProps) {
+export default function InstitutionProfile({ institutionData, institutionId, isViewMode = false, isShareMode = false }: InstitutionProfileProps) {
   const [activeSection, setActiveSection] = useState("about")
   const containerRef = useRef<HTMLDivElement>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -110,7 +111,7 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
     const element = sectionRefs.current[sectionId]
     if (element && containerRef.current) {
       const elementTop = element.offsetTop
-      
+
       // Scroll to the section with some padding from the top
       containerRef.current.scrollTo({
         top: elementTop - 20, // 20px padding from top
@@ -124,7 +125,7 @@ export default function InstitutionProfile({ institutionData, institutionId, isV
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <InstitutionProfileHeader institutionData={institutionData} isViewMode={isViewMode} />
+      <InstitutionProfileHeader institutionData={institutionData} institutionId={institutionId} isViewMode={isViewMode} isShareMode={isShareMode} />
 
       {/* Mobile: Sticky Top Navigation */}
       <div className="lg:hidden sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 mb-6 -mx-4 px-4 py-3">

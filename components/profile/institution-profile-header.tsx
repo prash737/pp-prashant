@@ -46,9 +46,10 @@ interface InstitutionData {
 interface InstitutionProfileHeaderProps {
   institutionData: InstitutionData
   isViewMode?: boolean
+  isShareMode?: boolean
 }
 
-export default function InstitutionProfileHeader({ institutionData, isViewMode = false }: InstitutionProfileHeaderProps) {
+export default function InstitutionProfileHeader({ institutionData, isViewMode = false, isShareMode = false }: InstitutionProfileHeaderProps) {
   const [showFollowersDialog, setShowFollowersDialog] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -149,7 +150,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
         if (eventsResponse.ok) {
           const eventsData = await eventsResponse.json()
           console.log('🎉 Events data received in header:', eventsData)
-          
+
           // Handle both response formats - direct events array or wrapped in success object
           let eventsList = []
           if (eventsData.events && Array.isArray(eventsData.events)) {
@@ -157,7 +158,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
           } else if (Array.isArray(eventsData)) {
             eventsList = eventsData
           }
-          
+
           if (eventsList.length > 0) {
             // Sort by start date and take top 5 most recent
             const sortedEvents = eventsList

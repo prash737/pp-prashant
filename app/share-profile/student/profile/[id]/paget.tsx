@@ -1,57 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
 import StudentProfile from "@/components/profile/student-profile";
-import InternalNavbar from "@/components/internal-navbar";
-import InstitutionNavbar from "@/components/institution-navbar";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface StudentData {
   id: string;
-  profile: {
-    firstName: string;
-    lastName: string;
-    bio?: string;
-    location?: string;
-    profileImageUrl?: string;
-    userInterests: Array<{
-      interest: {
-        name: string;
-        category: { name: string };
-      };
-    }>;
-    userSkills: Array<{
-      skill: {
-        name: string;
-        category: { name: string };
-      };
-    }>;
-  };
-  educationHistory: Array<{
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string;
+  bio?: string;
+  location?: string;
+  role: string;
+  socialLinks?: Array<{
     id: string;
-    institutionName: string;
-    degree?: string;
-    fieldOfStudy?: string;
-    startDate: string;
-    endDate?: string;
-    current: boolean;
+    platform: string;
+    url: string;
   }>;
+  student?: {
+    age_group?: string;
+    birthYear?: string;
+    birthMonth?: string;
+    gradeLevel?: string;
+    gpa?: string;
+    interests?: string[];
+    skills?: string[];
+  };
+  educationHistory?: any[];
+  achievements?: any[];
+  goals?: any[];
+  circles?: any[];
 }
 
-export default function PublicViewStudentProfilePage({
+export default function ShareStudentProfilePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { user: currentUser, loading: authLoading } = useAuth();
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
-  const router = useRouter();
 
   // Resolve params first
   useEffect(() => {
@@ -63,79 +51,82 @@ export default function PublicViewStudentProfilePage({
   }, [params]);
 
   useEffect(() => {
-    if (authLoading || !profileId) return;
+    if (!profileId) return;
 
-    if (!currentUser) {
-      router.push("/login");
-      return;
-    }
-
-    // Only redirect if trying to view own profile, allow other roles to view student profiles
-    // Prevent viewing your own profile through public view
-    if (profileId === currentUser.id) {
-      if (currentUser.role === "student") {
-        router.push(`/student/profile/${currentUser.id}`);
-      } else if (currentUser.role === "mentor") {
-        router.push("/mentor/profile");
-      } else if (currentUser.role === "institution") {
-        router.push("/institution/profile");
-      } else {
-        router.push("/feed");
-      }
-      return;
-    }
-
-    // Fetch student data for the profile being viewed
     const fetchStudentData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/student/profile/${profileId}`, {
-          credentials: "include",
-        });
+        console.log("🎓 Fetching student data for share profile:", profileId);
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Profile not found");
-          } else if (response.status === 403) {
-            setError("Access denied");
+        // Fetch all data in parallel (without authentication)
+        const [
+          profileResponse,
+          achievementsResponse,
+          goalsResponse,
+          circlesResponse,
+        ] = await Promise.all([
+          fetch(`/api/student/profile/${profileId}`),
+          fetch(`/api/student/profile/${profileId}/achievements`),
+          fetch(`/api/student/profile/${profileId}/goals`),
+          fetch(`/api/student/profile/${profileId}/circles`),
+        ]);
+
+        if (!profileResponse.ok) {
+          if (profileResponse.status === 404) {
+            setError("Student profile not found");
           } else {
-            setError("Failed to load profile");
+            setError("Failed to load student profile");
           }
           return;
         }
 
-        const data = await response.json();
-        setStudentData(data);
+        // Parse all responses
+        const [profileData, achievementsData, goalsData, circlesData] =
+          await Promise.all([
+            profileResponse.json(),
+            achievementsResponse.ok
+              ? achievementsResponse.json()
+              : { achievements: [] },
+            goalsResponse.ok ? goalsResponse.json() : { goals: [] },
+            circlesResponse.ok ? circlesResponse.json() : { circles: [] },
+          ]);
+
+        // Combine all data into comprehensive student object
+        const comprehensiveStudentData: StudentData = {
+          ...profileData,
+          achievements: achievementsData.achievements || [],
+          goals: goalsData.goals || [],
+          circles: circlesData.circles || [],
+        };
+
+        console.log("✅ Student data loaded for share profile:", {
+          name: `${comprehensiveStudentData.firstName} ${comprehensiveStudentData.lastName}`,
+          achievements: comprehensiveStudentData.achievements?.length || 0,
+          goals: comprehensiveStudentData.goals?.length || 0,
+          circles: comprehensiveStudentData.circles?.length || 0,
+        });
+
+        setStudentData(comprehensiveStudentData);
       } catch (err) {
-        console.error("Error fetching student data:", err);
-        setError("Failed to load profile");
+        console.error("Error fetching student data for share profile:", err);
+        setError("Failed to load student profile");
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudentData();
-  }, [profileId, currentUser, authLoading, router]);
+  }, [profileId]);
 
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  // Determine which navbar to use based on logged-in user's role
-  const NavbarComponent =
-    currentUser?.role === "institution" ? InstitutionNavbar : InternalNavbar;
-
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <NavbarComponent />
-
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
+            <p className="mt-4 text-gray-600">Loading student profile...</p>
           </div>
         </main>
       </div>
@@ -145,24 +136,10 @@ export default function PublicViewStudentProfilePage({
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <NavbarComponent />
-
         <main className="flex-grow flex items-center justify-center pt-4">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
             <p className="text-gray-600 mb-4">{error}</p>
-            <Button
-              onClick={handleGoBack}
-              className="bg-pathpiper-teal text-white hover:bg-pathpiper-teal/90 mr-2"
-            >
-              Go Back
-            </Button>
-            <Button
-              onClick={() => router.push("/student/profile")}
-              variant="outline"
-            >
-              My Profile
-            </Button>
           </div>
         </main>
       </div>
@@ -171,26 +148,13 @@ export default function PublicViewStudentProfilePage({
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <NavbarComponent />
-      {/* Back button - Sticky header */}
-
-      {/* Profile content */}
       <main className="flex-grow">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleGoBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
         {studentData && (
           <StudentProfile
-            studentId={profileId!}
-            currentUser={currentUser}
             studentData={studentData}
-            isViewMode={true} // This prop indicates it's a view-only mode
+            studentId={profileId!}
+            isViewMode={true}
+            isShareMode={true}
           />
         )}
       </main>

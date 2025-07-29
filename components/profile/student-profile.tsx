@@ -19,10 +19,18 @@ interface StudentProfileProps {
   currentUser?: any
   studentData?: any
   isViewMode?: boolean // New prop to indicate if this is a view-only mode
+  isShareMode?: boolean
   onGoBack?: () => void // New prop for back button handler
 }
 
-export default function StudentProfile({ studentId, currentUser, studentData, isViewMode = false, onGoBack }: StudentProfileProps) {
+export default function StudentProfile({ 
+  studentId, 
+  currentUser, 
+  studentData, 
+  isViewMode = false,
+  isShareMode = false,
+  onGoBack 
+}: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -192,7 +200,13 @@ export default function StudentProfile({ studentId, currentUser, studentData, is
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader student={student} currentUser={currentUser} connectionCounts={connectionCounts} isViewMode={isViewMode} onGoBack={onGoBack} />
+      <ProfileHeader 
+        student={student} 
+        currentUser={currentUser} 
+        connectionCounts={connectionCounts} 
+        isViewMode={isViewMode} 
+        isShareMode={isShareMode}
+        onGoBack={onGoBack} />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 

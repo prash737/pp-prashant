@@ -51,6 +51,7 @@ interface ProfileHeaderProps {
     institutions: number
   }
   isViewMode?: boolean
+  isShareMode?: boolean
   onGoBack?: () => void
 }
 
@@ -63,7 +64,7 @@ interface Achievement {
   achievementImageIcon?: string
 }
 
-export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, onGoBack }: ProfileHeaderProps) {
+export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack }: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
@@ -85,7 +86,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
 
   const handleShareProfile = async () => {
     const profileUrl = `https://path-piper.replit.app/public-view/student/profile/${student.id}`
-    
+
     try {
       await navigator.clipboard.writeText(profileUrl)
       // You can add a toast notification here if you have a toast system
@@ -669,7 +670,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                               Share Profile
                             </Button>
                           )}
-                          
+
                           {isOwnProfile && !isViewMode ? (
                             <Button 
                               size="sm" 
@@ -830,8 +831,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                       <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
                         Following: {followingCount}
                       </span>
-                    </div>
-                  </div>
+                    </div>                  </div>
 
                   {/* Circle preview - Friends circle with add button */}
                   <div className="mt-4">
