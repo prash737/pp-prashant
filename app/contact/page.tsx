@@ -1,9 +1,4 @@
-
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Mail, Phone, MapPin, Clock, MessageCircle, HelpCircle } from "lucide-react"
 import Footer from "@/components/footer"
 import InternalNavbar from "@/components/internal-navbar"
@@ -76,108 +71,27 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Send us a Message</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
-                      </label>
-                      <Input placeholder="Enter your first name" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
-                      </label>
-                      <Input placeholder="Enter your last name" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
-                    </label>
-                    <Input type="email" placeholder="Enter your email address" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject
-                    </label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">General Inquiry</SelectItem>
-                        <SelectItem value="support">Technical Support</SelectItem>
-                        <SelectItem value="partnership">Partnership</SelectItem>
-                        <SelectItem value="safety">Safety Concern</SelectItem>
-                        <SelectItem value="media">Media Inquiry</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Message
-                    </label>
-                    <Textarea 
-                      placeholder="Tell us how we can help you..."
-                      rows={6}
-                    />
-                  </div>
-
-                  <Button className="w-full bg-teal-500 hover:bg-teal-600">
-                    Send Message
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Contact Methods */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Methods</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {contactMethods.map((method, index) => (
-                    <div key={index} className="flex items-start gap-3">
+          {/* Contact Methods */}
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Contact Methods</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {contactMethods.map((method, index) => (
+                <Card key={index}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
                       <div className="text-teal-500 mt-1">
                         {method.icon}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{method.title}</h3>
-                        <p className="text-sm text-gray-600 mb-1">{method.description}</p>
-                        <p className="text-sm font-medium text-gray-900">{method.contact}</p>
+                        <h3 className="font-semibold text-gray-900 mb-2">{method.title}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{method.description}</p>
+                        <p className="text-sm font-medium text-gray-900 mb-1">{method.contact}</p>
                         <p className="text-xs text-gray-500">{method.response}</p>
                       </div>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Support</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    Need immediate help? Check out our help center for instant answers to common questions.
-                  </p>
-                  <Button variant="outline" className="w-full">
-                    Visit Help Center
-                  </Button>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
@@ -209,15 +123,37 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* FAQ Section */}
+          {/* Additional Contact Information */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              Can't find what you're looking for? Our comprehensive FAQ section has answers to the most common questions.
-            </p>
-            <Button size="lg" variant="outline">
-              Browse FAQ
-            </Button>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Additional Contact Information</h2>
+            <div className="max-w-2xl mx-auto">
+              <Card>
+                <CardContent className="p-8">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">General Inquiries</h3>
+                      <p className="text-gray-600">info@pathpiper.com</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Media & Press</h3>
+                      <p className="text-gray-600">press@pathpiper.com</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Partnerships</h3>
+                      <p className="text-gray-600">partnerships@pathpiper.com</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Safety Reports</h3>
+                      <p className="text-gray-600">safety@pathpiper.com</p>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Legal</h3>
+                      <p className="text-gray-600">legal@pathpiper.com</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

@@ -1,75 +1,99 @@
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { MapPin, Clock, Users, Code, Palette, TrendingUp } from "lucide-react"
+import { MapPin, Clock, Users, Zap, Heart, Globe } from "lucide-react"
 import Footer from "@/components/footer"
 import InternalNavbar from "@/components/internal-navbar"
 
 export default function CareersPage() {
   const openings = [
     {
-      title: "Frontend Developer",
+      title: "Senior Frontend Developer",
       department: "Engineering",
-      location: "Remote",
+      location: "San Francisco, CA / Remote",
       type: "Full-time",
-      description: "Build beautiful, responsive user interfaces for our educational platform using React, TypeScript, and modern web technologies.",
-      skills: ["React", "TypeScript", "Tailwind CSS", "Next.js"]
+      description: "Build beautiful, responsive user interfaces for our student-focused platform using React, TypeScript, and modern web technologies."
     },
     {
-      title: "Backend Engineer",
-      department: "Engineering",
-      location: "Remote",
+      title: "Safety & Moderation Specialist",
+      department: "Safety",
+      location: "New York, NY / Remote",
       type: "Full-time",
-      description: "Design and implement scalable backend systems to support our growing global community of students and educators.",
-      skills: ["Node.js", "PostgreSQL", "Prisma", "API Design"]
+      description: "Ensure student safety through content moderation, policy development, and implementation of safety features."
     },
     {
-      title: "UX/UI Designer",
+      title: "Product Designer",
       department: "Design",
       location: "Remote",
       type: "Full-time",
-      description: "Create intuitive, engaging designs that make education accessible and enjoyable for students worldwide.",
-      skills: ["Figma", "User Research", "Prototyping", "Design Systems"]
+      description: "Design intuitive, age-appropriate interfaces that enhance the student learning and networking experience."
     },
     {
-      title: "Content Strategist",
-      department: "Marketing",
-      location: "Remote",
-      type: "Part-time",
-      description: "Develop compelling content strategies to engage students, educators, and institutions on our platform.",
-      skills: ["Content Marketing", "SEO", "Social Media", "Analytics"]
+      title: "Educational Content Manager",
+      department: "Content",
+      location: "London, UK / Remote",
+      type: "Full-time",
+      description: "Develop and curate educational content that supports student growth and engagement on our platform."
+    },
+    {
+      title: "Data Scientist",
+      department: "Engineering",
+      location: "San Francisco, CA",
+      type: "Full-time",
+      description: "Analyze user behavior and platform data to improve student experiences and safety measures."
     },
     {
       title: "Community Manager",
       department: "Community",
       location: "Remote",
       type: "Full-time",
-      description: "Foster a positive, safe, and engaging community environment for students and educators.",
-      skills: ["Community Building", "Moderation", "Communication", "Event Planning"]
+      description: "Foster positive community interactions and support student engagement across our global platform."
     }
   ]
 
   const benefits = [
     {
-      icon: <Users className="h-6 w-6" />,
-      title: "Remote-First Culture",
-      description: "Work from anywhere in the world with flexible hours that suit your lifestyle."
+      icon: <Heart className="h-6 w-6" />,
+      title: "Health & Wellness",
+      description: "Comprehensive healthcare, mental health support, and wellness programs"
     },
     {
-      icon: <TrendingUp className="h-6 w-6" />,
+      icon: <Clock className="h-6 w-6" />,
+      title: "Work-Life Balance",
+      description: "Flexible hours, unlimited PTO, and remote work options"
+    },
+    {
+      icon: <Zap className="h-6 w-6" />,
       title: "Professional Growth",
-      description: "Continuous learning opportunities, conference attendance, and skill development support."
+      description: "Learning budget, conference attendance, and career development programs"
     },
     {
-      icon: <Code className="h-6 w-6" />,
-      title: "Cutting-Edge Tech",
-      description: "Work with the latest technologies and tools to build innovative educational solutions."
+      icon: <Users className="h-6 w-6" />,
+      title: "Inclusive Culture",
+      description: "Diverse, supportive team with strong collaboration and respect"
     },
     {
-      icon: <Palette className="h-6 w-6" />,
-      title: "Creative Freedom",
-      description: "Express your creativity and contribute to meaningful features that impact student lives."
+      icon: <Globe className="h-6 w-6" />,
+      title: "Global Impact",
+      description: "Work on a platform that positively impacts students worldwide"
+    }
+  ]
+
+  const values = [
+    {
+      title: "Student First",
+      description: "Every decision we make prioritizes student safety, growth, and success."
+    },
+    {
+      title: "Innovation",
+      description: "We continuously push boundaries to create better educational experiences."
+    },
+    {
+      title: "Collaboration",
+      description: "We work together as a team to achieve common goals and support each other."
+    },
+    {
+      title: "Integrity",
+      description: "We act with honesty, transparency, and ethical responsibility in everything we do."
     }
   ]
 
@@ -84,22 +108,38 @@ export default function CareersPage() {
               Join Our Mission
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Help us build the future of educational social networking. Join a team passionate about empowering students worldwide.
+              Help us build the future of student networking. Join a team that's passionate about 
+              creating safe, supportive spaces where students can learn, grow, and connect globally.
             </p>
           </div>
 
-          {/* Why PathPiper Section */}
+          {/* Why Work With Us */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Work at PathPiper?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Work With Us</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {benefits.map((benefit, index) => (
-                <Card key={index} className="text-center">
+                <Card key={index}>
                   <CardContent className="p-6">
-                    <div className="text-teal-500 mb-4 flex justify-center">
+                    <div className="text-teal-500 mb-4">
                       {benefit.icon}
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{benefit.title}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{benefit.title}</h3>
                     <p className="text-gray-600">{benefit.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Our Values */}
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Values</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {values.map((value, index) => (
+                <Card key={index}>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{value.title}</h3>
+                    <p className="text-gray-600">{value.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -109,14 +149,14 @@ export default function CareersPage() {
           {/* Open Positions */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Open Positions</h2>
-            <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="space-y-6">
               {openings.map((job, index) => (
                 <Card key={index}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div>
-                        <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{job.title}</h3>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
                             {job.department}
@@ -131,46 +171,23 @@ export default function CareersPage() {
                           </span>
                         </div>
                       </div>
-                      <Button>Apply Now</Button>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{job.description}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {job.skills.map((skill, skillIndex) => (
-                        <Badge key={skillIndex} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
+                    <p className="text-gray-600">{job.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
 
-          {/* Culture Section */}
-          <div className="mb-16">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Our Culture</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                At PathPiper, we believe in creating an inclusive, collaborative environment where everyone can thrive. Our team is passionate about education, technology, and making a positive impact on students' lives around the world.
-              </p>
-              <p className="text-lg text-gray-600">
-                We value diversity, creativity, and continuous learning. Whether you're a seasoned professional or just starting your career, we provide the support and opportunities you need to grow and succeed.
-              </p>
-            </div>
-          </div>
-
-          {/* CTA Section */}
+          {/* Call to Action */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Don't See Your Role?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Make an Impact?</h2>
             <p className="text-xl text-gray-600 mb-8">
-              We're always looking for talented individuals who share our passion for education and innovation.
+              Don't see a role that fits? We're always looking for talented individuals who share our passion for education and student success.
             </p>
-            <Button size="lg" className="bg-teal-500 hover:bg-teal-600">
-              Send Us Your Resume
-            </Button>
+            <p className="text-lg text-gray-600">
+              Send your resume and a cover letter to <a href="mailto:careers@pathpiper.com" className="text-teal-600 hover:underline">careers@pathpiper.com</a>
+            </p>
           </div>
         </div>
       </div>
