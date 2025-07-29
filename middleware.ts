@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -7,7 +6,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  
+
   // Define paths that should be protected
   const protectedPaths = [
     '/onboarding',
@@ -19,60 +18,60 @@ export async function middleware(request: NextRequest) {
     '/mentor',
     '/institution',
   ];
-  
+
   // Define public paths
   const publicPaths = ['/login', '/register', '/signup', '/forgot-password', '/api', '/share-profile'];
-  
+
   // Check if the current path is protected
   const isProtectedPath = protectedPaths.some(pp => 
     path === pp || path.startsWith(`${pp}/`)
   );
-  
+
   // Check if the current path is a public path
   const isPublicPath = publicPaths.some(pp => 
     path === pp || path.startsWith(`${pp}/`)
   );
-  
+
   // If it's a protected path, validate authentication properly
   if (isProtectedPath && !isPublicPath) {
     // Try multiple cookie names that Supabase might use
     const accessToken = request.cookies.get('sb-access-token')?.value || 
                        request.cookies.get('supabase-auth-token')?.value ||
                        request.cookies.get('sb-auth-token')?.value;
-    
+
     const refreshToken = request.cookies.get('sb-refresh-token')?.value;
-    
+
     if (!accessToken && !refreshToken) {
       // No tokens at all, redirect to login
       const redirectUrl = new URL('/login', request.url);
       redirectUrl.searchParams.set('from', path);
       return NextResponse.redirect(redirectUrl);
     }
-    
+
     // Verify token with Supabase
     try {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
       let user = null;
       let authError = null;
-      
+
       // First try with access token
       if (accessToken) {
         const { data: { user: authUser }, error } = await supabase.auth.getUser(accessToken);
         user = authUser;
         authError = error;
       }
-      
+
       // If access token failed and we have refresh token, try to refresh
       if ((!user || authError) && refreshToken) {
         console.log('Middleware: Attempting token refresh');
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
           refresh_token: refreshToken
         });
-        
+
         if (refreshData?.session?.user) {
           user = refreshData.session.user;
           authError = null;
-          
+
           // Set new access token in response
           const response = NextResponse.next();
           response.cookies.set('sb-access-token', refreshData.session.access_token, {
@@ -87,7 +86,7 @@ export async function middleware(request: NextRequest) {
           return response;
         }
       }
-      
+
       if (authError || !user) {
         console.log('Middleware: Invalid token, redirecting to login');
         // Invalid token, redirect to login
@@ -95,13 +94,13 @@ export async function middleware(request: NextRequest) {
         redirectUrl.searchParams.set('from', path);
         return NextResponse.redirect(redirectUrl);
       }
-      
+
       // Token is valid, inject user info into headers for the app to use
       const response = NextResponse.next();
       response.headers.set('x-user-id', user.id);
       response.headers.set('x-user-email', user.email || '');
       return response;
-      
+
     } catch (error) {
       console.error('Middleware auth error:', error);
       const redirectUrl = new URL('/login', request.url);
@@ -109,7 +108,66 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
   }
-  
+
+  // Define public API paths
+  const publicApiPaths = [
+  '/api/institution/public-profile',
+  '/api/institution/public-programs',
+  '/api/institution/public-faculty',
+  '/api/institution/public-facilities',
+  '/api/institution/public-events',
+  '/api/institution/public-gallery',
+  '/api/institution/public-faculty-stats',
+  '/api/institution/public-quick-facts',
+  '/api/institution/public-contact-info',
+  '/api/institution/public-academic-communities',
+  '/api/institutions/public-followers',
+  '/api/student/public-profile',
+  '/api/student/public-following',
+  ];
+
+    const isPublicApiPath = publicApiPaths.some(apiPath =>
+      path === apiPath || path.startsWith(`${apiPath}/`)
+  );
+
+    if (path.startsWith('/api') && !isPublicApiPath && !isPublicPath) {
+        // Check for access token in header
+        const accessToken = request.headers.get('Authorization')?.split(' ')[1];
+
+        if (!accessToken) {
+            return new NextResponse(JSON.stringify({ success: false, message: 'Authentication required' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        try {
+            const supabase = createClient(supabaseUrl, supabaseServiceKey);
+            const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+            if (error || !user) {
+                return new NextResponse(JSON.stringify({ success: false, message: 'Invalid or expired token' }), {
+                    status: 401,
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
+
+            // Token is valid, proceed to the API route
+            const response = NextResponse.next();
+            response.headers.set('x-user-id', user.id);
+            response.headers.set('x-user-email', user.email || '');
+            return response;
+
+        } catch (authError) {
+            console.error('API authentication error:', authError);
+            return new NextResponse(JSON.stringify({ success: false, message: 'Authentication failed' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    }
+
+
   return NextResponse.next();
 }
 
