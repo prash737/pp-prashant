@@ -193,11 +193,14 @@ export default function EnhancedFeedItem({
           <div className="relative">
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200">
               <Image
-                src={item.author.avatar || "/placeholder.svg"}
+                src={item.author.avatar || "/images/default-profile.png"}
                 alt={item.author.name}
                 width={40}
                 height={40}
                 className="object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/images/default-profile.png";
+                }}
               />
             </div>
             <div className="absolute -bottom-1 -right-1">

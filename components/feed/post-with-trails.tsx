@@ -510,12 +510,15 @@ export default function PostWithTrails({
             <div className="h-12 w-12 rounded-full overflow-hidden flex-shrink-0">
               <Image
                 src={
-                  post.author?.profileImageUrl || "/images/student-profile.png"
+                  post.author?.profileImageUrl || "/images/default-profile.png"
                 }
                 alt={`${post.author?.firstName} ${post.author?.lastName}`}
                 width={48}
                 height={48}
                 className="object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/images/default-profile.png";
+                }}
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -673,6 +676,9 @@ export default function PostWithTrails({
                 width={600}
                 height={400}
                 className="w-full max-h-96 object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
               />
             )}
           </div>
@@ -799,12 +805,15 @@ export default function PostWithTrails({
                     <Image
                       src={
                         trail.author?.profileImageUrl ||
-                        "/images/student-profile.png"
+                        "/images/default-profile.png"
                       }
                       alt={`${trail.author?.firstName} ${trail.author?.lastName}`}
                       width={32}
                       height={32}
                       className="object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/default-profile.png";
+                      }}
                     />
                   </div>
                   <div className="flex-1">
