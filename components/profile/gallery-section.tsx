@@ -81,9 +81,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
       console.log('🖼️ Gallery data received in component:', data)
       
       // Handle different response formats
-      if (data.gallery && Array.isArray(data.gallery)) {
-        setImages(data.gallery)
-      } else if (data.images && Array.isArray(data.images)) {
+      if (data.images && Array.isArray(data.images)) {
         setImages(data.images)
       } else if (Array.isArray(data)) {
         setImages(data)

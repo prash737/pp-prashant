@@ -79,10 +79,10 @@ export default function ShareStudentProfilePage({
           goalsResponse,
           circlesResponse,
         ] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/student/public-profile/${profileId}`),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/student/public-profile/${profileId}/achievements`),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/student/public-profile/${profileId}/goals`),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/api/student/public-profile/${profileId}/circles`),
+          fetch(`/api/student/profile/${profileId}`),
+          fetch(`/api/student/profile/${profileId}/achievements`),
+          fetch(`/api/student/profile/${profileId}/goals`),
+          fetch(`/api/student/profile/${profileId}/circles`),
         ]);
 
         if (!profileResponse.ok) {
