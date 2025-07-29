@@ -11,13 +11,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ gallery: [] });
     }
 
-    const institution = await prisma.institution.findUnique({
-      where: { profileId: institutionId },
-      select: { gallery: true }
+    // Get gallery images for this institution
+    const gallery = await prisma.institutionGallery.findMany({
+      where: { institutionId },
+      orderBy: { createdAt: 'desc' }
     });
 
     return NextResponse.json({ 
-      gallery: institution?.gallery || [] 
+      gallery: gallery.map(img => ({
+        id: img.id,
+        url: img.imageUrl,
+        caption: img.caption || ''
+      }))
     });
 
   } catch (error) {

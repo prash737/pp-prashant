@@ -11,9 +11,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ events: [] });
     }
 
-    const events = await prisma.institutionEvent.findMany({
+    const events = await prisma.institutionEvents.findMany({
       where: { institutionId },
-      orderBy: { eventDate: 'desc' }
+      orderBy: { startDate: 'desc' }
     });
 
     return NextResponse.json({ events });
