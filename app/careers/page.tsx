@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Clock, Users, Zap, Heart, Globe } from "lucide-react"
 import Footer from "@/components/footer"
-import InternalNavbar from "@/components/internal-navbar"
+import Navbar from "@/components/navbar"
 
 export default function CareersPage() {
   const openings = [
@@ -99,7 +99,7 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <InternalNavbar />
+      <Navbar />
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
