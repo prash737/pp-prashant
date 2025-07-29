@@ -31,27 +31,27 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-slate-300">Platform</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#profiles" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/student-profiles" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Student Profiles
                 </a>
               </li>
               <li>
-                <a href="#mentorship" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/mentorship" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Mentorship
                 </a>
               </li>
               <li>
-                <a href="#institutions" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/institutions" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Institutions
                 </a>
               </li>
               <li>
-                <a href="#discovery" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/explore" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Career Discovery
                 </a>
               </li>
               <li>
-                <a href="/student/self-analysis" className="text-slate-400 hover:text-teal-400 transition-colors font-medium">
+                <a href="/self-analysis" className="text-slate-400 hover:text-teal-400 transition-colors font-medium">
                   🧠 Self Analysis
                 </a>
               </li>
