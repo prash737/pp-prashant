@@ -17,6 +17,18 @@ interface StudentData {
     platform: string;
     url: string;
   }>;
+  profile?: {
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    bio?: string;
+    tagline?: string;
+    socialLinks?: Array<{
+      id: string;
+      platform: string;
+      url: string;
+    }>;
+  };
   student?: {
     age_group?: string;
     birthYear?: string;
@@ -106,6 +118,15 @@ export default function ShareStudentProfilePage({
           location: profileData.profile?.location || "Location not specified",
           role: "student",
           socialLinks: profileData.profile?.socialLinks || [],
+          // Include the profile object that ProfileHeader expects
+          profile: {
+            firstName: profileData.profile?.firstName || "Student",
+            lastName: profileData.profile?.lastName || "",
+            profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+            bio: profileData.profile?.bio || "No bio available",
+            tagline: profileData.profile?.tagline || profileData.profile?.bio || "Passionate learner exploring new horizons",
+            socialLinks: profileData.profile?.socialLinks || [],
+          },
           student: {
             age_group: profileData.ageGroup || "young_adult",
             birthYear: profileData.birthYear,
