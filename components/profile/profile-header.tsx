@@ -1086,10 +1086,9 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                             case 'facebook':
                               return <Facebook className="h-4 w-4 text-blue-600" />
                             case 'portfolio':
+                              return <FolderKanban className="h-4 w-4 text-purple-500" />
                             case 'website':
                               return <Globe className="h-4 w-4 text-green-500" />
-                            case 'portfolio':
-                              return <FolderKanban className="h-4 w-4 text-purple-500" />
                             case 'behance':
                               return <ExternalLink className="h-4 w-4 text-blue-500" />
                             case 'dribbble':
