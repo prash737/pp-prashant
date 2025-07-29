@@ -446,7 +446,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
                         size="sm" 
                         className="flex-1 sm:flex-none w-full sm:w-auto h-9 px-4 text-sm font-medium"
                         onClick={() => {
-                          const profileUrl = `https://path-piper.replit.app/share-profile/institution/profile/${institutionData.id}`;
+                          const profileUrl = `https://path-piper.replit.app/public-view/institution/profile/${institutionData.id}`;
                           navigator.clipboard.writeText(profileUrl).then(() => {
                             // You could add a toast notification here if you have one set up
                             alert('Profile link copied to clipboard!');

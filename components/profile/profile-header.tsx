@@ -85,7 +85,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
   const [sendingRequest, setSendingRequest] = useState(false)
 
   const handleShareProfile = async () => {
-    const profileUrl = `https://path-piper.replit.app/share-profile/student/profile/${student.id}`
+    const profileUrl = `https://path-piper.replit.app/public-view/student/profile/${student.id}`
 
     try {
       await navigator.clipboard.writeText(profileUrl)
