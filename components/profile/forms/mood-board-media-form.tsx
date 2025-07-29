@@ -338,10 +338,10 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
             </Dialog>
           </div>
 
-          {/* Collections - Horizontally Scrollable Cards */}
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          {/* Collections - Vertical Grid Layout */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {collections.map((collection) => (
-              <div key={collection.id} className="min-w-[300px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div key={collection.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 {selectedCollection?.id === collection.id ? (
                   // Expanded view
                   <div className="w-full">
@@ -477,34 +477,23 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                 ) : (
                   // Compact card view
                   <div 
-                    className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
                     onClick={() => setSelectedCollection(collection)}
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <Folder className="h-5 w-5 text-blue-500" />
+                    <div className="flex items-start gap-3 mb-3">
+                      <Folder className="h-5 w-5 text-blue-500 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-gray-900 dark:text-white truncate">{collection.name}</h4>
                         {collection.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{collection.description}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">{collection.description}</p>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteCollection(collection.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
                     </div>
 
-                    {/* Preview images */}
+                    {/* Preview images - Improved layout */}
                     {collection.moodBoard.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-1 mb-3">
-                        {collection.moodBoard.slice(0, 3).map((item, index) => (
+                      <div className="grid grid-cols-2 gap-1 mb-3 h-24">
+                        {collection.moodBoard.slice(0, 4).map((item, index) => (
                           <div key={item.id} className="aspect-square rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
                             <img
                               src={item.imageUrl}
@@ -513,10 +502,15 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                             />
                           </div>
                         ))}
+                        {collection.moodBoard.length > 4 && (
+                          <div className="aspect-square rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-600 dark:text-gray-400">
+                            +{collection.moodBoard.length - 4}
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-gray-300" />
+                      <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-gray-300" />
                       </div>
                     )}
 
