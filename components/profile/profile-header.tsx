@@ -1146,7 +1146,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                   )}
 
                   {/* Top Skills section - Dynamic from Database with sorting by proficiency */}
-                  <div>
+                  <div className="mt-4">
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {student?.skills && student.skills.length > 0 ? (
