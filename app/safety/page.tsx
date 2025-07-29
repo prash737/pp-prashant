@@ -134,13 +134,9 @@ export default function SafetyPage() {
                 <p className="text-red-800 mb-6">
                   If you're experiencing immediate danger or a serious safety concern, contact local emergency services immediately.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button className="bg-red-600 hover:bg-red-700">
-                    Report Emergency
-                  </Button>
-                  <Button variant="outline" className="border-red-600 text-red-600 hover:bg-red-50">
-                    Safety Support: safety@pathpiper.com
-                  </Button>
+                <div className="bg-red-100 p-4 rounded-lg">
+                  <p className="text-red-800 font-medium">Emergency: Call 911</p>
+                  <p className="text-red-700">Safety Support: safety@pathpiper.com</p>
                 </div>
               </CardContent>
             </Card>
@@ -244,9 +240,9 @@ export default function SafetyPage() {
                         Direct communication with our safety team
                       </li>
                     </ul>
-                    <Button className="mt-6 bg-blue-600 hover:bg-blue-700">
-                      Parent Safety Guide
-                    </Button>
+                    <div className="mt-6 bg-blue-100 p-3 rounded-lg">
+                      <p className="text-blue-800 font-medium">For detailed parent safety guide, contact: parents@pathpiper.com</p>
+                    </div>
                   </div>
                   <div className="flex justify-center">
                     <Image
@@ -334,13 +330,11 @@ export default function SafetyPage() {
             <p className="text-xl text-gray-600 mb-8">
               Our safety team is here to help. Don't hesitate to reach out with any concerns or questions.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-teal-500 hover:bg-teal-600">
-                Contact Safety Team
-              </Button>
-              <Button size="lg" variant="outline">
-                Browse Help Center
-              </Button>
+            <div className="bg-gray-100 p-6 rounded-lg inline-block">
+              <p className="text-gray-800 font-medium mb-2">Contact Information:</p>
+              <p className="text-gray-700">Safety Team: safety@pathpiper.com</p>
+              <p className="text-gray-700">Help Center: help@pathpiper.com</p>
+              <p className="text-gray-700">Phone: 1-800-PATHPIPER</p>
             </div>
           </div>
         </div>

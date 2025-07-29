@@ -222,13 +222,9 @@ export default function CookiePolicyPage() {
               You can review and update your cookie settings at any time. Essential cookies cannot be disabled as they are 
               required for the platform to function properly.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="bg-teal-500 hover:bg-teal-600">
-                Open Cookie Settings
-              </Button>
-              <Button variant="outline">
-                Learn More About Privacy
-              </Button>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-gray-700 mb-2"><strong>Cookie Settings:</strong> Available in your browser settings</p>
+              <p className="text-gray-700"><strong>Privacy Information:</strong> privacy@pathpiper.com</p>
             </div>
           </div>
 
