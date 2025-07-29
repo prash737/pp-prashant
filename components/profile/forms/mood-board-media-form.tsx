@@ -43,6 +43,86 @@ interface MoodBoardMediaFormProps {
   onChange: (sectionId: string, data: { collections: UserCollection[], uncategorizedItems: MoodBoardItem[] }) => void
 }
 
+interface CollectionCardProps {
+  collection: UserCollection;
+  onEdit: () => void;
+  onDelete: () => void;
+  onRemoveItem: (itemId: string, collectionId?: number) => void;
+}
+
+const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onDelete, onRemoveItem }) => {
+  const [visibleImageCount, setVisibleImageCount] = useState(5);
+
+  const loadMoreImages = () => {
+    setVisibleImageCount((prevCount) => prevCount + 5);
+  };
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h4 className="font-medium text-gray-900 dark:text-white">{collection.name}</h4>
+            {collection.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-400">{collection.description}</p>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="icon" onClick={onEdit}>
+              <FolderPlus className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="icon">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete "{collection.name}"? This will permanently delete the collection and all images in it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+
+        {/* Image Gallery */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {collection.moodBoard.slice(0, visibleImageCount).map((item) => (
+            <div key={item.id} className="relative aspect-square rounded-md overflow-hidden">
+              <img
+                src={item.imageUrl}
+                alt={item.caption || "Moodboard Item"}
+                className="object-cover w-full h-full"
+              />
+              <button
+                onClick={() => onRemoveItem(item.id, collection.id)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* View More Button */}
+        {collection.moodBoard.length > visibleImageCount && (
+          <Button variant="secondary" onClick={loadMoreImages}>
+            View More
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFormProps) {
   const { user } = useAuth()
   const [collections, setCollections] = useState<UserCollection[]>([])
@@ -338,226 +418,23 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
             </Dialog>
           </div>
 
-          {/* Collections - Horizontally Scrollable Cards */}
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {collections.map((collection) => (
-              <div key={collection.id} className="min-w-[300px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                {selectedCollection?.id === collection.id ? (
-                  // Expanded view
-                  <div className="w-full min-w-[600px]">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-3">
-                        <Folder className="h-5 w-5 text-blue-500" />
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">{collection.name}</h4>
-                          {collection.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">{collection.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`private-${collection.id}`}
-                            checked={collection.isPrivate || false}
-                            onChange={(e) => updateCollectionPrivacy(collection.id, e.target.checked)}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <label 
-                            htmlFor={`private-${collection.id}`}
-                            className="text-sm text-gray-600 dark:text-gray-400"
-                          >
-                            Keep private
-                          </label>
-                        </div>
-                        <span className="text-sm text-gray-500">{collection.moodBoard.length} images</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedCollection(null)}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <X size={16} />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Collection</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{collection.name}"? This will permanently delete the collection and all {collection.moodBoard.length} images in it. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteCollection(collection.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete Collection
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-
-                    {/* Upload Area */}
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileUpload(e, collection.id)}
-                        multiple
-                        className="hidden"
-                      />
-                      <button
-                        onClick={() => handleUploadClick(collection.id)}
-                        className="w-full p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-center hover:border-pathpiper-teal hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                        <p className="text-gray-600 dark:text-gray-400">Add images to {collection.name}</p>
-                      </button>
-                    </div>
-
-                    {/* Collection Images */}
-                    {collection.moodBoard.length > 0 ? (
-                      <div className="p-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {collection.moodBoard.map((item) => (
-                            <div
-                              key={item.id}
-                              className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
-                            >
-                              <img
-                                src={item.imageUrl}
-                                alt={item.caption || 'Mood board item'}
-                                className="w-full h-full object-cover"
-                              />
-
-                              {/* Remove button */}
-                              <button
-                                onClick={() => removeItem(item.id, collection.id)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X size={14} />
-                              </button>
-
-                              {/* Caption overlay with editing */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <input
-                                  type="text"
-                                  value={item.caption || ''}
-                                  onChange={(e) => updateCaption(item.id, e.target.value, collection.id)}
-                                  placeholder="Add caption..."
-                                  className="w-full bg-transparent text-xs placeholder-gray-300 outline-none"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-8 text-center">
-                        <ImageIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm">No images in this collection</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  // Compact card view
-                  <div 
-                    className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    onClick={() => setSelectedCollection(collection)}
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <Folder className="h-5 w-5 text-blue-500" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 dark:text-white truncate">{collection.name}</h4>
-                        {collection.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{collection.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteCollection(collection.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
-
-                    {/* Preview images */}
-                    {collection.moodBoard.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-1 mb-3">
-                        {collection.moodBoard.slice(0, 3).map((item, index) => (
-                          <div key={item.id} className="aspect-square rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
-                            <img
-                              src={item.imageUrl}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-gray-300" />
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">{collection.moodBoard.length} images</span>
-                      <div className="flex items-center gap-2">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button 
-                              className="text-red-500 hover:text-red-700 p-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Collection</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{collection.name}"? This will permanently delete the collection and all {collection.moodBoard.length} images in it. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => deleteCollection(collection.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete Collection
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        <span className="text-pathpiper-teal text-sm">Click to expand</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+          {/* Collections List - Vertical Layout */}
+          {collections.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Collections</h4>
+              <div className="space-y-6">
+                {collections.map((collection) => (
+                  <CollectionCard
+                    key={collection.id}
+                    collection={collection}
+                    onEdit={() => setSelectedCollection(collection)}
+                    onDelete={() => deleteCollection(collection.id)}
+                    onRemoveItem={removeItem}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Uncategorized Items (for backward compatibility) */}
