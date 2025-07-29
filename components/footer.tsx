@@ -62,22 +62,22 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-slate-300">Company</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/about" className="text-slate-400 hover:text-teal-400 transition-colors">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/careers" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Careers
                 </a>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/blog" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/contact" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Contact
                 </a>
               </li>
@@ -88,22 +88,22 @@ export default function Footer() {
             <h4 className="font-semibold mb-4 text-slate-300">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/privacy-policy" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/terms-of-service" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/cookie-policy" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Cookie Policy
                 </a>
               </li>
               <li>
-                <a href="#safety" className="text-slate-400 hover:text-teal-400 transition-colors">
+                <a href="/safety" className="text-slate-400 hover:text-teal-400 transition-colors">
                   Safety Center
                 </a>
               </li>
