@@ -344,7 +344,7 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
               <div key={collection.id} className="min-w-[300px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 {selectedCollection?.id === collection.id ? (
                   // Expanded view
-                  <div className="w-full min-w-[600px]">
+                  <div className="w-full">
                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-3">
                         <Folder className="h-5 w-5 text-blue-500" />
