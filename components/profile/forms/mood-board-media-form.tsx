@@ -48,9 +48,12 @@ interface CollectionCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onRemoveItem: (itemId: string, collectionId?: number) => void;
+  onUploadClick: (collectionId: number) => void;
+  onFileUpload: (e: any, collectionId: number) => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
 }
 
-const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onDelete, onRemoveItem }) => {
+const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onDelete, onRemoveItem, onUploadClick, onFileUpload, fileInputRef }) => {
   const [visibleImageCount, setVisibleImageCount] = useState(5);
 
   const loadMoreImages = () => {
@@ -68,6 +71,22 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
             )}
           </div>
           <div className="flex items-center space-x-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => handleFileUpload(e, collection.id)}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => handleUploadClick(collection.id)}
+              title="Add Images"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={onEdit}>
               <FolderPlus className="h-4 w-4" />
             </Button>
@@ -430,6 +449,9 @@ export default function MoodBoardMediaForm({ data, onChange }: MoodBoardMediaFor
                     onEdit={() => setSelectedCollection(collection)}
                     onDelete={() => deleteCollection(collection.id)}
                     onRemoveItem={removeItem}
+                    onUploadClick={handleUploadClick}
+                    onFileUpload={handleFileUpload}
+                    fileInputRef={fileInputRef}
                   />
                 ))}
               </div>
