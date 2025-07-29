@@ -46,13 +46,8 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#discovery" className="text-slate-400 hover:text-teal-400 transition-colors">
-                  Career Discovery
-                </a>
-              </li>
-              <li>
                 <a href="/student/self-analysis" className="text-slate-400 hover:text-teal-400 transition-colors font-medium">
-                  🧠 Self Analysis
+                  Self Analysis
                 </a>
               </li>
             </ul>
