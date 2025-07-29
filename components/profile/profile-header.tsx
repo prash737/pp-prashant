@@ -1126,14 +1126,11 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 text-xs font-medium group"
+                            className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
                             title={`Visit ${getPlatformLabel(link.platform)}`}
                           >
                             <span className="group-hover:scale-110 transition-transform">
                               {getSocialIcon(link.platform)}
-                            </span>
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {getPlatformLabel(link.platform)}
                             </span>
                           </a>
                         )
