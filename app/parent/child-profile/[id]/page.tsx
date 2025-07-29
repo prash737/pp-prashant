@@ -1161,7 +1161,7 @@ export default function ParentChildProfilePage() {
                                       Enable/Disable
                                     </Button>
                                   </DialogTrigger>
-                                  <DialogContent className="sm:max-w-[600px] max-w-[95vw] w-full">
+                                  <DialogContent className="sm:max-w-[700px] max-w-[95vw] w-full">
                                     <DialogHeader>
                                       <DialogTitle className="text-lg">Circle Control - {selectedCircleForOptions?.name || 'Circle'}</DialogTitle>
                                       <DialogDescription className="text-sm">
