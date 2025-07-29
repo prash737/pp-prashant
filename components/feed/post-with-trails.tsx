@@ -768,11 +768,26 @@ export default function PostWithTrails({
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleTrails}
-              className={`flex items-center gap-2 ${showTrails ? "text-blue-600" : "text-gray-600 hover:text-blue-600"}`}
+              onClick={() => {
+                // Handle actual comments functionality - placeholder for now
+                toast.info("Comments feature coming soon!");
+              }}
+              className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{trails.length} Comments</span>
+              <span>{commentsCount} Comments</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTrails}
+              className={`flex items-center gap-2 ${showTrails ? "text-purple-600" : "text-gray-600 hover:text-purple-600"}`}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+              </svg>
+              <span>{trails.length} Trails</span>
             </Button>
 
             <Button
@@ -809,7 +824,7 @@ export default function PostWithTrails({
           <div className="mt-6 border-t border-gray-100 pt-4">
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium text-gray-900 dark:text-white">
-                Trail Discussion ({trails.length} {trails.length === 1 ? 'message' : 'messages'})
+                Trail Discussion ({trails.length} {trails.length === 1 ? 'trail' : 'trails'})
               </h4>
             </div>
 
@@ -859,9 +874,11 @@ export default function PostWithTrails({
 
             {trails.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <svg className="h-12 w-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+                </svg>
                 <p>
-                  No trail messages yet. Be the first to start the conversation!
+                  No trails yet. Be the first to add to this trail discussion!
                 </p>
                 {!showCreateTrail && (
                   <p className="text-xs mt-2">
