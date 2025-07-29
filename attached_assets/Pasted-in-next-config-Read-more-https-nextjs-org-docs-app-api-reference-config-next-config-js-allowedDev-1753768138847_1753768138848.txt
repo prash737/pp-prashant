@@ -1,0 +1,75 @@
+in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ✓ Compiled /api/parent/children in 2.8s (1744 modules)
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: 
+API: Available cookies: [ '' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+ GET /api/auth/user 401 in 3017ms
+ GET /api/parent/children 401 in 3023ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ GET / 200 in 203ms
+API: User data request received
+API: Checking cookies for auth token
+API: Available cookies: 
+API: Available cookies: [ '' ]
+API: Looking for session cookies...
+API: Found potential auth cookies: []
+API: Token found: false
+ GET /api/auth/user 401 in 31ms
+ GET /api/parent/children 401 in 37ms
+ ○ Compiling /share-profile/institution/profile/[id] ...
+ ✓ Compiled /share-profile/institution/profile/[id] in 1493ms (2027 modules)
+ GET /share-profile/institution/profile/cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 200 in 2264ms
+ ○ Compiling /api/institution/public-programs ...
+ ⨯ ./app/api/institution/public-facilities/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-facilities/route.ts
+ ⨯ ./app/api/institution/public-facilities/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-facilities/route.ts
+ ⨯ ./app/api/institution/public-facilities/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-facilities/route.ts
+ GET /api/institution/public-faculty?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18581ms
+ GET /api/institution/public-facilities?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18580ms
+ GET /api/institution/public-profile/cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18570ms
+ GET /api/institution/public-programs?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18570ms
+ GET /api/institution/public-gallery?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18580ms
+ GET /api/institution/public-events?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 18581ms
+ ⨯ ./app/api/institution/public-facilities/route.ts
+Module parse failed: Identifier 'NextResponse' has already been declared (30:9)
+|     }
+| }
+> import { NextResponse } from "next/server";
+| import { prisma } from "@/lib/prisma";
+| export async function GET(request) {
+
+Import trace for requested module:
+./app/api/institution/public-facilities/route.ts
+ GET /api/institutions/public-followers?institutionId=cbf8c329-2fc0-4b74-92eb-445aebcbd2e0 500 in 428ms
