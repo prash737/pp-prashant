@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ImageIcon,
   Video,
@@ -318,6 +319,7 @@ export default function CreatePost({
   const [isDraft, setIsDraft] = useState(false);
   const [showModerationHelper, setShowModerationHelper] = useState(false);
   const [moderationResult, setModerationResult] = useState<any>(null);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const selectedPostType = POST_TYPES.find((type) => type.value === postType);
 
@@ -884,6 +886,763 @@ export default function CreatePost({
     };
   }, [hasUnsavedChanges]);
 
+  // Compact Create Post Component
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  const CompactCreatePost = () => (
+    <Card className="border border-gray-200 shadow-sm">
+      <CardContent className="p-4">
+        <div className="flex gap-3">
+          <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
+            <Image
+              src={user?.profileImageUrl || "/images/default-profile.png"}
+              alt="Your profile"
+              width={40}
+              height={40}
+              className="object-cover"
+              onError={(e) => {
+                e.currentTarget.src = "/images/default-profile.png";
+              }}
+            />
+          </div>
+          <div className="flex-1">
+            <button
+              onClick={() => setShowOverlay(true)}
+              className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-pathpiper-teal"
+            >
+              <span className="text-gray-500">What's on your mind?</span>
+            </button>
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 mt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOverlay(true)}
+                className="text-gray-600 hover:text-pathpiper-teal"
+              >
+                <ImageIcon className="h-4 w-4 mr-1" />
+                Photo
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOverlay(true)}
+                className="text-gray-600 hover:text-pathpiper-teal"
+              >
+                <Trophy className="h-4 w-4 mr-1" />
+                Achievement
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOverlay(true)}
+                className="text-gray-600 hover:text-pathpiper-teal"
+              >
+                <HelpCircle className="h-4 w-4 mr-1" />
+                Question
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Full Create Post Overlay Component
+  const FullCreatePostOverlay = () => (
+    <Dialog open={showOverlay} onOpenChange={setShowOverlay}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create Post</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Post Type and Visibility Selection */}
+          <div className="flex gap-3 flex-wrap items-center justify-between">
+            <div className="flex gap-2 flex-wrap items-center">
+              {/* Quick Access Buttons */}
+              {POST_TYPES.slice(0, 2).map((type) => {
+                const Icon = type.icon;
+                return (
+                  <Button
+                    key={type.value}
+                    variant={
+                      postType === type.value ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => setPostType(type.value)}
+                    className={`${postType === type.value ? type.color + " text-white" : ""}`}
+                  >
+                    <Icon className="h-4 w-4 mr-1" />
+                    {type.label}
+                  </Button>
+                );
+              })}
+
+              {/* All Post Types Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-gray-600"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    More Types
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {POST_TYPES.slice(2).map((type) => {
+                    const Icon = type.icon;
+                    return (
+                      <DropdownMenuItem
+                        key={type.value}
+                        onClick={() => setPostType(type.value)}
+                        className={`cursor-pointer ${postType === type.value ? "bg-gray-100" : ""}`}
+                      >
+                        <Icon className="h-4 w-4 mr-2" />
+                        {type.label}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Visibility Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <div
+                    className={`h-2 w-2 rounded-full ${
+                      visibility === "public"
+                        ? "bg-green-500"
+                        : visibility === "private"
+                          ? "bg-orange-500"
+                          : "bg-red-500"
+                    }`}
+                  ></div>
+                  <span className="capitalize">
+                    {visibility === "only_me" ? "Only Me" : visibility}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-36">
+                <DropdownMenuItem
+                  onClick={() => setVisibility("public")}
+                  className={`cursor-pointer ${visibility === "public" ? "bg-green-50" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    Public
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setVisibility("private")}
+                  className={`cursor-pointer ${visibility === "private" ? "bg-orange-50" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                    Private
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setVisibility("only_me")}
+                  className={`cursor-pointer ${visibility === "only_me" ? "bg-red-50" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                    Only Me
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Rich Text Toolbar */}
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => applyRichTextFormat("bold")}
+              className="h-8 w-8 p-0"
+              title="Bold"
+            >
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => applyRichTextFormat("italic")}
+              className="h-8 w-8 p-0"
+              title="Italic"
+            >
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={insertList}
+              className="h-8 w-8 p-0"
+              title="List"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => applyRichTextFormat("link")}
+              className="h-8 w-8 p-0"
+              title="Link"
+            >
+              <Link2 className="h-4 w-4" />
+            </Button>
+            <DropdownMenu
+              open={showEmojiPicker}
+              onOpenChange={setShowEmojiPicker}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Emoji"
+                >
+                  <Smile className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 max-h-64 overflow-y-auto">
+                <div className="grid grid-cols-8 gap-1 p-2">
+                  {EMOJIS.map((emoji, index) => (
+                    <button
+                      key={index}
+                      onClick={() => insertEmoji(emoji)}
+                      className="p-1 hover:bg-gray-100 rounded text-lg"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="relative">
+            <Textarea
+              ref={textareaRef}
+              value={postText}
+              onChange={handleTextChange}
+              placeholder={
+                postType === "ACHIEVEMENT"
+                  ? "Share your achievement... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
+                  : postType === "PROJECT"
+                    ? "Tell us about your project... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
+                    : postType === "QUESTION"
+                      ? "Ask your question... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
+                      : "What's on your mind? (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
+              }
+              className={`min-h-[120px] resize-none border ${
+                isOverLimit
+                  ? "border-red-300 focus:border-red-500"
+                  : "border-gray-200 focus:border-pathpiper-teal"
+              } focus:ring-1 ${
+                isOverLimit
+                  ? "focus:ring-red-500"
+                  : "focus:ring-pathpiper-teal"
+              }`}
+              disabled={isPosting}
+            />
+
+            {/* Mentions Dropdown */}
+            {showMentions && filteredConnections.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 max-h-40 overflow-y-auto">
+                {filteredConnections.slice(0, 5).map((connection) => (
+                  <div
+                    key={connection.id}
+                    onClick={() => insertMention(connection)}
+                    className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <div className="h-8 w-8 rounded-full overflow-hidden">
+                      <Image
+                        src={
+                          connection.user.profileImageUrl ||
+                          "/images/default-profile.png"
+                        }
+                        alt={`${connection.user.firstName} ${connection.user.lastName}`}
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/default-profile.png";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">
+                        {connection.user.firstName}{" "}
+                        {connection.user.lastName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {connection.user.role}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div
+              className={`absolute bottom-2 right-2 text-xs font-medium ${
+                isOverLimit
+                  ? "text-red-500 bg-red-50 px-2 py-1 rounded"
+                  : getActualCharacterCount(postText) > 250
+                    ? "text-orange-500 bg-orange-50 px-2 py-1 rounded"
+                    : "text-gray-400"
+              }`}
+            >
+              {getActualCharacterCount(postText)}/{CHARACTER_LIMIT}
+              {isOverLimit && <span className="ml-1">⚠️</span>}
+            </div>
+          </div>
+
+          {/* Link Preview */}
+          {linkPreview && (
+            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-gray-700">
+                  Link Preview
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLinkPreview(null)}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-3">
+                {linkPreview.image && (
+                  <img
+                    src={linkPreview.image}
+                    alt="Link preview"
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {linkPreview.title}
+                  </div>
+                  <div className="text-xs text-gray-600 line-clamp-2">
+                    {linkPreview.description}
+                  </div>
+                  <div className="text-xs text-blue-600 truncate">
+                    {linkPreview.url}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Post Type Specific Fields */}
+          {postType === "ACHIEVEMENT" && (
+            <Select
+              value={achievementType}
+              onValueChange={setAchievementType}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select achievement type" />
+              </SelectTrigger>
+              <SelectContent>
+                {ACHIEVEMENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {postType === "PROJECT" && (
+            <Select
+              value={projectCategory}
+              onValueChange={setProjectCategory}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select project category" />
+              </SelectTrigger>
+              <SelectContent>
+                {PROJECT_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Difficulty Level */}
+          {(postType === "PROJECT" ||
+            postType === "TUTORIAL" ||
+            postType === "QUESTION") && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Difficulty Level
+              </label>
+              <Select
+                value={difficultyLevel}
+                onValueChange={setDifficultyLevel}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTY_LEVELS.map((level) => (
+                    <SelectItem key={level.value} value={level.value}>
+                      {level.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Tags - Auto-detected from content */}
+          {tags.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Hashtags detected in your post:
+              </label>
+              <div className="flex flex-wrap gap-1">
+                {tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  >
+                    <Hash className="h-3 w-3 mr-1" />
+                    {tag}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer hover:text-red-600"
+                      onClick={() => removeTag(tag)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Over limit warning */}
+          {isOverLimit && (
+            <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700 font-medium mb-1 flex items-center gap-2">
+                <span className="text-amber-500">⚠️</span>
+                Content exceeds {CHARACTER_LIMIT} characters!
+              </p>
+              <p className="text-xs text-amber-600">
+                Please shorten your content to {CHARACTER_LIMIT} characters
+                or less.
+              </p>
+            </div>
+          )}
+
+          {/* Draft indicator */}
+          {isDraft && (
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-500">💾</span>
+                  <p className="text-sm text-blue-700 font-medium">
+                    Draft saved with {trails.length} trail(s)
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadDraft}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    Load Draft
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearDraft}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Trails Display */}
+          {trails.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-gray-700">
+                  Trails ({trails.length})
+                </h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={saveDraft}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                >
+                  Save Draft
+                </Button>
+              </div>
+
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {trails.map((trail, index) => (
+                  <div
+                    key={trail.id}
+                    className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-1 rounded">
+                            Trail #{index + 1}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-2">
+                          {trail.content}
+                        </p>
+                        {trail.imageUrl && (
+                          <div className="mt-2">
+                            <img
+                              src={trail.imageUrl}
+                              alt="Trail image"
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTrail(trail.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Trail Form */}
+          {showAddTrail && (
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-purple-700">
+                  Add Trail
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowAddTrail(false);
+                    setTrailContent("");
+                    setTrailImageUrl(null);
+                  }}
+                  className="text-purple-500 hover:text-purple-700 p-1 h-auto"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Textarea
+                value={trailContent}
+                onChange={(e) => setTrailContent(e.target.value)}
+                placeholder="Continue your story... (Trail content)"
+                className="min-h-[80px] resize-none border border-purple-200 focus:border-purple-400"
+              />
+
+              {trailImageUrl && (
+                <div className="relative">
+                  <img
+                    src={trailImageUrl}
+                    alt="Trail image"
+                    className="max-w-full h-auto rounded-lg border border-purple-200"
+                    style={{ maxHeight: "200px" }}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTrailImageUrl(null)}
+                    className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 rounded-full w-8 h-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {!trailImageUrl && (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleTrailImageUpload(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="trail-image-upload"
+                      />
+                      <label htmlFor="trail-image-upload">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-600 h-8 w-8 p-0 rounded-full cursor-pointer hover:bg-gray-100"
+                          asChild
+                        >
+                          <span>
+                            <ImageIcon className="h-4 w-4" />
+                          </span>
+                        </Button>
+                      </label>
+                    </div>
+                  )}
+                  <div className="text-xs text-purple-600">
+                    {trailContent.length}/287 characters
+                  </div>
+                </div>
+
+                <Button
+                  onClick={addTrail}
+                  disabled={
+                    !trailContent.trim() || trailContent.length > 287
+                  }
+                  size="sm"
+                  className="bg-purple-600 text-white hover:bg-purple-700"
+                >
+                  Add Trail
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Image Preview */}
+          {imageUrl && (
+            <div className="relative">
+              <img
+                src={imageUrl}
+                alt="Post image"
+                className="max-w-full h-auto rounded-lg border border-gray-200"
+                style={{ maxHeight: "300px" }}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setImageUrl(null)}
+                className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 rounded-full w-8 h-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              {/* Only show upload button if no image is uploaded */}
+              {!imageUrl && (
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(file);
+                      }
+                    }}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-600 h-8 w-8 p-0 rounded-full cursor-pointer hover:bg-gray-100"
+                      asChild
+                    >
+                      <span>
+                        <ImageIcon className="h-4 w-4" />
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+              )}
+
+              {/* Add Trail Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddTrail(true)}
+                disabled={showAddTrail}
+                className="text-purple-600 border-purple-300 hover:bg-purple-50 rounded-full px-4"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Trail
+              </Button>
+
+              <div className="text-xs text-gray-400">
+                {!imageUrl ? "Max 1MB" : "1 image max"}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Save Draft Button */}
+              {(postText.trim() || trails.length > 0) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={saveDraft}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50 rounded-full px-4"
+                >
+                  Save Draft
+                </Button>
+              )}
+
+              <Button
+                onClick={handlePost}
+                disabled={!postText.trim() || isPosting || isOverLimit}
+                size="sm"
+                className={`${selectedPostType?.color || "bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"} text-white rounded-full px-6 font-medium shadow-sm hover:shadow-md transition-all duration-200 ${isOverLimit ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {selectedPostType && (
+                  <selectedPostType.icon className="h-4 w-4 mr-1" />
+                )}
+                {isPosting
+                  ? "Posting..."
+                  : trails.length > 0
+                    ? `Post with ${trails.length} Trail(s)`
+                    : "Post"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (showModerationHelper) {
     return (
       <ModerationHelper
@@ -904,11 +1663,14 @@ export default function CreatePost({
           <div className="flex gap-3">
             <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
               <Image
-                src={user?.profileImageUrl || "/images/student-profile.png"}
+                src={user?.profileImageUrl || "/images/default-profile.png"}
                 alt="Your profile"
                 width={40}
                 height={40}
                 className="object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "/images/default-profile.png";
+                }}
               />
             </div>
             <div className="flex-1">
@@ -927,12 +1689,15 @@ export default function CreatePost({
                         <Image
                           src={
                             trailContext.author?.profileImageUrl ||
-                            "/images/student-profile.png"
+                            "/images/default-profile.png"
                           }
                           alt={`${trailContext.author?.firstName} ${trailContext.author?.lastName}`}
                           width={16}
                           height={16}
                           className="object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = "/images/default-profile.png";
+                          }}
                         />
                       </div>
                       <span className="font-medium text-xs">
@@ -962,12 +1727,15 @@ export default function CreatePost({
                                 <Image
                                   src={
                                     trail.author?.profileImageUrl ||
-                                    "/images/student-profile.png"
+                                    "/images/default-profile.png"
                                   }
                                   alt={`${trail.author?.firstName} ${trail.author?.lastName}`}
                                   width={12}
                                   height={12}
                                   className="object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/images/default-profile.png";
+                                  }}
                                 />
                               </div>
                               <span className="font-medium text-xs">
@@ -1015,12 +1783,15 @@ export default function CreatePost({
                           <Image
                             src={
                               connection.user.profileImageUrl ||
-                              "/images/student-profile.png"
+                              "/images/default-profile.png"
                             }
                             alt={`${connection.user.firstName} ${connection.user.lastName}`}
                             width={32}
                             height={32}
                             className="object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/default-profile.png";
+                            }}
                           />
                         </div>
                         <div>
@@ -1127,702 +1898,9 @@ export default function CreatePost({
   }
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex gap-3">
-          <div className="h-10 w-10 rounded-full overflow-hidden flex-shrink-0">
-            <Image
-              src={user?.profileImageUrl || "/images/student-profile.png"}
-              alt="Your profile"
-              width={40}
-              height={40}
-              className="object-cover"
-            />
-          </div>
-
-          <div className="flex-1">
-            <div className="space-y-4">
-              {/* Post Type and Visibility Selection */}
-              <div className="flex gap-3 flex-wrap items-center justify-between">
-                <div className="flex gap-2 flex-wrap items-center">
-                  {/* Quick Access Buttons */}
-                  {POST_TYPES.slice(0, 2).map((type) => {
-                    const Icon = type.icon;
-                    return (
-                      <Button
-                        key={type.value}
-                        variant={
-                          postType === type.value ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => setPostType(type.value)}
-                        className={`${postType === type.value ? type.color + " text-white" : ""}`}
-                      >
-                        <Icon className="h-4 w-4 mr-1" />
-                        {type.label}
-                      </Button>
-                    );
-                  })}
-
-                  {/* All Post Types Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-gray-600"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        More Types
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      {POST_TYPES.slice(2).map((type) => {
-                        const Icon = type.icon;
-                        return (
-                          <DropdownMenuItem
-                            key={type.value}
-                            onClick={() => setPostType(type.value)}
-                            className={`cursor-pointer ${postType === type.value ? "bg-gray-100" : ""}`}
-                          >
-                            <Icon className="h-4 w-4 mr-2" />
-                            {type.label}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Visibility Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          visibility === "public"
-                            ? "bg-green-500"
-                            : visibility === "private"
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                        }`}
-                      ></div>
-                      <span className="capitalize">
-                        {visibility === "only_me" ? "Only Me" : visibility}
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem
-                      onClick={() => setVisibility("public")}
-                      className={`cursor-pointer ${visibility === "public" ? "bg-green-50" : ""}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                        Public
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setVisibility("private")}
-                      className={`cursor-pointer ${visibility === "private" ? "bg-orange-50" : ""}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-orange-500"></div>
-                        Private
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setVisibility("only_me")}
-                      className={`cursor-pointer ${visibility === "only_me" ? "bg-red-50" : ""}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-red-500"></div>
-                        Only Me
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Rich Text Toolbar */}
-              <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => applyRichTextFormat("bold")}
-                  className="h-8 w-8 p-0"
-                  title="Bold"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => applyRichTextFormat("italic")}
-                  className="h-8 w-8 p-0"
-                  title="Italic"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={insertList}
-                  className="h-8 w-8 p-0"
-                  title="List"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => applyRichTextFormat("link")}
-                  className="h-8 w-8 p-0"
-                  title="Link"
-                >
-                  <Link2 className="h-4 w-4" />
-                </Button>
-                <DropdownMenu
-                  open={showEmojiPicker}
-                  onOpenChange={setShowEmojiPicker}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      title="Emoji"
-                    >
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-64 max-h-64 overflow-y-auto">
-                    <div className="grid grid-cols-8 gap-1 p-2">
-                      {EMOJIS.map((emoji, index) => (
-                        <button
-                          key={index}
-                          onClick={() => insertEmoji(emoji)}
-                          className="p-1 hover:bg-gray-100 rounded text-lg"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Main Content Area */}
-              <div className="relative">
-                <Textarea
-                  ref={textareaRef}
-                  value={postText}
-                  onChange={handleTextChange}
-                  placeholder={
-                    postType === "ACHIEVEMENT"
-                      ? "Share your achievement... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
-                      : postType === "PROJECT"
-                        ? "Tell us about your project... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
-                        : postType === "QUESTION"
-                          ? "Ask your question... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
-                          : "What's on your mind? (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
-                  }
-                  className={`min-h-[120px] resize-none border ${
-                    isOverLimit
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-200 focus:border-pathpiper-teal"
-                  } focus:ring-1 ${
-                    isOverLimit
-                      ? "focus:ring-red-500"
-                      : "focus:ring-pathpiper-teal"
-                  }`}
-                  disabled={isPosting}
-                />
-
-                {/* Mentions Dropdown */}
-                {showMentions && filteredConnections.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 max-h-40 overflow-y-auto">
-                    {filteredConnections.slice(0, 5).map((connection) => (
-                      <div
-                        key={connection.id}
-                        onClick={() => insertMention(connection)}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <div className="h-8 w-8 rounded-full overflow-hidden">
-                          <Image
-                            src={
-                              connection.user.profileImageUrl ||
-                              "/images/student-profile.png"
-                            }
-                            alt={`${connection.user.firstName} ${connection.user.lastName}`}
-                            width={32}
-                            height={32}
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">
-                            {connection.user.firstName}{" "}
-                            {connection.user.lastName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {connection.user.role}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div
-                  className={`absolute bottom-2 right-2 text-xs font-medium ${
-                    isOverLimit
-                      ? "text-red-500 bg-red-50 px-2 py-1 rounded"
-                      : getActualCharacterCount(postText) > 250
-                        ? "text-orange-500 bg-orange-50 px-2 py-1 rounded"
-                        : "text-gray-400"
-                  }`}
-                >
-                  {getActualCharacterCount(postText)}/{CHARACTER_LIMIT}
-                  {isOverLimit && <span className="ml-1">⚠️</span>}
-                </div>
-              </div>
-
-              {/* Link Preview */}
-              {linkPreview && (
-                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-700">
-                      Link Preview
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setLinkPreview(null)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex gap-3">
-                    {linkPreview.image && (
-                      <img
-                        src={linkPreview.image}
-                        alt="Link preview"
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900 truncate">
-                        {linkPreview.title}
-                      </div>
-                      <div className="text-xs text-gray-600 line-clamp-2">
-                        {linkPreview.description}
-                      </div>
-                      <div className="text-xs text-blue-600 truncate">
-                        {linkPreview.url}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Post Type Specific Fields */}
-              {postType === "ACHIEVEMENT" && (
-                <Select
-                  value={achievementType}
-                  onValueChange={setAchievementType}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select achievement type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACHIEVEMENT_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {postType === "PROJECT" && (
-                <Select
-                  value={projectCategory}
-                  onValueChange={setProjectCategory}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select project category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROJECT_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Difficulty Level */}
-              {(postType === "PROJECT" ||
-                postType === "TUTORIAL" ||
-                postType === "QUESTION") && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Difficulty Level
-                  </label>
-                  <Select
-                    value={difficultyLevel}
-                    onValueChange={setDifficultyLevel}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DIFFICULTY_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Tags - Auto-detected from content */}
-              {tags.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Hashtags detected in your post:
-                  </label>
-                  <div className="flex flex-wrap gap-1">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100"
-                      >
-                        <Hash className="h-3 w-3 mr-1" />
-                        {tag}
-                        <X
-                          className="h-3 w-3 ml-1 cursor-pointer hover:text-red-600"
-                          onClick={() => removeTag(tag)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Over limit warning */}
-              {isOverLimit && (
-                <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-700 font-medium mb-1 flex items-center gap-2">
-                    <span className="text-amber-500">⚠️</span>
-                    Content exceeds {CHARACTER_LIMIT} characters!
-                  </p>
-                  <p className="text-xs text-amber-600">
-                    Please shorten your content to {CHARACTER_LIMIT} characters
-                    or less.
-                  </p>
-                </div>
-              )}
-
-              {/* Draft indicator */}
-              {isDraft && (
-                <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-500">💾</span>
-                      <p className="text-sm text-blue-700 font-medium">
-                        Draft saved with {trails.length} trail(s)
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={loadDraft}
-                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                      >
-                        Load Draft
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={clearDraft}
-                        className="text-red-600 border-red-300 hover:bg-red-50"
-                      >
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Trails Display */}
-              {trails.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Trails ({trails.length})
-                    </h4>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={saveDraft}
-                      className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                    >
-                      Save Draft
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {trails.map((trail, index) => (
-                      <div
-                        key={trail.id}
-                        className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-1 rounded">
-                                Trail #{index + 1}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 line-clamp-2">
-                              {trail.content}
-                            </p>
-                            {trail.imageUrl && (
-                              <div className="mt-2">
-                                <img
-                                  src={trail.imageUrl}
-                                  alt="Trail image"
-                                  className="w-16 h-16 object-cover rounded border"
-                                />
-                              </div>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeTrail(trail.id)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Add Trail Form */}
-              {showAddTrail && (
-                <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-purple-700">
-                      Add Trail
-                    </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowAddTrail(false);
-                        setTrailContent("");
-                        setTrailImageUrl(null);
-                      }}
-                      className="text-purple-500 hover:text-purple-700 p-1 h-auto"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <Textarea
-                    value={trailContent}
-                    onChange={(e) => setTrailContent(e.target.value)}
-                    placeholder="Continue your story... (Trail content)"
-                    className="min-h-[80px] resize-none border border-purple-200 focus:border-purple-400"
-                  />
-
-                  {trailImageUrl && (
-                    <div className="relative">
-                      <img
-                        src={trailImageUrl}
-                        alt="Trail image"
-                        className="max-w-full h-auto rounded-lg border border-purple-200"
-                        style={{ maxHeight: "200px" }}
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setTrailImageUrl(null)}
-                        className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 rounded-full w-8 h-8 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {!trailImageUrl && (
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleTrailImageUpload(file);
-                              }
-                            }}
-                            className="hidden"
-                            id="trail-image-upload"
-                          />
-                          <label htmlFor="trail-image-upload">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-gray-600 h-8 w-8 p-0 rounded-full cursor-pointer hover:bg-gray-100"
-                              asChild
-                            >
-                              <span>
-                                <ImageIcon className="h-4 w-4" />
-                              </span>
-                            </Button>
-                          </label>
-                        </div>
-                      )}
-                      <div className="text-xs text-purple-600">
-                        {trailContent.length}/287 characters
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={addTrail}
-                      disabled={
-                        !trailContent.trim() || trailContent.length > 287
-                      }
-                      size="sm"
-                      className="bg-purple-600 text-white hover:bg-purple-700"
-                    >
-                      Add Trail
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Image Preview */}
-            {imageUrl && (
-              <div className="relative mt-4">
-                <img
-                  src={imageUrl}
-                  alt="Post image"
-                  className="max-w-full h-auto rounded-lg border border-gray-200"
-                  style={{ maxHeight: "300px" }}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setImageUrl(null)}
-                  className="absolute top-2 right-2 bg-black/50 text-white hover:bg-black/70 rounded-full w-8 h-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-2">
-                {/* Only show upload button if no image is uploaded */}
-                {!imageUrl && (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleImageUpload(file);
-                        }
-                      }}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label htmlFor="image-upload">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-600 h-8 w-8 p-0 rounded-full cursor-pointer hover:bg-gray-100"
-                        asChild
-                      >
-                        <span>
-                          <ImageIcon className="h-4 w-4" />
-                        </span>
-                      </Button>
-                    </label>
-                  </div>
-                )}
-
-                {/* Add Trail Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAddTrail(true)}
-                  disabled={showAddTrail}
-                  className="text-purple-600 border-purple-300 hover:bg-purple-50 rounded-full px-4"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Trail
-                </Button>
-
-                <div className="text-xs text-gray-400">
-                  {!imageUrl ? "Max 1MB" : "1 image max"}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Save Draft Button */}
-                {(postText.trim() || trails.length > 0) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={saveDraft}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50 rounded-full px-4"
-                  >
-                    Save Draft
-                  </Button>
-                )}
-
-                <Button
-                  onClick={handlePost}
-                  disabled={!postText.trim() || isPosting || isOverLimit}
-                  size="sm"
-                  className={`${selectedPostType?.color || "bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"} text-white rounded-full px-6 font-medium shadow-sm hover:shadow-md transition-all duration-200 ${isOverLimit ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {selectedPostType && (
-                    <selectedPostType.icon className="h-4 w-4 mr-1" />
-                  )}
-                  {isPosting
-                    ? "Posting..."
-                    : trails.length > 0
-                      ? `Post with ${trails.length} Trail(s)`
-                      : "Post"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <CompactCreatePost />
+      <FullCreatePostOverlay />
+    </>
   );
 }
