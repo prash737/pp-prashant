@@ -1055,7 +1055,6 @@ export default function CreatePost({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setVisibility("only_me")}
-```python
                   className={`cursor-pointer ${visibility === "only_me" ? "bg-red-50" : ""}`}
                 >
                   <div className="flex items-center gap-2">
