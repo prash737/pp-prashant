@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
           data: { verificationToken: verificationToken }
         })
 
-        const baseUrl = 'https://pathpiper.replit.app';
+        const baseUrl = 'https://path-piper.replit.app';
         const verificationLink = `${baseUrl}/api/parent/verify-email?token=${verificationToken}`;
         
         await sendEmail(

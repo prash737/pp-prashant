@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     const redirectUrl = isParentRegistered ? '/parent/login' : '/parent/signup'
     
     // Use the specific PathPiper deployment domain for redirect
-    const baseUrl = 'https://pathpiper.replit.app'
+    const baseUrl = 'https://path-piper.replit.app'
     const urlWithEmail = new URL(redirectUrl, baseUrl)
     urlWithEmail.searchParams.set('email', parentEmail)
     return NextResponse.redirect(urlWithEmail)
