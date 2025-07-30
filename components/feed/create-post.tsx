@@ -906,6 +906,7 @@ export default function CreatePost({
           <div className="flex-1">
             <button
               onClick={() => setShowOverlay(true)}
+              type="button"
               className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-pathpiper-teal"
             >
               <span className="text-gray-500">What's on your mind?</span>
@@ -949,7 +950,10 @@ export default function CreatePost({
 
   // Full Create Post Overlay Component
   const FullCreatePostOverlay = () => (
-    <Dialog open={showOverlay} onOpenChange={setShowOverlay}>
+    <Dialog 
+      open={showOverlay} 
+      onOpenChange={setShowOverlay}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Post</DialogTitle>
@@ -1051,6 +1055,7 @@ export default function CreatePost({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setVisibility("only_me")}
+```python
                   className={`cursor-pointer ${visibility === "only_me" ? "bg-red-50" : ""}`}
                 >
                   <div className="flex items-center gap-2">
