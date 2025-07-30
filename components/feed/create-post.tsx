@@ -887,8 +887,6 @@ export default function CreatePost({
   }, [hasUnsavedChanges]);
 
   // Compact Create Post Component
-  const [showOverlay, setShowOverlay] = useState(false);
-
   const CompactCreatePost = () => (
     <Card className="border border-gray-200 shadow-sm">
       <CardContent className="p-4">
