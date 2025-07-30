@@ -426,7 +426,6 @@ export default function CreatePost({
 
     setPostText(value);
     setCursorPosition(position);
-    setHasUnsavedChanges(true);
 
     // Extract hashtags from content - trigger on space or end of input
     const hashtagRegex = /#(\w+)/g;
@@ -465,7 +464,6 @@ export default function CreatePost({
 
     setPostText(newText);
     setShowMentions(false);
-    setHasUnsavedChanges(true);
 
     setTimeout(() => {
       textareaRef.current?.focus();
@@ -481,7 +479,6 @@ export default function CreatePost({
 
     if (newText.length <= CHARACTER_LIMIT) {
       setPostText(newText);
-      setHasUnsavedChanges(true);
       setShowEmojiPicker(false);
 
       setTimeout(() => {
@@ -524,7 +521,6 @@ export default function CreatePost({
         postText.substring(0, start) + formattedText + postText.substring(end);
       if (newText.length <= CHARACTER_LIMIT) {
         setPostText(newText);
-        setHasUnsavedChanges(true);
       }
     }
   };
@@ -537,7 +533,6 @@ export default function CreatePost({
 
     if (newText.length <= CHARACTER_LIMIT) {
       setPostText(newText);
-      setHasUnsavedChanges(true);
 
       setTimeout(() => {
         textareaRef.current?.focus();
@@ -556,7 +551,6 @@ export default function CreatePost({
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
-    setHasUnsavedChanges(true);
   };
 
   const addTrail = () => {
@@ -576,7 +570,6 @@ export default function CreatePost({
     setTrailImageUrl(null);
     setShowAddTrail(false);
     setIsDraft(true);
-    setHasUnsavedChanges(true);
     toast.success("Trail added to draft!");
   };
 
@@ -585,7 +578,6 @@ export default function CreatePost({
     if (trails.length === 1) {
       setIsDraft(false);
     }
-    setHasUnsavedChanges(true);
   };
 
   const saveDraft = () => {
@@ -607,7 +599,6 @@ export default function CreatePost({
 
     localStorage.setItem("postDraft", JSON.stringify(draftData));
     setIsDraft(false);
-    setHasUnsavedChanges(false);
     toast.success("Draft saved!");
   };
 
@@ -627,7 +618,6 @@ export default function CreatePost({
         setLinkPreview(draftData.mainPost.linkPreview || null);
         setTrails(draftData.trails || []);
         setIsDraft(true);
-        setHasUnsavedChanges(true);
         toast.success("Draft loaded!");
       } catch (error) {
         console.error("Error loading draft:", error);
@@ -651,7 +641,6 @@ export default function CreatePost({
     setLinkPreview(null);
     setTrails([]);
     setIsDraft(false);
-    setHasUnsavedChanges(false);
     toast.success("Draft cleared!");
   };
 
@@ -770,7 +759,6 @@ export default function CreatePost({
         setLinkPreview(null);
         setTrails([]);
         setIsDraft(false);
-        setHasUnsavedChanges(false);
 
         // Clear saved draft
         localStorage.removeItem("postDraft");
@@ -817,7 +805,6 @@ export default function CreatePost({
 
       const data = await response.json();
       setImageUrl(data.imageUrl);
-      setHasUnsavedChanges(true);
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error("Failed to upload image");
@@ -868,23 +855,7 @@ export default function CreatePost({
     }
   }, [isTrail]);
 
-  // Warn user if they try to leave with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        event.preventDefault();
-        event.returnValue =
-          "You have unsaved changes. Are you sure you want to leave?";
-        return "You have unsaved changes. Are you sure you want to leave?";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [hasUnsavedChanges]);
+  
 
   // Compact Create Post Component
   const CompactCreatePost = () => (
