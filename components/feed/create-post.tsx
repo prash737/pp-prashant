@@ -645,6 +645,25 @@ export default function CreatePost({
     toast.success("Draft cleared!");
   };
 
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+
+  const handleCloseDialog = () => {
+    if (postText.trim() || trails.length > 0) {
+      setShowCloseConfirmation(true);
+    } else {
+      setShowOverlay(false);
+    }
+  };
+
+  const confirmClose = () => {
+    setShowCloseConfirmation(false);
+    setShowOverlay(false);
+    // Optionally save as draft
+    if (postText.trim() || trails.length > 0) {
+      saveDraft();
+    }
+  };
+
   const handlePost = async () => {
     if (!postText.trim()) {
       toast.error("Please write something to post");
@@ -941,8 +960,9 @@ export default function CreatePost({
     <Dialog 
       open={showOverlay} 
       onOpenChange={(open) => {
-        // Prevent accidental closing while typing
-        if (!open && postText.trim() && !hasUnsavedChanges) {
+        // Only allow closing if explicitly requested or no content
+        if (!open && (postText.trim() || trails.length > 0)) {
+          // Don't close if there's content unless user explicitly wants to
           return;
         }
         setShowOverlay(open);
@@ -951,14 +971,30 @@ export default function CreatePost({
       <DialogContent 
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
         onPointerDownOutside={(e) => {
-          // Prevent closing when clicking outside while typing
-          if (postText.trim()) {
+          // Prevent closing when clicking outside if there's content
+          if (postText.trim() || trails.length > 0) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          // Prevent closing on escape if there's content
+          if (postText.trim() || trails.length > 0) {
             e.preventDefault();
           }
         }}
       >
         <DialogHeader>
-          <DialogTitle>Create Post</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Create Post</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCloseDialog}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -1142,14 +1178,16 @@ export default function CreatePost({
               ref={textareaRef}
               value={postText}
               onChange={handleTextChange}
-              onFocus={() => {
-                // Ensure dialog stays open when textarea is focused
-                if (!showOverlay) {
-                  setShowOverlay(true);
-                }
-              }}
               onKeyDown={(e) => {
                 // Prevent dialog from closing on key events
+                e.stopPropagation();
+              }}
+              onFocus={(e) => {
+                // Prevent focus events from bubbling up
+                e.stopPropagation();
+              }}
+              onBlur={(e) => {
+                // Prevent blur events from affecting dialog state
                 e.stopPropagation();
               }}
               placeholder={
@@ -1658,6 +1696,42 @@ export default function CreatePost({
     </Dialog>
   );
 
+  // Close Confirmation Dialog
+  const CloseConfirmationDialog = () => (
+    <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Discard post?</AlertDialogTitle>
+          <AlertDialogDescription>
+            You have unsaved content. Do you want to save it as a draft or discard it?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Continue editing</AlertDialogCancel>
+          <Button
+            variant="outline"
+            onClick={() => {
+              saveDraft();
+              confirmClose();
+            }}
+          >
+            Save as draft
+          </Button>
+          <AlertDialogAction
+            onClick={() => {
+              setPostText("");
+              setTrails([]);
+              confirmClose();
+            }}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Discard
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   if (showModerationHelper) {
     return (
       <ModerationHelper
@@ -1916,6 +1990,7 @@ export default function CreatePost({
     <>
       <CompactCreatePost />
       <FullCreatePostOverlay />
+      <CloseConfirmationDialog />
     </>
   );
 }
