@@ -8,11 +8,7 @@ import InternalNavbar from "@/components/internal-navbar"
 import InstitutionNavbar from "@/components/institution-navbar"
 import Footer from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 import { Mail, Phone, MapPin, Clock, MessageCircle, Shield, HelpCircle } from "lucide-react"
 
 export default function ContactPage() {
@@ -65,183 +61,108 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-12">
+          <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
             {/* Contact Information */}
-            <div className="lg:col-span-1">
-              <div className="space-y-6">
-                <Card className="p-6">
-                  <CardContent className="space-y-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-6 h-6 text-teal-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Email Us</h3>
-                        <p className="text-gray-600 text-sm mb-2">Get in touch with our support team</p>
-                        <a href="mailto:support@pathpiper.com" className="text-teal-600 hover:text-teal-700 font-medium">
-                          support@pathpiper.com
-                        </a>
-                      </div>
+            <div>
+              <Card className="p-6">
+                <CardContent className="space-y-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-6 h-6 text-teal-600" />
                     </div>
-
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Phone className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Call Us</h3>
-                        <p className="text-gray-600 text-sm mb-2">Speak with our support team</p>
-                        <a href="tel:+1-555-PATHPIPE" className="text-blue-600 hover:text-blue-700 font-medium">
-                          +1 (555) PATH-PIPE
-                        </a>
-                      </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Email Us</h3>
+                      <p className="text-gray-600 text-sm mb-2">Get in touch with our support team</p>
+                      <a href="mailto:support@pathpiper.com" className="text-teal-600 hover:text-teal-700 font-medium">
+                        support@pathpiper.com
+                      </a>
                     </div>
+                  </div>
 
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Visit Us</h3>
-                        <p className="text-gray-600 text-sm mb-2">Our headquarters</p>
-                        <p className="text-purple-600 font-medium">
-                          123 Education Ave<br />
-                          San Francisco, CA 94105
-                        </p>
-                      </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-6 h-6 text-blue-600" />
                     </div>
-
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Support Hours</h3>
-                        <p className="text-gray-600 text-sm mb-2">When we're available</p>
-                        <p className="text-green-600 font-medium">
-                          Mon-Fri: 8AM - 6PM PST<br />
-                          Sat-Sun: 10AM - 4PM PST
-                        </p>
-                      </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Call Us</h3>
+                      <p className="text-gray-600 text-sm mb-2">Speak with our support team</p>
+                      <a href="tel:+1-555-PATHPIPE" className="text-blue-600 hover:text-blue-700 font-medium">
+                        +1 (555) PATH-PIPE
+                      </a>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Quick Links */}
-                <Card className="p-6">
-                  <CardHeader className="px-0 pt-0">
-                    <CardTitle className="text-lg">Quick Help</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-0 space-y-3">
-                    <a href="/safety" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                      <Shield className="w-5 h-5 text-red-500" />
-                      <div>
-                        <p className="font-medium text-gray-900">Safety Center</p>
-                        <p className="text-sm text-gray-600">Report safety concerns</p>
-                      </div>
-                    </a>
-                    <a href="#" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                      <HelpCircle className="w-5 h-5 text-blue-500" />
-                      <div>
-                        <p className="font-medium text-gray-900">Help Center</p>
-                        <p className="text-sm text-gray-600">Find answers to common questions</p>
-                      </div>
-                    </a>
-                    <a href="#" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                      <MessageCircle className="w-5 h-5 text-green-500" />
-                      <div>
-                        <p className="font-medium text-gray-900">Live Chat</p>
-                        <p className="text-sm text-gray-600">Chat with support (if available)</p>
-                      </div>
-                    </a>
-                  </CardContent>
-                </Card>
-              </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Visit Us</h3>
+                      <p className="text-gray-600 text-sm mb-2">Our headquarters</p>
+                      <p className="text-purple-600 font-medium">
+                        123 Education Ave<br />
+                        San Francisco, CA 94105
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Support Hours</h3>
+                      <p className="text-gray-600 text-sm mb-2">When we're available</p>
+                      <p className="text-green-600 font-medium">
+                        Mon-Fri: 8AM - 6PM PST<br />
+                        Sat-Sun: 10AM - 4PM PST
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card className="p-8">
+            {/* Quick Help & Resources */}
+            <div>
+              <Card className="p-6">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-2xl text-gray-900 mb-2">Send Us a Message</CardTitle>
-                  <p className="text-gray-600">
-                    Fill out the form below and we'll get back to you as soon as possible.
-                  </p>
+                  <CardTitle className="text-xl text-gray-900 mb-4">Quick Help & Resources</CardTitle>
                 </CardHeader>
-                <CardContent className="px-0">
-                  <form className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName">First Name *</Label>
-                        <Input id="firstName" placeholder="Enter your first name" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName">Last Name *</Label>
-                        <Input id="lastName" placeholder="Enter your last name" className="mt-1" />
-                      </div>
-                    </div>
-
+                <CardContent className="px-0 space-y-4">
+                  <a href="/safety" className="flex items-center space-x-3 p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
+                    <Shield className="w-6 h-6 text-red-500" />
                     <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input id="email" type="email" placeholder="Enter your email address" className="mt-1" />
+                      <p className="font-medium text-gray-900">Safety Center</p>
+                      <p className="text-sm text-gray-600">Report safety concerns and view our safety guidelines</p>
                     </div>
-
+                  </a>
+                  
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <HelpCircle className="w-6 h-6 text-blue-500" />
                     <div>
-                      <Label htmlFor="userType">I am a... *</Label>
-                      <Select>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="parent">Parent/Guardian</SelectItem>
-                          <SelectItem value="teacher">Teacher/Educator</SelectItem>
-                          <SelectItem value="institution">Institution Representative</SelectItem>
-                          <SelectItem value="mentor">Mentor</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <p className="font-medium text-gray-900">Help Center</p>
+                      <p className="text-sm text-gray-600">Find answers to common questions (Coming Soon)</p>
                     </div>
-
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <MessageCircle className="w-6 h-6 text-green-500" />
                     <div>
-                      <Label htmlFor="subject">Subject *</Label>
-                      <Select>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="What is this regarding?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="general">General Inquiry</SelectItem>
-                          <SelectItem value="technical">Technical Support</SelectItem>
-                          <SelectItem value="safety">Safety Concern</SelectItem>
-                          <SelectItem value="feature">Feature Request</SelectItem>
-                          <SelectItem value="bug">Bug Report</SelectItem>
-                          <SelectItem value="partnership">Partnership</SelectItem>
-                          <SelectItem value="press">Press/Media</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <p className="font-medium text-gray-900">Live Chat</p>
+                      <p className="text-sm text-gray-600">Chat with support (Coming Soon)</p>
                     </div>
+                  </div>
 
-                    <div>
-                      <Label htmlFor="message">Message *</Label>
-                      <Textarea 
-                        id="message" 
-                        placeholder="Please describe your question or concern in detail..."
-                        className="mt-1 min-h-[120px]"
-                      />
-                    </div>
-
-                    <div className="flex items-start space-x-2">
-                      <input type="checkbox" id="privacy" className="mt-1" />
-                      <Label htmlFor="privacy" className="text-sm text-gray-600">
-                        I agree to PathPiper's <a href="/privacy-policy" className="text-teal-600 hover:text-teal-700">Privacy Policy</a> and understand that my information will be used to respond to my inquiry.
-                      </Label>
-                    </div>
-
-                    <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white">
-                      Send Message
-                    </Button>
-                  </form>
+                  <div className="mt-6 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                    <h4 className="font-medium text-teal-900 mb-2">Prefer to reach out directly?</h4>
+                    <p className="text-sm text-teal-700 mb-3">
+                      Send us an email at <strong>support@pathpiper.com</strong> and we'll get back to you within 24 hours.
+                    </p>
+                    <p className="text-xs text-teal-600">
+                      Please include as much detail as possible about your question or concern to help us assist you better.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
