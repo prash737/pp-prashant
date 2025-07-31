@@ -150,7 +150,7 @@ export async function registerStudent(data: UserRegistrationData) {
       // Send parent verification email with appropriate template
       try {
         // Use the specific PathPiper deployment domain
-        const baseUrl = 'https://path-piper.replit.app';
+        const baseUrl = 'https://pathpiper.com';
 
         const verificationLink = `${baseUrl}/api/auth/verify-parent?token=${verificationToken}`;
         console.log('🔗 Base URL:', baseUrl);
@@ -176,7 +176,7 @@ export async function registerStudent(data: UserRegistrationData) {
       // Send email verification to student (under 16)
       try {
         // Use the specific PathPiper deployment domain
-        const baseUrl = 'https://path-piper.replit.app';
+        const baseUrl = 'https://pathpiper.com';
         const studentVerificationToken = Buffer.from(`${data.email}:${authData.user.id}:${Date.now()}`).toString('base64');
         const studentVerificationLink = `${baseUrl}/api/auth/verify-student-email?token=${studentVerificationToken}`;
 

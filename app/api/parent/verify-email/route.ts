@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (!parentProfile) {
-      const baseUrl = 'https://path-piper.replit.app'
+      const baseUrl = 'https://pathpiper.com'
       return NextResponse.redirect(new URL('/parent/login?error=invalid_verification', baseUrl))
     }
 
@@ -62,12 +62,12 @@ export async function GET(request: NextRequest) {
     console.log('✅ Parent email verified successfully for:', email)
 
     // Redirect to parent login with success message
-    const baseUrl = 'https://path-piper.replit.app'
+    const baseUrl = 'https://pathpiper.com'
     return NextResponse.redirect(new URL('/parent/login?verified=true', baseUrl))
 
   } catch (error) {
     console.error('Parent email verification error:', error)
-    const baseUrl = 'https://path-piper.replit.app'
+    const baseUrl = 'https://pathpiper.com'
     return NextResponse.redirect(new URL('/parent/login?error=verification_failed', baseUrl))
   }
 }
