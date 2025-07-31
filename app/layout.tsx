@@ -18,7 +18,12 @@ export const metadata: Metadata = {
   title: "PathPiper - Education-Focused Social Platform",
   description:
     "A global, safe, education-focused social networking platform uniting students, mentors, and institutions.",
-    generator: 'v0.dev'
+    generator: 'v0.dev',
+  icons: {
+    icon: '/images/logo.png',
+    shortcut: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 }
 
 export default function RootLayout({
