@@ -997,194 +997,182 @@ export default function PostWithTrails({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Comments Section - Inline below post with improved structure */}
+      {/* Comments Section - Better integrated and styled */}
       {showComments && (
-        <div className="mt-6 border-t border-gray-100">
-          <div className="pt-6">
-            {/* Comments Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-gray-600" />
-                <h4 className="font-semibold text-lg text-gray-900 dark:text-white">
-                  Comments
+        <CardContent className="pt-6 border-t border-gray-100 mt-4">
+          {/* Comments Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-full">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white">
+                  Comments ({commentsCount})
                 </h4>
-                <span className="bg-gray-100 text-gray-600 text-sm px-2 py-1 rounded-full">
-                  {commentsCount}
-                </span>
+                <p className="text-sm text-gray-500">Join the discussion</p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowComments(false)}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              >
-                Hide Comments
-              </Button>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(false)}
+              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+            >
+              ✕
+            </Button>
+          </div>
 
-            {/* Comments List */}
-            <div className="mb-6">
-              {commentsLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className="text-sm text-gray-500">Loading comments...</span>
-                  </div>
+          {/* Comments List */}
+          <div className="space-y-4 mb-6">
+            {commentsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span className="text-sm text-gray-500">Loading comments...</span>
                 </div>
-              ) : comments.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <MessageCircle className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <h5 className="font-medium text-gray-700 mb-1">No comments yet</h5>
-                  <p className="text-sm">Be the first to share your thoughts!</p>
+              </div>
+            ) : comments.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="bg-gray-200 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="h-5 w-5 text-gray-500" />
                 </div>
-              ) : (
-                <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                  {comments.map((comment, index) => (
-                    <div 
-                      key={comment.id} 
-                      className={`flex gap-4 ${index !== comments.length - 1 ? 'pb-4 border-b border-gray-100' : ''}`}
-                    >
-                      {/* Avatar */}
-                      <div className="flex-shrink-0 pt-1">
-                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
-                          {(comment.author?.profileImageUrl || comment.user?.profileImageUrl) ? (
-                            <img
-                              src={comment.author?.profileImageUrl || comment.user?.profileImageUrl}
-                              alt={`${comment.author?.firstName || comment.user?.firstName} ${comment.author?.lastName || comment.user?.lastName}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = "/images/default-profile.png";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
-                              {(comment.author?.firstName || comment.user?.firstName || 'U')[0].toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Comment Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                          {/* Comment Header */}
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-sm text-gray-900">
-                              {comment.author?.firstName || comment.user?.firstName} {comment.author?.lastName || comment.user?.lastName}
-                            </span>
-                            <span className="text-xs text-gray-500">•</span>
-                            <span className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
-                            </span>
+                <h5 className="font-medium text-gray-700 mb-1">No comments yet</h5>
+                <p className="text-sm text-gray-500">Be the first to share your thoughts!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200">
+                        {(comment.author?.profileImageUrl || comment.user?.profileImageUrl) ? (
+                          <img
+                            src={comment.author?.profileImageUrl || comment.user?.profileImageUrl}
+                            alt={`${comment.author?.firstName || comment.user?.firstName} ${comment.author?.lastName || comment.user?.lastName}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "/images/default-profile.png";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-semibold">
+                            {(comment.author?.firstName || comment.user?.firstName || 'U')[0].toUpperCase()}
                           </div>
-                          
-                          {/* Comment Text */}
-                          <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">
-                            {comment.content}
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {/* Add Comment Form */}
-            {user && (
-              <div className="border-t border-gray-100 pt-6">
-                <div className="flex gap-4">
-                  {/* User Avatar */}
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
-                      <Image
-                        src={user.user_metadata?.avatar_url || "/images/default-profile.png"}
-                        alt="Your profile"
-                        width={40}
-                        height={40}
-                        className="object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/default-profile.png";
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Comment Input */}
-                  <div className="flex-1">
-                    <div className="relative">
-                      <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Write a thoughtful comment..."
-                        className="w-full p-4 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
-                        rows={3}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                            e.preventDefault();
-                            handleAddComment();
-                          }
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Comment Actions */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex items-center gap-4">
+                    {/* Comment Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Comment Header */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm text-gray-900">
+                          {comment.author?.firstName || comment.user?.firstName} {comment.author?.lastName || comment.user?.lastName}
+                        </span>
+                        <span className="text-xs text-gray-400">•</span>
                         <span className="text-xs text-gray-500">
-                          Press Ctrl+Enter to submit
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {newComment.length}/500
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setNewComment('')}
-                          disabled={!newComment.trim()}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleAddComment}
-                          disabled={!newComment.trim() || newComment.length > 500}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Comment
-                        </Button>
+                      
+                      {/* Comment Text */}
+                      <div className="text-sm text-gray-700 leading-relaxed">
+                        {comment.content}
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Login prompt for non-authenticated users */}
-            {!user && (
-              <div className="border-t border-gray-100 pt-6">
-                <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-200">
-                  <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                  <h5 className="font-medium text-gray-700 mb-2">Join the conversation</h5>
-                  <p className="text-sm text-gray-500 mb-4">Sign in to leave a comment and engage with the community.</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.location.href = '/login'}
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                  >
-                    Sign In to Comment
-                  </Button>
-                </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
+
+          {/* Add Comment Form */}
+          {user ? (
+            <div className="border-t border-gray-100 pt-4">
+              <div className="flex gap-3">
+                {/* User Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200">
+                    <Image
+                      src={user.user_metadata?.avatar_url || "/images/default-profile.png"}
+                      alt="Your profile"
+                      width={36}
+                      height={36}
+                      className="object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/images/default-profile.png";
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Comment Input */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a thoughtful comment..."
+                      className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                      rows={2}
+                      maxLength={500}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Comment Actions */}
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-gray-400">
+                      {newComment.length}/500 • Press Ctrl+Enter to submit
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setNewComment('')}
+                        disabled={!newComment.trim()}
+                        className="text-gray-500 hover:text-gray-700 h-8 px-3 text-xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim() || newComment.length > 500}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Comment
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="border-t border-gray-100 pt-4">
+              <div className="text-center py-6 bg-blue-50 rounded-lg border border-blue-100">
+                <MessageCircle className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+                <h5 className="font-medium text-gray-800 mb-1">Join the conversation</h5>
+                <p className="text-sm text-gray-600 mb-3">Sign in to leave a comment and engage with the community.</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/login'}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 h-8 px-4 text-xs"
+                >
+                  Sign In to Comment
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
       )}
     </Card>
   );
