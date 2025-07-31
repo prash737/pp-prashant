@@ -1,4 +1,3 @@
-
 "use client"
 
 import type React from "react"
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Eye, EyeOff, Upload } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { registerInstitution } from "@/lib/services/auth-service"
 import { toast } from "sonner"
 
@@ -49,7 +48,7 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
     lastName: "",
     email: "",
     password: "",
-    
+
     // Institution details matching schema
     institutionName: "",
     categoryId: "", // For selecting category first
@@ -58,7 +57,7 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
     logoUrl: "",
     coverImageUrl: "",
     description: "",
-    
+
     // Agreement
     agreeTerms: false,
   })
@@ -69,7 +68,7 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
       try {
         const response = await fetch('/api/institution-types')
         const data = await response.json()
-        
+
         if (data.success) {
           setCategories(data.data)
           // Flatten all types for easier filtering
@@ -181,7 +180,7 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
         {/* Contact Person Information */}
         <div className="bg-slate-50 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-4">Contact Person Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">
@@ -267,7 +266,7 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
         {/* Institution Information */}
         <div className="bg-slate-50 p-4 rounded-lg">
           <h3 className="text-lg font-semibold mb-4">Institution Information</h3>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="institutionName">
@@ -370,51 +369,6 @@ export default function InstitutionRegistration({ onComplete }: InstitutionRegis
                 onChange={handleChange}
                 className="rounded-lg border-slate-300"
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Media Upload Section */}
-        <div className="bg-slate-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Institution Media (Optional)</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Institution Logo</Label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                <div className="flex flex-col items-center">
-                  <Upload className="h-6 w-6 text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600 mb-1">Upload logo</p>
-                  <p className="text-xs text-slate-500">PNG, JPG or SVG (max. 2MB)</p>
-                  <Input
-                    type="url"
-                    name="logoUrl"
-                    placeholder="Or paste logo URL"
-                    value={formData.logoUrl}
-                    onChange={handleChange}
-                    className="mt-2 text-xs"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cover Image</Label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center">
-                <div className="flex flex-col items-center">
-                  <Upload className="h-6 w-6 text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600 mb-1">Upload cover image</p>
-                  <p className="text-xs text-slate-500">PNG, JPG (max. 5MB)</p>
-                  <Input
-                    type="url"
-                    name="coverImageUrl"
-                    placeholder="Or paste cover image URL"
-                    value={formData.coverImageUrl}
-                    onChange={handleChange}
-                    className="mt-2 text-xs"
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>
