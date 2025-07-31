@@ -1,3 +1,4 @@
+
 "use client"
 
 import Image from "next/image"
@@ -7,19 +8,31 @@ export default function Footer() {
     <footer className="bg-slate-900 text-white py-6">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          {/* Logo on the left */}
-          <div className="h-12">
-            <Image
-              src="/images/pathpiper-logo-footer.png"
-              width={240}
-              height={60}
-              alt="PathPiper Logo"
-              className="h-full w-auto"
-            />
+          {/* Logo and tagline on the left */}
+          <div className="flex flex-col items-start">
+            <div className="h-12 mb-2">
+              <Image
+                src="/images/pathpiper-logo-footer.png"
+                width={240}
+                height={60}
+                alt="PathPiper Logo"
+                className="h-full w-auto"
+              />
+            </div>
+            <p className="text-slate-400 text-sm max-w-md">
+              A global, safe, education-focused social networking platform for students
+            </p>
+          </div>
+
+          {/* Centered copyright */}
+          <div className="flex-1 text-center">
+            <p className="text-slate-400 text-xs">
+              © {new Date().getFullYear()} PathPiper. All rights reserved.
+            </p>
           </div>
 
           {/* Instagram Icon on the right */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <a 
               href="https://www.instagram.com/pathpiperofficial" 
               target="_blank" 
@@ -35,9 +48,6 @@ export default function Footer() {
                 />
               </svg>
             </a>
-            <p className="text-slate-400 text-xs">
-              © {new Date().getFullYear()} PathPiper. All rights reserved.
-            </p>
           </div>
         </div>
       </div>
