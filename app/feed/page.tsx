@@ -28,26 +28,29 @@ export default function FeedPage() {
               <div className="sticky top-24 space-y-6">
                 {/* Quick Actions */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h3 className="font-semibold mb-3">Quick Actions</h3>
+                  <h3 className="font-semibold mb-3 opacity-60">Quick Actions</h3>
                   <div className="space-y-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start cursor-default opacity-50"
+                      disabled
                     >
                       📚 Study Groups
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start cursor-default opacity-50"
+                      disabled
                     >
                       🎯 Goals
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start cursor-default opacity-50"
+                      disabled
                     >
                       🏆 Achievements
                     </Button>
@@ -56,14 +59,14 @@ export default function FeedPage() {
 
                 {/* Trending Topics */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h3 className="font-semibold mb-3">Trending</h3>
+                  <h3 className="font-semibold mb-3 opacity-60">Trending</h3>
                   <div className="space-y-2">
-                    <div className="text-sm text-gray-600">#STEM</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-400 cursor-default">#STEM</div>
+                    <div className="text-sm text-gray-400 cursor-default">
                       #CreativeWriting
                     </div>
-                    <div className="text-sm text-gray-600">#Coding</div>
-                    <div className="text-sm text-gray-600">#ArtProject</div>
+                    <div className="text-sm text-gray-400 cursor-default">#Coding</div>
+                    <div className="text-sm text-gray-400 cursor-default">#ArtProject</div>
                   </div>
                 </div>
               </div>
