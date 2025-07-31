@@ -1,436 +1,264 @@
-
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
-import InternalNavbar from "@/components/internal-navbar"
-import Footer from "@/components/footer"
-import ProtectedLayout from "@/app/protected-layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, UserPlus, Check, X, Loader2, MessageCircle } from "lucide-react"
-import { toast } from "sonner"
-import Image from "next/image"
-
-interface ConnectionRequest {
-  id: string
-  status: string
-  message?: string
-  createdAt: string
-  sender: {
-    id: string
-    firstName: string
-    lastName: string
-    profileImageUrl?: string
-    role: string
-    bio?: string
-  }
-}
-
-interface CircleInvitation {
-  id: string
-  status: string
-  message?: string
-  createdAt: string
-  circle: {
-    id: string
-    name: string
-    color: string
-    icon: string
-  }
-  inviter: {
-    id: string
-    firstName: string
-    lastName: string
-    profileImageUrl?: string
-    role: string
-  }
-}
+import { Separator } from "@/components/ui/separator"
+import InternalNavbar from "@/components/internal-navbar"
+import Footer from "@/components/footer"
+import { 
+  Bell, 
+  MessageCircle, 
+  UserPlus, 
+  Calendar, 
+  Award, 
+  Clock,
+  Sparkles,
+  ArrowRight,
+  Inbox,
+  Settings
+} from "lucide-react"
 
 export default function NotificationsPage() {
-  const { user, loading } = useAuth()
-  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([])
-  const [circleInvitations, setCircleInvitations] = useState<CircleInvitation[]>([])
-  const [loadingRequests, setLoadingRequests] = useState(true)
-  const [processingRequest, setProcessingRequest] = useState<string | null>(null)
-  const router = useRouter()
+  const [notifyMe, setNotifyMe] = useState(false)
 
-  useEffect(() => {
-    if (loading) return
-
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    if (user.role !== 'student') {
-      router.push('/feed')
-      return
-    }
-
-    fetchNotifications()
-  }, [user, loading, router])
-
-  const fetchNotifications = async () => {
-    try {
-      const [connectionResponse, circleResponse] = await Promise.all([
-        fetch('/api/connections/requests?type=received'),
-        fetch('/api/circles/invitations?type=received')
-      ])
-
-      if (connectionResponse.ok) {
-        const requests = await connectionResponse.json()
-        setConnectionRequests(requests.filter((req: ConnectionRequest) => req.status === 'pending'))
-      }
-
-      if (circleResponse.ok) {
-        const invitations = await circleResponse.json()
-        setCircleInvitations(invitations.filter((inv: CircleInvitation) => inv.status === 'pending'))
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-    } finally {
-      setLoadingRequests(false)
-    }
+  const handleNotifyClick = () => {
+    setNotifyMe(true)
+    // You could add actual notification logic here
+    setTimeout(() => setNotifyMe(false), 3000)
   }
-
-  const handleConnectionRequest = async (requestId: string, action: 'accept' | 'decline') => {
-    setProcessingRequest(requestId)
-    try {
-      const response = await fetch(`/api/connections/requests/${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action }),
-      })
-
-      if (response.ok) {
-        toast.success(`Connection request ${action}ed successfully`)
-        fetchNotifications() // Refresh the list
-      } else {
-        const error = await response.json()
-        toast.error(error.error || `Failed to ${action} request`)
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing request:`, error)
-      toast.error(`Failed to ${action} request`)
-    } finally {
-      setProcessingRequest(null)
-    }
-  }
-
-  const handleCircleInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
-    setProcessingRequest(invitationId)
-    try {
-      const response = await fetch(`/api/circles/invitations/${invitationId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action }),
-      })
-
-      if (response.ok) {
-        toast.success(`Circle invitation ${action}ed successfully`)
-        fetchNotifications() // Refresh the list
-      } else {
-        const error = await response.json()
-        toast.error(error.error || `Failed to ${action} invitation`)
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing invitation:`, error)
-      toast.error(`Failed to ${action} invitation`)
-    } finally {
-      setProcessingRequest(null)
-    }
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'mentor': return 'bg-green-100 text-green-800'
-      case 'institution': return 'bg-purple-100 text-purple-800'
-      case 'student': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case 'users': return <Users className="h-4 w-4" />
-      default: return <Users className="h-4 w-4" />
-    }
-  }
-
-  if (loading || loadingRequests) {
-    return (
-      <ProtectedLayout>
-        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-          <InternalNavbar />
-          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading notifications...</p>
-            </div>
-          </main>
-          <Footer />
-        </div>
-      </ProtectedLayout>
-    )
-  }
-
-  const totalNotifications = connectionRequests.length + circleInvitations.length
 
   return (
-    <ProtectedLayout>
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-        <InternalNavbar />
-        <main className="flex-grow pt-16 sm:pt-24">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Manage your connection requests and circle invitations
+    <div className="min-h-screen bg-gray-50">
+      <InternalNavbar />
+
+      {/* Coming Soon Overlay */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 p-8 text-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-pink-500/20 animate-pulse"></div>
+            <div className="relative z-10">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4 backdrop-blur-sm">
+                <Bell className="w-8 h-8 text-white animate-pulse" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">Notifications & Messages</h2>
+              <div className="flex items-center justify-center gap-2 text-lg">
+                <Clock className="w-5 h-5" />
+                <span className="font-medium">Coming Soon</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                Stay Connected Like Never Before!
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                We're building a comprehensive notification and messaging system that will keep you 
+                updated on everything important - from mentor connections and achievement milestones 
+                to circle invitations and institutional updates. Real-time communication is coming!
               </p>
+
+              {/* Feature Preview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                    <Bell className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="font-medium text-blue-900 mb-1">Smart Notifications</h4>
+                  <p className="text-sm text-blue-700">Real-time alerts & updates</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                    <MessageCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="font-medium text-purple-900 mb-1">Direct Messaging</h4>
+                  <p className="text-sm text-purple-700">Chat with mentors & peers</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-lg border border-pink-200">
+                  <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                    <UserPlus className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="font-medium text-pink-900 mb-1">Connection Updates</h4>
+                  <p className="text-sm text-pink-700">New connections & requests</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
+                  <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                    <Settings className="w-4 h-4 text-white" />
+                  </div>
+                  <h4 className="font-medium text-indigo-900 mb-1">Custom Preferences</h4>
+                  <p className="text-sm text-indigo-700">Personalized notification settings</p>
+                </div>
+              </div>
             </div>
 
-            {totalNotifications === 0 ? (
-              <div className="text-center py-12">
-                <div className="mb-4">
-                  <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
-                    <Users className="h-12 w-12 text-gray-400" />
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={handleNotifyClick}
+                disabled={notifyMe}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-200 ${
+                  notifyMe
+                    ? 'bg-green-500 text-white cursor-default'
+                    : 'bg-gradient-to-r from-blue-600 to-pink-500 text-white hover:shadow-lg hover:scale-105 active:scale-95'
+                }`}
+              >
+                {notifyMe ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Notification Set!
+                  </>
+                ) : (
+                  <>
+                    <Bell className="w-5 h-5" />
+                    Notify Me When Ready
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => window.location.href = '/feed'}
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+              >
+                Go to Feed Instead
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Progress Indicator */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="text-center">
+                <p className="text-sm text-gray-500 mb-3">Development Progress</p>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-600 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">60% Complete • Launching Soon</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Original content (blurred in background) */}
+      <div className="filter blur-sm pointer-events-none pt-16 pb-16 sm:pt-24 sm:pb-16">
+        <div className="container mx-auto px-4 max-w-4xl">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
+                <p className="text-gray-600">Stay updated with your learning journey</p>
+              </div>
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="flex gap-2 mb-6 border-b">
+            <Button variant="ghost" className="border-b-2 border-blue-500 text-blue-600">
+              <Inbox className="w-4 h-4 mr-2" />
+              All
+            </Button>
+            <Button variant="ghost">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Messages
+            </Button>
+            <Button variant="ghost">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Connections
+            </Button>
+            <Button variant="ghost">
+              <Award className="w-4 h-4 mr-2" />
+              Achievements
+            </Button>
+          </div>
+
+          {/* Notifications List */}
+          <div className="space-y-4">
+            {/* Sample notifications */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src="/placeholder-user.jpg" />
+                    <AvatarFallback>DR</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium">Dr. Sarah Rodriguez</p>
+                        <Badge variant="secondary">New Connection</Badge>
+                      </div>
+                      <span className="text-sm text-gray-500">2 hours ago</span>
+                    </div>
+                    <p className="text-gray-600 mt-1">
+                      Accepted your connection request. Start building your mentorship relationship!
+                    </p>
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  No notifications
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  You're all caught up! New requests will appear here.
-                </p>
-              </div>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Pending Requests ({totalNotifications})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="connections" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="connections">
-                        Connection Requests ({connectionRequests.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="circles">
-                        Circle Invitations ({circleInvitations.length})
-                      </TabsTrigger>
-                    </TabsList>
+              </CardContent>
+            </Card>
 
-                    <TabsContent value="connections" className="mt-6">
-                      <div className="space-y-4">
-                        {connectionRequests.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <UserPlus className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                            <p>No pending connection requests</p>
-                          </div>
-                        ) : (
-                          connectionRequests.map((request) => (
-                            <Card key={request.id} className="hover:shadow-md transition-shadow">
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-start space-x-3 flex-1">
-                                    <Avatar className="h-12 w-12">
-                                      <AvatarImage 
-                                        src={request.sender.profileImageUrl || "/images/default-profile.png"} 
-                                        alt={`${request.sender.firstName} ${request.sender.lastName}`}
-                                      />
-                                      <AvatarFallback>
-                                        {request.sender.firstName[0]}{request.sender.lastName[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center space-x-2 mb-1">
-                                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                                          {request.sender.firstName} {request.sender.lastName}
-                                        </h4>
-                                        <Badge 
-                                          variant="outline" 
-                                          className={`text-xs ${getRoleColor(request.sender.role)}`}
-                                        >
-                                          {request.sender.role}
-                                        </Badge>
-                                      </div>
-
-                                      {request.sender.bio && (
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                                          {request.sender.bio}
-                                        </p>
-                                      )}
-
-                                      {request.message && (
-                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3">
-                                          <div className="flex items-start space-x-2">
-                                            <MessageCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 italic">
-                                              "{request.message}"
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      <p className="text-xs text-gray-500">
-                                        {new Date(request.createdAt).toLocaleDateString('en-US', {
-                                          year: 'numeric',
-                                          month: 'short',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex space-x-2 ml-4">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleConnectionRequest(request.id, 'accept')}
-                                      disabled={processingRequest === request.id}
-                                      className="bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                      {processingRequest === request.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Check className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleConnectionRequest(request.id, 'decline')}
-                                      disabled={processingRequest === request.id}
-                                      className="border-red-200 text-red-600 hover:bg-red-50"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))
-                        )}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <Award className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium">Achievement Unlocked!</p>
+                        <Badge variant="secondary">Milestone</Badge>
                       </div>
-                    </TabsContent>
+                      <span className="text-sm text-gray-500">1 day ago</span>
+                    </div>
+                    <p className="text-gray-600 mt-1">
+                      Congratulations! You've completed your first coding challenge.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <TabsContent value="circles" className="mt-6">
-                      <div className="space-y-4">
-                        {circleInvitations.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                            <p>No pending circle invitations</p>
-                          </div>
-                        ) : (
-                          circleInvitations.map((invitation) => (
-                            <Card key={invitation.id} className="hover:shadow-md transition-shadow">
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-start space-x-3 flex-1">
-                                    <div 
-                                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-medium text-sm"
-                                      style={{ backgroundColor: invitation.circle.color }}
-                                    >
-                                      {invitation.circle.icon && 
-                                       (invitation.circle.icon.startsWith('data:image') || 
-                                        invitation.circle.icon.startsWith('/uploads/')) ? (
-                                        <Image
-                                          src={invitation.circle.icon}
-                                          alt={invitation.circle.name}
-                                          width={48}
-                                          height={48}
-                                          className="w-full h-full object-cover rounded-full"
-                                        />
-                                      ) : (
-                                        getIconComponent(invitation.circle.icon)
-                                      )}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center space-x-2 mb-1">
-                                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                                          {invitation.circle.name}
-                                        </h4>
-                                      </div>
-
-                                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                        Invited by {invitation.inviter.firstName} {invitation.inviter.lastName}
-                                      </p>
-
-                                      {invitation.message && (
-                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3">
-                                          <div className="flex items-start space-x-2">
-                                            <MessageCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 italic">
-                                              "{invitation.message}"
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )}
-
-                                      <p className="text-xs text-gray-500">
-                                        {new Date(invitation.createdAt).toLocaleDateString('en-US', {
-                                          year: 'numeric',
-                                          month: 'short',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex space-x-2 ml-4">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleCircleInvitation(invitation.id, 'accept')}
-                                      disabled={processingRequest === invitation.id}
-                                      className="bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                      {processingRequest === invitation.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Check className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleCircleInvitation(invitation.id, 'decline')}
-                                      disabled={processingRequest === invitation.id}
-                                      className="border-red-200 text-red-600 hover:bg-red-50"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))
-                        )}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src="/placeholder-user.jpg" />
+                    <AvatarFallback>MIT</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium">MIT OpenCourseWare</p>
+                        <Badge variant="secondary">Institution</Badge>
                       </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            )}
+                      <span className="text-sm text-gray-500">3 days ago</span>
+                    </div>
+                    <p className="text-gray-600 mt-1">
+                      New course available: "Introduction to Machine Learning"
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </main>
-        <Footer />
+        </div>
       </div>
-    </ProtectedLayout>
+
+      <Footer />
+    </div>
   )
 }
