@@ -122,12 +122,6 @@ export default function StudentProfiles() {
                         <h3 className="text-xl font-semibold text-slate-800">Alex Johnson</h3>
                         <p className="text-sm text-slate-600">High School Student • Science Enthusiast</p>
                       </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-teal-500 hover:bg-teal-600 text-white"
-                      >
-                        Connect
-                      </Button>
                     </div>
                   </div>
 
