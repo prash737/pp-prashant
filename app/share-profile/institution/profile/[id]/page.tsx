@@ -205,7 +205,7 @@ export default function ShareInstitutionProfilePage({
             isViewMode={true}
             isShareMode={true}
             onClick={() => {
-                const profileUrl = `https://path-piper.replit.app/share-profile/institution/profile/${profileId}`;
+                const profileUrl = `https://pathpiper.com/share-profile/institution/profile/${profileId}`;
                 navigator.clipboard.writeText(profileUrl).then(() => {
                   alert('Profile link copied to clipboard!');
                 }).catch(() => {

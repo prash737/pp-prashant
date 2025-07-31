@@ -188,7 +188,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
             studentData={studentData}
             isViewMode={true} // This prop indicates it's a view-only mode
             shareProfile={() => {
-                const profileUrl = `https://path-piper.replit.app/public-view/student/profile/${profileId}`;
+                const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
                 navigator.clipboard.writeText(profileUrl).then(() => {
                   alert('Profile link copied to clipboard!');
                 }).catch(() => {

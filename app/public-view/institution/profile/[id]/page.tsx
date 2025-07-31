@@ -244,7 +244,7 @@ export default function PublicViewInstitutionProfilePage({ params }: { params: P
             institutionId={profileId!}
             isViewMode={true}
             shareProfile={() => {
-                const profileUrl = `https://path-piper.replit.app/public-view/institution/profile/${profileId}`;
+                const profileUrl = `https://pathpiper.com/public-view/institution/profile/${profileId}`;
                 navigator.clipboard.writeText(profileUrl).then(() => {
                   alert('Profile link copied to clipboard!');
                 }).catch(() => {

@@ -196,7 +196,7 @@ export default function ShareStudentProfilePage({
             isViewMode={true}
             isShareMode={true}
             onClick={() => {
-                const profileUrl = `https://path-piper.replit.app/share-profile/student/profile/${profileId}`;
+                const profileUrl = `https://pathpiper.com/share-profile/student/profile/${profileId}`;
                 navigator.clipboard.writeText(profileUrl).then(() => {
                   alert('Profile link copied to clipboard!');
                 }).catch(() => {
