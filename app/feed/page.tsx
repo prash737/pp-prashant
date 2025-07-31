@@ -20,16 +20,6 @@ export default function FeedPage() {
 
             {/* Main Feed */}
             <div className="lg:col-span-2">
-              <div className="mb-8">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Feed
-                  </h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">
-                    Stay updated with the latest posts from your network
-                  </p>
-                </div>
-              </div>
               <Feed />
             </div>
 

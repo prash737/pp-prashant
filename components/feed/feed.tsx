@@ -473,7 +473,7 @@ export default function Feed() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 mt-6">
       {/* Development Testing Access */}
       {process.env.NODE_ENV === 'development' && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
