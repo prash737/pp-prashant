@@ -56,6 +56,7 @@ import EnhancedReactions from "./enhanced-reactions";
 import { useCustomToast } from "@/hooks/use-custom-toast";
 import EnhancedFeedItem from "./enhanced-feed-item";
 import MarkdownIt from "markdown-it";
+import Link from "next/link";
 
 // Custom hook for DOMPurify
 const useDOMPurify = () => {
@@ -473,6 +474,40 @@ export default function Feed() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {/* Development Testing Access */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-blue-700 font-medium">Development Mode</span>
+            <div className="flex gap-2">
+              <Link href="/feed/test">
+                <Button size="sm" variant="outline" className="text-xs">
+                  Test Feed
+                </Button>
+              </Link>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-xs"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/feed/health-check');
+                    const data = await response.json();
+                    console.log('Feed Health Check:', data);
+                    toast.success('Health check completed - see console');
+                  } catch (error) {
+                    console.error('Health check failed:', error);
+                    toast.error('Health check failed');
+                  }
+                }}
+              >
+                Health Check
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Post */}
       <div className="transform transition-all duration-300 hover:scale-[1.01]">
         <CreatePost onPostCreated={handlePostCreated} />

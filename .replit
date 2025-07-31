@@ -36,3 +36,28 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Test Feed System"
+author = 37308151
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"🧪 Starting Feed System Tests...\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"📋 Running health check...\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "curl -s http://localhost:3000/api/feed/health-check | jq '.' || echo \"Health check API not available\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"✅ Feed testing setup complete!\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
