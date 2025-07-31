@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Shield, 
   Eye, 
@@ -19,14 +21,10 @@ import {
   Settings,
   Save,
   Clock,
-  Wrench
+  Wrench,
+  Mail
 } from "lucide-react"
 import { toast } from "sonner"
-
-interface PrivacySettingsFormProps {
-  data: any
-  onChange: (sectionId: string, data: any, isDirty?: boolean) => void
-}
 
 interface PrivacySettings {
   profileVisibility: 'public' | 'connections' | 'private'
@@ -62,7 +60,6 @@ export default function PrivacySettingsForm({ data, onChange }: PrivacySettingsF
     projectInvites: true,
   })
 
-
   // Update settings when data changes
   useEffect(() => {
     if (data?.privacySettings) {
@@ -73,7 +70,7 @@ export default function PrivacySettingsForm({ data, onChange }: PrivacySettingsF
   // Notify parent of changes
   useEffect(() => {
     onChange("privacy", settings)
-  }, [settings])
+  }, [settings, onChange])
 
   const updateSetting = (key: keyof PrivacySettings, value: boolean | string) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -309,7 +306,7 @@ export default function PrivacySettingsForm({ data, onChange }: PrivacySettingsF
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Mail className="h-5 w-5" />
+                  <Bell className="h-5 w-5" />
                   <span>Notification Preferences</span>
                 </CardTitle>
                 <CardDescription>
