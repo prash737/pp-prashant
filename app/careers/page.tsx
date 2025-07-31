@@ -1,177 +1,209 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Clock, Users, Zap, Heart, Globe } from "lucide-react"
-import Footer from "@/components/footer"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import Navbar from "@/components/navbar"
+import InternalNavbar from "@/components/internal-navbar"
+import InstitutionNavbar from "@/components/institution-navbar"
+import Footer from "@/components/footer"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { MapPin, Clock, DollarSign, Users, Briefcase, GraduationCap } from "lucide-react"
 
 export default function CareersPage() {
-  const openings = [
+  const { user, loading } = useAuth()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render anything until mounted to avoid hydration issues
+  if (!mounted) {
+    return null
+  }
+
+  // Choose navbar based on user role
+  const renderNavbar = () => {
+    if (loading) {
+      return <Navbar /> // Show default navbar while loading
+    }
+
+    if (!user) {
+      return <Navbar /> // Show default navbar for non-authenticated users
+    }
+
+    // Show role-specific navbar for authenticated users
+    switch (user.role) {
+      case 'institution':
+        return <InstitutionNavbar />
+      case 'student':
+      case 'mentor':
+      default:
+        return <InternalNavbar />
+    }
+  }
+
+  const jobOpenings = [
     {
+      id: 1,
       title: "Senior Frontend Developer",
       department: "Engineering",
-      location: "San Francisco, CA / Remote",
+      location: "Remote",
       type: "Full-time",
-      description: "Build beautiful, responsive user interfaces for our student-focused platform using React, TypeScript, and modern web technologies."
+      salary: "$80k - $120k",
+      description: "Build beautiful, responsive interfaces for our education-focused platform using React, TypeScript, and modern web technologies."
     },
     {
-      title: "Safety & Moderation Specialist",
-      department: "Safety",
-      location: "New York, NY / Remote",
+      id: 2,
+      title: "Child Safety Specialist",
+      department: "Safety & Trust",
+      location: "San Francisco, CA",
       type: "Full-time",
-      description: "Ensure student safety through content moderation, policy development, and implementation of safety features."
+      salary: "$70k - $100k",
+      description: "Develop and implement safety policies, moderate content, and ensure our platform remains a safe space for young learners."
     },
     {
+      id: 3,
+      title: "Educational Content Manager",
+      department: "Education",
+      location: "New York, NY",
+      type: "Full-time",
+      salary: "$60k - $85k",
+      description: "Curate and create educational content, work with curriculum experts, and develop learning pathways for students."
+    },
+    {
+      id: 4,
       title: "Product Designer",
       department: "Design",
       location: "Remote",
       type: "Full-time",
-      description: "Design intuitive, age-appropriate interfaces that enhance the student learning and networking experience."
+      salary: "$75k - $110k",
+      description: "Design intuitive, accessible interfaces that make learning and connecting enjoyable for students of all ages."
     },
     {
-      title: "Educational Content Manager",
-      department: "Content",
-      location: "London, UK / Remote",
-      type: "Full-time",
-      description: "Develop and curate educational content that supports student growth and engagement on our platform."
-    },
-    {
-      title: "Data Scientist",
+      id: 5,
+      title: "DevOps Engineer",
       department: "Engineering",
-      location: "San Francisco, CA",
+      location: "Austin, TX",
       type: "Full-time",
-      description: "Analyze user behavior and platform data to improve student experiences and safety measures."
+      salary: "$85k - $125k",
+      description: "Maintain and scale our infrastructure to support millions of students and educators worldwide."
     },
     {
+      id: 6,
       title: "Community Manager",
       department: "Community",
-      location: "Remote",
+      location: "Los Angeles, CA",
       type: "Full-time",
-      description: "Foster positive community interactions and support student engagement across our global platform."
+      salary: "$50k - $70k",
+      description: "Foster positive community interactions, manage student and educator relationships, and organize virtual events."
     }
-  ]
-
-  const benefits = [
-    {
-      icon: <Heart className="h-6 w-6" />,
-      title: "Health & Wellness",
-      description: "Comprehensive healthcare, mental health support, and wellness programs"
-    },
-    {
-      icon: <Clock className="h-6 w-6" />,
-      title: "Work-Life Balance",
-      description: "Flexible hours, unlimited PTO, and remote work options"
-    },
-    {
-      icon: <Zap className="h-6 w-6" />,
-      title: "Professional Growth",
-      description: "Learning budget, conference attendance, and career development programs"
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      title: "Inclusive Culture",
-      description: "Diverse, supportive team with strong collaboration and respect"
-    },
-    {
-      icon: <Globe className="h-6 w-6" />,
-      title: "Global Impact",
-      description: "Work on a platform that positively impacts students worldwide"
-    }
-  ]
-
-  const values = [
-    {
-      title: "Student First",
-      description: "Every decision we make prioritizes student safety, growth, and success."
-    },
-    {
-      title: "Innovation",
-      description: "We continuously push boundaries to create better educational experiences."
-    },
-    {
-      title: "Collaboration",
-      description: "We work together as a team to achieve common goals and support each other."
-    },
-    {
-      title: "Integrity",
-      description: "We act with honesty, transparency, and ethical responsibility in everything we do."
-    }
-  ]
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="pt-20 pb-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
+      {renderNavbar()}
+      
+      <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Join Our Mission
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Help us build the future of student networking. Join a team that's passionate about 
-              creating safe, supportive spaces where students can learn, grow, and connect globally.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Help us build the future of educational social networking. Be part of a team that's making a real difference in young people's lives worldwide.
             </p>
-          </div>
-
-          {/* Why Work With Us */}
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Why Work With Us</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {benefits.map((benefit, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="text-teal-500 mb-4">
-                      {benefit.icon}
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{benefit.title}</h3>
-                    <p className="text-gray-600">{benefit.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-teal-500" />
+                <span>Remote-First Culture</span>
+              </div>
+              <div className="flex items-center">
+                <GraduationCap className="w-4 h-4 mr-2 text-blue-500" />
+                <span>Learning & Development</span>
+              </div>
+              <div className="flex items-center">
+                <Briefcase className="w-4 h-4 mr-2 text-purple-500" />
+                <span>Meaningful Work</span>
+              </div>
             </div>
           </div>
 
-          {/* Our Values */}
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Values</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {values.map((value, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{value.title}</h3>
-                    <p className="text-gray-600">{value.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* Why Join Us Section */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+              <CardContent>
+                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-teal-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Impact-Driven Work</h3>
+                <p className="text-gray-600">
+                  Every line of code, every design decision, and every policy you create directly impacts the educational journey of students worldwide.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+              <CardContent>
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <GraduationCap className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Continuous Learning</h3>
+                <p className="text-gray-600">
+                  We invest in your growth with learning stipends, conference attendance, and mentorship opportunities.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center p-6 hover:shadow-lg transition-shadow">
+              <CardContent>
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Great Benefits</h3>
+                <p className="text-gray-600">
+                  Competitive salary, comprehensive health coverage, flexible PTO, and equity participation in our mission.
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Open Positions */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Open Positions</h2>
             <div className="space-y-6">
-              {openings.map((job, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+              {jobOpenings.map((job) => (
+                <Card key={job.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{job.title}</h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {job.department}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
+                        <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Badge variant="secondary">{job.department}</Badge>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <MapPin className="w-4 h-4 mr-1" />
                             {job.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="w-4 h-4 mr-1" />
                             {job.type}
-                          </span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            {job.salary}
+                          </div>
                         </div>
                       </div>
+                      <Button className="bg-teal-500 hover:bg-teal-600 text-white">
+                        Apply Now
+                      </Button>
                     </div>
+                  </CardHeader>
+                  <CardContent>
                     <p className="text-gray-600">{job.description}</p>
                   </CardContent>
                 </Card>
@@ -179,18 +211,112 @@ export default function CareersPage() {
             </div>
           </div>
 
-          {/* Call to Action */}
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Make an Impact?</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              Don't see a role that fits? We're always looking for talented individuals who share our passion for education and student success.
-            </p>
-            <p className="text-lg text-gray-600">
-              Send your resume and a cover letter to <a href="mailto:careers@pathpiper.com" className="text-teal-600 hover:underline">careers@pathpiper.com</a>
-            </p>
+          {/* Culture Section */}
+          <Card className="p-8 bg-gradient-to-r from-purple-50 to-pink-50 mb-16">
+            <CardContent>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Our Culture</h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">What We Believe</h3>
+                  <ul className="space-y-3 text-gray-600">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-teal-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Education is a fundamental right that should be accessible to all
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Technology should enhance human connection, not replace it
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Safety and trust are non-negotiable in educational environments
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-pink-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Diversity and inclusion make us stronger and more innovative
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-4">How We Work</h3>
+                  <ul className="space-y-3 text-gray-600">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Remote-first with optional office spaces for collaboration
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Flexible hours that respect work-life balance
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Transparent communication and regular feedback
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      Cross-functional collaboration on meaningful projects
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Application Process */}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">Application Process</h2>
+            <div className="grid md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-teal-600 font-bold">1</span>
+                </div>
+                <h3 className="font-semibold mb-2">Apply Online</h3>
+                <p className="text-sm text-gray-600">Submit your application and portfolio</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-blue-600 font-bold">2</span>
+                </div>
+                <h3 className="font-semibold mb-2">Initial Review</h3>
+                <p className="text-sm text-gray-600">Our team reviews your qualifications</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-purple-600 font-bold">3</span>
+                </div>
+                <h3 className="font-semibold mb-2">Interviews</h3>
+                <p className="text-sm text-gray-600">Virtual interviews with team members</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-pink-600 font-bold">4</span>
+                </div>
+                <h3 className="font-semibold mb-2">Welcome Aboard</h3>
+                <p className="text-sm text-gray-600">Join our mission to transform education</p>
+              </div>
+            </div>
           </div>
+
+          {/* CTA Section */}
+          <Card className="p-8 text-center bg-gradient-to-br from-teal-50 to-blue-50">
+            <CardContent>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Make a Difference?</h2>
+              <p className="text-lg text-gray-600 mb-6">
+                Don't see a role that fits? We're always looking for talented individuals who share our passion for education and student safety.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3">
+                  View All Openings
+                </Button>
+                <Button variant="outline" className="border-teal-500 text-teal-600 hover:bg-teal-50 px-8 py-3">
+                  Send Us Your Resume
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
+
       <Footer />
     </div>
   )

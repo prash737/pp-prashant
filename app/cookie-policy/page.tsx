@@ -1,246 +1,266 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Cookie, Settings, Shield, BarChart3 } from "lucide-react"
-import Footer from "@/components/footer"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import Navbar from "@/components/navbar"
+import InternalNavbar from "@/components/internal-navbar"
+import InstitutionNavbar from "@/components/institution-navbar"
+import Footer from "@/components/footer"
+import { Card, CardContent } from "@/components/ui/card"
 
 export default function CookiePolicyPage() {
-  const cookieTypes = [
-    {
-      icon: <Shield className="h-6 w-6" />,
-      name: "Essential Cookies",
-      purpose: "Required for basic platform functionality",
-      examples: ["Login authentication", "Security features", "Account preferences"],
-      canDisable: false,
-      color: "bg-green-100 text-green-800"
-    },
-    {
-      icon: <BarChart3 className="h-6 w-6" />,
-      name: "Analytics Cookies",
-      purpose: "Help us understand how users interact with PathPiper",
-      examples: ["Page views", "Feature usage", "Performance metrics"],
-      canDisable: true,
-      color: "bg-blue-100 text-blue-800"
-    },
-    {
-      icon: <Settings className="h-6 w-6" />,
-      name: "Functional Cookies",
-      purpose: "Remember your preferences and settings",
-      examples: ["Theme preferences", "Language settings", "Notification preferences"],
-      canDisable: true,
-      color: "bg-purple-100 text-purple-800"
+  const { user, loading } = useAuth()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Don't render anything until mounted to avoid hydration issues
+  if (!mounted) {
+    return null
+  }
+
+  // Choose navbar based on user role
+  const renderNavbar = () => {
+    if (loading) {
+      return <Navbar /> // Show default navbar while loading
     }
-  ]
+
+    if (!user) {
+      return <Navbar /> // Show default navbar for non-authenticated users
+    }
+
+    // Show role-specific navbar for authenticated users
+    switch (user.role) {
+      case 'institution':
+        return <InstitutionNavbar />
+      case 'student':
+      case 'mentor':
+      default:
+        return <InternalNavbar />
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="pt-20 pb-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
+      {renderNavbar()}
+      
+      <main className="pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Hero Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Cookie Policy
             </h1>
-            <p className="text-xl text-gray-600">
-              Learn about how PathPiper uses cookies to improve your experience while protecting your privacy.
+            <p className="text-lg text-gray-600">
+              Learn how PathPiper uses cookies to improve your experience while keeping your data safe.
             </p>
             <p className="text-sm text-gray-500 mt-4">
-              Last updated: January 15, 2024
+              Last updated: January 2025
             </p>
           </div>
 
-          {/* Quick Overview */}
-          <div className="mb-12">
-            <Card className="bg-gradient-to-r from-teal-50 to-blue-50 border-teal-200">
-              <CardContent className="p-8 text-center">
-                <Cookie className="h-12 w-12 text-teal-500 mx-auto mb-4" />
+          <div className="space-y-8">
+            <Card className="p-8">
+              <CardContent>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">What Are Cookies?</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Cookies are small text files stored on your device when you visit websites. They help us remember your preferences, 
-                  keep you logged in, and understand how you use PathPiper to improve our services.
+                <p className="text-gray-600 mb-4">
+                  Cookies are small text files that are placed on your device when you visit our website. They help us provide you with a better experience by remembering your preferences and helping us understand how you use our platform.
+                </p>
+                <p className="text-gray-600">
+                  At PathPiper, we're committed to using cookies responsibly and transparently, especially given our focus on providing a safe environment for young learners.
                 </p>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Cookie Types */}
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Types of Cookies We Use</h2>
-            <div className="space-y-6">
-              {cookieTypes.map((cookie, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="text-teal-500">
-                          {cookie.icon}
-                        </div>
-                        <CardTitle className="text-xl">{cookie.name}</CardTitle>
-                      </div>
-                      <Badge className={cookie.color}>
-                        {cookie.canDisable ? "Optional" : "Required"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{cookie.purpose}</p>
-                    <div>
-                      <h4 className="font-semibold mb-2">Examples:</h4>
-                      <ul className="list-disc list-inside text-gray-600 space-y-1">
-                        {cookie.examples.map((example, exampleIndex) => (
-                          <li key={exampleIndex}>{example}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    {cookie.canDisable && (
-                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
-                          <strong>Control:</strong> You can disable these cookies in your browser settings or through our cookie preferences center.
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Types of Cookies We Use</h2>
+                
+                <div className="space-y-6">
+                  <div className="border-l-4 border-teal-500 pl-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Essential Cookies</h3>
+                    <p className="text-gray-600 mb-2">
+                      These cookies are necessary for the basic functionality of our website and cannot be disabled.
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Authentication and login sessions</li>
+                      <li>Security features and fraud prevention</li>
+                      <li>Basic website navigation and functionality</li>
+                      <li>Age verification and parental consent tracking</li>
+                    </ul>
+                  </div>
 
-          {/* Detailed Information */}
-          <div className="prose prose-lg max-w-none mb-12">
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>How We Use Cookies</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Authentication and Security</h4>
-                  <p className="text-gray-600">
-                    Essential cookies help us verify your identity when you log in and protect your account from unauthorized access. 
-                    These cookies are necessary for the platform to function properly.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Personalization</h4>
-                  <p className="text-gray-600">
-                    We use cookies to remember your preferences, such as language settings, theme choices, and notification preferences, 
-                    so you don't have to reset them each time you visit.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Platform Improvement</h4>
-                  <p className="text-gray-600">
-                    Analytics cookies help us understand which features are most popular, how users navigate the platform, 
-                    and where we can make improvements to enhance the user experience.
-                  </p>
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Functional Cookies</h3>
+                    <p className="text-gray-600 mb-2">
+                      These cookies help us provide enhanced features and remember your preferences.
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Language and region preferences</li>
+                      <li>Theme and display settings</li>
+                      <li>Accessibility options</li>
+                      <li>Educational content personalization</li>
+                    </ul>
+                  </div>
+
+                  <div className="border-l-4 border-purple-500 pl-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Analytics Cookies</h3>
+                    <p className="text-gray-600 mb-2">
+                      These help us understand how our platform is used so we can improve the educational experience.
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Usage patterns and popular features</li>
+                      <li>Performance monitoring and error tracking</li>
+                      <li>Educational content effectiveness</li>
+                      <li>Platform safety and security metrics</li>
+                    </ul>
+                  </div>
+
+                  <div className="border-l-4 border-orange-500 pl-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Safety and Moderation Cookies</h3>
+                    <p className="text-gray-600 mb-2">
+                      Special cookies that help us maintain a safe environment for young users.
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Content moderation system preferences</li>
+                      <li>Safety filter settings</li>
+                      <li>Parental control configurations</li>
+                      <li>Age-appropriate content delivery</li>
+                    </ul>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Third-Party Cookies</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600">
-                  We work with trusted third-party services that may place cookies on your device. These include:
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Third-Party Cookies</h2>
+                <p className="text-gray-600 mb-4">
+                  We carefully select third-party services that share our commitment to student safety and privacy. These may include:
                 </p>
                 <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Authentication Services:</strong> To provide secure login functionality</li>
-                  <li><strong>Analytics Providers:</strong> To help us understand platform usage (with your consent)</li>
-                  <li><strong>Security Services:</strong> To protect against spam and abuse</li>
-                </ul>
-                <p className="text-gray-600">
-                  We carefully vet all third-party services to ensure they meet our privacy and security standards.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Managing Your Cookie Preferences</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Browser Settings</h4>
-                  <p className="text-gray-600">
-                    Most web browsers allow you to control cookies through their settings. You can typically:
-                  </p>
-                  <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-                    <li>View and delete existing cookies</li>
-                    <li>Block third-party cookies</li>
-                    <li>Block cookies from specific sites</li>
-                    <li>Block all cookies (may affect functionality)</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">PathPiper Settings</h4>
-                  <p className="text-gray-600">
-                    You can manage your cookie preferences directly in your PathPiper account settings. 
-                    This allows you to choose which optional cookies you want to accept.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Special Considerations for Minors</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600">
-                  For users under 18, we implement additional privacy protections:
-                </p>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li>Minimal data collection through cookies</li>
-                  <li>No advertising or tracking cookies</li>
-                  <li>Parental control over cookie preferences</li>
-                  <li>Enhanced security cookie requirements</li>
+                  <li><strong>Educational Content Providers:</strong> To deliver age-appropriate learning materials</li>
+                  <li><strong>Safety Services:</strong> For content moderation and child protection</li>
+                  <li><strong>Analytics Services:</strong> To understand platform usage (with privacy-focused providers)</li>
+                  <li><strong>Communication Tools:</strong> For safe messaging and video calling features</li>
                 </ul>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Updates to This Policy</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600">
-                  We may update this cookie policy from time to time to reflect changes in our practices or applicable laws. 
-                  We will notify users of significant changes through email or prominent platform notices.
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Special Protections for Young Users</h2>
+                <p className="text-gray-600 mb-4">
+                  We implement additional cookie protections specifically for our young users:
                 </p>
+                <ul className="list-disc list-inside text-gray-600 space-y-2">
+                  <li>No behavioral advertising cookies for users under 16</li>
+                  <li>Enhanced parental control over cookie preferences</li>
+                  <li>Automatic expiration of non-essential cookies</li>
+                  <li>Regular audits of all third-party cookie usage</li>
+                  <li>Compliance with COPPA and GDPR regulations</li>
+                </ul>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Cookie Preferences Center */}
-          <div className="text-center bg-white rounded-xl p-8 border">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Manage Your Cookie Preferences</h2>
-            <p className="text-gray-600 mb-6">
-              You can review and update your cookie settings at any time. Essential cookies cannot be disabled as they are 
-              required for the platform to function properly.
-            </p>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700 mb-2"><strong>Cookie Settings:</strong> Available in your browser settings</p>
-              <p className="text-gray-700"><strong>Privacy Information:</strong> privacy@pathpiper.com</p>
-            </div>
-          </div>
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Managing Your Cookie Preferences</h2>
+                <p className="text-gray-600 mb-4">
+                  You have several options to control how cookies are used on your device:
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Platform Settings</h3>
+                    <p className="text-gray-600">
+                      Visit your account settings to customize your cookie preferences. Parents can manage these settings for their children's accounts.
+                    </p>
+                  </div>
 
-          {/* Contact Section */}
-          <div className="mt-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Questions About Cookies?</h3>
-            <p className="text-gray-600 mb-4">
-              If you have questions about our use of cookies or this policy, please contact us:
-            </p>
-            <div className="bg-gray-50 p-4 rounded-lg inline-block">
-              <p><strong>Email:</strong> privacy@pathpiper.com</p>
-              <p><strong>Address:</strong> 123 Innovation Street, Suite 456, San Francisco, CA 94102</p>
-            </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Browser Settings</h3>
+                    <p className="text-gray-600 mb-2">
+                      Most browsers allow you to control cookies through their settings:
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      <li>Block all cookies (may affect functionality)</li>
+                      <li>Block third-party cookies only</li>
+                      <li>Delete existing cookies</li>
+                      <li>Set cookies to expire when you close your browser</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Opt-Out Tools</h3>
+                    <p className="text-gray-600">
+                      We provide easy-to-use tools to opt out of non-essential cookies while maintaining the safety and functionality of our platform.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Cookie Retention</h2>
+                <p className="text-gray-600 mb-4">
+                  Different cookies have different lifespans based on their purpose:
+                </p>
+                <ul className="list-disc list-inside text-gray-600 space-y-2">
+                  <li><strong>Session Cookies:</strong> Deleted when you close your browser</li>
+                  <li><strong>Authentication Cookies:</strong> Expire after 30 days of inactivity</li>
+                  <li><strong>Preference Cookies:</strong> Stored for up to 1 year</li>
+                  <li><strong>Analytics Cookies:</strong> Expire after 2 years (anonymized after 6 months)</li>
+                  <li><strong>Safety Cookies:</strong> Retained as long as necessary for user protection</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="p-8">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Updates to This Policy</h2>
+                <p className="text-gray-600 mb-4">
+                  We may update this Cookie Policy from time to time to reflect changes in our practices or legal requirements. When we make significant changes:
+                </p>
+                <ul className="list-disc list-inside text-gray-600 space-y-2">
+                  <li>We'll notify users through the platform</li>
+                  <li>Parents will receive email notifications about changes affecting their children</li>
+                  <li>The "Last updated" date at the top of this policy will be revised</li>
+                  <li>We'll provide a summary of key changes</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="p-8 bg-teal-50 border-teal-200">
+              <CardContent>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Questions About Cookies?</h2>
+                <p className="text-gray-600 mb-4">
+                  If you have questions about our cookie practices or need help managing your preferences, we're here to help:
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <a 
+                    href="/contact"
+                    className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg font-medium transition-colors text-center"
+                  >
+                    Contact Support
+                  </a>
+                  <a 
+                    href="/privacy-policy"
+                    className="border border-teal-500 text-teal-600 hover:bg-teal-100 px-6 py-3 rounded-lg font-medium transition-colors text-center"
+                  >
+                    View Privacy Policy
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </div>
+      </main>
+
       <Footer />
     </div>
   )
