@@ -40,18 +40,12 @@ export default function CTA() {
                 Connect with peers, find mentors, and discover your educational path in a safe, engaging environment
                 designed just for students.
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <div className="flex justify-center">
                 <Link href="/signup">
                   <Button className="bg-white text-teal-600 hover:bg-yellow-100 hover:text-orange-600 rounded-full px-8 py-6 text-lg transition-colors duration-300">
                     Join Now
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  className="text-amber-700 border-white hover:bg-white/10 hover:text-white rounded-full px-8 py-6 text-lg transition-colors duration-300"
-                >
-                  Learn More
-                </Button>
               </div>
 
               <div className="mt-12 flex flex-wrap justify-center gap-8">
