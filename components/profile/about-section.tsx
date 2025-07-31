@@ -138,9 +138,6 @@ export default function AboutSection({ student: studentProp, currentUser, isView
                 <Users className="h-4 w-4 text-pink-500" />
                 Circle Friends
               </h3>
-              <Button variant="ghost" size="sm" className="h-6 text-xs text-pink-500 hover:text-pink-600 p-0">
-                View All
-              </Button>
             </div>
 
             {loading ? (
