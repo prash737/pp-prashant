@@ -154,6 +154,10 @@ export default function PostWithTrails({
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isVideoMuted, setIsVideoMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   const PostTypeIcon =
     POST_TYPE_ICONS[post.postType as keyof typeof POST_TYPE_ICONS] ||
@@ -429,6 +433,68 @@ export default function PostWithTrails({
     if (videoRef.current) {
       videoRef.current.muted = !isVideoMuted;
       setIsVideoMuted(!isVideoMuted);
+    }
+  };
+
+  const fetchComments = async () => {
+    if (commentsLoading) return;
+    
+    setCommentsLoading(true);
+    try {
+      const response = await fetch(`/api/feed/posts/${post.id}/comment`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments || []);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+
+    try {
+      const response = await fetch(`/api/feed/posts/${post.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: newComment.trim()
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setComments(prev => [...prev, data.comment]);
+        setCommentsCount(prev => prev + 1);
+        setNewComment('');
+        
+        customToast({
+          title: "Comment added!",
+          description: "Your comment has been posted successfully.",
+          type: "success",
+        });
+      } else {
+        toast.error('Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast.error('Failed to add comment');
+    }
+  };
+
+  const handleShowComments = () => {
+    setShowComments(true);
+    if (comments.length === 0) {
+      fetchComments();
     }
   };
 
@@ -749,11 +815,7 @@ export default function PostWithTrails({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                // Toggle comments section (placeholder for actual comments modal/section)
-                console.log('Toggle comments for post:', post.id);
-                // You can implement a comments modal or expand comments section here
-              }}
+              onClick={handleShowComments}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
               <MessageCircle className="h-4 w-4" />
@@ -934,6 +996,128 @@ export default function PostWithTrails({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Comments Modal */}
+      {showComments && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => setShowComments(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Comments ({commentsCount})
+              </h3>
+              <button
+                onClick={() => setShowComments(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto p-4 max-h-96">
+              {commentsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No comments yet. Be the first to comment!
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden">
+                          {comment.user?.profileImageUrl ? (
+                            <img
+                              src={comment.user.profileImageUrl}
+                              alt={`${comment.user.firstName} ${comment.user.lastName}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = "/images/default-profile.png";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                              {(comment.user?.firstName || 'U')[0]}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {comment.user?.firstName} {comment.user?.lastName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Comment Form */}
+            {user && (
+              <div className="border-t p-4">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <Image
+                        src={user.user_metadata?.avatar_url || "/images/default-profile.png"}
+                        alt="Your profile"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/default-profile.png";
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
+                      }}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-gray-500">
+                        Press Ctrl+Enter to submit
+                      </span>
+                      <button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim()}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Comment
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
