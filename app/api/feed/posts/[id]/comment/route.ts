@@ -50,7 +50,7 @@ export async function POST(
         postId: postId
       },
       include: {
-        user: {
+        author: {
           select: {
             id: true,
             firstName: true,
@@ -88,7 +88,7 @@ export async function GET(
     const comments = await prisma.postComment.findMany({
       where: { postId },
       include: {
-        user: {
+        author: {
           select: {
             id: true,
             firstName: true,
