@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { Building, Calendar, Users, BarChart, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 export default function Institutions() {
@@ -144,9 +145,11 @@ export default function Institutions() {
                 </div>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full">
-                Visit Institution Page
-              </Button>
+              <Link href="/login?tab=institution">
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full">
+                  Visit Institution Page
+                </Button>
+              </Link>
             </div>
           </motion.div>
 
@@ -206,12 +209,14 @@ export default function Institutions() {
               </div>
 
               <div className="mt-8">
-                <Button
-                  variant="outline"
-                  className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded-full"
-                >
-                  Learn More About Institution Features
-                </Button>
+                <Link href="/signup?tab=institution">
+                  <Button
+                    variant="outline"
+                    className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded-full"
+                  >
+                    Learn More About Institution Features
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -291,9 +296,11 @@ export default function Institutions() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Button className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full px-8 py-6 text-lg">
-            Partner With Us
-          </Button>
+          <Link href="/signup?tab=institution">
+            <Button className="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-full px-8 py-6 text-lg">
+              Partner With Us
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>
