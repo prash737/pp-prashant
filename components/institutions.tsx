@@ -223,7 +223,7 @@ export default function Institutions() {
         </div>
 
         {/* Institution Partners Logo Carousel - Infinite Scroll */}
-        <motion.div
+        {/* <motion.div
           className="mb-12"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -233,7 +233,7 @@ export default function Institutions() {
           <h3 className="text-xl font-bold text-center mb-6 text-slate-800">Trusted by Leading Institutions</h3>
 
           {/* First row of logos - scrolling left */}
-          <div className="relative overflow-hidden py-4 mb-4">
+          {/* <div className="relative overflow-hidden py-4 mb-4">
             <div className="absolute inset-0 pointer-events-none z-10">
               <div className="absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-slate-50 to-transparent"></div>
               <div className="absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-slate-50 to-transparent"></div>
@@ -261,7 +261,7 @@ export default function Institutions() {
           </div>
 
           {/* Second row of logos - scrolling right */}
-          <div className="relative overflow-hidden py-4">
+          {/* <div className="relative overflow-hidden py-4">
             <div className="absolute inset-0 pointer-events-none z-10">
               <div className="absolute top-0 left-0 h-full w-12 bg-gradient-to-r from-slate-50 to-transparent"></div>
               <div className="absolute top-0 right-0 h-full w-12 bg-gradient-to-l from-slate-50 to-transparent"></div>
@@ -287,9 +287,9 @@ export default function Institutions() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </motion.div> */}
 
-        <motion.div
+        {/* <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -301,7 +301,7 @@ export default function Institutions() {
               Partner With Us
             </Button>
           </Link>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   )
