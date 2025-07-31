@@ -243,19 +243,7 @@ export default function PostWithTrails({
         setIsLiked(data.liked);
         setLikesCount(data.likeCount || data.likesCount);
 
-        if (data.liked) {
-          customToast({
-            title: "Post liked!",
-            description: "You liked this post.",
-            type: "success",
-          });
-        } else {
-          customToast({
-            title: "Post unliked",
-            description: "You removed your like from this post.",
-            type: "info",
-          });
-        }
+        // Remove like/unlike toasts for better UX - likes should be instant without notifications
       }
     } catch (error) {
       console.error("Error liking post:", error);
@@ -513,19 +501,7 @@ export default function PostWithTrails({
           }
         }
 
-        if (data.reactionType) {
-          customToast({
-            title: "Reaction added!",
-            description: `You reacted with ${reactionType}!`,
-            type: "success",
-          });
-        } else if (data.liked === false || data.reactionType === null) {
-          customToast({
-            title: "Reaction removed",
-            description: "You removed your reaction.",
-            type: "info",
-          });
-        }
+        // Remove reaction toasts for better UX - reactions should be instant without notifications
       }
     } catch (error) {
       // Revert optimistic updates on error
@@ -774,8 +750,9 @@ export default function PostWithTrails({
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Handle actual comments functionality - placeholder for now
-                toast.info("Comments feature coming soon!");
+                // Toggle comments section (placeholder for actual comments modal/section)
+                console.log('Toggle comments for post:', post.id);
+                // You can implement a comments modal or expand comments section here
               }}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >

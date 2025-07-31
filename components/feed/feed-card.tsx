@@ -98,6 +98,8 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
         setCurrentReaction(data.liked ? 'like' : null)
         setLikeCount(data.likeCount || data.likesCount || newCount)
       }
+      
+      // Reactions should be instant without toast notifications for better UX
 
     } catch (error) {
       console.error('Error toggling like:', error)
