@@ -3,6 +3,7 @@
 
 import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 
@@ -164,16 +165,12 @@ export default function PipIntro() {
                 Pip is designed to make your educational experience more engaging and personalized. From suggesting mentors that match your interests to helping you discover new skills and opportunities, Pip is your friendly companion throughout your PathPiper journey.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-3 text-lg">
-                  Start Tour with Pip
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-white/30 text-black bg-white hover:bg-white/90 hover:text-black rounded-full px-8 py-3 text-lg"
-                >
-                  Learn More
-                </Button>
+              <div className="flex justify-center md:justify-start">
+                <Link href="/signup">
+                  <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-3 text-lg">
+                    Start Tour with Pip
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
