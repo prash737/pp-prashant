@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white py-6">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between">
+        <div className="relative flex items-center justify-between">
           {/* Logo and tagline on the left */}
           <div className="flex flex-col items-start">
             <div className="h-12 mb-2">
@@ -25,7 +25,7 @@ export default function Footer() {
           </div>
 
           {/* Centered copyright */}
-          <div className="flex-1 text-center">
+          <div className="absolute left-1/2 transform -translate-x-1/2">
             <p className="text-slate-400 text-xs">
               © {new Date().getFullYear()} PathPiper. All rights reserved.
             </p>
