@@ -426,6 +426,7 @@ export default function CreatePost({
 
     setPostText(value);
     setCursorPosition(position);
+    setHasUnsavedChanges(true);
 
     // Extract hashtags from content - trigger on space or end of input
     const hashtagRegex = /#(\w+)/g;
@@ -876,7 +877,11 @@ export default function CreatePost({
           </div>
           <div className="flex-1">
             <button
-              onClick={() => setShowOverlay(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowOverlay(true);
+              }}
               type="button"
               className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-pathpiper-teal"
             >
@@ -888,7 +893,11 @@ export default function CreatePost({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowOverlay(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowOverlay(true);
+                }}
                 className="text-gray-600 hover:text-pathpiper-teal"
               >
                 <ImageIcon className="h-4 w-4 mr-1" />
@@ -897,7 +906,11 @@ export default function CreatePost({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowOverlay(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowOverlay(true);
+                }}
                 className="text-gray-600 hover:text-pathpiper-teal"
               >
                 <Trophy className="h-4 w-4 mr-1" />
@@ -906,7 +919,11 @@ export default function CreatePost({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowOverlay(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowOverlay(true);
+                }}
                 className="text-gray-600 hover:text-pathpiper-teal"
               >
                 <HelpCircle className="h-4 w-4 mr-1" />
@@ -923,9 +940,23 @@ export default function CreatePost({
   const FullCreatePostOverlay = () => (
     <Dialog 
       open={showOverlay} 
-      onOpenChange={setShowOverlay}
+      onOpenChange={(open) => {
+        // Prevent accidental closing while typing
+        if (!open && postText.trim() && !hasUnsavedChanges) {
+          return;
+        }
+        setShowOverlay(open);
+      }}
     >
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          // Prevent closing when clicking outside while typing
+          if (postText.trim()) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Create Post</DialogTitle>
         </DialogHeader>
@@ -1111,6 +1142,16 @@ export default function CreatePost({
               ref={textareaRef}
               value={postText}
               onChange={handleTextChange}
+              onFocus={() => {
+                // Ensure dialog stays open when textarea is focused
+                if (!showOverlay) {
+                  setShowOverlay(true);
+                }
+              }}
+              onKeyDown={(e) => {
+                // Prevent dialog from closing on key events
+                e.stopPropagation();
+              }}
               placeholder={
                 postType === "ACHIEVEMENT"
                   ? "Share your achievement... (Use @ to mention connections, # for hashtags, **bold**, *italic*)"
@@ -1130,6 +1171,7 @@ export default function CreatePost({
                   : "focus:ring-pathpiper-teal"
               }`}
               disabled={isPosting}
+              autoFocus
             />
 
             {/* Mentions Dropdown */}
