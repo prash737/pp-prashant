@@ -19,7 +19,10 @@ import {
   MessageSquare,
   Users,
   Star,
-  Archive
+  Archive,
+  Clock,
+  Zap,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -162,7 +165,104 @@ export default function MessagesInterface() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <div className="relative">
+      {/* Coming Soon Overlay */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 text-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
+            <div className="relative z-10">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4 backdrop-blur-sm">
+                <MessageSquare className="w-8 h-8 text-white animate-pulse" />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-2">Messages & Chat</h2>
+              <div className="flex items-center justify-center gap-2 text-lg">
+                <Clock className="w-5 h-5" />
+                <span className="font-medium">Coming Soon</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                Real-time Communication Hub
+              </h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Connect instantly with mentors, peers, and institutions through our secure messaging platform. 
+                Preview the interface below to see what's coming!
+              </p>
+            </div>
+
+            {/* Features Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center p-4 bg-blue-50 rounded-xl">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                  <Zap className="w-6 h-6 text-blue-600" />
+                </div>
+                <h4 className="font-semibold text-gray-800 mb-2">Instant Messaging</h4>
+                <p className="text-sm text-gray-600">Real-time conversations with typing indicators and read receipts</p>
+              </div>
+
+              <div className="text-center p-4 bg-purple-50 rounded-xl">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-3">
+                  <Video className="w-6 h-6 text-purple-600" />
+                </div>
+                <h4 className="font-semibold text-gray-800 mb-2">Video Calls</h4>
+                <p className="text-sm text-gray-600">HD video calling for mentorship sessions and group discussions</p>
+              </div>
+
+              <div className="text-center p-4 bg-green-50 rounded-xl">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <h4 className="font-semibold text-gray-800 mb-2">Safe & Secure</h4>
+                <p className="text-sm text-gray-600">End-to-end encryption with parental controls for minors</p>
+              </div>
+            </div>
+
+            {/* Coming Soon Timeline */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl mb-6">
+              <h4 className="font-semibold text-gray-800 mb-3 text-center">Development Timeline</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-700">UI/UX Design - In Progress</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Real-time Infrastructure - Next</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Security Implementation - Soon</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-4">
+                The interface preview below shows our planned design. Stay tuned for updates!
+              </p>
+              <div className="flex items-center justify-center gap-4">
+                <Badge variant="secondary" className="px-3 py-1">
+                  🚀 Beta Testing Soon
+                </Badge>
+                <Badge variant="outline" className="px-3 py-1">
+                  📱 Mobile Ready
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages Interface (dimmed background preview) */}
+      <div className="opacity-30 pointer-events-none">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]"></div>
       {/* Conversations Sidebar */}
       <Card className="lg:col-span-1">
         <CardHeader className="pb-3">
@@ -313,6 +413,7 @@ export default function MessagesInterface() {
           </div>
         )}
       </Card>
+      </div>
     </div>
   );
 }
