@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { UserCircle, Award, Users, Sparkles } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
+import { UserCircle, Award, Users, Sparkles } from "lucide-react"
 
 export default function Profiles() {
   return (
@@ -106,9 +107,11 @@ export default function Profiles() {
                       <h3 className="text-xl font-bold text-slate-800">Alex Johnson</h3>
                       <p className="text-slate-500">High School Student • Science Enthusiast</p>
                     </div>
-                    <button className="px-4 py-1 bg-teal-100 text-teal-600 rounded-full text-sm font-medium">
-                      Connect
-                    </button>
+                    <Link href="/login">
+                      <button className="px-4 py-1 bg-teal-100 text-teal-600 rounded-full text-sm font-medium">
+                        Connect
+                      </button>
+                    </Link>
                   </div>
 
                   <div className="mt-6 flex space-x-4 text-center">
