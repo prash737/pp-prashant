@@ -38,14 +38,23 @@ export async function GET(
     const circles = await prisma.circleBadge.findMany({
       where: {
         OR: [
-          { creatorId: studentId },
+          { 
+            creatorId: studentId,
+            // Don't show if circle is globally disabled or creator is disabled
+            isDisabled: { not: true },
+            isCreatorDisabled: { not: true }
+          },
           {
             memberships: {
               some: {
                 userId: studentId,
-                status: 'active'
+                status: 'active',
+                // Don't show if member is disabled
+                isDisabledMember: { not: true }
               }
-            }
+            },
+            // Don't show if circle is globally disabled
+            isDisabled: { not: true }
           }
         ],
         // Only show non-private circles in public view

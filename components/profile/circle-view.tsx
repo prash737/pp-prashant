@@ -119,7 +119,32 @@ function CircleBadgesSection({
         
         if (response.ok) {
           const data = await response.json();
-          setCircles(data);
+          
+          // Filter out disabled circles in view mode
+          if (isViewMode && studentId) {
+            const enabledCircles = data.filter((circle: any) => {
+              // Check if circle is globally disabled
+              if (circle.isDisabled) return false;
+
+              // Check if creator is disabled and the student being viewed is the creator
+              if (circle.isCreatorDisabled && circle.creator?.id === studentId) {
+                return false;
+              }
+
+              // Check if the student being viewed has disabled membership
+              const studentMembership = circle.memberships?.find(
+                (membership: any) => membership.user?.id === studentId
+              );
+              if (studentMembership && studentMembership.isDisabledMember) {
+                return false;
+              }
+
+              return true;
+            });
+            setCircles(enabledCircles);
+          } else {
+            setCircles(data);
+          }
         }
       } catch (error) {
         console.error("Error fetching circles:", error);
@@ -317,14 +342,20 @@ function CircleBadgesSection({
             {/* 3-Column Grid Layout for all circles */}
             <div className="grid grid-cols-3 gap-4 py-3">
               {circles.map((circle) => {
-                const isDisabled = currentUserId ? isCircleDisabled(circle, currentUserId) : false;
+                const targetUserId = isViewMode ? studentId : currentUserId;
+                const isDisabled = targetUserId ? isCircleDisabled(circle, targetUserId) : false;
+
+                // Skip rendering disabled circles in view mode
+                if (isViewMode && isDisabled) {
+                  return null;
+                }
 
                 // Debug logging
                 if (isDisabled) {
-                  console.log(`🔒 Circle "${circle.name}" is disabled for user ${currentUserId}:`, {
+                  console.log(`🔒 Circle "${circle.name}" is disabled for user ${targetUserId}:`, {
                     isGloballyDisabled: circle.isDisabled,
-                    isCreatorDisabled: circle.isCreatorDisabled && circle.creator?.id === currentUserId,
-                    isMemberDisabled: circle.memberships?.find(m => m.user?.id === currentUserId)?.isDisabledMember
+                    isCreatorDisabled: circle.isCreatorDisabled && circle.creator?.id === targetUserId,
+                    isMemberDisabled: circle.memberships?.find(m => m.user?.id === targetUserId)?.isDisabledMember
                   });
                 }
 
