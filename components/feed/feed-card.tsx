@@ -25,7 +25,7 @@ interface FeedCardProps {
 export default function FeedCard({ item, isActive }: FeedCardProps) {
   const [liked, setLiked] = useState(item.isLikedByUser || false)
   const [saved, setSaved] = useState(false)
-  const [likeCount, setLikeCount] = useState(item.likesCount || item.stats?.likes || 0)
+  const [likeCount, setLikeCount] = useState(item.likesCount || item._count?.likes || item.stats?.likes || 0)
 
   const handleLike = async () => {
     try {
@@ -45,12 +45,20 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
       }
 
       const data = await response.json()
-      setLiked(data.reactionType === 'like')
-
-      if (data.reactionType === 'like') {
-        setLikeCount(prev => prev + 1)
-      } else {
-        setLikeCount(prev => Math.max(0, prev - 1))
+      
+      // Handle enhanced reactions response
+      if (data.reactionType !== undefined) {
+        setLiked(data.reactionType === 'like')
+        if (data.reactionType === 'like') {
+          setLikeCount(prev => prev + 1)
+        } else {
+          setLikeCount(prev => Math.max(0, prev - 1))
+        }
+      }
+      // Handle fallback like response
+      else if (data.liked !== undefined) {
+        setLiked(data.liked)
+        setLikeCount(data.likeCount || data.likesCount || likeCount)
       }
 
     } catch (error) {

@@ -425,7 +425,7 @@ export async function GET(request: NextRequest) {
       const hasAuthor = post.author && post.author.firstName;
       const hasContent = post.content && post.content.trim() !== "";
       const isValid = hasAuthor && hasContent;
-      
+
       if (!isValid) {
         console.warn(
           `⚠️ Filtering out invalid post ${post.id}: missing author=${!hasAuthor}, missing content=${!hasContent}`,
@@ -453,8 +453,17 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const formattedPosts = posts.map((post) => ({
+        ...post,
+        tags: Array.isArray(post.tags) ? post.tags : [],
+        subjects: Array.isArray(post.subjects) ? post.subjects : [],
+        likesCount: post.likesCount || post._count?.likes || 0,
+        commentsCount: post.commentsCount || post._count?.comments || 0,
+        bookmarksCount: post.bookmarksCount || post._count?.bookmarks || 0,
+      }));
+
     return NextResponse.json({
-      posts: postsWithLikeStatus.map((post) => ({
+      posts: formattedPosts.map((post) => ({
         ...post,
         tags: Array.isArray(post.tags) ? post.tags : [],
         subjects: Array.isArray(post.subjects) ? post.subjects : [],

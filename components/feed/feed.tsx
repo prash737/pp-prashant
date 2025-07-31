@@ -474,7 +474,7 @@ export default function Feed() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 mt-6">
-      
+
 
       {/* Create Post */}
       <div className="transform transition-all duration-300 hover:scale-[1.01]">
