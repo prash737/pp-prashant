@@ -83,9 +83,18 @@ export async function POST(
             data: { engagementScore: { decrement: 1 } },
           });
 
+          // Get updated counts after removal
+          const updatedCounts = await prisma.feedPost.findUnique({
+            where: { id: postId },
+            select: { likesCount: true }
+          });
+
           return NextResponse.json({
             success: true,
             reactionType: null,
+            liked: false,
+            likeCount: updatedCounts?.likesCount || 0,
+            likesCount: updatedCounts?.likesCount || 0,
             message: "Reaction removed",
           });
         } else {
@@ -175,6 +184,7 @@ export async function POST(
               reactionType: "like",
               liked: true,
               likeCount: updatedPost.likesCount,
+              likesCount: updatedPost.likesCount,
             });
           }
         } catch (fallbackError) {

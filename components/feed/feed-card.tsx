@@ -27,6 +27,22 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
   const [saved, setSaved] = useState(false)
   const [likeCount, setLikeCount] = useState(item.likesCount || item._count?.likes || item.stats?.likes || 0)
 
+  const [currentReaction, setCurrentReaction] = useState<string | null>(item.userReaction || (item.isLikedByUser ? 'like' : null))
+
+  const getReactionEmoji = (reactionType: string) => {
+    const reactions: Record<string, string> = {
+      'like': '❤️',
+      'love': '😍',
+      'laugh': '😂',
+      'wow': '😮',
+      'sad': '😢',
+      'angry': '😠',
+      'celebrate': '🎉',
+      'think': '🤔'
+    }
+    return reactions[reactionType] || '❤️'
+  }
+
   const handleLike = async () => {
     try {
       const response = await fetch(`/api/feed/posts/${item.id}/react`, {
@@ -48,16 +64,25 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
       
       // Handle enhanced reactions response
       if (data.reactionType !== undefined) {
+        setCurrentReaction(data.reactionType)
         setLiked(data.reactionType === 'like')
-        if (data.reactionType === 'like') {
-          setLikeCount(prev => prev + 1)
+        
+        // Update count based on reaction change
+        if (data.reactionCounts) {
+          const totalCount = Object.values(data.reactionCounts).reduce((sum: number, count: number) => sum + count, 0)
+          setLikeCount(totalCount)
         } else {
-          setLikeCount(prev => Math.max(0, prev - 1))
+          if (data.reactionType === 'like') {
+            setLikeCount(prev => prev + 1)
+          } else if (data.reactionType === null) {
+            setLikeCount(prev => Math.max(0, prev - 1))
+          }
         }
       }
       // Handle fallback like response
       else if (data.liked !== undefined) {
         setLiked(data.liked)
+        setCurrentReaction(data.liked ? 'like' : null)
         setLikeCount(data.likeCount || data.likesCount || likeCount)
       }
 
@@ -207,11 +232,19 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                className={`flex flex-col items-center ${liked ? "text-red-500" : "text-white"}`}
+                className={`flex flex-col items-center transition-all duration-200 ${
+                  currentReaction ? "text-red-500" : "text-white"
+                } hover:scale-105`}
                 onClick={handleLike}
               >
-                <Heart className={`h-6 w-6 ${liked ? "fill-red-500" : ""}`} />
-                <span className="text-xs mt-1">{likeCount}</span>
+                <div className="flex items-center justify-center h-6 w-6 mb-1">
+                  {currentReaction ? (
+                    <span className="text-lg">{getReactionEmoji(currentReaction)}</span>
+                  ) : (
+                    <Heart className={`h-6 w-6 ${liked ? "fill-red-500" : ""}`} />
+                  )}
+                </div>
+                <span className="text-xs">{likeCount}</span>
               </button>
               <button 
                 className="flex flex-col items-center text-white hover:text-blue-400 transition-colors"

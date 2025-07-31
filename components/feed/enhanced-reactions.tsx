@@ -62,6 +62,11 @@ export default function EnhancedReactions({
     setReactionCount(totalCount || initialLikes)
   }, [reactionCounts, initialLikes])
 
+  // Update parent when reaction changes
+  useEffect(() => {
+    onReactionChange?.(currentReaction)
+  }, [currentReaction, onReactionChange])
+
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-5 w-5', 
@@ -128,18 +133,16 @@ export default function EnhancedReactions({
       } 
       // Handle successful reaction change
       else if (data.success !== false) {
-        if (currentReaction === reactionType) {
+        if (data.reactionType === null) {
           // Removing reaction
           setCurrentReaction(null)
-          setReactionCount(prev => Math.max(0, prev - 1))
+          setReactionCount(data.likeCount || data.likesCount || Math.max(0, reactionCount - 1))
         } else {
           // Adding or changing reaction
-          if (!currentReaction) {
-            setReactionCount(prev => prev + 1)
-          }
-          setCurrentReaction(reactionType)
+          setCurrentReaction(data.reactionType || reactionType)
+          setReactionCount(data.likeCount || data.likesCount || reactionCount)
         }
-        onReactionChange?.(data.reactionType || null)
+        onReactionChange?.(data.reactionType)
       }
 
     } catch (error) {
