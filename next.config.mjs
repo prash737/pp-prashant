@@ -2,12 +2,12 @@
 const nextConfig = {
   serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   allowedDevOrigins: [
-    '74f7eb31-b1cd-42e1-bc33-49105efe81c2-00-2sp4lhr2dgh9s.sisko.replit.dev',
+    'pathpiper.com',
     'localhost:3000'
   ],
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
   images: {
-    domains: ['localhost', '74f7eb31-b1cd-42e1-bc33-49105efe81c2-00-2sp4lhr2dgh9s.sisko.replit.dev'],
+    domains: ['localhost', 'pathpiper.com'],
   },
   output: 'standalone',
   typescript: {
