@@ -401,14 +401,14 @@ export default function PostWithTrails({
         console.log("✅ Fetched trails:", data.trails?.length || 0);
         setTrails(data.trails || []);
         setCommentsCount((prev) => prev + 1);
-        
+
         // Show success feedback
         customToast({
           title: "Trail added!",
           description: "Your message has been added to the trail discussion.",
           type: "success",
         });
-        
+
         // Auto-expand trails section if not already visible
         if (!showTrails) {
           setShowTrails(true);
@@ -421,7 +421,7 @@ export default function PostWithTrails({
       console.error("Error fetching trails:", error);
       toast.error("Failed to refresh trail discussion");
     }
-    
+
     // Close the create trail form
     setShowCreateTrail(false);
   };
@@ -460,7 +460,7 @@ export default function PostWithTrails({
 
     // Update UI immediately
     setUserReaction(newReaction)
-    
+
     if (reactionType === 'like') {
       const newLiked = !wasCurrentReaction
       setIsLiked(newLiked)
@@ -535,7 +535,7 @@ export default function PostWithTrails({
         setIsLiked(previousIsLiked)
         setLikesCount(previousLikeCount)
       }
-      
+
       console.error("Error reacting to post:", error);
       toast.error("Failed to react to post");
     }
@@ -749,7 +749,7 @@ export default function PostWithTrails({
           </div>
         )}
 
-        
+
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">

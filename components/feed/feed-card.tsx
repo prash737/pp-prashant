@@ -26,6 +26,11 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
   const [liked, setLiked] = useState(item.isLikedByUser || false)
   const [saved, setSaved] = useState(false)
   const [likeCount, setLikeCount] = useState(item.likesCount || item._count?.likes || item.stats?.likes || 0)
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState<any[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentCount, setCommentCount] = useState(item.commentsCount || item._count?.comments || item.stats?.comments || 0)
 
   const [currentReaction, setCurrentReaction] = useState<string | null>(item.userReaction || (item.isLikedByUser ? 'like' : null))
 
@@ -101,6 +106,61 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
 
   const handleSave = () => {
     setSaved(!saved)
+  }
+
+  const fetchComments = async () => {
+    if (commentsLoading) return
+    
+    setCommentsLoading(true)
+    try {
+      const response = await fetch(`/api/feed/posts/${item.id}/comment`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setComments(data.comments || [])
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+    } finally {
+      setCommentsLoading(false)
+    }
+  }
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return
+
+    try {
+      const response = await fetch(`/api/feed/posts/${item.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: newComment.trim()
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setComments(prev => [...prev, data.comment])
+        setCommentCount(prev => prev + 1)
+        setNewComment('')
+      } else {
+        console.error('Failed to add comment')
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error)
+    }
+  }
+
+  const handleShowComments = () => {
+    setShowComments(true)
+    if (comments.length === 0) {
+      fetchComments()
+    }
   }
 
   // Get the appropriate icon based on the item type
@@ -256,13 +316,10 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
               </button>
               <button 
                 className="flex flex-col items-center text-white hover:text-blue-400 transition-colors"
-                onClick={() => {
-                  // Handle comment functionality
-                  console.log('Comment button clicked for post:', item.id)
-                }}
+                onClick={handleShowComments}
               >
                 <MessageCircle className="h-6 w-6" />
-                <span className="text-xs mt-1">{item.stats.comments}</span>
+                <span className="text-xs mt-1">{commentCount}</span>
               </button>
               <button 
                 className="flex flex-col items-center text-white hover:text-purple-400 transition-colors"
@@ -292,6 +349,105 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Comments Modal */}
+      {showComments && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => setShowComments(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Comments ({commentCount})
+              </h3>
+              <button
+                onClick={() => setShowComments(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto p-4 max-h-96">
+              {commentsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No comments yet. Be the first to comment!
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden">
+                          {comment.author?.profileImageUrl || comment.user?.profileImageUrl ? (
+                            <img
+                              src={comment.author?.profileImageUrl || comment.user?.profileImageUrl}
+                              alt={`${comment.author?.firstName || comment.user?.firstName} ${comment.author?.lastName || comment.user?.lastName}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                              {(comment.author?.firstName || comment.user?.firstName || 'U')[0]}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-sm text-gray-900">
+                              {comment.author?.firstName || comment.user?.firstName} {comment.author?.lastName || comment.user?.lastName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(comment.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Comment Form */}
+            <div className="border-t p-4">
+              <div className="flex gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    U
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write a comment..."
+                    className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Comment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

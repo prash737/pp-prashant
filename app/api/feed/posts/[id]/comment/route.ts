@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -51,7 +50,7 @@ export async function POST(
         postId: postId
       },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             firstName: true,
@@ -89,7 +88,7 @@ export async function GET(
     const comments = await prisma.postComment.findMany({
       where: { postId },
       include: {
-        author: {
+        user: {
           select: {
             id: true,
             firstName: true,
