@@ -802,21 +802,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
 
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full">
-                      <FolderKanban
-                        className="h-3.5 w-3.5 text-blue-500"
-                        data-tooltip={`Projects ${isOwnProfile ? "you've" : "they've"} created or contributed to`}
-                      />
-                      <span data-tooltip={`Projects ${isOwnProfile ? "you've" : "they've"} created or contributed to`}>
-                        Projects: {student?.projects?.length || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 text-amber-600 dark:text-amber-300 px-3 py-1.5 rounded-full">
-                      <Award className="h-3.5 w-3.5 text-amber-500" data-tooltip={`Badges ${isOwnProfile ? "you've" : "they've"} earned`} />
-                      <span data-tooltip={`Badges ${isOwnProfile ? "you've" : "they've"} earned`}>
-                        Badges: {student?.customBadges?.length || 0}
-                      </span>
-                    </div>
+                    
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
