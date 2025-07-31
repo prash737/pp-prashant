@@ -66,8 +66,8 @@ export default function Mentorship() {
             </div>
 
             <div className="mt-8">
-              <Button className="bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white rounded-full px-6 py-2">
-                Find Your Mentor
+              <Button disabled className="bg-gray-400 text-white rounded-full px-6 py-2 cursor-not-allowed">
+                Coming Soon
               </Button>
             </div>
           </motion.div>
@@ -144,18 +144,6 @@ export default function Mentorship() {
                       Aligns with your career aspirations in tech research
                     </li>
                   </ul>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button className="flex-1 bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white rounded-full">
-                    Connect Now
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-slate-200 text-slate-700 hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200 rounded-full"
-                  >
-                    View Profile
-                  </Button>
                 </div>
               </div>
             </div>
