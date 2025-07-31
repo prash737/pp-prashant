@@ -44,6 +44,16 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
   }
 
   const handleLike = async () => {
+    // Optimistic update - immediate UI feedback
+    const wasLiked = currentReaction === 'like'
+    const newReaction = wasLiked ? null : 'like'
+    const newCount = wasLiked ? Math.max(0, likeCount - 1) : likeCount + 1
+    
+    // Update UI immediately
+    setCurrentReaction(newReaction)
+    setLiked(!wasLiked)
+    setLikeCount(newCount)
+
     try {
       const response = await fetch(`/api/feed/posts/${item.id}/react`, {
         method: 'POST',
@@ -57,33 +67,31 @@ export default function FeedCard({ item, isActive }: FeedCardProps) {
       })
 
       if (!response.ok) {
+        // Revert optimistic update on error
+        setCurrentReaction(wasLiked ? 'like' : null)
+        setLiked(wasLiked)
+        setLikeCount(likeCount)
         throw new Error('Failed to toggle like')
       }
 
       const data = await response.json()
       
-      // Handle enhanced reactions response
+      // Update with server response to ensure accuracy
       if (data.reactionType !== undefined) {
         setCurrentReaction(data.reactionType)
         setLiked(data.reactionType === 'like')
         
-        // Update count based on reaction change
         if (data.reactionCounts) {
           const totalCount = Object.values(data.reactionCounts).reduce((sum: number, count: number) => sum + count, 0)
           setLikeCount(totalCount)
-        } else {
-          if (data.reactionType === 'like') {
-            setLikeCount(prev => prev + 1)
-          } else if (data.reactionType === null) {
-            setLikeCount(prev => Math.max(0, prev - 1))
-          }
+        } else if (data.likeCount !== undefined || data.likesCount !== undefined) {
+          setLikeCount(data.likeCount || data.likesCount)
         }
       }
-      // Handle fallback like response
       else if (data.liked !== undefined) {
         setLiked(data.liked)
         setCurrentReaction(data.liked ? 'like' : null)
-        setLikeCount(data.likeCount || data.likesCount || likeCount)
+        setLikeCount(data.likeCount || data.likesCount || newCount)
       }
 
     } catch (error) {

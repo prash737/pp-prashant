@@ -450,6 +450,37 @@ export default function PostWithTrails({
       return;
     }
 
+    // Optimistic update for immediate feedback
+    const wasCurrentReaction = userReaction === reactionType
+    const newReaction = wasCurrentReaction ? null : reactionType
+    const previousReaction = userReaction
+    const previousCounts = { ...reactionCounts }
+    const previousLikeCount = likesCount
+    const previousIsLiked = isLiked
+
+    // Update UI immediately
+    setUserReaction(newReaction)
+    
+    if (reactionType === 'like') {
+      const newLiked = !wasCurrentReaction
+      setIsLiked(newLiked)
+      setLikesCount(prev => newLiked ? prev + 1 : Math.max(0, prev - 1))
+    }
+
+    // Update reaction counts optimistically
+    const newCounts = { ...reactionCounts }
+    if (wasCurrentReaction) {
+      // Removing reaction
+      newCounts[reactionType] = Math.max(0, (newCounts[reactionType] || 0) - 1)
+    } else {
+      // Adding reaction (remove from previous if exists)
+      if (previousReaction && previousReaction !== reactionType) {
+        newCounts[previousReaction] = Math.max(0, (newCounts[previousReaction] || 0) - 1)
+      }
+      newCounts[reactionType] = (newCounts[reactionType] || 0) + 1
+    }
+    setReactionCounts(newCounts)
+
     try {
       const response = await fetch(`/api/feed/posts/${post.id}/react`, {
         method: "POST",
@@ -497,6 +528,14 @@ export default function PostWithTrails({
         }
       }
     } catch (error) {
+      // Revert optimistic updates on error
+      setUserReaction(previousReaction)
+      setReactionCounts(previousCounts)
+      if (reactionType === 'like') {
+        setIsLiked(previousIsLiked)
+        setLikesCount(previousLikeCount)
+      }
+      
       console.error("Error reacting to post:", error);
       toast.error("Failed to react to post");
     }

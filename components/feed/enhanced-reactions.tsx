@@ -85,6 +85,21 @@ export default function EnhancedReactions({
       return
     }
 
+    // Optimistic update for immediate feedback
+    const wasCurrentReaction = currentReaction === reactionType
+    const newReaction = wasCurrentReaction ? null : reactionType
+    const previousReaction = currentReaction
+    const previousCount = reactionCount
+    
+    // Update UI immediately
+    setCurrentReaction(newReaction)
+    if (newReaction === null) {
+      setReactionCount(prev => Math.max(0, prev - 1))
+    } else if (previousReaction === null) {
+      setReactionCount(prev => prev + 1)
+    }
+    // Count stays same if changing from one reaction to another
+
     // Use passed onReact function if available (preferred)
     if (onReact) {
       onReact(reactionType)
@@ -93,6 +108,9 @@ export default function EnhancedReactions({
 
     // Fallback to direct API call if no onReact prop
     if (!postId) {
+      // Revert optimistic update
+      setCurrentReaction(previousReaction)
+      setReactionCount(previousCount)
       toast.error("Cannot react to post")
       return
     }
@@ -146,6 +164,10 @@ export default function EnhancedReactions({
       }
 
     } catch (error) {
+      // Revert optimistic update on error
+      setCurrentReaction(previousReaction)
+      setReactionCount(previousCount)
+      
       console.error('Error adding reaction:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to add reaction'
       toast.error(errorMessage)
