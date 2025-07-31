@@ -422,10 +422,13 @@ export async function GET(request: NextRequest) {
 
     // Filter out posts with missing authors to prevent display errors
     const validPosts = posts.filter((post) => {
-      const isValid = post.author && post.content && post.content.trim() !== "";
+      const hasAuthor = post.author && post.author.firstName;
+      const hasContent = post.content && post.content.trim() !== "";
+      const isValid = hasAuthor && hasContent;
+      
       if (!isValid) {
         console.warn(
-          `⚠️ Filtering out invalid post ${post.id}: missing author=${!post.author}, missing content=${!post.content}`,
+          `⚠️ Filtering out invalid post ${post.id}: missing author=${!hasAuthor}, missing content=${!hasContent}`,
         );
       }
       return isValid;

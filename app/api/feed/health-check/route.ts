@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
@@ -79,7 +78,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = request.cookies;
     const accessToken = cookieStore.get("sb-access-token")?.value;
     let authCheck = false;
-    
+
     if (accessToken) {
       const { data: { user }, error } = await supabase.auth.getUser(accessToken);
       authCheck = !error && !!user;

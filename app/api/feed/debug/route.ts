@@ -110,12 +110,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Test 9: Check for posts with null or undefined fields that might break rendering
-    const postsWithIssues = await prisma.feedPost.findMany({
-      where: {
-        OR: [{ content: { equals: "" } }, { userId: null }],
-      },
-      take: 5,
-    });
+    const postsWithIssues = await prisma.$queryRaw`
+      SELECT fp.id, fp.user_id, fp.content
+      FROM public.feed_posts fp
+      LEFT JOIN public.profiles p ON fp.user_id = p.id
+      WHERE fp.content = '' OR p.id IS NULL
+      LIMIT 5
+    `;
 
     // Test 10: Check user authentication and permissions
     const cookieStore = request.cookies;

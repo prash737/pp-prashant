@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -162,7 +161,7 @@ export default function ComprehensiveFeedTest() {
         credentials: 'include'
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Fetch Feed Posts", 'success', 
@@ -192,7 +191,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         setCreatedTestData(prev => ({ ...prev, postId: data.post?.id }));
@@ -225,7 +224,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Create Achievement Post", 'success', 
@@ -257,7 +256,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Create Project Post", 'success', 
@@ -289,7 +288,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Create Question Post", 'success', 
@@ -318,7 +317,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Test Content Moderation", 'success', 
@@ -345,7 +344,7 @@ export default function ComprehensiveFeedTest() {
           postType: 'GENERAL'
         })
       });
-      
+
       if (response.status === 400) {
         const error = await response.json();
         if (error.error?.includes('287 characters')) {
@@ -386,7 +385,7 @@ export default function ComprehensiveFeedTest() {
         credentials: 'include'
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Like Post", 'success', 
@@ -410,7 +409,7 @@ export default function ComprehensiveFeedTest() {
         credentials: 'include'
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Unlike Post", 'success', 
@@ -436,7 +435,7 @@ export default function ComprehensiveFeedTest() {
         body: JSON.stringify({ reactionType: 'love' })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Enhanced Reactions", 'success', 
@@ -465,7 +464,7 @@ export default function ComprehensiveFeedTest() {
         credentials: 'include'
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Bookmark Post", 'success', 
@@ -506,7 +505,7 @@ export default function ComprehensiveFeedTest() {
         })
       });
       const duration = Date.now() - start;
-      
+
       if (response.ok) {
         const data = await response.json();
         setCreatedTestData(prev => ({ ...prev, trailId: data.trail?.id }));
@@ -561,14 +560,14 @@ export default function ComprehensiveFeedTest() {
       const response = await fetch(`/api/feed/posts/${createdTestData.postId}`, {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const trails = data.trails || [];
         const isOrdered = trails.every((trail: any, index: number) => 
           trail.trailOrder === index + 1
         );
-        
+
         if (isOrdered) {
           updateTest(suiteName, "Trail Ordering", 'success', 
             `${trails.length} trails in correct order`);
@@ -609,7 +608,7 @@ export default function ComprehensiveFeedTest() {
           credentials: 'include'
         });
         const duration = Date.now() - start;
-        
+
         if (response.ok) {
           const data = await response.json();
           updateTest(suiteName, filter.name, 'success', 
@@ -638,7 +637,7 @@ export default function ComprehensiveFeedTest() {
       const response = await fetch('/api/feed/user-posts', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "User Posts Debug", 'success', 
@@ -658,7 +657,7 @@ export default function ComprehensiveFeedTest() {
       const response = await fetch('/api/feed/debug', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         updateTest(suiteName, "Feed Debug Analysis", 'success', 
@@ -688,7 +687,7 @@ export default function ComprehensiveFeedTest() {
           method: 'DELETE',
           credentials: 'include'
         });
-        
+
         if (response.ok) {
           updateTest(suiteName, "Delete Test Post", 'success', 
             'Test post deleted successfully');
@@ -705,6 +704,46 @@ export default function ComprehensiveFeedTest() {
         'No test post to delete');
     }
 
+    // Test error collection
+    setCurrentTest('System Error Collection');
+    try {
+      const response = await fetch('/api/feed/errors');
+      const result = await response.json();
+
+      updateTest(suiteName, 'System Error Collection', {
+        status: response.ok ? 'success' : 'error',
+        message: response.ok ? 
+          `Found ${result.totalErrorTypes} error types` : 
+          'Error collection failed',
+        details: result
+      });
+    } catch (error) {
+      updateTest(suiteName, 'System Error Collection', {
+        status: 'error',
+        message: `Error collection failed: ${error}`,
+        details: null
+      });
+    }
+
+    // Test health check
+    setCurrentTest('System Health Check');
+    try {
+      const response = await fetch('/api/feed/health-check');
+      const result = await response.json();
+
+      updateTest(suiteName, 'System Health Check', {
+        status: result.status === 'healthy' ? 'success' : 'warning',
+        message: `System status: ${result.status}`,
+        details: result
+      });
+    } catch (error) {
+      updateTest(suiteName, 'System Health Check', {
+        status: 'error',
+        message: `Health check failed: ${error}`,
+        details: null
+      });
+    }
+
     updateSuiteStatus(suiteName, 'completed');
   };
 
@@ -717,30 +756,30 @@ export default function ComprehensiveFeedTest() {
     setIsRunning(true);
     setProgress(0);
     setCreatedTestData({});
-    
+
     try {
       // Initialize test suites
       initializeTestSuites();
-      
+
       // Run test suites sequentially
       await runCoreAPITests();
       setProgress(20);
-      
+
       await runInteractionTests();
       setProgress(40);
-      
+
       await runTrailTests();
       setProgress(60);
-      
+
       await runFilterTests();
       setProgress(80);
-      
+
       await runDataIntegrityTests();
       setProgress(90);
-      
+
       await runCleanupTests();
       setProgress(100);
-      
+
       toast.success("All feed tests completed!");
     } catch (error) {
       console.error("Test execution error:", error);
@@ -806,7 +845,7 @@ export default function ComprehensiveFeedTest() {
             )}
           </Button>
         </CardTitle>
-        
+
         {!user && (
           <div className="text-center p-4 bg-yellow-50 rounded-lg">
             <p className="text-yellow-700">Please log in to run feed tests</p>
