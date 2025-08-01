@@ -781,7 +781,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     return '/images/placeholder.jpg'
   }
 
-  
+
 
   useEffect(() => {
     if (institutionData?.id && !galleryLoaded.current) {
@@ -1045,6 +1045,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     } finally {
       setIsLoading(false)
     }
+  }```tool_code
   }
 
   const saveContactInfoSection = async () => {
@@ -1710,7 +1711,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               <div className="space-y-2">                <Label>Program Type</Label>
                 <Select
                   value={program.type}
-                  onValueChange={(value) => updateProgram(index, 'type', value)}
+                  onChange={(value) => updateProgram(index, 'type', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -1728,7 +1729,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 <Label>Level</Label>
                 <Select
                   value={program.level}
-                  onValueChange={(value) => updateProgram(index, 'level', value)}
+                  onChange={(value) => updateProgram(index, 'level', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select level" />
@@ -2026,7 +2027,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
             <Textarea
               value={editData.bio || ''}
               onChange={(e) => setEditData(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Brief biography, achievements, research interests, and background"
+              placeholder="Brief biography, achievements, research interests and background"
               className="min-h-[80px]"
             />
           </div>
@@ -3364,9 +3365,9 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     // Process image URL consistently with gallery display section
     const processImageUrl = (url: string) => {
       if (!url) return '/images/placeholder.jpg'
-      
+
       console.log('🖼️ Edit form processing gallery image URL:', url)
-      
+
       // If it's a base64 data URL, return as is
       if (url.startsWith('data:image/')) {
         console.log('✅ Base64 image detected in edit form')
@@ -3534,7 +3535,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 }}
               />
             </div>
-            
+
             {item.caption && (
               <p className="text-gray-600 text-sm">{item.caption}</p>
             )}

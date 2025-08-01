@@ -154,49 +154,84 @@ export async function POST(request: NextRequest) {
     }
 
     // Process events
+    console.log('Processing events:', events)
     if (events && events.length > 0) {
       const validEvents = events.filter((event: any) => 
         event.title && event.description && event.eventType && event.startDate
       )
 
+      console.log('Valid events to process:', validEvents)
+
       if (validEvents.length > 0) {
         for (const event of validEvents) {
-          if (event.id && event.id !== '') {
+          console.log('Processing event:', event)
+          
+          if (event.id && event.id !== '' && event.id !== 'temp-id') {
             // Update existing event
-            await prisma.institutionEvents.update({
-              where: { 
-                id: event.id,
-                institutionId: user.id // Ensure user owns this event
-              },
-              data: {
-                title: event.title,
-                description: event.description,
-                eventType: event.eventType,
-                startDate: new Date(event.startDate),
-                endDate: event.endDate ? new Date(event.endDate) : null,
-                location: event.location || null,
-                imageUrl: event.imageUrl || null,
-                registrationUrl: event.registrationUrl || null
-              }
-            })
+            console.log('Updating existing event with ID:', event.id)
+            try {
+              await prisma.institutionEvents.update({
+                where: { 
+                  id: event.id,
+                  institutionId: user.id // Ensure user owns this event
+                },
+                data: {
+                  title: event.title,
+                  description: event.description,
+                  eventType: event.eventType,
+                  startDate: new Date(event.startDate),
+                  endDate: event.endDate ? new Date(event.endDate) : null,
+                  location: event.location || null,
+                  imageUrl: event.imageUrl || null,
+                  registrationUrl: event.registrationUrl || null
+                }
+              })
+              console.log('Event updated successfully')
+            } catch (updateError) {
+              console.error('Error updating event:', updateError)
+              // If update fails, try to create new event instead
+              await prisma.institutionEvents.create({
+                data: {
+                  institutionId: user.id,
+                  title: event.title,
+                  description: event.description,
+                  eventType: event.eventType,
+                  startDate: new Date(event.startDate),
+                  endDate: event.endDate ? new Date(event.endDate) : null,
+                  location: event.location || null,
+                  imageUrl: event.imageUrl || null,
+                  registrationUrl: event.registrationUrl || null
+                }
+              })
+              console.log('Event created after update failure')
+            }
           } else {
             // Create new event
-            await prisma.institutionEvents.create({
-              data: {
-                institutionId: user.id,
-                title: event.title,
-                description: event.description,
-                eventType: event.eventType,
-                startDate: new Date(event.startDate),
-                endDate: event.endDate ? new Date(event.endDate) : null,
-                location: event.location || null,
-                imageUrl: event.imageUrl || null,
-                registrationUrl: event.registrationUrl || null
-              }
-            })
+            console.log('Creating new event')
+            try {
+              const newEvent = await prisma.institutionEvents.create({
+                data: {
+                  institutionId: user.id,
+                  title: event.title,
+                  description: event.description,
+                  eventType: event.eventType,
+                  startDate: new Date(event.startDate),
+                  endDate: event.endDate ? new Date(event.endDate) : null,
+                  location: event.location || null,
+                  imageUrl: event.imageUrl || null,
+                  registrationUrl: event.registrationUrl || null
+                }
+              })
+              console.log('New event created with ID:', newEvent.id)
+            } catch (createError) {
+              console.error('Error creating event:', createError)
+              throw createError
+            }
           }
         }
       }
+    } else {
+      console.log('No events to process or events array is empty')
     }
 
     return NextResponse.json({ success: true })
