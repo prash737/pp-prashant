@@ -57,7 +57,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const { toast } = useToast()
   const logoInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
-  const facilityImageRefs = useRef<(HTMLInputElement | null)[]>([])
+  const facilityImageRefs = useRef<(HTMLInputElement | null>[])([])
 
   const [activeSection, setActiveSection] = useState("about")
   const [formData, setFormData] = useState({
@@ -2026,8 +2026,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
             <Textarea
               value={editData.bio || ''}
               onChange={(e) => setEditData(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Brief biography, achievements, research interests and background"
-              className="min-h-[80px]"
+              placeholder="Brief biography, achievements, research interests and background              className="min-h-[80px]"
             />
           </div>
 
