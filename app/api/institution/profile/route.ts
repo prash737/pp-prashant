@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         bio: profile.bio,
         overview: profile.institution?.overview,
         logoUrl: getImageUrl(profile.institution?.logoUrl),
-        coverImageUrl: getImageUrl(profile.institution?.coverImage),
+        coverImageUrl: getImageUrl(profile.institution?.coverImageUrl),
       }
     })
 
@@ -204,7 +204,7 @@ export async function PATCH(request: NextRequest) {
         mission: mission || null,
         coreValues: coreValues || null,
         logoUrl: logoUrl || null,
-        coverImage: coverImageUrl || null,
+        coverImageUrl: coverImageUrl || null,
         updatedAt: new Date()
       }
     })
