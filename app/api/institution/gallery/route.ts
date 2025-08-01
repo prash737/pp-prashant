@@ -45,7 +45,33 @@ export async function GET(request: NextRequest) {
 
     // Helper function to handle image URLs (base64 or traditional URLs)
     const getImageUrl = (imagePath: string | null) => {
-      if (!imagePath) return '/images/placeholder.jpg'
+      console.log('🔍 Gallery API processing image path:', imagePath)
+      
+      if (!imagePath) {
+        console.log('⚠️ No image path provided, using placeholder')
+        return '/images/placeholder.jpg'
+      }
+
+      // If it's a base64 data URL, return as is
+      if (imagePath.startsWith('data:image/')) {
+        console.log('✅ Base64 image detected in API')
+        return imagePath
+      }
+
+      // If already a full URL, return as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        console.log('✅ Full URL detected in API')
+        return imagePath
+      }
+
+      // If starts with /uploads/, return as is
+      if (imagePath.startsWith('/uploads/')) {
+        console.log('✅ Upload path detected in API')
+        return imagePath
+      }
+
+      console.log('⚠️ Using fallback for unknown format:', imagePath)
+      return '/images/placeholder.jpg'
 
       // If it's a base64 data URL, return as is
       if (imagePath.startsWith('data:image/')) {

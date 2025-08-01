@@ -79,6 +79,17 @@ export default function GallerySection({ images: propImages, isViewMode = false,
 
       const data = await response.json()
       console.log('🖼️ Gallery data received in component:', data)
+      
+      // Debug each image URL
+      if (data.images) {
+        data.images.forEach((img: any, index: number) => {
+          console.log(`🖼️ Gallery image ${index}:`, {
+            id: img.id,
+            originalUrl: img.imageUrl,
+            processedUrl: processImageUrl(img.imageUrl)
+          })
+        })
+      }
 
       // Helper function to ensure proper image URLs (including base64)
       const processImageUrl = (url: string) => {
