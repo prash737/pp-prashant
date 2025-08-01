@@ -1,0 +1,63 @@
+○ Compiling /institution/profile/edit ...
+ ⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Unexpected token `div`. Expected jsx identifier
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1921:1]
+ 1918 │ 
+ 1919 │     if (isEditing) {
+ 1920 │       return (
+ 1921 │         <div className="p-6 border rounded-lg bg-blue-50 space-y-4">
+      ·          ───
+ 1922 │           <div className="flex justify-between items-center">
+ 1923 │             <h4 className="font-semibold text-blue-900">Editing: {member.name}</h4>
+ 1924 │             <div className="flex gap-2">
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ ⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Unexpected token `div`. Expected jsx identifier
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1921:1]
+ 1918 │ 
+ 1919 │     if (isEditing) {
+ 1920 │       return (
+ 1921 │         <div className="p-6 border rounded-lg bg-blue-50 space-y-4">
+      ·          ───
+ 1922 │           <div className="flex justify-between items-center">
+ 1923 │             <h4 className="font-semibold text-blue-900">Editing: {member.name}</h4>
+ 1924 │             <div className="flex gap-2">
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ ⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Unexpected token `div`. Expected jsx identifier
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1921:1]
+ 1918 │ 
+ 1919 │     if (isEditing) {
+ 1920 │       return (
+ 1921 │         <div className="p-6 border rounded-lg bg-blue-50 space-y-4">
+      ·          ───
+ 1922 │           <div className="flex justify-between items-center">
+ 1923 │             <h4 className="font-semibold text-blue-900">Editing: {member.name}</h4>
+ 1924 │             <div className="flex gap-2">
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ GET /institution/profile/edit 500 in 10892ms
+ GET /institution/profile/edit 500 in 30ms
+ GET /api/connections/requests?type=received 500 in 39ms
+ GET /api/circles/invitations?type=received 500 in 49ms
+ GET /api/education/verification 500 in 56ms
