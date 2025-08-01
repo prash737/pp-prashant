@@ -1,0 +1,101 @@
+○ Compiling /api/institution/gallery ...
+ ⨯ ./app/api/institution/gallery/route.ts
+Error:   × Expected a semicolon
+    ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:95:1]
+ 92 │ 
+ 93 │       // For other paths starting with /, return as is (they should be accessible)
+ 94 │       return imagePath;
+ 95 │     };
+    ·      ▲
+ 96 │ 
+ 97 │     // Format the response consistently
+ 98 │     const formattedGallery = gallery.map(img => ({
+    ╰────
+  × Expected a semicolon
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:107:1]
+ 104 │     console.log('🖼️ Returning formatted gallery:', formattedGallery)
+ 105 │ 
+ 106 │     return NextResponse.json({ images: formattedGallery })
+ 107 │   } catch (error) {
+     ·     ─────
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+ 110 │   }
+     ╰────
+  × Return statement is not allowed here
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:109:1]
+ 106 │     return NextResponse.json({ images: formattedGallery })
+ 107 │   } catch (error) {
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+     ·     ──────────────────────────────────────────────────────────────────────────────────────
+ 110 │   }
+ 111 │ }
+     ╰────
+  × Expression expected
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:111:1]
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+ 110 │   }
+ 111 │ }
+     · ─
+ 112 │ 
+ 113 │ export async function POST(request: NextRequest) {
+ 114 │   try {
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/api/institution/gallery/route.ts
+ ⨯ ./app/api/institution/gallery/route.ts
+Error:   × Expected a semicolon
+    ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:95:1]
+ 92 │ 
+ 93 │       // For other paths starting with /, return as is (they should be accessible)
+ 94 │       return imagePath;
+ 95 │     };
+    ·      ▲
+ 96 │ 
+ 97 │     // Format the response consistently
+ 98 │     const formattedGallery = gallery.map(img => ({
+    ╰────
+  × Expected a semicolon
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:107:1]
+ 104 │     console.log('🖼️ Returning formatted gallery:', formattedGallery)
+ 105 │ 
+ 106 │     return NextResponse.json({ images: formattedGallery })
+ 107 │   } catch (error) {
+     ·     ─────
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+ 110 │   }
+     ╰────
+  × Return statement is not allowed here
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:109:1]
+ 106 │     return NextResponse.json({ images: formattedGallery })
+ 107 │   } catch (error) {
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+     ·     ──────────────────────────────────────────────────────────────────────────────────────
+ 110 │   }
+ 111 │ }
+     ╰────
+  × Expression expected
+     ╭─[/home/runner/workspace/app/api/institution/gallery/route.ts:111:1]
+ 108 │     console.error('Error fetching gallery images:', error)
+ 109 │     return NextResponse.json({ error: 'Failed to fetch gallery images' }, { status: 500 })
+ 110 │   }
+ 111 │ }
+     · ─
+ 112 │ 
+ 113 │ export async function POST(request: NextRequest) {
+ 114 │   try {
+     ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/api/institution/gallery/route.ts
