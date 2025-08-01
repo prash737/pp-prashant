@@ -125,6 +125,52 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    console.log('🔄 Institution gallery PUT request received')
+
+    // Get user from auth
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: { user } } = await supabase.auth.getUser(token)
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { imageId, caption } = body
+
+    if (!imageId) {
+      return NextResponse.json({ error: 'Image ID is required' }, { status: 400 })
+    }
+
+    console.log('🔍 Updating gallery image:', imageId)
+
+    // Update the gallery image caption
+    await prisma.institutionGallery.update({
+      where: { 
+        id: imageId,
+        institutionId: user.id // Ensure user can only update their own images
+      },
+      data: {
+        caption: caption || null
+      }
+    })
+
+    console.log('✅ Gallery image updated successfully')
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error updating gallery image:', error)
+    return NextResponse.json({ error: 'Failed to update image' }, { status: 500 })
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     console.log('🗑️ Institution gallery DELETE request received')

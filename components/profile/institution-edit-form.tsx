@@ -3351,6 +3351,369 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     </Card>
   )
 
+  // Component for existing gallery items with edit functionality
+  const ExistingGalleryCard = ({ item, onUpdate }: { item: any, onUpdate: () => void }) => {
+    const [isEditing, setIsEditing] = useState(false)
+    const [editData, setEditData] = useState(item)
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSave = async () => {
+      setIsSaving(true)
+      try {
+        const response = await fetch('/api/institution/gallery', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageId: editData.id,
+            caption: editData.caption
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to update gallery item')
+        }
+
+        toast({
+          title: "Success",
+          description: "Gallery item updated successfully!",
+        })
+
+        setIsEditing(false)
+        onUpdate() // Refresh the gallery list
+      } catch (error) {
+        console.error('Error updating gallery item:', error)
+        toast({
+          title: "Error",
+          description: "Failed to update gallery item. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsSaving(false)
+      }
+    }
+
+    const handleCancel = () => {
+      setEditData(item) // Reset to original data
+      setIsEditing(false)
+    }
+
+    const handleDelete = async () => {
+      if (!confirm('Are you sure you want to delete this gallery image? This action cannot be undone.')) {
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/institution/gallery?imageId=${item.id}`, {
+          method: 'DELETE'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete gallery item')
+        }
+
+        toast({
+          title: "Success",
+          description: "Gallery item deleted successfully!",
+        })
+
+        onUpdate() // Refresh the gallery list
+      } catch (error) {
+        console.error('Error deleting gallery item:', error)
+        toast({
+          title: "Error",
+          description: "Failed to delete gallery item. Please try again.",
+          variant: "destructive",
+        })
+      }
+    }
+
+    if (isEditing) {
+      return (
+        <div className="p-4 border rounded-lg bg-blue-50 space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-semibold text-blue-900">Editing Gallery Image</h4>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSaving ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Current Image</Label>
+              <div className="w-full h-32 rounded-lg overflow-hidden border">
+                <img 
+                  src={editData.imageUrl} 
+                  alt="Gallery item" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-xs text-gray-500">Image cannot be changed, only caption can be edited</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Caption</Label>
+              <Textarea
+                value={editData.caption}
+                onChange={(e) => setEditData(prev => ({ ...prev, caption: e.target.value }))}
+                placeholder="Enter a caption for this image"
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="p-4 border rounded-lg bg-gray-50 space-y-4">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="w-full h-32 rounded-lg overflow-hidden border mb-3">
+              <img 
+                src={item.imageUrl} 
+                alt={item.caption || 'Gallery image'} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {item.caption && (
+              <p className="text-gray-600 text-sm">{item.caption}</p>
+            )}
+          </div>
+
+          <div className="flex gap-2 ml-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              className="text-red-600 hover:text-red-800"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const renderGallerySection = () => {
+    return (
+      <Card ref={sectionRefs.gallery}>
+        <CardHeader>
+          <CardTitle>Institution Gallery</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {isLoadingGallery ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Loading gallery...</p>
+            </div>
+          ) : (
+            <>
+              {/* Existing Gallery Images */}
+              {existingGallery.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Existing Gallery Images</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {existingGallery.map((item) => (
+                      <ExistingGalleryCard 
+                        key={item.id} 
+                        item={item} 
+                        onUpdate={fetchGallery}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New Gallery Items */}
+              {newGalleryItems.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">New Gallery Images</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {newGalleryItems.map((item, index) => (
+                      <div key={item.tempId} className="p-4 border rounded-lg space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-medium">New Gallery Image {index + 1}</h4>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeNewGalleryItem(item.tempId)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Gallery Image</Label>
+                          <div
+                            className="w-full h-48 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer"
+                            onClick={() => {
+                              const input = document.createElement('input')
+                              input.type = 'file'
+                              input.accept = 'image/*'
+                              input.onchange = (e) => handleGalleryImageUpload(e as any, item.tempId)
+                              input.click()
+                            }}
+                          >
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt="Gallery preview"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <Camera className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-sm text-gray-500">Click to upload gallery image</p>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">Recommended: JPG, PNG up to 5MB</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Caption</Label>
+                          <Textarea
+                            value={item.caption}
+                            onChange={(e) => updateNewGalleryItem(item.tempId, 'caption', e.target.value)}
+                            placeholder="Enter a caption for this image"
+                            className="min-h-[80px]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add New Gallery Item Button */}
+              <div className="pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addGalleryItem}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Gallery Image
+                </Button>
+              </div>
+
+              {/* Save New Gallery Items Button */}
+              {newGalleryItems.length > 0 && (
+                <div className="flex justify-end pt-4 border-t">
+                  <Button
+                    onClick={async () => {
+                      setIsLoading(true)
+                      try {
+                        const validNewGalleryItems = newGalleryItems.filter(item =>
+                          item.imageUrl.trim() !== ''
+                        )
+
+                        if (validNewGalleryItems.length === 0) {
+                          toast({
+                            title: "Info",
+                            description: "Please add at least one image before saving.",
+                          })
+                          setIsLoading(false)
+                          return
+                        }
+
+                        const response = await fetch('/api/institution/gallery', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            images: validNewGalleryItems.map(item => ({
+                              url: item.imageUrl,
+                              caption: item.caption
+                            }))
+                          }),
+                        })
+
+                        if (!response.ok) {
+                          throw new Error('Failed to save gallery images')
+                        }
+
+                        toast({
+                          title: "Success",
+                          description: "Gallery images saved successfully!",
+                        })
+
+                        // Clear new gallery items and refresh existing
+                        setNewGalleryItems([])
+                        await fetchGallery()
+                      } catch (error) {
+                        console.error('Error saving gallery images:', error)
+                        toast({
+                          title: "Error",
+                          description: "Failed to save gallery images. Please try again.",
+                          variant: "destructive",
+                        })
+                      } finally {
+                        setIsLoading(false)
+                      }
+                    }}
+                    disabled={isLoading || newGalleryItems.some(item => !item.imageUrl.trim())}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {isLoading ? 'Saving...' : 'Save Gallery Images'}
+                  </Button>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {existingGallery.length === 0 && newGalleryItems.length === 0 && (
+                <div className="text-center py-12">
+                  <ImageIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Gallery Images Yet</h3>
+                  <p className="text-gray-500 mb-4">
+                    Add photos to showcase your institution's campus, facilities, and student life.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: hideScrollbarStyle }} />
@@ -3393,6 +3756,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               {renderFacultyStatsSection()}
               {renderFacilitiesSection()}
               {renderEventsSection()}
+              {renderGallerySection()}
 
             </div>
           </form>
