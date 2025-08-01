@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { mkdir } from 'fs/promises'
-import path from 'path'
+import { convertImageToBase64 } from '@/lib/image-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,30 +20,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'File size too large. Maximum 5MB allowed.' })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Convert to base64
+    const base64Data = await convertImageToBase64(file)
 
-    // Create unique filename
-    const timestamp = Date.now()
-    const randomId = Math.random().toString(36).substring(2, 15)
-    const extension = path.extname(file.name)
-    const filename = `${randomId}_${timestamp}${extension}`
-
-    // Create directory if it doesn't exist
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'institutions', 'faculty')
-    await mkdir(uploadDir, { recursive: true })
-
-    // Write file
-    const filepath = path.join(uploadDir, filename)
-    await writeFile(filepath, buffer)
-
-    // Return public URL
-    const publicUrl = `/uploads/institutions/faculty/${filename}`
-
+    // Return the base64 data URL
     return NextResponse.json({ 
       success: true, 
-      url: publicUrl,
-      filename: filename
+      url: base64Data
     })
   } catch (error) {
     console.error('Error uploading faculty image:', error)
