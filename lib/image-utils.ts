@@ -2,15 +2,12 @@
 import { NextRequest } from 'next/server'
 
 export async function convertFileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      resolve(result)
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+  // Convert File to ArrayBuffer, then to Buffer, then to base64
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  const base64String = buffer.toString('base64')
+  const mimeType = file.type || 'image/jpeg'
+  return `data:${mimeType};base64,${base64String}`
 }
 
 export async function convertRequestFileToBase64(request: NextRequest): Promise<string> {
