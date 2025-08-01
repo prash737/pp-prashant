@@ -202,7 +202,7 @@ export async function PATCH(request: NextRequest) {
       data: {
         overview: overview || null,
         mission: mission || null,
-        core_values: coreValues || null,
+        coreValues: coreValues || null,
         logoUrl: logoUrl || null,
         coverImage: coverImageUrl || null,
         updatedAt: new Date()
