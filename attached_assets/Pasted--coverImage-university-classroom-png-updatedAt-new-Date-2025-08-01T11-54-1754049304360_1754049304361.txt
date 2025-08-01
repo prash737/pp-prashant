@@ -1,0 +1,37 @@
+ coverImage: "/university-classroom.png",
+    ~~~~~~~~~~
+    updatedAt: new Date("2025-08-01T11:54:42.846Z"),
+?   institutionName?: String | StringFieldUpdateOperationsInput,
+?   institutionType?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   website?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   coverImageUrl?: String | NullableStringFieldUpdateOperationsInput | Null,
+?   verified?: Boolean | BoolFieldUpdateOperationsInput,
+?   onboardingCompleted?: Boolean | BoolFieldUpdateOperationsInput,
+?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+?   profile?: ProfileUpdateOneRequiredWithoutInstitutionNestedInput,
+?   institutionTypeRef?: InstitutionTypeUpdateOneWithoutInstitutionsNestedInput,
+?   studentEducationHistory?: StudentEducationHistoryUpdateManyWithoutInstitutionNestedInput,
+?   programs?: InstitutionProgramUpdateManyWithoutInstitutionNestedInput,
+?   events?: InstitutionEventsUpdateManyWithoutInstitutionNestedInput,
+?   gallery?: InstitutionGalleryUpdateManyWithoutInstitutionNestedInput,
+?   facilities?: InstitutionFacilityUpdateManyWithoutInstitutionNestedInput,
+?   faculty?: InstitutionFacultyUpdateManyWithoutInstitutionNestedInput,
+?   quickFacts?: InstitutionQuickFactsUpdateOneWithoutInstitutionNestedInput,
+?   contactInfo?: InstitutionContactInfoUpdateOneWithoutInstitutionNestedInput,
+?   facultyStats?: InstitutionFacultyStatsUpdateOneWithoutInstitutionNestedInput,
+?   academicCommunities?: AcademicCommunityUpdateManyWithoutInstitutionNestedInput
+  }
+}
+
+Unknown argument `coverImage`. Did you mean `coverImageUrl`? Available options are listed in green.
+    at async PATCH (app/api/institution/profile/route.ts:200:31)
+  198 |
+  199 |     // Update institution profile
+> 200 |     const updatedInstitution = await prisma.institutionProfile.update({
+      |                               ^
+  201 |       where: { id: profile.institution!.id },
+  202 |       data: {
+  203 |         overview: overview || null, {
+  clientVersion: '6.8.2'
+}
+ PATCH /api/institution/profile 500 in 1570ms
