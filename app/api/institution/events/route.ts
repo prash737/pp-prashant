@@ -74,14 +74,12 @@ export async function GET(request: NextRequest) {
       id: event.id,
       title: event.title,
       description: event.description,
-      date: event.date,
-      time: event.time,
+      eventType: event.eventType,
+      startDate: event.startDate,
+      endDate: event.endDate,
       location: event.location,
       imageUrl: getFullImageUrl(event.imageUrl),
-      category: event.category,
-      isPublic: event.isPublic,
-      maxAttendees: event.maxAttendees,
-      registrationRequired: event.registrationRequired
+      registrationUrl: event.registrationUrl
     }))
 
     return NextResponse.json({ events: formattedEvents })
