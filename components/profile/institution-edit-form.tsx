@@ -57,7 +57,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const { toast } = useToast()
   const logoInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
-  const facilityImageRefs = useRef<(HTMLInputElement | null>[])([])
+  const facilityImageRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const [activeSection, setActiveSection] = useState("about")
   const [formData, setFormData] = useState({
@@ -2704,7 +2704,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         console.error('Error deleting facility:', error)
         toast({
           title: "Error",
-          description: "Failed to delete facility. Please try again.",
+          description: "Failed to update facility. Please try again.",
           variant: "destructive",
         })
       }
@@ -2946,7 +2946,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                           <Label>Facility Image</Label>
                           <div className="space-y-2">
                             <div
-                              className="w-full h-32 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer"
+                              className="w-full h-32 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center```text
+ justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer"
                               onClick={() => {
                                 const input = document.createElement('input')
                                 input.type = 'file'
