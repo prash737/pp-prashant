@@ -130,19 +130,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     ],
 
     // Events section
-    events: [
-      {
-        id: "",
-        title: "",
-        description: "",
-        eventType: "",
-        startDate: "",
-        endDate: "",
-        location: "",
-        imageUrl: "",
-        registrationUrl: ""
-      }
-    ],
+    events: [],
 
     // Gallery section
     gallery: [
@@ -631,6 +619,21 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           const data = await response.json()
           if (data.events && data.events.length > 0) {
             setExistingEvents(data.events)
+            // Also populate formData.events with existing events for editing
+            setFormData(prev => ({
+              ...prev,
+              events: data.events.map((event: any) => ({
+                id: event.id,
+                title: event.title,
+                description: event.description,
+                eventType: event.eventType,
+                startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
+                endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
+                location: event.location || '',
+                imageUrl: event.imageUrl || '',
+                registrationUrl: event.registrationUrl || ''
+              }))
+            }))
           }
         }
       } catch (error) {
@@ -3104,21 +3107,24 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
             <p className="text-gray-500 mt-4">Loading events...</p>
           </div>
         ) : (
-          formData.events.map((event, index) => (
-            <div key={index} className="p-4 border rounded-lg space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Event {index + 1}</h4>
-                {formData.events.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeEvent(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+          <>
+            {formData.events.length > 0 ? (
+              formData.events.map((event, index) => (
+                <div key={event.id || index} className="p-4 border rounded-lg space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">
+                      {event.id ? `${event.title || `Event ${index + 1}`}` : `New Event ${index + 1}`}
+                      {event.id && <span className="text-sm text-gray-500 ml-2">(Existing)</span>}
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeEvent(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -3279,17 +3285,27 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               </div>
             </div>
           ))
-        )}
+        ) : (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Events Added Yet</h3>
+                <p className="text-gray-500 mb-4">
+                  Add events and activities for your institution.
+                </p>
+              </div>
+            )}
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addEvent}
-          className="w-full"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Event
-        </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addEvent}
+              className="w-full"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Event
+            </Button>
+          </>
+        )}
 
         {/* Save Button for Events Section */}
         <div className="flex justify-end pt-4 border-t">
