@@ -57,7 +57,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const { toast } = useToast()
   const logoInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
-  const facilityImageRefs = useRef<(HTMLInputElement | null>[])([])
+  const facilityImageRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const [activeSection, setActiveSection] = useState("about")
   const [formData, setFormData] = useState({
