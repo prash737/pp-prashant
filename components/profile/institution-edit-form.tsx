@@ -781,33 +781,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     return '/images/placeholder.jpg'
   }
 
-  // Enhanced image URL processing specifically for gallery
-  const processGalleryImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return '/images/placeholder.jpg'
-    
-    console.log('🖼️ Processing gallery image URL:', imageUrl)
-    
-    // If it's a base64 data URL, return as is
-    if (imageUrl.startsWith('data:image/')) {
-      console.log('✅ Base64 image detected')
-      return imageUrl
-    }
-
-    // If already a full URL, return as is
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      console.log('✅ Full URL detected')
-      return imageUrl
-    }
-
-    // If starts with /uploads/, return as is
-    if (imageUrl.startsWith('/uploads/')) {
-      console.log('✅ Upload path detected')
-      return imageUrl
-    }
-
-    console.log('⚠️ Using fallback for:', imageUrl)
-    return '/images/placeholder.jpg'
-  }
+  
 
   useEffect(() => {
     if (institutionData?.id && !galleryLoaded.current) {
@@ -3387,6 +3361,34 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     const [editData, setEditData] = useState(item)
     const [isSaving, setIsSaving] = useState(false)
 
+    // Process image URL consistently with gallery display section
+    const processImageUrl = (url: string) => {
+      if (!url) return '/images/placeholder.jpg'
+      
+      console.log('🖼️ Edit form processing gallery image URL:', url)
+      
+      // If it's a base64 data URL, return as is
+      if (url.startsWith('data:image/')) {
+        console.log('✅ Base64 image detected in edit form')
+        return url
+      }
+
+      // If already a full URL, return as is
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        console.log('✅ Full URL detected in edit form')
+        return url
+      }
+
+      // If starts with /uploads/, return as is
+      if (url.startsWith('/uploads/')) {
+        console.log('✅ Upload path detected in edit form')
+        return url
+      }
+
+      console.log('⚠️ Using fallback for unknown format in edit form:', url)
+      return '/images/placeholder.jpg'
+    }
+
     const handleSave = async () => {
       setIsSaving(true)
       try {
@@ -3491,9 +3493,13 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
               <Label>Current Image</Label>
               <div className="w-full h-32 rounded-lg overflow-hidden border">
                 <img 
-                  src={editData.imageUrl} 
+                  src={processImageUrl(editData.imageUrl)} 
                   alt="Gallery item" 
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('❌ Edit form image failed to load:', editData.imageUrl)
+                    e.currentTarget.src = '/images/placeholder.jpg'
+                  }}
                 />
               </div>
               <p className="text-xs text-gray-500">Image cannot be changed, only caption can be edited</p>
@@ -3519,11 +3525,11 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           <div className="flex-1">
             <div className="w-full h-32 rounded-lg overflow-hidden border mb-3">
               <img 
-                src={processGalleryImageUrl(item.imageUrl)} 
+                src={processImageUrl(item.imageUrl)} 
                 alt={item.caption || 'Gallery image'} 
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  console.log('❌ Image failed to load:', item.imageUrl)
+                  console.log('❌ Edit form image failed to load:', item.imageUrl)
                   e.currentTarget.src = '/images/placeholder.jpg'
                 }}
               />
@@ -3628,7 +3634,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                           >
                             {item.imageUrl ? (
                               <img
-                                src={processGalleryImageUrl(item.imageUrl)}
+                                src={item.imageUrl}
                                 alt="Gallery preview"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
