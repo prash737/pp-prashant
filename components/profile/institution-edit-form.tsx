@@ -781,6 +781,34 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     return '/images/placeholder.jpg'
   }
 
+  // Enhanced image URL processing specifically for gallery
+  const processGalleryImageUrl = (imageUrl: string) => {
+    if (!imageUrl) return '/images/placeholder.jpg'
+    
+    console.log('🖼️ Processing gallery image URL:', imageUrl)
+    
+    // If it's a base64 data URL, return as is
+    if (imageUrl.startsWith('data:image/')) {
+      console.log('✅ Base64 image detected')
+      return imageUrl
+    }
+
+    // If already a full URL, return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      console.log('✅ Full URL detected')
+      return imageUrl
+    }
+
+    // If starts with /uploads/, return as is
+    if (imageUrl.startsWith('/uploads/')) {
+      console.log('✅ Upload path detected')
+      return imageUrl
+    }
+
+    console.log('⚠️ Using fallback for:', imageUrl)
+    return '/images/placeholder.jpg'
+  }
+
   useEffect(() => {
     if (institutionData?.id && !galleryLoaded.current) {
       fetchGallery()
@@ -860,8 +888,10 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
       }
     }
 
-    // Clear the input value to allow re-uploading the same file
-    e.target.value = ''
+    // Clear the input value to allow re-uploading the same file - check if target exists
+    if (e.target) {
+      e.target.value = ''
+    }
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3489,9 +3519,13 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           <div className="flex-1">
             <div className="w-full h-32 rounded-lg overflow-hidden border mb-3">
               <img 
-                src={item.imageUrl} 
+                src={processGalleryImageUrl(item.imageUrl)} 
                 alt={item.caption || 'Gallery image'} 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('❌ Image failed to load:', item.imageUrl)
+                  e.currentTarget.src = '/images/placeholder.jpg'
+                }}
               />
             </div>
             
@@ -3584,15 +3618,23 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                               const input = document.createElement('input')
                               input.type = 'file'
                               input.accept = 'image/*'
-                              input.onchange = (e) => handleGalleryImageUpload(e as any, item.tempId)
+                              input.onchange = (e) => {
+                                if (e.target && e.target instanceof HTMLInputElement) {
+                                  handleGalleryImageUpload(e as React.ChangeEvent<HTMLInputElement>, item.tempId)
+                                }
+                              }
                               input.click()
                             }}
                           >
                             {item.imageUrl ? (
                               <img
-                                src={item.imageUrl}
+                                src={processGalleryImageUrl(item.imageUrl)}
                                 alt="Gallery preview"
                                 className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log('❌ Gallery preview failed to load:', item.imageUrl)
+                                  e.currentTarget.src = '/images/placeholder.jpg'
+                                }}
                               />
                             ) : (
                               <div className="text-center">
