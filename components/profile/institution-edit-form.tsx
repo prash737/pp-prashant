@@ -738,7 +738,12 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         if (response.ok) {
           const data = await response.json()
           if (data.images && data.images.length > 0) {
-            setExistingGallery(data.images)
+            // Process image URLs to handle base64 data same as other sections
+            const processedImages = data.images.map((img: any) => ({
+              ...img,
+              imageUrl: getImageUrl(img.imageUrl)
+            }))
+            setExistingGallery(processedImages)
           }
         }
       } catch (error) {
@@ -752,6 +757,29 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
 
     return galleryFetchPromise.current
   }, [institutionData.id])
+
+  // Helper function to process image URLs (same as used in other sections)
+  const getImageUrl = (imagePath: string | null) => {
+    if (!imagePath) return '/images/placeholder-logo.png'
+
+    // If it's a base64 data URL, return as is
+    if (imagePath.startsWith('data:image/')) {
+      return imagePath
+    }
+
+    // If already a full URL, return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath
+    }
+
+    // If starts with /uploads/, return as is (legacy support)
+    if (imagePath.startsWith('/uploads/')) {
+      return imagePath
+    }
+
+    // Default fallback
+    return '/images/placeholder-logo.png'
+  }
 
   useEffect(() => {
     if (institutionData?.id && !galleryLoaded.current) {
@@ -3341,77 +3369,52 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Existing Gallery</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {existingGallery.map((item) => {
-                      // Process image URL to handle base64 data
-                      const getImageUrl = (url: string) => {
-                        if (!url) return '/images/placeholder-logo.png'
-
-                        // If it's a base64 data URL, return as is
-                        if (url.startsWith('data:image/')) {
-                          return url
-                        }
-
-                        // If already a full URL, return as is
-                        if (url.startsWith('http://') || url.startsWith('https://')) {
-                          return url
-                        }
-
-                        // If starts with /uploads/, return as is (legacy support)
-                        if (url.startsWith('/uploads/')) {
-                          return url
-                        }
-
-                        // Default fallback
-                        return '/images/placeholder-logo.png'
-                      }
-
-                      return (
-                        <div key={item.id} className="group relative rounded-lg overflow-hidden border border-gray-200">
-                          <img 
-                            src={getImageUrl(item.imageUrl)} 
-                            alt={item.caption || "Gallery image"} 
-                            className="w-full h-48 object-cover" 
-                            onError={(e) => {
-                              // Fallback to placeholder if image fails to load
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/images/placeholder-logo.png';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200">
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={async () => {
-                                try {
-                                  const response = await fetch(`/api/institution/gallery?imageId=${item.id}`, {
-                                    method: 'DELETE'
-                                  })
-                                  if (response.ok) {
-                                    toast({
-                                      title: "Success",
-                                      description: "Image deleted successfully!",
-                                    })
-                                    fetchGallery() // Refresh gallery
-                                  }
-                                } catch (error) {
+                    {existingGallery.map((item) => (
+                      <div key={item.id} className="group relative rounded-lg overflow-hidden border border-gray-200">
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.caption || "Gallery image"} 
+                          className="w-full h-48 object-cover" 
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/images/placeholder-logo.png';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/institution/gallery?imageId=${item.id}`, {
+                                  method: 'DELETE'
+                                })
+                                if (response.ok) {
                                   toast({
-                                    title: "Error",
-                                    description: "Failed to delete image.",
-                                    variant: "destructive",
+                                    title: "Success",
+                                    description: "Image deleted successfully!",
                                   })
+                                  fetchGallery() // Refresh gallery
                                 }
-                              }}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="p-2 bg-white">
-                            <p className="text-sm text-gray-700 truncate">{item.caption || "No caption"}</p>
-                          </div>
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete image.",
+                                  variant: "destructive",
+                                })
+                              }
+                            }}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      )
-                    })}
+                        <div className="p-2 bg-white">
+                          <p className="text-sm text-gray-700 truncate">{item.caption || "No caption"}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
