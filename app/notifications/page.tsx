@@ -1,313 +1,523 @@
+"use client";
 
-"use client"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import InternalNavbar from "@/components/internal-navbar";
+import Footer from "@/components/footer";
+import ProtectedLayout from "@/app/protected-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Users,
+  UserPlus,
+  Check,
+  X,
+  Loader2,
+  MessageCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import Image from "next/image";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import InternalNavbar from "@/components/internal-navbar"
-import Footer from "@/components/footer"
-import { useAuth } from "@/hooks/use-auth"
-import { 
-  Bell, 
-  MessageCircle, 
-  UserPlus, 
-  Calendar, 
-  Award, 
-  Clock,
-  Sparkles,
-  ArrowRight,
-  Inbox,
-  Settings,
-  CheckCircle,
-  Circle,
-  Trash2
-} from "lucide-react"
+interface ConnectionRequest {
+  id: string;
+  status: string;
+  message?: string;
+  createdAt: string;
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    role: string;
+    bio?: string;
+  };
+}
 
-interface Notification {
-  id: string
-  type: 'connection' | 'achievement' | 'message' | 'institution' | 'circle'
-  title: string
-  message: string
-  timestamp: string
-  isRead: boolean
-  avatar?: string
-  badge?: string
+interface CircleInvitation {
+  id: string;
+  status: string;
+  message?: string;
+  createdAt: string;
+  circle: {
+    id: string;
+    name: string;
+    color: string;
+    icon: string;
+  };
+  inviter: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    role: string;
+  };
 }
 
 export default function NotificationsPage() {
-  const { user } = useAuth()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const { user, loading } = useAuth();
+  const [connectionRequests, setConnectionRequests] = useState<
+    ConnectionRequest[]
+  >([]);
+  const [circleInvitations, setCircleInvitations] = useState<
+    CircleInvitation[]
+  >([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [processingRequest, setProcessingRequest] = useState<string | null>(
+    null,
+  );
+  const router = useRouter();
 
   useEffect(() => {
-    // Simulate loading notifications
-    setTimeout(() => {
-      setNotifications([
-        {
-          id: '1',
-          type: 'connection',
-          title: 'Dr. Sarah Rodriguez',
-          message: 'Accepted your connection request. Start building your mentorship relationship!',
-          timestamp: '2 hours ago',
-          isRead: false,
-          avatar: '/placeholder-user.jpg',
-          badge: 'New Connection'
-        },
-        {
-          id: '2',
-          type: 'achievement',
-          title: 'Achievement Unlocked!',
-          message: 'Congratulations! You\'ve completed your first coding challenge.',
-          timestamp: '1 day ago',
-          isRead: false,
-          badge: 'Milestone'
-        },
-        {
-          id: '3',
-          type: 'institution',
-          title: 'MIT OpenCourseWare',
-          message: 'New course available: "Introduction to Machine Learning"',
-          timestamp: '3 days ago',
-          isRead: true,
-          avatar: '/placeholder-user.jpg',
-          badge: 'Institution'
-        },
-        {
-          id: '4',
-          type: 'circle',
-          title: 'Study Group - AI Enthusiasts',
-          message: 'You\'ve been invited to join a new study circle focused on AI and machine learning.',
-          timestamp: '5 days ago',
-          isRead: true,
-          badge: 'Circle Invitation'
-        },
-        {
-          id: '5',
-          type: 'message',
-          title: 'Alex Chen',
-          message: 'Sent you a message about the upcoming hackathon project.',
-          timestamp: '1 week ago',
-          isRead: true,
-          avatar: '/placeholder-user.jpg',
-          badge: 'Message'
-        }
-      ])
-      setLoading(false)
-    }, 1000)
-  }, [])
+    if (loading) return;
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ))
-  }
-
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(notif => notif.id !== id))
-  }
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notif => ({ ...notif, isRead: true })))
-  }
-
-  const filteredNotifications = notifications.filter(notif => {
-    if (filter === 'all') return true
-    if (filter === 'unread') return !notif.isRead
-    return notif.type === filter
-  })
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'connection': return <UserPlus className="w-5 h-5 text-blue-600" />
-      case 'achievement': return <Award className="w-5 h-5 text-yellow-600" />
-      case 'message': return <MessageCircle className="w-5 h-5 text-green-600" />
-      case 'institution': return <Sparkles className="w-5 h-5 text-purple-600" />
-      case 'circle': return <Inbox className="w-5 h-5 text-indigo-600" />
-      default: return <Bell className="w-5 h-5 text-gray-600" />
+    if (!user) {
+      router.push("/login");
+      return;
     }
-  }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length
+    if (user.role !== "student") {
+      router.push("/feed");
+      return;
+    }
 
-  if (loading) {
+    fetchNotifications();
+  }, [user, loading, router]);
+
+  const fetchNotifications = async () => {
+    try {
+      const [connectionResponse, circleResponse] = await Promise.all([
+        fetch("/api/connections/requests?type=received"),
+        fetch("/api/circles/invitations?type=received"),
+      ]);
+
+      if (connectionResponse.ok) {
+        const requests = await connectionResponse.json();
+        setConnectionRequests(
+          requests.filter((req: ConnectionRequest) => req.status === "pending"),
+        );
+      }
+
+      if (circleResponse.ok) {
+        const invitations = await circleResponse.json();
+        setCircleInvitations(
+          invitations.filter(
+            (inv: CircleInvitation) => inv.status === "pending",
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const handleConnectionRequest = async (
+    requestId: string,
+    action: "accept" | "decline",
+  ) => {
+    setProcessingRequest(requestId);
+    try {
+      const response = await fetch(`/api/connections/requests/${requestId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        toast.success(`Connection request ${action}ed successfully`);
+        fetchNotifications(); // Refresh the list
+      } else {
+        const error = await response.json();
+        toast.error(error.error || `Failed to ${action} request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing request:`, error);
+      toast.error(`Failed to ${action} request`);
+    } finally {
+      setProcessingRequest(null);
+    }
+  };
+
+  const handleCircleInvitation = async (
+    invitationId: string,
+    action: "accept" | "decline",
+  ) => {
+    setProcessingRequest(invitationId);
+    try {
+      const response = await fetch(`/api/circles/invitations/${invitationId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        toast.success(`Circle invitation ${action}ed successfully`);
+        fetchNotifications(); // Refresh the list
+      } else {
+        const error = await response.json();
+        toast.error(error.error || `Failed to ${action} invitation`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing invitation:`, error);
+      toast.error(`Failed to ${action} invitation`);
+    } finally {
+      setProcessingRequest(null);
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "mentor":
+        return "bg-green-100 text-green-800";
+      case "institution":
+        return "bg-purple-100 text-purple-800";
+      case "student":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "users":
+        return <Users className="h-4 w-4" />;
+      default:
+        return <Users className="h-4 w-4" />;
+    }
+  };
+
+  if (loading || loadingRequests) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <InternalNavbar />
-        <div className="pt-16 pb-16 sm:pt-24 sm:pb-16">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <ProtectedLayout>
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+          <InternalNavbar />
+          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                Loading notifications...
+              </p>
             </div>
-          </div>
+          </main>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-    )
+      </ProtectedLayout>
+    );
   }
+
+  const totalNotifications =
+    connectionRequests.length + circleInvitations.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <InternalNavbar />
-
-      <div className="pt-16 pb-16 sm:pt-24 sm:pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                  <Bell className="w-8 h-8 text-blue-600" />
-                  Notifications
-                  {unreadCount > 0 && (
-                    <Badge variant="destructive" className="ml-2">
-                      {unreadCount} new
-                    </Badge>
-                  )}
-                </h1>
-                <p className="text-gray-600">Stay updated with your learning journey</p>
-              </div>
-              <div className="flex gap-2">
-                {unreadCount > 0 && (
-                  <Button onClick={markAllAsRead} variant="outline" size="sm">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Mark all as read
-                  </Button>
-                )}
-                <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
-                </Button>
-              </div>
+    <ProtectedLayout>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <InternalNavbar />
+        <main className="flex-grow pt-16 sm:pt-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Notifications
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Manage your connection requests and circle invitations
+              </p>
             </div>
-          </div>
 
-          {/* Filter Tabs */}
-          <div className="flex gap-2 mb-6 border-b overflow-x-auto">
-            {[
-              { key: 'all', label: 'All', icon: Inbox },
-              { key: 'unread', label: 'Unread', icon: Circle },
-              { key: 'connection', label: 'Connections', icon: UserPlus },
-              { key: 'achievement', label: 'Achievements', icon: Award },
-              { key: 'message', label: 'Messages', icon: MessageCircle },
-              { key: 'institution', label: 'Institutions', icon: Sparkles }
-            ].map(({ key, label, icon: Icon }) => (
-              <Button
-                key={key}
-                variant="ghost"
-                className={`whitespace-nowrap ${
-                  filter === key 
-                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50' 
-                    : 'hover:bg-gray-100'
-                }`}
-                onClick={() => setFilter(key)}
-              >
-                <Icon className="w-4 h-4 mr-2" />
-                {label}
-                {key === 'unread' && unreadCount > 0 && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            ))}
-          </div>
-
-          {/* Notifications List */}
-          <div className="space-y-4">
-            {filteredNotifications.length === 0 ? (
+            {totalNotifications === 0 ? (
+              <div className="text-center py-12">
+                <div className="mb-4">
+                  <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+                    <Users className="h-12 w-12 text-gray-400" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No notifications
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  You're all caught up! New requests will appear here.
+                </p>
+              </div>
+            ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {filter === 'unread' ? 'No unread notifications' : 'No notifications'}
-                  </h3>
-                  <p className="text-gray-500">
-                    {filter === 'unread' 
-                      ? 'You\'re all caught up!' 
-                      : 'We\'ll notify you when something important happens.'
-                    }
-                  </p>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Pending Requests ({totalNotifications})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="connections" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="connections">
+                        Connection Requests ({connectionRequests.length})
+                      </TabsTrigger>
+                      <TabsTrigger value="circles">
+                        Circle Invitations ({circleInvitations.length})
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="connections" className="mt-6">
+                      <div className="space-y-4">
+                        {connectionRequests.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <UserPlus className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                            <p>No pending connection requests</p>
+                          </div>
+                        ) : (
+                          connectionRequests.map((request) => (
+                            <Card
+                              key={request.id}
+                              className="hover:shadow-md transition-shadow"
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    <Avatar className="h-12 w-12">
+                                      <AvatarImage
+                                        src={
+                                          request.sender.profileImageUrl ||
+                                          "/images/default-profile.png"
+                                        }
+                                        alt={`${request.sender.firstName} ${request.sender.lastName}`}
+                                      />
+                                      <AvatarFallback>
+                                        {request.sender.firstName[0]}
+                                        {request.sender.lastName[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                                          {request.sender.firstName}{" "}
+                                          {request.sender.lastName}
+                                        </h4>
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-xs ${getRoleColor(request.sender.role)}`}
+                                        >
+                                          {request.sender.role}
+                                        </Badge>
+                                      </div>
+
+                                      {request.sender.bio && (
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                                          {request.sender.bio}
+                                        </p>
+                                      )}
+
+                                      {request.message && (
+                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3">
+                                          <div className="flex items-start space-x-2">
+                                            <MessageCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                                              "{request.message}"
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      <p className="text-xs text-gray-500">
+                                        {new Date(
+                                          request.createdAt,
+                                        ).toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex space-x-2 ml-4">
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleConnectionRequest(
+                                          request.id,
+                                          "accept",
+                                        )
+                                      }
+                                      disabled={
+                                        processingRequest === request.id
+                                      }
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      {processingRequest === request.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Check className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        handleConnectionRequest(
+                                          request.id,
+                                          "decline",
+                                        )
+                                      }
+                                      disabled={
+                                        processingRequest === request.id
+                                      }
+                                      className="border-red-200 text-red-600 hover:bg-red-50"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="circles" className="mt-6">
+                      <div className="space-y-4">
+                        {circleInvitations.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                            <p>No pending circle invitations</p>
+                          </div>
+                        ) : (
+                          circleInvitations.map((invitation) => (
+                            <Card
+                              key={invitation.id}
+                              className="hover:shadow-md transition-shadow"
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    <div
+                                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-medium text-sm"
+                                      style={{
+                                        backgroundColor:
+                                          invitation.circle.color,
+                                      }}
+                                    >
+                                      {invitation.circle.icon &&
+                                      (invitation.circle.icon.startsWith(
+                                        "data:image",
+                                      ) ||
+                                        invitation.circle.icon.startsWith(
+                                          "/uploads/",
+                                        )) ? (
+                                        <Image
+                                          src={invitation.circle.icon}
+                                          alt={invitation.circle.name}
+                                          width={48}
+                                          height={48}
+                                          className="w-full h-full object-cover rounded-full"
+                                        />
+                                      ) : (
+                                        getIconComponent(invitation.circle.icon)
+                                      )}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                                          {invitation.circle.name}
+                                        </h4>
+                                      </div>
+
+                                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                        Invited by{" "}
+                                        {invitation.inviter.firstName}{" "}
+                                        {invitation.inviter.lastName}
+                                      </p>
+
+                                      {invitation.message && (
+                                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3">
+                                          <div className="flex items-start space-x-2">
+                                            <MessageCircle className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                                              "{invitation.message}"
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      <p className="text-xs text-gray-500">
+                                        {new Date(
+                                          invitation.createdAt,
+                                        ).toLocaleDateString("en-US", {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex space-x-2 ml-4">
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleCircleInvitation(
+                                          invitation.id,
+                                          "accept",
+                                        )
+                                      }
+                                      disabled={
+                                        processingRequest === invitation.id
+                                      }
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      {processingRequest === invitation.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Check className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        handleCircleInvitation(
+                                          invitation.id,
+                                          "decline",
+                                        )
+                                      }
+                                      disabled={
+                                        processingRequest === invitation.id
+                                      }
+                                      className="border-red-200 text-red-600 hover:bg-red-50"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
-            ) : (
-              filteredNotifications.map((notification) => (
-                <Card key={notification.id} className={`transition-all hover:shadow-md ${
-                  !notification.isRead ? 'bg-blue-50 border-blue-200' : 'bg-white'
-                }`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-4">
-                      {notification.avatar ? (
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={notification.avatar} />
-                          <AvatarFallback>
-                            {notification.title.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                      )}
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <p className="font-medium">{notification.title}</p>
-                            {notification.badge && (
-                              <Badge variant="secondary">{notification.badge}</Badge>
-                            )}
-                            {!notification.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">{notification.timestamp}</span>
-                            <div className="flex space-x-1">
-                              {!notification.isRead && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => markAsRead(notification.id)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteNotification(notification.id)}
-                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-gray-600 mt-1">{notification.message}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
             )}
           </div>
-
-          {filteredNotifications.length > 0 && (
-            <div className="mt-8 text-center">
-              <Button variant="outline">
-                Load more notifications
-              </Button>
-            </div>
-          )}
-        </div>
+        </main>
+        <Footer />
       </div>
-
-      <Footer />
-    </div>
-  )
+    </ProtectedLayout>
+  );
 }
