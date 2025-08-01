@@ -541,8 +541,9 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
                     {/* Followers Count - Clickable */}
                     <button
                       onClick={() => setShowFollowersDialog(true)}
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 text-rose-600 dark:text-rose-300 px-3 py-1.5 rounded-full hover:bg-gradient-to-r hover:from-rose-100 hover:to-pink-100 dark:hover:from-rose-900/30 dark:hover:to-pink-900/30 transition-all cursor-pointer"
                       data-tooltip="View followers"
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white px-3 py-1.5 rounded-full text-sm font-medium hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                      suppressHydrationWarning
                     >
                       <Users className="h-3.5 w-3.5 text-rose-500" />
                       <span>

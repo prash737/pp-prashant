@@ -198,14 +198,14 @@ export function InstitutionNavbar() {
     try {
       // Search for users
       const userResponse = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
-      
+
       // Search for institutions
       const institutionResponse = await fetch(`/api/institutions/search?q=${encodeURIComponent(query)}`);
-      
+
       if (userResponse.ok && institutionResponse.ok) {
         const users = await userResponse.json();
         const institutionData = await institutionResponse.json();
-        
+
         setSearchResults(users);
         setInstitutionResults(institutionData.institutions || []);
         setShowSearchResults(true);
@@ -526,6 +526,7 @@ export function InstitutionNavbar() {
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
                         pathname === link.href ? "text-teal-500" : ""
                       }`}
+                      suppressHydrationWarning
                     >
                       {link.icon}
                       <span>{link.name}</span>
@@ -574,6 +575,7 @@ export function InstitutionNavbar() {
             <button
               className="md:hidden text-slate-700"
               onClick={() => setIsOpen(!isOpen)}
+              suppressHydrationWarning
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -669,6 +671,7 @@ export function InstitutionNavbar() {
                       ? "text-teal-500"
                       : "text-gray-500 hover:text-teal-500"
                   }`}
+                  suppressHydrationWarning
                 >
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -31,6 +30,7 @@ export default function HorizontalNavigation({ tabs, activeTab, setActiveTab }: 
                   ? "bg-pathpiper-teal text-white hover:bg-pathpiper-teal/90"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               )}
+              suppressHydrationWarning
             >
               {tab.label}
             </Button>
