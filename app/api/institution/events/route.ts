@@ -33,6 +33,19 @@ export async function GET(request: NextRequest) {
     // Fetch events for this institution
     const events = await prisma.institutionEvents.findMany({
       where: { institutionId: targetInstitutionId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        eventType: true,
+        startDate: true,
+        endDate: true,
+        location: true,
+        imageUrl: true,
+        registrationUrl: true,
+        createdAt: true,
+        updatedAt: true
+      },
       orderBy: { startDate: 'desc' }
     })
 
@@ -40,8 +53,8 @@ export async function GET(request: NextRequest) {
     console.log('Events details:', events.map(e => ({
       id: e.id,
       title: e.title,
-      eventType: e.event_type,
-      startDate: e.start_date
+      eventType: e.eventType,
+      startDate: e.startDate
     })))
 
     // Helper function to convert relative paths to full URLs

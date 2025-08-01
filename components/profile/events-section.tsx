@@ -86,6 +86,8 @@ export default function EventsSection({ isViewMode = false, events: propsEvents 
   }
 
   const getCategoryColor = (eventType: string) => {
+    if (!eventType) return 'bg-gray-600'
+    
     const colors: { [key: string]: string } = {
       'academic': 'bg-blue-600',
       'cultural': 'bg-purple-600',
