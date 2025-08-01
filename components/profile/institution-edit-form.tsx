@@ -617,22 +617,32 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         const response = await fetch('/api/institution/events')
         if (response.ok) {
           const data = await response.json()
+          console.log('📅 Fetched events from API:', data.events)
           if (data.events && data.events.length > 0) {
             setExistingEvents(data.events)
             // Also populate formData.events with existing events for editing
+            const formattedEvents = data.events.map((event: any) => ({
+              id: event.id,
+              title: event.title,
+              description: event.description,
+              eventType: event.eventType,
+              startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
+              endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
+              location: event.location || '',
+              imageUrl: event.imageUrl || '',
+              registrationUrl: event.registrationUrl || ''
+            }))
+            console.log('📅 Formatted events for formData:', formattedEvents)
             setFormData(prev => ({
               ...prev,
-              events: data.events.map((event: any) => ({
-                id: event.id,
-                title: event.title,
-                description: event.description,
-                eventType: event.eventType,
-                startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
-                endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
-                location: event.location || '',
-                imageUrl: event.imageUrl || '',
-                registrationUrl: event.registrationUrl || ''
-              }))
+              events: formattedEvents
+            }))
+          } else {
+            console.log('📅 No events found, initializing empty array')
+            // Initialize with empty array if no events exist
+            setFormData(prev => ({
+              ...prev,
+              events: []
             }))
           }
         }
@@ -655,9 +665,9 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   }, [institutionData?.id, fetchEvents])
 
   const addEvent = () => {
-    setFormData(prev => ({
-      ...prev,
-      events: [...prev.events, {
+    console.log('➕ Adding new event. Current events:', formData.events.length)
+    setFormData(prev => {
+      const newEvents = [...prev.events, {
         id: "",
         title: "",
         description: "",
@@ -668,7 +678,12 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         imageUrl: "",
         registrationUrl: ""
       }]
-    }))
+      console.log('➕ New events array:', newEvents)
+      return {
+        ...prev,
+        events: newEvents
+      }
+    })
   }
 
   const removeEvent = async (index: number) => {
@@ -709,8 +724,11 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   }
 
   const updateEvent = (index: number, field: string, value: string) => {
+    console.log(`🔄 Updating event ${index}, field: ${field}, value: ${value}`)
+    console.log('🔄 Current events before update:', formData.events)
     const newEvents = [...formData.events]
     newEvents[index] = { ...newEvents[index], [field]: value }
+    console.log('🔄 Updated events:', newEvents)
     setFormData(prev => ({
       ...prev,
       events: newEvents
@@ -1140,12 +1158,18 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
   const saveEventsSection = async () => {
     setIsLoading(true)
     try {
+      console.log('📊 Saving events - formData.events:', formData.events)
+      console.log('📊 Saving events - formData.events length:', formData.events.length)
+      
       const validEvents = formData.events.filter(event =>
         event.title.trim() !== '' &&
         event.description.trim() !== '' &&
         event.eventType.trim() !== '' &&
         event.startDate.trim() !== ''
       )
+
+      console.log('📊 Valid events after filtering:', validEvents)
+      console.log('📊 Valid events count:', validEvents.length)
 
       const response = await fetch('/api/institution/events', {
         method: 'POST',
