@@ -1049,7 +1049,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         title: "Error",
         description: "Failed to update contact info. Please try again.",
         variant: "destructive",
-      })
+      })<previous_generation>
     } finally {
       setIsLoading(false)
     }
@@ -2935,7 +2935,8 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                                   <p className="text-xs text-gray-500">Click to upload</p>
                                 </div>
                               )}
-                            </div>
+                            </div>```python
+
                             <p className="text-xs text-gray-500">Recommended: JPG, PNG up to 5MB</p>
                           </div>
                         </div>
@@ -3140,7 +3141,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                   <Label>Event Type</Label>
                   <Select
                     value={event.eventType}
-                    onValueChange={(value) => updateEvent(index, 'eventType', value)}
+                    onChange={(value) => updateEvent(index, 'eventType', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -3337,53 +3338,83 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
           <>
             {/* Existing Gallery Images */}
             {existingGallery.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Existing Gallery</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {existingGallery.map((item) => (
-                    <div key={item.id} className="group relative rounded-lg overflow-hidden border border-gray-200">
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.caption || "Gallery image"} 
-                        className="w-full h-48 object-cover" 
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200">
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch(`/api/institution/gallery?imageId=${item.id}`, {
-                                method: 'DELETE'
-                              })
-                              if (response.ok) {
-                                toast({
-                                  title: "Success",
-                                  description: "Image deleted successfully!",
-                                })
-                                fetchGallery() // Refresh gallery
-                              }
-                            } catch (error) {
-                              toast({
-                                title: "Error",
-                                description: "Failed to delete image.",
-                                variant: "destructive",
-                              })
-                            }
-                          }}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="p-2 bg-white">
-                        <p className="text-sm text-gray-700 truncate">{item.caption || "No caption"}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Existing Gallery</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {existingGallery.map((item) => {
+                      // Process image URL to handle base64 data
+                      const getImageUrl = (url: string) => {
+                        if (!url) return '/images/placeholder-logo.png'
+
+                        // If it's a base64 data URL, return as is
+                        if (url.startsWith('data:image/')) {
+                          return url
+                        }
+
+                        // If already a full URL, return as is
+                        if (url.startsWith('http://') || url.startsWith('https://')) {
+                          return url
+                        }
+
+                        // If starts with /uploads/, return as is (legacy support)
+                        if (url.startsWith('/uploads/')) {
+                          return url
+                        }
+
+                        // Default fallback
+                        return '/images/placeholder-logo.png'
+                      }
+
+                      return (
+                        <div key={item.id} className="group relative rounded-lg overflow-hidden border border-gray-200">
+                          <img 
+                            src={getImageUrl(item.imageUrl)} 
+                            alt={item.caption || "Gallery image"} 
+                            className="w-full h-48 object-cover" 
+                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/images/placeholder-logo.png';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200">
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/institution/gallery?imageId=${item.id}`, {
+                                    method: 'DELETE'
+                                  })
+                                  if (response.ok) {
+                                    toast({
+                                      title: "Success",
+                                      description: "Image deleted successfully!",
+                                    })
+                                    fetchGallery() // Refresh gallery
+                                  }
+                                } catch (error) {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to delete image.",
+                                    variant: "destructive",
+                                  })
+                                }
+                              }}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="p-2 bg-white">
+                            <p className="text-sm text-gray-700 truncate">{item.caption || "No caption"}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* New Gallery Items */}
             {newGalleryItems.length > 0 && (
