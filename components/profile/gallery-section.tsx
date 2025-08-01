@@ -80,15 +80,48 @@ export default function GallerySection({ images: propImages, isViewMode = false,
       const data = await response.json()
       console.log('🖼️ Gallery data received in component:', data)
       
-      // Handle different response formats
+      // Helper function to ensure proper image URLs
+      const processImageUrl = (url: string) => {
+        if (!url) return '/images/placeholder-logo.png'
+        
+        // If already a full URL, return as is
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          return url
+        }
+        
+        // If starts with /uploads/, prepend base URL
+        if (url.startsWith('/uploads/')) {
+          return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${url}`
+        }
+        
+        // If relative path, make it absolute
+        if (url.startsWith('/')) {
+          return url
+        }
+        
+        // Default fallback
+        return `/uploads/${url}`
+      }
+      
+      // Handle different response formats and process URLs
+      let processedImages = []
       if (data.images && Array.isArray(data.images)) {
-        setImages(data.images)
+        processedImages = data.images.map((img: any) => ({
+          ...img,
+          url: processImageUrl(img.url)
+        }))
       } else if (Array.isArray(data)) {
-        setImages(data)
+        processedImages = data.map((img: any) => ({
+          ...img,
+          url: processImageUrl(img.url)
+        }))
       } else {
         console.warn('Unexpected gallery data format:', data)
-        setImages([])
+        processedImages = []
       }
+      
+      console.log('🖼️ Processed images:', processedImages)
+      setImages(processedImages)
     } catch (error) {
       console.error("Failed to fetch gallery:", error)
       setImages([])
@@ -139,9 +172,14 @@ export default function GallerySection({ images: propImages, isViewMode = false,
               <div className="aspect-video">
                 <Image
                   src={image.url}
-                  alt={image.caption}
+                  alt={image.caption || 'Gallery image'}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
+                  onError={(e) => {
+                    console.error('Failed to load image:', image.url)
+                    // Fallback to placeholder
+                    e.currentTarget.src = '/images/placeholder-logo.png'
+                  }}
                 />
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
@@ -196,9 +234,13 @@ export default function GallerySection({ images: propImages, isViewMode = false,
               <div className="relative aspect-video">
                 <Image
                   src={selectedImage.url}
-                  alt={selectedImage.caption}
+                  alt={selectedImage.caption || 'Gallery image'}
                   fill
                   className="object-contain"
+                  onError={(e) => {
+                    console.error('Failed to load lightbox image:', selectedImage.url)
+                    e.currentTarget.src = '/images/placeholder-logo.png'
+                  }}
                 />
               </div>
 

@@ -46,12 +46,23 @@ export async function GET(request: NextRequest) {
     // Helper function to convert relative paths to full URLs
     const getFullImageUrl = (imagePath: string | null) => {
       if (!imagePath) return null;
+      
+      // If already a full URL, return as is
       if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath; // Already a full URL
+        return imagePath;
       }
+      
+      // If starts with /uploads/, make it a full URL
       if (imagePath.startsWith('/uploads/')) {
         return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
       }
+      
+      // If it's just a filename or relative path, assume it's in uploads
+      if (!imagePath.startsWith('/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}/uploads/${imagePath}`;
+      }
+      
+      // For other paths starting with /, return as is (they should be accessible)
       return imagePath;
     };
 
