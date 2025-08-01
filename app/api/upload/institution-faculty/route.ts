@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { convertImageToBase64 } from '@/lib/image-utils'
+import { convertFileToBase64 } from '@/lib/image-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert to base64
-    const base64Data = await convertImageToBase64(file)
+    const base64Data = await convertFileToBase64(file)
 
     // Return the base64 data URL
     return NextResponse.json({ 
