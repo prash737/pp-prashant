@@ -1,8 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-import { v4 as uuidv4 } from 'uuid'
+import { convertFileToBase64 } from '@/lib/image-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,23 +11,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ success: false, error: 'File size too large. Maximum 5MB allowed.' })
+    }
 
-    // Generate unique filename
-    const filename = `${uuidv4()}_${Date.now()}.${file.name.split('.').pop()}`
-    const path = join(process.cwd(), 'public/uploads/institutions/facilities', filename)
+    // Convert to base64
+    const base64Data = await convertFileToBase64(file)
 
-    // Ensure directory exists
-    const { mkdir } = await import('fs/promises')
-    const { dirname } = await import('path')
-    await mkdir(dirname(path), { recursive: true })
-
-    await writeFile(path, buffer)
-    
-    const url = `/uploads/institutions/facilities/${filename}`
-    
-    return NextResponse.json({ url })
+    // Return the base64 data URL
+    return NextResponse.json({ 
+      success: true, 
+      url: base64Data
+    })
   } catch (error) {
     console.error('Error uploading facility image:', error)
     return NextResponse.json({ error: 'Failed to upload facility image' }, { status: 500 })
