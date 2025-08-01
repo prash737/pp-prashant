@@ -1,0 +1,91 @@
+⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Expected a semicolon
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1048:1]
+ 1045 │     } finally {
+ 1046 │       setIsLoading(false)
+ 1047 │     }
+ 1048 │   }```tool_code
+      ·    ─
+ 1049 │   }
+ 1050 │ 
+ 1051 │   const saveContactInfoSection = async () => {
+      ╰────
+  × Expected ':', got '{'
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1896:1]
+ 1893 │       }
+ 1894 │ 
+ 1895 │       try {
+ 1896 │         const response = await fetch(`/api/institution/faculty?id=${member.id}`, {
+      ·                                                                    ─
+ 1897 │           method: 'DELETE'
+ 1898 │         })
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ ⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Expected a semicolon
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1048:1]
+ 1045 │     } finally {
+ 1046 │       setIsLoading(false)
+ 1047 │     }
+ 1048 │   }```tool_code
+      ·    ─
+ 1049 │   }
+ 1050 │ 
+ 1051 │   const saveContactInfoSection = async () => {
+      ╰────
+  × Expected ':', got '{'
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1896:1]
+ 1893 │       }
+ 1894 │ 
+ 1895 │       try {
+ 1896 │         const response = await fetch(`/api/institution/faculty?id=${member.id}`, {
+      ·                                                                    ─
+ 1897 │           method: 'DELETE'
+ 1898 │         })
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ ⨯ ./components/profile/institution-edit-form.tsx
+Error:   × Expected a semicolon
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1048:1]
+ 1045 │     } finally {
+ 1046 │       setIsLoading(false)
+ 1047 │     }
+ 1048 │   }```tool_code
+      ·    ─
+ 1049 │   }
+ 1050 │ 
+ 1051 │   const saveContactInfoSection = async () => {
+      ╰────
+  × Expected ':', got '{'
+      ╭─[/home/runner/workspace/components/profile/institution-edit-form.tsx:1896:1]
+ 1893 │       }
+ 1894 │ 
+ 1895 │       try {
+ 1896 │         const response = await fetch(`/api/institution/faculty?id=${member.id}`, {
+      ·                                                                    ─
+ 1897 │           method: 'DELETE'
+ 1898 │         })
+      ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/profile/institution-edit-form.tsx
+./app/institution/profile/edit/page.tsx
+ GET /institution/profile/edit 500 in 13577ms
+ GET /institution/profile/edit 500 in 36ms
+ GET /institution/profile/edit 500 in 73ms
+ GET /institution/profile/edit 500 in 23ms
