@@ -80,26 +80,31 @@ export default function GallerySection({ images: propImages, isViewMode = false,
       const data = await response.json()
       console.log('🖼️ Gallery data received in component:', data)
       
-      // Helper function to ensure proper image URLs
+      // Helper function to ensure proper image URLs (including base64)
       const processImageUrl = (url: string) => {
         if (!url) return '/images/placeholder-logo.png'
+        
+        // If it's a base64 data URL, return as is
+        if (url.startsWith('data:image/')) {
+          return url
+        }
         
         // If already a full URL, return as is
         if (url.startsWith('http://') || url.startsWith('https://')) {
           return url
         }
         
-        // If starts with /uploads/, prepend base URL
+        // If starts with /uploads/, prepend base URL (legacy support)
         if (url.startsWith('/uploads/')) {
           return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${url}`
         }
         
-        // If relative path, make it absolute
+        // If relative path, make it absolute (legacy support)
         if (url.startsWith('/')) {
           return url
         }
         
-        // Default fallback
+        // Default fallback (legacy support)
         return `/uploads/${url}`
       }
       

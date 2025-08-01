@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { supabase } from "@/lib/supabase"
@@ -40,12 +39,36 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Institution profile found:', profile.institution?.institutionName)
 
+    // Helper function to handle image URLs (base64 or traditional URLs)
+    const getImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+
+      // If it's a base64 data URL, return as is
+      if (imagePath.startsWith('data:image/')) {
+        return imagePath;
+      }
+
+      // If already a full URL, return as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+
+      // If starts with /uploads/, make it a full URL (legacy support)
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+
+      return imagePath;
+    };
+
     return NextResponse.json({ 
       profile: {
         ...profile,
         ...profile.institution,
         bio: profile.bio,
-        overview: profile.institution?.overview
+        overview: profile.institution?.overview,
+        logoUrl: getImageUrl(profile.institution?.logoUrl),
+        coverImageUrl: getImageUrl(profile.institution?.coverImage),
       }
     })
 
@@ -94,12 +117,36 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Institution profile found:', profile.institution?.institutionName)
 
+    // Helper function to handle image URLs (base64 or traditional URLs)
+    const getImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+
+      // If it's a base64 data URL, return as is
+      if (imagePath.startsWith('data:image/')) {
+        return imagePath;
+      }
+
+      // If already a full URL, return as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+
+      // If starts with /uploads/, make it a full URL (legacy support)
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+
+      return imagePath;
+    };
+
     return NextResponse.json({ 
       profile: {
         ...profile,
         ...profile.institution,
         bio: profile.bio,
-        overview: profile.institution?.overview
+        overview: profile.institution?.overview,
+        logoUrl: getImageUrl(profile.institution?.logoUrl),
+        coverImageUrl: getImageUrl(profile.institution?.coverImage),
       }
     })
 
