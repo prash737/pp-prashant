@@ -90,6 +90,21 @@ export async function GET(
     // Check if viewing own profile
     const isOwnProfile = institutionId === user.id
 
+    // Helper function to convert relative paths to full URLs
+    const getFullImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath; // Already a full URL
+      }
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      if (imagePath.startsWith('/images/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      return imagePath;
+    };
+
     // Transform data to match the expected format
     const institutionData = {
       id: profile.id,
@@ -98,8 +113,8 @@ export async function GET(
       category: profile.institution.category,
       location: profile.institution.location || profile.location,
       bio: profile.bio || '',
-      logo: profile.profileImageUrl || profile.institution.logoUrl || profile.institution.logo || '/images/pathpiper-logo.png',
-      coverImage: profile.institution.coverImage || '',
+      logo: getFullImageUrl(profile.profileImageUrl || profile.institution.logoUrl || profile.institution.logo) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}/images/pathpiper-logo.png`,
+      coverImage: getFullImageUrl(profile.institution.coverImage) || '',
       website: profile.institution.website || '',
       verified: profile.institution.verified || false,
       founded: profile.institution.founded,
@@ -107,7 +122,10 @@ export async function GET(
       overview: profile.institution.overview || '',
       mission: profile.institution.mission || '',
       coreValues: profile.institution.core_values || [],
-      gallery: profile.institution.gallery || [],
+      gallery: (profile.institution.gallery || []).map((img: any) => ({
+        ...img,
+        url: getFullImageUrl(img.url) || img.url
+      })),
       isOwnProfile
     }
 

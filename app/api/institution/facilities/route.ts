@@ -41,7 +41,25 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ facilities })
+    // Helper function to convert relative paths to full URLs
+    const getFullImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath; // Already a full URL
+      }
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      return imagePath;
+    };
+
+    // Format facilities to include full image URLs
+    const formattedFacilities = facilities.map(facility => ({
+      ...facility,
+      images: facility.images.map(img => getFullImageUrl(img))
+    }));
+
+    return NextResponse.json({ facilities: formattedFacilities })
   } catch (error) {
     console.error('Error fetching institution facilities:', error)
     return NextResponse.json({ error: 'Failed to fetch facilities' }, { status: 500 })

@@ -43,10 +43,22 @@ export async function GET(request: NextRequest) {
 
     console.log('🖼️ Gallery images found:', gallery.length)
 
+    // Helper function to convert relative paths to full URLs
+    const getFullImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath; // Already a full URL
+      }
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      return imagePath;
+    };
+
     // Format the response consistently
     const formattedGallery = gallery.map(img => ({
       id: img.id,
-      url: img.imageUrl,
+      url: getFullImageUrl(img.imageUrl),
       caption: img.caption || ''
     }))
 

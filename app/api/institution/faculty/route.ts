@@ -41,7 +41,35 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ faculty })
+    // Helper function to convert relative paths to full URLs
+    const getFullImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath; // Already a full URL
+      }
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      return imagePath;
+    };
+
+    // Format the response consistently
+    const formattedFaculty = faculty.map(member => ({
+      id: member.id,
+      name: member.name,
+      title: member.title,
+      department: member.department,
+      email: member.email,
+      bio: member.bio,
+      imageUrl: getFullImageUrl(member.image),
+      expertise: member.expertise,
+      qualifications: member.qualifications,
+      experience: member.experience,
+      specialization: member.specialization,
+      featured: member.featured
+    }))
+
+    return NextResponse.json({ faculty: formattedFaculty })
   } catch (error) {
     console.error('Error fetching institution faculty:', error)
     return NextResponse.json({ error: 'Failed to fetch faculty' }, { status: 500 })

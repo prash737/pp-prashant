@@ -44,7 +44,34 @@ export async function GET(request: NextRequest) {
       startDate: e.start_date
     })))
 
-    return NextResponse.json({ events })
+    // Helper function to convert relative paths to full URLs
+    const getFullImageUrl = (imagePath: string | null) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath; // Already a full URL
+      }
+      if (imagePath.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
+      }
+      return imagePath;
+    };
+
+    // Format the response consistently
+    const formattedEvents = events.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      imageUrl: getFullImageUrl(event.imageUrl),
+      category: event.category,
+      isPublic: event.isPublic,
+      maxAttendees: event.maxAttendees,
+      registrationRequired: event.registrationRequired
+    }))
+
+    return NextResponse.json({ events: formattedEvents })
   } catch (error) {
     console.error('Error fetching institution events:', error)
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 })
