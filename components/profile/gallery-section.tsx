@@ -71,43 +71,43 @@ export default function GallerySection({ images: propImages, isViewMode = false,
       const response = await fetch(url, {
         credentials: 'include'
       })
-      
+
       if (!response.ok) {
         console.error('Gallery fetch failed:', response.status, response.statusText)
         return
       }
-      
+
       const data = await response.json()
       console.log('🖼️ Gallery data received in component:', data)
-      
+
       // Helper function to ensure proper image URLs (including base64)
       const processImageUrl = (url: string) => {
-        if (!url) return '/images/placeholder-logo.png'
-        
+        if (!url) return '/images/placeholder.jpg'
+
         // If it's a base64 data URL, return as is
         if (url.startsWith('data:image/')) {
           return url
         }
-        
+
         // If already a full URL, return as is
         if (url.startsWith('http://') || url.startsWith('https://')) {
           return url
         }
-        
+
         // If starts with /uploads/, prepend base URL (legacy support)
         if (url.startsWith('/uploads/')) {
           return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${url}`
         }
-        
+
         // If relative path, make it absolute (legacy support)
         if (url.startsWith('/')) {
           return url
         }
-        
+
         // Default fallback (legacy support)
         return `/uploads/${url}`
       }
-      
+
       // Handle different response formats and process URLs
       let processedImages = []
       if (data.images && Array.isArray(data.images)) {
@@ -124,7 +124,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
         console.warn('Unexpected gallery data format:', data)
         processedImages = []
       }
-      
+
       console.log('🖼️ Processed images:', processedImages)
       setImages(processedImages)
     } catch (error) {
@@ -183,7 +183,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
                   onError={(e) => {
                     console.error('Failed to load image:', image.url)
                     // Fallback to placeholder
-                    e.currentTarget.src = '/images/placeholder-logo.png'
+                    e.currentTarget.src = '/images/placeholder.jpg'
                   }}
                 />
               </div>
@@ -244,7 +244,7 @@ export default function GallerySection({ images: propImages, isViewMode = false,
                   className="object-contain"
                   onError={(e) => {
                     console.error('Failed to load lightbox image:', selectedImage.url)
-                    e.currentTarget.src = '/images/placeholder-logo.png'
+                    e.currentTarget.src = '/images/placeholder.jpg'
                   }}
                 />
               </div>

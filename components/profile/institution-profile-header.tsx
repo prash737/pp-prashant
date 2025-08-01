@@ -335,8 +335,27 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
                 }}
               ></div>
             ) : (
-              // Blue gradient fallback
-              <div className={`w-full h-full bg-gradient-to-r ${institution.bannerColor}`}></div>
+              // Fallback: Single color background with institution image if available
+              <div className="w-full h-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center relative">
+                {institutionData.logo && (
+                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                    <Image
+                      src={institutionData.logo}
+                      alt={institutionData.name}
+                      width={200}
+                      height={200}
+                      className="object-contain opacity-80"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="text-white text-center relative z-10">
+                  <div className="text-4xl font-bold mb-2">{institutionData.name}</div>
+                  <div className="text-lg opacity-90">{institutionData.tagline}</div>
+                </div>
+              </div>
             )}
 
             {/* View all photos button */}
@@ -717,8 +736,7 @@ export default function InstitutionProfileHeader({ institutionData, isViewMode =
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <p className="text-gray-500 text-base">Not added yet</p>
+                    ) : (                      <p className="text-gray-500 text-base">Not added yet</p>
                     )}
                   </div>
 

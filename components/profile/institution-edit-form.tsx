@@ -760,7 +760,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
 
   // Helper function to process image URLs (same as used in other sections)
   const getImageUrl = (imagePath: string | null) => {
-    if (!imagePath) return '/images/placeholder-logo.png'
+    if (!imagePath) return '/images/placeholder.jpg'
 
     // If it's a base64 data URL, return as is
     if (imagePath.startsWith('data:image/')) {
@@ -778,7 +778,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     }
 
     // Default fallback
-    return '/images/placeholder-logo.png'
+    return '/images/placeholder.jpg'
   }
 
   useEffect(() => {
