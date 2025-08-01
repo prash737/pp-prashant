@@ -1045,7 +1045,6 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
     } finally {
       setIsLoading(false)
     }
-  }```tool_code
   }
 
   const saveContactInfoSection = async () => {
