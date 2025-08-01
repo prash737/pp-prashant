@@ -1059,7 +1059,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
         program.name.trim() !== '' &&
         program.type.trim() !== '' &&
         program.level.trim() !== '' &&
-        program.duration.trim() !== '' &&
+        program.duration.trim() !=='' &&
         program.description.trim() !== ''
       )
 
@@ -2645,6 +2645,36 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
       setIsEditing(false)
     }
 
+    const handleDelete = async () => {
+      if (!confirm('Are you sure you want to delete this facility? This action cannot be undone.')) {
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/institution/facilities?id=${facility.id}`, {
+          method: 'DELETE'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete facility')
+        }
+
+        toast({
+          title: "Success",
+          description: "Facility deleted successfully!",
+        })
+
+        onUpdate() // Refresh the facilities list
+      } catch (error) {
+        console.error('Error deleting facility:', error)
+        toast({
+          title: "Error",
+          description: "Failed to delete facility. Please try again.",
+          variant: "destructive",
+        })
+      }
+    }
+
     if (isEditing) {
       return (
         <div className="p-6 border rounded-lg bg-blue-50 space-y-4">
@@ -2912,8 +2942,7 @@ export default function InstitutionEditForm({ institutionData }: InstitutionEdit
                         <Label>Facility Description</Label>
                         <Textarea
                           value={facility.description}
-                          onChange={(e) => updateNewFacility(facility.tempId, 'description', e.target.value)}
-                          placeholder="Describe this facility"
+                          onChange={(e) => updateNewFacility(facility.tempId, 'description', e.target.value)}                          placeholder="Describe this facility"
                           className="min-h-[80px]"
                         />
                       </div>

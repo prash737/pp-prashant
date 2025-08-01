@@ -41,22 +41,32 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    // Helper function to convert relative paths to full URLs
-    const getFullImageUrl = (imagePath: string | null) => {
+    // Helper function to handle image URLs (base64 or traditional URLs)
+    const getImageUrl = (imagePath: string | null) => {
       if (!imagePath) return null;
-      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath; // Already a full URL
+
+      // If it's a base64 data URL, return as is
+      if (imagePath.startsWith('data:image/')) {
+        return imagePath;
       }
+
+      // If already a full URL, return as is
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+
+      // If starts with /uploads/, make it a full URL (legacy support)
       if (imagePath.startsWith('/uploads/')) {
         return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
       }
+
       return imagePath;
     };
 
-    // Format facilities to include full image URLs
+    // Format facilities to include proper image URLs
     const formattedFacilities = facilities.map(facility => ({
       ...facility,
-      images: facility.images.map(img => getFullImageUrl(img))
+      images: facility.images.map(img => getImageUrl(img)).filter(Boolean)
     }));
 
     return NextResponse.json({ facilities: formattedFacilities })

@@ -46,27 +46,27 @@ export async function GET(request: NextRequest) {
     // Helper function to handle image URLs (base64 or traditional URLs)
     const getImageUrl = (imagePath: string | null) => {
       if (!imagePath) return null;
-      
+
       // If it's a base64 data URL, return as is
       if (imagePath.startsWith('data:image/')) {
         return imagePath;
       }
-      
+
       // If already a full URL, return as is
       if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         return imagePath;
       }
-      
+
       // If starts with /uploads/, make it a full URL (legacy support)
       if (imagePath.startsWith('/uploads/')) {
         return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
       }
-      
+
       // If it's just a filename or relative path, assume it's in uploads (legacy support)
       if (!imagePath.startsWith('/')) {
         return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}/uploads/${imagePath}`;
       }
-      
+
       // For other paths starting with /, return as is (they should be accessible)
       return imagePath;
     };
@@ -132,6 +132,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    console.log('🗑️ Institution gallery DELETE request received')
+
     // Get user from auth
     const cookieStore = await cookies()
     const token = cookieStore.get('sb-access-token')?.value
@@ -153,6 +155,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Image ID is required' }, { status: 400 })
     }
 
+    console.log('🔍 Deleting gallery image:', imageId)
+
+    // Delete the gallery image
     await prisma.institutionGallery.delete({
       where: { 
         id: imageId,
@@ -160,9 +165,10 @@ export async function DELETE(request: NextRequest) {
       }
     })
 
+    console.log('✅ Gallery image deleted successfully')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting gallery image:', error)
-    return NextResponse.json({ error: 'Failed to delete gallery image' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to delete image' }, { status: 500 })
   }
 }
