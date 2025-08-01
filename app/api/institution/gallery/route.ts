@@ -46,53 +46,25 @@ export async function GET(request: NextRequest) {
     // Helper function to handle image URLs (base64 or traditional URLs)
     const getImageUrl = (imagePath: string | null) => {
       if (!imagePath) return '/images/placeholder.jpg'
-      
+
       // If it's a base64 data URL, return as is
       if (imagePath.startsWith('data:image/')) {
         return imagePath
       }
-      
+
       // If already a full URL, return as is
       if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         return imagePath
       }
-      
+
       // If starts with /uploads/, return as is (legacy support)
       if (imagePath.startsWith('/uploads/')) {
         return imagePath
       }
-      
+
       // Default fallback
       return '/images/placeholder.jpg'
     }
-    
-    console.log('🖼️ Gallery images found:', gallery.length)
-    
-    if (!imagePath) return null;
-
-      // If it's a base64 data URL, return as is
-      if (imagePath.startsWith('data:image/')) {
-        return imagePath;
-      }
-
-      // If already a full URL, return as is
-      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath;
-      }
-
-      // If starts with /uploads/, make it a full URL (legacy support)
-      if (imagePath.startsWith('/uploads/')) {
-        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}${imagePath}`;
-      }
-
-      // If it's just a filename or relative path, assume it's in uploads (legacy support)
-      if (!imagePath.startsWith('/')) {
-        return `${process.env.NEXT_PUBLIC_APP_URL || 'https://pathpiper.com'}/uploads/${imagePath}`;
-      }
-
-      // For other paths starting with /, return as is (they should be accessible)
-      return imagePath;
-    };
 
     // Format the response consistently
     const formattedGallery = gallery.map(img => ({
