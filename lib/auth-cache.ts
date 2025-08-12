@@ -60,3 +60,21 @@ export function clearAuthCache(token?: string) {
     Object.keys(authCache).forEach(key => delete authCache[key]);
   }
 }
+
+export async function getAuthenticatedUser(request: any) {
+  try {
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('sb-access-token')?.value;
+
+    if (!accessToken) {
+      return null;
+    }
+
+    const { supabase } = await import('./supabase');
+    return await getCachedAuth(accessToken, supabase);
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return null;
+  }
+}
