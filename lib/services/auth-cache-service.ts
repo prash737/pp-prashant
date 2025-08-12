@@ -70,12 +70,12 @@ export async function getCachedAuthUser(request?: Request) {
 }
 
 // Clear cache for specific token (useful for logout)
-export function clearAuthCache(accessToken: string) {
+export async function clearAuthCache(accessToken: string) {
   authCache.delete(accessToken)
 }
 
 // Clear all expired entries (cleanup function)
-export function cleanupAuthCache() {
+export async function cleanupAuthCache() {
   const now = Date.now()
   for (const [token, cached] of authCache.entries()) {
     if (now - cached.timestamp > CACHE_TTL) {
