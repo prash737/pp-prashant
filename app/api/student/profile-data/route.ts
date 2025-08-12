@@ -59,15 +59,7 @@ export async function GET(request: NextRequest) {
         // Social links
         socialLinks: true,
         // Achievements
-        userAchievements: {
-          include: {
-            achievement: {
-              include: {
-                category: true
-              }
-            }
-          }
-        },
+        achievements: true,
         // Goals
         goals: {
           orderBy: { createdAt: 'desc' }
@@ -164,13 +156,13 @@ export async function GET(request: NextRequest) {
       })),
 
       // Achievements
-      achievements: studentProfile.userAchievements.map(ua => ({
-        id: ua.achievement.id,
-        title: ua.achievement.title,
-        description: ua.achievement.description,
-        category: ua.achievement.category?.name || 'General',
-        dateEarned: ua.dateEarned,
-        iconUrl: ua.achievement.iconUrl
+      achievements: studentProfile.achievements.map(achievement => ({
+        id: achievement.id,
+        name: achievement.name,
+        description: achievement.description,
+        category: achievement.achievementType?.name || 'General',
+        dateOfAchievement: achievement.dateOfAchievement,
+        iconUrl: achievement.achievementImageIcon
       })),
 
       // Goals
