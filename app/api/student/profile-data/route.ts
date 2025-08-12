@@ -31,18 +31,7 @@ export async function GET(request: NextRequest) {
       where: { id: studentId },
       include: {
         // Student-specific data
-        student: {
-          include: {
-            parentProfile: {
-              select: {
-                id: true,
-                email: true,
-                isVerified: true,
-                parentVerified: true
-              }
-            }
-          }
-        },
+        student: true,
         // Interests with categories
         userInterests: {
           include: {
@@ -86,6 +75,20 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Get parent profile separately if parent exists
+    let parentProfile = null
+    if (studentProfile?.parentId) {
+      parentProfile = await prisma.parentProfile.findUnique({
+        where: { id: studentProfile.parentId },
+        select: {
+          id: true,
+          email: true,
+          isVerified: true,
+          parentVerified: true
+        }
+      })
+    }
+
     if (!studentProfile) {
       return NextResponse.json({ error: 'Student profile not found' }, { status: 404 })
     }
@@ -123,7 +126,7 @@ export async function GET(request: NextRequest) {
         birthMonth: studentProfile.student.birthMonth,
         gradeLevel: studentProfile.student.gradeLevel,
         gpa: studentProfile.student.gpa,
-        parentProfile: studentProfile.student.parentProfile
+        parentProfile: parentProfile
       } : null,
 
       // Formatted interests
