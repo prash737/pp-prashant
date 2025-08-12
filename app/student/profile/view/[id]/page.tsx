@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
@@ -83,20 +84,14 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       return
     }
 
-    // Fetch student data with optimized unified API
-    const fetchStudentData = async () => {
-      const startTime = Date.now()
-      console.log('⏱️ [STUDENT-PROFILE-VIEW] Fetching profile data...')
-
+    // Fetch the profile data for the user they want to view
+    const fetchProfileData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/student/profile-data?studentId=${profileId}`, {
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=300', // 5 minute cache
-          }
+        const response = await fetch(`/api/student/profile/${profileId}`, {
+          credentials: 'include'
         })
 
         if (!response.ok) {
@@ -112,17 +107,15 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
 
         const data = await response.json()
         setStudentData(data)
-
-        console.log(`✅ [STUDENT-PROFILE-VIEW] Profile loaded in ${Date.now() - startTime}ms`)
       } catch (err) {
-        console.error('Error fetching student data:', err)
+        console.error('Error fetching profile data:', err)
         setError('Failed to load profile')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchStudentData()
+    fetchProfileData()
   }, [profileId, currentUser, authLoading, router])
 
   if (authLoading || loading) {
@@ -151,13 +144,13 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
             <div className="text-center">
               <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
               <p className="text-gray-600 mb-4">{error}</p>
-              <button
+              <button 
                 onClick={() => router.back()}
                 className="bg-pathpiper-teal text-white px-4 py-2 rounded hover:bg-pathpiper-teal/90 mr-2"
               >
                 Go Back
               </button>
-              <button
+              <button 
                 onClick={() => router.push('/student/profile')}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >

@@ -83,20 +83,14 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       return
     }
 
-    // Fetch student data with optimized unified API
+    // Fetch student data - now we know it's the current user's profile
     const fetchStudentData = async () => {
-      const startTime = Date.now()
-      console.log('⏱️ [STUDENT-PROFILE] Fetching profile data...')
-
       try {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/student/profile-data?studentId=${currentUser.id}`, {
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=300', // 5 minute cache
-          }
+        const response = await fetch(`/api/student/profile/${currentUser.id}`, {
+          credentials: 'include'
         })
 
         if (!response.ok) {
@@ -112,8 +106,6 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
         const data = await response.json()
         setStudentData(data)
-
-        console.log(`✅ [STUDENT-PROFILE] Profile loaded in ${Date.now() - startTime}ms`)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
@@ -123,7 +115,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
 
     fetchStudentData()
-  }, [currentUser, authLoading, handle, router])
+  }, [handle, currentUser, authLoading, router])
 
   if (authLoading || loading) {
     return (
@@ -151,7 +143,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
             <div className="text-center">
               <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
               <p className="text-gray-600 mb-4">{error}</p>
-              <button
+              <button 
                 onClick={() => router.push('/student/profile')}
                 className="bg-pathpiper-teal text-white px-4 py-2 rounded hover:bg-pathpiper-teal/90"
               >

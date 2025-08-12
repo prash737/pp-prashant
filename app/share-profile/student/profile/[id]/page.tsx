@@ -66,38 +66,92 @@ export default function ShareStudentProfilePage({
     if (!profileId) return;
 
     const fetchStudentData = async () => {
-      const startTime = Date.now();
-      console.log('⏱️ [SHARE-STUDENT-PROFILE] Fetching profile data...');
-
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/student/profile-data?studentId=${profileId}`, {
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'max-age=300', // 5 minute cache
-          }
-        });
+        console.log("🎓 Fetching student data for share profile:", profileId);
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Profile not found');
-          } else if (response.status === 403) {
-            setError('Access denied');
+        // Fetch all data in parallel (without authentication)
+        const [
+          profileResponse,
+          achievementsResponse,
+          goalsResponse,
+          circlesResponse,
+        ] = await Promise.all([
+          fetch(`/api/student/profile/${profileId}`),
+          fetch(`/api/student/profile/${profileId}/achievements`),
+          fetch(`/api/student/profile/${profileId}/goals`),
+          fetch(`/api/student/profile/${profileId}/circles`),
+        ]);
+
+        if (!profileResponse.ok) {
+          if (profileResponse.status === 404) {
+            setError("Student profile not found");
           } else {
-            setError('Failed to load profile');
+            setError("Failed to load student profile");
           }
           return;
         }
 
-        const data = await response.json();
-        setStudentData(data);
+        // Parse all responses
+        const [
+          profileData,
+          achievementsData,
+          goalsData,
+          circlesData,
+        ] = await Promise.all([
+          profileResponse.json(),
+          achievementsResponse.ok ? achievementsResponse.json() : { achievements: [] },
+          goalsResponse.ok ? goalsResponse.json() : { goals: [] },
+          circlesResponse.ok ? circlesResponse.json() : { circles: [] },
+        ]);
 
-        console.log(`✅ [SHARE-STUDENT-PROFILE] Profile loaded in ${Date.now() - startTime}ms`);
+        // Combine all data into comprehensive student object
+        const comprehensiveStudentData: StudentData = {
+          id: profileData.id,
+          firstName: profileData.profile?.firstName || "Student",
+          lastName: profileData.profile?.lastName || "",
+          profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+          bio: profileData.profile?.bio || "No bio available",
+          location: profileData.profile?.location || "Location not specified",
+          role: "student",
+          socialLinks: profileData.profile?.socialLinks || [],
+          // Include the profile object that ProfileHeader expects
+          profile: {
+            firstName: profileData.profile?.firstName || "Student",
+            lastName: profileData.profile?.lastName || "",
+            profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+            bio: profileData.profile?.bio || "No bio available",
+            tagline: profileData.profile?.tagline || profileData.profile?.bio || "Passionate learner exploring new horizons",
+            socialLinks: profileData.profile?.socialLinks || [],
+          },
+          student: {
+            age_group: profileData.ageGroup || "young_adult",
+            birthYear: profileData.birthYear,
+            birthMonth: profileData.birthMonth,
+            gradeLevel: profileData.educationHistory?.[0]?.gradeLevel,
+            gpa: profileData.educationHistory?.[0]?.gpa,
+            interests: profileData.profile?.userInterests?.map((ui: any) => ui.interest.name) || [],
+            skills: profileData.profile?.userSkills?.map((us: any) => us.skill.name) || [],
+          },
+          educationHistory: profileData.educationHistory || [],
+          achievements: achievementsData.achievements || [],
+          goals: goalsData.goals || [],
+          circles: circlesData.circles || [],
+        };
+
+        console.log("✅ Student data loaded for share profile:", {
+          name: `${comprehensiveStudentData.firstName} ${comprehensiveStudentData.lastName}`,
+          achievements: comprehensiveStudentData.achievements?.length || 0,
+          goals: comprehensiveStudentData.goals?.length || 0,
+          circles: comprehensiveStudentData.circles?.length || 0,
+        });
+
+        setStudentData(comprehensiveStudentData);
       } catch (err) {
-        console.error('Error fetching student data:', err);
-        setError('Failed to load profile');
+        console.error("Error fetching student data for share profile:", err);
+        setError("Failed to load student profile");
       } finally {
         setLoading(false);
       }
