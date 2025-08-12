@@ -1,0 +1,152 @@
+prisma:error 
+Invalid `prisma.profile.findUnique()` invocation:
+
+{
+  where: {
+    id: "006a3d59-ec4d-42e6-aee4-d04f1d0caf2b"
+  },
+  include: {
+    student: {
+      include: {
+        parentProfile: {
+        ~~~~~~~~~~~~~
+          select: {
+            id: true,
+            email: true,
+            isVerified: true,
+            parentVerified: true
+          }
+        },
+?       profile?: true,
+?       educationHistory?: true
+      }
+    },
+    userInterests: {
+      include: {
+        interest: {
+          include: {
+            category: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    },
+    userSkills: {
+      include: {
+        skill: {
+          include: {
+            category: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    },
+    socialLinks: true,
+    userAchievements: {
+      include: {
+        achievement: {
+          include: {
+            category: true
+          }
+        }
+      }
+    },
+    goals: {
+      orderBy: {
+        createdAt: "desc"
+      }
+    }
+  }
+}
+
+Unknown field `parentProfile` for include statement on model `StudentProfile`. Available options are listed in green.
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+file:///home/runner/workspace/node_modules/.pnpm/@prisma+client@6.8.2_prisma@6.8.2_typescript@5.0.2__typescript@5.0.2/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+❌ [STUDENT-PROFILE-DATA] Error: Error [PrismaClientValidationError]: 
+Invalid `prisma.profile.findUnique()` invocation:
+
+{
+  where: {
+    id: "006a3d59-ec4d-42e6-aee4-d04f1d0caf2b"
+  },
+  include: {
+    student: {
+      include: {
+        parentProfile: {
+        ~~~~~~~~~~~~~
+          select: {
+            id: true,
+            email: true,
+            isVerified: true,
+            parentVerified: true
+          }
+        },
+?       profile?: true,
+?       educationHistory?: true
+      }
+    },
+    userInterests: {
+      include: {
+        interest: {
+          include: {
+            category: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    },
+    userSkills: {
+      include: {
+        skill: {
+          include: {
+            category: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      }
+    },
+    socialLinks: true,
+    userAchievements: {
+      include: {
+        achievement: {
+          include: {
+            category: true
+          }
+        }
+      }
+    },
+    goals: {
+      orderBy: {
+        createdAt: "desc"
+      }
+    }
+  }
+}
+
+Unknown field `parentProfile` for include statement on model `StudentProfile`. Available options are listed in green.
+    at async GET (app/api/student/profile-data/route.ts:30:27)
+  28 |
+  29 |     // Single comprehensive query with all necessary data
+> 30 |     const studentProfile = await prisma.profile.findUnique({
+     |                           ^
+  31 |       where: { id: studentId },
+  32 |       include: {
+  33 |         // Student-specific data {
+  clientVersion: '6.8.2'
+}
+ GET /api/student/profile-data?studentId=006a3d59-ec4d-42e6-aee4-d04f1d0caf2b 500 in 1662ms
