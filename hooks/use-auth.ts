@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useRef } from 'react'
@@ -14,25 +15,31 @@ interface User {
   [key: string]: any
 }
 
-interface CachedProfileData {
+interface ComprehensiveProfileData {
   profile: any
   interests: any[]
   skills: any[]
   educationHistory: any[]
   achievements: any[]
   goals: any[]
+  connections: any
+  followingInstitutions: any
+  circles: any
+  connectionRequests?: any
+  circleInvitations?: any
+  suggestedConnections?: any[]
 }
 
 // Global cache to prevent duplicate API calls across component instances
 let globalUserCache: { user: User | null; timestamp: number } | null = null
-let globalProfileDataCache: { profileData: CachedProfileData | null; timestamp: number } | null = null
+let globalProfileDataCache: { profileData: ComprehensiveProfileData | null; timestamp: number } | null = null
 let globalUserPromise: Promise<User | null> | null = null
-let globalProfileDataPromise: Promise<CachedProfileData | null> | null = null
+let globalProfileDataPromise: Promise<ComprehensiveProfileData | null> | null = null
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
-  const [profileData, setProfileData] = useState<CachedProfileData | null>(null)
+  const [profileData, setProfileData] = useState<ComprehensiveProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileDataLoading, setProfileDataLoading] = useState(false)
   const hasFetched = useRef(false)
@@ -48,6 +55,15 @@ export function useAuth() {
         if (globalUserCache && (Date.now() - globalUserCache.timestamp) < CACHE_DURATION) {
           setUser(globalUserCache.user)
           setLoading(false)
+          
+          // If user is a student and we have cached profile data, use it
+          if (globalUserCache.user?.role === 'student' && 
+              globalProfileDataCache && 
+              (Date.now() - globalProfileDataCache.timestamp) < CACHE_DURATION) {
+            setProfileData(globalProfileDataCache.profileData)
+          } else if (globalUserCache.user?.role === 'student') {
+            fetchComprehensiveProfileData(globalUserCache.user.id)
+          }
           return
         }
 
@@ -56,6 +72,9 @@ export function useAuth() {
           const cachedUser = await globalUserPromise
           setUser(cachedUser)
           setLoading(false)
+          if (cachedUser?.role === 'student') {
+            fetchComprehensiveProfileData(cachedUser.id)
+          }
           return
         }
 
@@ -113,9 +132,9 @@ export function useAuth() {
         const userData = await globalUserPromise
         setUser(userData)
 
-        // If user is a student, fetch and cache their complete profile data
+        // If user is a student, fetch comprehensive profile data
         if (userData && userData.role === 'student') {
-          fetchProfileData(userData.id)
+          fetchComprehensiveProfileData(userData.id)
         }
       } catch (error) {
         console.error('Error in useAuth:', error)
@@ -124,9 +143,9 @@ export function useAuth() {
       }
     }
 
-    const fetchProfileData = async (userId: string) => {
+    const fetchComprehensiveProfileData = async (userId: string) => {
       try {
-        // Check if we have valid cached profile data
+        // Check if we have valid cached comprehensive profile data
         if (globalProfileDataCache && (Date.now() - globalProfileDataCache.timestamp) < CACHE_DURATION) {
           setProfileData(globalProfileDataCache.profileData)
           return
@@ -140,9 +159,9 @@ export function useAuth() {
         }
 
         setProfileDataLoading(true)
-        console.log('🔄 Fetching and caching complete profile data...')
+        console.log('🔄 Fetching comprehensive profile data in single API call...')
 
-        // Make the API call for complete profile data
+        // Make the single comprehensive API call
         globalProfileDataPromise = fetch(`/api/student/profile/${userId}`, {
           credentials: 'include',
           cache: 'no-store'
@@ -150,7 +169,7 @@ export function useAuth() {
           if (response.ok) {
             const data = await response.json()
 
-            const profileData: CachedProfileData = {
+            const profileData: ComprehensiveProfileData = {
               profile: {
                 ...data.profile,
                 ageGroup: data.ageGroup || 'young_adult',
@@ -159,8 +178,14 @@ export function useAuth() {
               interests: data.profile?.userInterests || [],
               skills: data.profile?.userSkills || [],
               educationHistory: data.educationHistory || [],
-              achievements: data.profile?.customBadges || [],
-              goals: data.profile?.careerGoals || []
+              achievements: data.profile?.achievements || data.profile?.customBadges || [],
+              goals: data.profile?.goals || [],
+              connections: data.connections || { list: [], counts: {}, total: 0 },
+              followingInstitutions: data.followingInstitutions || { list: [], count: 0 },
+              circles: data.circles || { list: [], count: 0 },
+              connectionRequests: data.connectionRequests || { received: [], sent: [] },
+              circleInvitations: data.circleInvitations || [],
+              suggestedConnections: data.suggestedConnections || []
             }
 
             // Cache the result
@@ -169,19 +194,22 @@ export function useAuth() {
               timestamp: Date.now()
             }
 
-            console.log('✅ Profile data cached successfully:', {
+            console.log('✅ Comprehensive profile data cached successfully:', {
               interests: profileData.interests.length,
               skills: profileData.skills.length,
               education: profileData.educationHistory.length,
               goals: profileData.goals.length,
-              achievements: profileData.achievements.length
+              achievements: profileData.achievements.length,
+              connections: profileData.connections.total,
+              circles: profileData.circles.count,
+              following: profileData.followingInstitutions.count
             })
 
             return profileData
           }
           return null
         }).catch((error) => {
-          console.error('Error fetching profile data:', error)
+          console.error('Error fetching comprehensive profile data:', error)
           return null
         }).finally(() => {
           globalProfileDataPromise = null
@@ -191,7 +219,7 @@ export function useAuth() {
         const data = await globalProfileDataPromise
         setProfileData(data)
       } catch (error) {
-        console.error('Error in fetchProfileData:', error)
+        console.error('Error in fetchComprehensiveProfileData:', error)
         setProfileDataLoading(false)
       }
     }
@@ -258,7 +286,7 @@ export function clearAllUserData() {
 }
 
 // Function to get cached profile data without triggering a fetch
-export function getCachedProfileData(): CachedProfileData | null {
+export function getCachedProfileData(): ComprehensiveProfileData | null {
   if (globalProfileDataCache && (Date.now() - globalProfileDataCache.timestamp) < CACHE_DURATION) {
     return globalProfileDataCache.profileData
   }

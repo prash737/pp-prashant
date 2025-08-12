@@ -58,7 +58,7 @@ interface CircleInvitation {
 }
 
 export default function NotificationsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, profileData } = useAuth();
   const [connectionRequests, setConnectionRequests] = useState<
     ConnectionRequest[]
   >([]);
@@ -89,6 +89,19 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
+      // Use cached profile data if available
+      if (profileData?.connectionRequests && profileData?.circleInvitations) {
+        setConnectionRequests(
+          profileData.connectionRequests.received.filter((req: ConnectionRequest) => req.status === "pending")
+        );
+        setCircleInvitations(
+          profileData.circleInvitations.filter((inv: CircleInvitation) => inv.status === "pending")
+        );
+        setLoadingRequests(false);
+        return;
+      }
+
+      // Fallback to separate API calls if cached data not available
       const [connectionResponse, circleResponse] = await Promise.all([
         fetch("/api/connections/requests?type=received"),
         fetch("/api/circles/invitations?type=received"),
