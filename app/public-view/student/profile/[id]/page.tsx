@@ -81,14 +81,20 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
       return
     }
 
-    // Fetch student data for the profile being viewed
+    // Fetch student data with optimized unified API
     const fetchStudentData = async () => {
+      const startTime = Date.now()
+      console.log('⏱️ [PUBLIC-STUDENT-PROFILE] Fetching profile data...')
+
       try {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/student/profile/${profileId}`, {
-          credentials: 'include'
+        const response = await fetch(`/api/student/profile-data?studentId=${profileId}`, {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'max-age=300', // 5 minute cache
+          }
         })
 
         if (!response.ok) {
@@ -104,6 +110,8 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
 
         const data = await response.json()
         setStudentData(data)
+
+        console.log(`✅ [PUBLIC-STUDENT-PROFILE] Profile loaded in ${Date.now() - startTime}ms`)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
