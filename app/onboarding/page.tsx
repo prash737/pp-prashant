@@ -50,10 +50,9 @@ export default function Onboarding() {
 
   // Fetch user data and check profile completeness first
   useEffect(() => {
-    const startTime = Date.now(); // Start timer for API call
     const fetchUserDataAndCheckCompletion = async () => {
       try {
-        console.log("Fetching combined user and onboarding data from API...")
+        console.log("Fetching user data from API...")
         setIsCheckingProfile(true)
 
         const response = await fetch("/api/auth/user", {
@@ -63,66 +62,115 @@ export default function Onboarding() {
         })
 
         if (response.ok) {
-          const result = await response.json()
-          console.log(`⏱️ API response received in ${Date.now() - startTime}ms`)
-          console.log('Raw API response:', result)
+          const data = await response.json()
+          console.log("User data received:", data)
 
-          if (result.user) {
-            const user = result.user
-            console.log('✅ User data loaded:', {
-              id: user.id,
-              name: `${user.firstName} ${user.lastName}`,
-              role: user.role,
-              onboardingCompleted: user.onboardingCompleted
-            })
+          // FIRST: Check profile completeness before setting any user data
+          if (data.user) {
+            try {
+              const profileResponse = await fetch('/api/student/profile/' + data.user.id, {
+                method: 'GET',
+                credentials: 'include',
+                cache: 'no-store'
+              });
 
-            // Set all data from combined API response
-            setUserData({
-              ...userData,
-              firstName: user.firstName || "",
-              lastName: user.lastName || "",
-              email: user.email || "",
-              bio: user.bio || "",
-              location: user.location || "",
-              educationLevel: user.educationLevel || "",
-              birthMonth: user.birthMonth || "",
-              birthYear: user.birthYear || "",
-              ageGroup: user.ageGroup || '',
-              goals: result.goals || [],
-              interests: result.userInterests?.map((interest: any) => interest.name) || [],
-              skills: result.userSkills?.map((skill: any) => ({
-                id: skill.skills.id,
-                name: skill.skills.name,
-                level: skill.proficiency_level
-              })) || [],
-              educationHistory: result.education || []
-            })
+              if (profileResponse.ok) {
+                const profileData = await profileResponse.json();
 
-            console.log('📊 Onboarding completion status:', user.onboardingCompleted)
+                // Check 1: Personal Information (first name, last name, bio)
+                const hasBasicInfo = profileData.profile.firstName && 
+                                   profileData.profile.lastName && 
+                                   profileData.profile.bio;
 
-            if (user.onboardingCompleted) {
-              console.log('✅ Onboarding complete, redirecting to profile...')
-              router.push('/student/profile')
-              return
-            } else {
-              console.log('⚠️ Onboarding incomplete, starting onboarding flow...')
+                // Check 2: Interests (at least one interest)
+                const hasInterests = profileData.profile.userInterests && 
+                                   profileData.profile.userInterests.length > 0;
+
+                // Check 3: Education History (at least one education entry)
+                const hasEducation = profileData.educationHistory && 
+                                   profileData.educationHistory.length > 0;
+
+                console.log('🔍 Onboarding page completion check:', {
+                  hasBasicInfo,
+                  hasInterests: `${profileData.profile.userInterests?.length || 0} interests`,
+                  hasEducation: `${profileData.educationHistory?.length || 0} education entries`
+                });
+
+                // If profile is complete, redirect immediately before loading any form data
+                if (hasBasicInfo && hasInterests && hasEducation) {
+                  console.log('✅ All three sections complete, redirecting to profile');
+                  router.push("/student/profile")
+                  return // Exit early, don't load form data
+                } else {
+                  console.log('❌ One or more sections incomplete, loading onboarding form');
+                  setIsCheckingProfile(false)
+                }
+              } else {
+                console.log('❌ Failed to fetch profile data, loading onboarding form');
+                setIsCheckingProfile(false)
+              }
+            } catch (error) {
+              console.error('Error checking profile completeness:', error);
+              setIsCheckingProfile(false)
             }
           } else {
-            console.log('❌ No user data in response')
-            router.push('/login')
-            return
+            console.log('❌ No user data, loading onboarding form');
+            setIsCheckingProfile(false)
+          }
+
+          // ONLY load user data if profile is incomplete (we reach this point)
+          if (data.user) {
+            // Fetch existing goals
+            let existingGoals = [];
+            try {
+              const goalsResponse = await fetch('/api/goals', {
+                method: 'GET',
+                credentials: 'include',
+                cache: 'no-store'
+              });
+
+              if (goalsResponse.ok) {
+                const goalsData = await goalsResponse.json();
+                existingGoals = goalsData.goals || [];
+                console.log('Loaded existing goals:', existingGoals);
+              }
+            } catch (error) {
+              console.error('Error fetching existing goals:', error);
+            }
+
+            // Set user data from API response
+            setUserData({
+              firstName: data.user.firstName || "",
+              lastName: data.user.lastName || "",
+              email: data.user.email || "",
+              birthdate: data.user.birthdate || "",
+              location: data.user.location || "",
+              interests: [],
+              skills: [],
+              skillLevels: {},
+              goals: existingGoals,
+              educationLevel: data.user.educationLevel || "",
+              bio: data.user.bio || "",
+              birthMonth: data.user.birthMonth || "",
+              birthYear: data.user.birthYear || "",
+              ageGroup: data.user?.studentProfile?.age_group || ''
+            })
+          } else {
+            console.warn("No user data found in response")
           }
         } else {
-          console.log('❌ Failed to fetch user data, status:', response.status)
-          router.push('/login')
-          return
+          console.error("Failed to fetch user data:", response.status)
+          // Redirect to login if unauthorized
+          if (response.status === 401) {
+            router.push("/login")
+            return
+          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error)
         toast.error("Failed to load user data")
       } finally {
         setLoading(false)
-        setIsCheckingProfile(false) // Set to false once loading is complete
       }
     }
 
@@ -196,7 +244,7 @@ export default function Onboarding() {
     }
   }
 
-
+  
 
   const handlePersonalInfoComplete = async (data: any) => {
     console.log('Personal info completed:', data);
@@ -348,7 +396,7 @@ export default function Onboarding() {
             </div>
 
             <div className="p-6 md:p-8">
-
+              
 {step === 1 && (
                 <PersonalInfoStep
                   initialData={{
@@ -423,7 +471,7 @@ export default function Onboarding() {
                   initialData={userData.interests || []}
                   onComplete={async (interests) => {
                     console.log('🎯 Interests step completed with data:', interests);
-
+                    
                     // Save interests data immediately (matching edit profile behavior)
                     try {
                       // Interests data is saved within the InterestsStep component itself
@@ -451,12 +499,12 @@ export default function Onboarding() {
                   initialData={userData.skills || []}
                   onComplete={async (skills) => {
                     console.log('🛠️ Skills step completed with data:', skills);
-
+                    
                     // Skills are saved within the SkillsStep component itself
                     // Just update local state and proceed
                     setUserData({ ...userData, skills });
                     console.log('✅ Skills data updated in local state');
-
+                    
                     // The SkillsStep component handles the database save,
                     // so we just need to proceed to the next step
                     handleNext();
@@ -476,7 +524,7 @@ export default function Onboarding() {
                   initialData={userData.educationHistory || []}
                   onComplete={async (educationHistory) => {
                     console.log('📚 Education step completed with data:', educationHistory);
-
+                    
                     // Save education data immediately (matching edit profile behavior)
                     try {
                       // Education data is saved within the EducationStep component itself
@@ -525,7 +573,7 @@ export default function Onboarding() {
 
                       console.log('Goals saved successfully - onboarding complete');
                       toast.success('Onboarding completed successfully!');
-
+                      
                       // Redirect to profile page instead of moving to completion step
                       router.push('/student/profile');
                     } catch (error) {
@@ -549,7 +597,7 @@ export default function Onboarding() {
                 />
               )}
 
-
+              
             </div>
           </div>
         </div>
