@@ -88,10 +88,21 @@ export default function NotificationsPage() {
   }, [user, loading, router]);
 
   const fetchNotifications = async () => {
+    const startTime = Date.now();
+    console.log("⏱️ [NOTIFICATIONS] Fetching notifications...");
+    
     try {
       const [connectionResponse, circleResponse] = await Promise.all([
-        fetch("/api/connections/requests?type=received"),
-        fetch("/api/circles/invitations?type=received"),
+        fetch("/api/connections/requests?type=received", {
+          headers: {
+            'Cache-Control': 'max-age=30', // 30 second cache
+          }
+        }),
+        fetch("/api/circles/invitations?type=received", {
+          headers: {
+            'Cache-Control': 'max-age=30', // 30 second cache
+          }
+        }),
       ]);
 
       if (connectionResponse.ok) {
@@ -112,6 +123,7 @@ export default function NotificationsPage() {
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
+      console.log(`✅ [NOTIFICATIONS] Fetch completed in ${Date.now() - startTime}ms`);
       setLoadingRequests(false);
     }
   };
@@ -121,6 +133,11 @@ export default function NotificationsPage() {
     action: "accept" | "decline",
   ) => {
     setProcessingRequest(requestId);
+    
+    // Optimistic update - remove request immediately
+    const originalRequests = [...connectionRequests];
+    setConnectionRequests(prev => prev.filter(req => req.id !== requestId));
+    
     try {
       const response = await fetch(`/api/connections/requests/${requestId}`, {
         method: "PUT",
@@ -132,8 +149,10 @@ export default function NotificationsPage() {
 
       if (response.ok) {
         toast.success(`Connection request ${action}ed successfully`);
-        fetchNotifications(); // Refresh the list
+        // No need to refetch - already updated optimistically
       } else {
+        // Rollback optimistic update on error
+        setConnectionRequests(originalRequests);
         const error = await response.json();
         toast.error(error.error || `Failed to ${action} request`);
       }

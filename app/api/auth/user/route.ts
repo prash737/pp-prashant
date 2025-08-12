@@ -6,7 +6,8 @@ import { cookies } from 'next/headers';
 // Database connection will be tested when actually needed
 
 export async function GET(request: NextRequest) {
-  console.log("API: User data request received");
+  const startTime = Date.now();
+  console.log("⏱️ [AUTH-USER] Request started");
 
   try {
     // Simplified approach: Try to get user directly from database
@@ -14,8 +15,10 @@ export async function GET(request: NextRequest) {
     console.log("API: Checking cookies for auth token");
 
     // Try to get token from cookies or auth header
+    const authStart = Date.now();
     const authHeader = request.headers.get('Authorization');
     const cookieString = request.headers.get('cookie') || '';
+    console.log(`⏱️ [AUTH-USER] Cookie parsing started at ${authStart - startTime}ms`);
 
     // Parse cookies properly
     const cookies = Object.fromEntries(
@@ -117,6 +120,8 @@ export async function GET(request: NextRequest) {
           console.log("API: Authenticated user found:", authData.user.id);
 
           // Query the database for the user profile
+          const dbStart = Date.now();
+          console.log(`⏱️ [AUTH-USER] Database query starting at ${dbStart - startTime}ms`);
           const userProfile = await prisma.profile.findUnique({
             where: { id: authData.user.id },
             include: {
@@ -127,6 +132,7 @@ export async function GET(request: NextRequest) {
           });
 
           if (userProfile) {
+            console.log(`⏱️ [AUTH-USER] Database query completed in ${Date.now() - dbStart}ms`);
             console.log("API: User profile found in database");
             console.log("API: Raw age_group from database:", userProfile.student?.age_group);
             // Format birth month and year for display
@@ -194,6 +200,7 @@ export async function GET(request: NextRequest) {
               }
               return response;
             } else {
+              console.log(`✅ [AUTH-USER] Request completed in ${Date.now() - startTime}ms`);
               return NextResponse.json(responseData);
             }
           } else {
