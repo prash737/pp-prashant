@@ -610,14 +610,16 @@ export default function PerformancePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                          getPhaseProgress(phase) === 100 ? 'bg-green-500' : 
-                          getPhaseProgress(phase) > 0 ? 'bg-blue-500' : 'bg-gray-400'
-                        }`}>
-                          {phaseIndex + 1}
+                      <CardTitle asChild>
+                        <div className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                            getPhaseProgress(phase) === 100 ? 'bg-green-500' : 
+                            getPhaseProgress(phase) > 0 ? 'bg-blue-500' : 'bg-gray-400'
+                          }`}>
+                            {phaseIndex + 1}
+                          </div>
+                          {phase.name}
                         </div>
-                        {phase.name}
                       </CardTitle>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {phase.description}
