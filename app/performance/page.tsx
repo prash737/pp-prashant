@@ -22,7 +22,15 @@ import {
   GitBranch,
   Settings,
   Code,
-  Wrench
+  Wrench,
+  Download,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Monitor,
+  Cpu,
+  Network,
+  Globe
 } from "lucide-react";
 import {
   ChartContainer,
@@ -36,14 +44,15 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
-  PieChart,
+  PieChart as RechartsPieChart,
   Pie,
   Cell,
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   Area,
   AreaChart,
 } from "recharts";
+import { performanceMonitor } from "@/lib/performance-monitor";
 
 interface TaskItem {
   id: string;
@@ -66,14 +75,27 @@ interface PhaseData {
   status: 'Not Started' | 'In Progress' | 'Completed';
 }
 
+interface PerformanceData {
+  timestamp: string;
+  url: string;
+  totalLoadTime: number;
+  phases: any[];
+  bottlenecks: any[];
+  recommendations: string[];
+  detailedLogs: any[];
+}
+
 const COLORS = ['#8b5cf6', '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#ec4899'];
 
 export default function PerformancePage() {
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [phases, setPhases] = useState<PhaseData[]>([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
+  const [isMonitoring, setIsMonitoring] = useState(false);
+  const [liveData, setLiveData] = useState<any>(null);
 
   useEffect(() => {
-    // Load from localStorage
+    // Load roadmap progress from localStorage
     const saved = localStorage.getItem('pathpiper-performance-tasks');
     if (saved) {
       const data = JSON.parse(saved);
@@ -81,7 +103,57 @@ export default function PerformancePage() {
     }
     
     setPhases(roadmapData);
+
+    // Load performance report from localStorage
+    const perfReport = localStorage.getItem('latestPerformanceReport');
+    if (perfReport) {
+      try {
+        setPerformanceData(JSON.parse(perfReport));
+      } catch (error) {
+        console.error('Error parsing performance data:', error);
+      }
+    }
   }, []);
+
+  const startPerformanceMonitoring = () => {
+    setIsMonitoring(true);
+    performanceMonitor.startMonitoring('Performance Dashboard Analysis');
+    
+    // Simulate performance monitoring
+    const interval = setInterval(() => {
+      const data = performanceMonitor.getLogs();
+      setLiveData(data);
+    }, 1000);
+
+    // Stop after 10 seconds
+    setTimeout(async () => {
+      clearInterval(interval);
+      setIsMonitoring(false);
+      
+      try {
+        const report = await performanceMonitor.generateReport();
+        setPerformanceData(report);
+      } catch (error) {
+        console.error('Error generating performance report:', error);
+      }
+    }, 10000);
+  };
+
+  const downloadReport = () => {
+    if (performanceData) {
+      const blob = new Blob([JSON.stringify(performanceData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `performance-report-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
 
   const toggleTask = (taskId: string) => {
     const newCompleted = new Set(completedTasks);
@@ -132,6 +204,25 @@ export default function PerformancePage() {
       const progress = getPhaseProgress(phase);
       return progress > 0 && progress < 100;
     }) || phases[0];
+  };
+
+  // Performance metrics charts data
+  const getPhasePerformanceData = () => {
+    if (!performanceData?.phaseAnalysis) return [];
+    return performanceData.phaseAnalysis.map(phase => ({
+      name: phase.phase.replace(/_/g, ' '),
+      duration: phase.duration || 0,
+      events: phase.eventCount || 0
+    }));
+  };
+
+  const getBottleneckData = () => {
+    if (!performanceData?.bottlenecks) return [];
+    return performanceData.bottlenecks.slice(0, 10).map((bottleneck, index) => ({
+      name: bottleneck.event?.substring(0, 20) + '...' || `Operation ${index + 1}`,
+      duration: bottleneck.details?.duration || bottleneck.duration || 0,
+      phase: bottleneck.phase || 'Unknown'
+    }));
   };
 
   const roadmapData: PhaseData[] = [
@@ -528,12 +619,37 @@ export default function PerformancePage() {
               Complete roadmap for PathPiper performance optimization with Drizzle migration
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-green-600">
-              {Math.round(getTotalProgress())}% Complete
-            </div>
-            <div className="text-sm text-gray-500">
-              {Array.from(completedTasks).length} of {overallStats.totalTasks} tasks
+          <div className="flex items-center gap-4">
+            <Button 
+              onClick={startPerformanceMonitoring}
+              disabled={isMonitoring}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isMonitoring ? (
+                <>
+                  <Monitor className="h-4 w-4 mr-2 animate-pulse" />
+                  Monitoring...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Start Monitoring
+                </>
+              )}
+            </Button>
+            {performanceData && (
+              <Button onClick={downloadReport} variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Download Report
+              </Button>
+            )}
+            <div className="text-right">
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round(getTotalProgress())}% Complete
+              </div>
+              <div className="text-sm text-gray-500">
+                {Array.from(completedTasks).length} of {overallStats.totalTasks} tasks
+              </div>
             </div>
           </div>
         </div>
@@ -601,6 +717,8 @@ export default function PerformancePage() {
           <TabsList>
             <TabsTrigger value="roadmap">Detailed Roadmap</TabsTrigger>
             <TabsTrigger value="analytics">Progress Analytics</TabsTrigger>
+            <TabsTrigger value="performance">Performance Analysis</TabsTrigger>
+            <TabsTrigger value="bottlenecks">Bottleneck Analysis</TabsTrigger>
             <TabsTrigger value="files">File Impact</TabsTrigger>
           </TabsList>
 
@@ -740,7 +858,7 @@ export default function PerformancePage() {
                 <CardContent>
                   <ChartContainer config={{}} className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+                      <RechartsPieChart>
                         <Pie
                           data={Object.entries(priorityStats).map(([priority, count]) => ({
                             name: priority,
@@ -757,7 +875,7 @@ export default function PerformancePage() {
                           ))}
                         </Pie>
                         <ChartTooltip content={<ChartTooltipContent />} />
-                      </PieChart>
+                      </RechartsPieChart>
                     </ResponsiveContainer>
                   </ChartContainer>
                 </CardContent>
@@ -785,6 +903,306 @@ export default function PerformancePage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            {/* Live Monitoring */}
+            {isMonitoring && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5 animate-pulse text-blue-500" />
+                    Live Performance Monitoring
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span>Duration: {liveData ? `${liveData.totalDuration.toFixed(0)}ms` : '0ms'}</span>
+                      <span>Events: {liveData ? liveData.logs.length : 0}</span>
+                    </div>
+                    <Progress value={(liveData?.totalDuration || 0) / 100} className="h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Performance Overview */}
+            {performanceData && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Load Time</CardTitle>
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{performanceData.totalLoadTime || performanceData.metadata?.totalDuration || 0}ms</div>
+                      <p className="text-xs text-muted-foreground">
+                        Total page load duration
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{performanceData.detailedLogs?.length || 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Performance events tracked
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Phases</CardTitle>
+                      <GitBranch className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{performanceData.summary?.phases?.length || 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Execution phases
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Bottlenecks</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600">{performanceData.bottlenecks?.length || 0}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Performance bottlenecks identified
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Phase Performance Chart */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Phase Performance
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ChartContainer config={{}} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={getPhasePerformanceData()}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="duration" fill="#8b5cf6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <LineChart className="h-5 w-5" />
+                        Performance Timeline
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ChartContainer config={{}} className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={performanceData.detailedLogs?.slice(0, 20).map((log, index) => ({
+                            index,
+                            duration: log.duration || 0,
+                            event: log.event
+                          })) || []}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="index" />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Area type="monotone" dataKey="duration" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </ChartContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recommendations */}
+                {performanceData.recommendations && performanceData.recommendations.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-yellow-500" />
+                        Performance Recommendations
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {performanceData.recommendations.map((recommendation, index) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-l-4 border-yellow-400">
+                            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">{recommendation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {!performanceData && !isMonitoring && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Monitor className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    No Performance Data Available
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Start monitoring to collect performance metrics and generate detailed reports.
+                  </p>
+                  <Button onClick={startPerformanceMonitoring} className="bg-blue-600 hover:bg-blue-700">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Start Performance Monitoring
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="bottlenecks" className="space-y-6">
+            {performanceData && performanceData.bottlenecks && performanceData.bottlenecks.length > 0 ? (
+              <>
+                {/* Bottleneck Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      Performance Bottlenecks
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{}} className="h-[400px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={getBottleneckData()}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="duration" fill="#ef4444" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Detailed Bottleneck Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Detailed Bottleneck Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {performanceData.bottlenecks.map((bottleneck, index) => (
+                        <div key={index} className="border rounded-lg p-4 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-red-900 dark:text-red-100">
+                                  {bottleneck.event}
+                                </h4>
+                                <p className="text-sm text-red-700 dark:text-red-300">
+                                  Phase: {bottleneck.phase}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-red-600">
+                                {(bottleneck.details?.duration || bottleneck.duration || 0).toFixed(0)}ms
+                              </div>
+                              <Badge variant="destructive" className="mt-1">
+                                High Impact
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          {bottleneck.details && (
+                            <div className="bg-white dark:bg-gray-800 p-3 rounded border">
+                              <h5 className="font-medium mb-2">Details:</h5>
+                              <pre className="text-xs overflow-auto">
+                                {JSON.stringify(bottleneck.details, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Parallel Operations Analysis */}
+                {performanceData.parallelOperations && performanceData.parallelOperations.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Network className="h-5 w-5" />
+                        Parallel Operations Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {performanceData.parallelOperations.map((parallel, index) => (
+                          <div key={index} className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/10">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-semibold">Time Window: {parallel.timeWindow}</h4>
+                              <Badge variant="secondary">{parallel.operationCount} operations</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {parallel.operations.map((op: any, opIndex: number) => (
+                                <div key={opIndex} className="bg-white dark:bg-gray-800 p-2 rounded text-sm">
+                                  <div className="font-medium">{op.event}</div>
+                                  <div className="text-gray-600 dark:text-gray-400">{op.phase} - {op.duration}ms</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <AlertTriangle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    No Bottleneck Data Available
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Run performance monitoring to identify bottlenecks and optimization opportunities.
+                  </p>
+                  <Button onClick={startPerformanceMonitoring} disabled={isMonitoring}>
+                    <Activity className="h-4 w-4 mr-2" />
+                    Start Analysis
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="files" className="space-y-6">
@@ -829,6 +1247,31 @@ export default function PerformancePage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* JSON Report Section */}
+        {performanceData && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Complete Performance Report (JSON)
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button onClick={downloadReport} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Full Report
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96">
+                <pre className="text-xs">
+                  {JSON.stringify(performanceData, null, 2)}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
