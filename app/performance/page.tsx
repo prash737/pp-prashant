@@ -225,6 +225,87 @@ export default function PerformancePage() {
     }));
   };
 
+  // Critical bottleneck analysis data (based on your analysis)
+  const getCriticalBottlenecks = () => {
+    return [
+      {
+        name: 'API Response Time',
+        duration: 3497.5,
+        impact: 69.5,
+        location: '/api/student/profile/[id]',
+        type: 'PRIMARY',
+        description: 'Main student profile API call is extremely slow'
+      },
+      {
+        name: 'JSON Parsing',
+        duration: 1416.2,
+        impact: 28.2,
+        location: 'Client-side parsing',
+        type: 'SECONDARY', 
+        description: 'Parsing API response takes unusually long time'
+      },
+      {
+        name: 'Component Re-renders',
+        duration: 98.5,
+        impact: 2.0,
+        location: 'React components',
+        type: 'MINOR',
+        description: 'Multiple duplicate component mounting events'
+      },
+      {
+        name: 'Other Operations',
+        duration: 15.8,
+        impact: 0.3,
+        location: 'Various',
+        type: 'MINOR',
+        description: 'Initialization, authentication, rendering'
+      }
+    ];
+  };
+
+  const getTimelineBreakdown = () => {
+    return [
+      { phase: 'Initialization', duration: 8, percentage: 0.2 },
+      { phase: 'Params Resolution', duration: 8, percentage: 0.2 },
+      { phase: 'Authentication', duration: 0.1, percentage: 0.002 },
+      { phase: 'API Fetch', duration: 3497, percentage: 69.5, critical: true },
+      { phase: 'JSON Parsing', duration: 1416, percentage: 28.2, critical: true },
+      { phase: 'Data Transformation', duration: 1, percentage: 0.02 },
+      { phase: 'State Updates', duration: 0.3, percentage: 0.006 },
+      { phase: 'Rendering', duration: 13, percentage: 0.3 }
+    ];
+  };
+
+  const getRootCauses = () => {
+    return [
+      {
+        category: 'API Performance Issues',
+        issues: [
+          'Database Query Complexity: Prisma query includes multiple nested relations',
+          'N+1 Query Problem: Inefficient fetching of related data',
+          'Missing Database Indexes: Queries on user relationships lack proper indexing',
+          'Over-fetching: API returns more data than needed for initial render'
+        ]
+      },
+      {
+        category: 'JSON Parsing Issues',
+        issues: [
+          'Large Payload Size: Response contains extensive nested objects',
+          'Complex Data Structure: Multiple arrays and deeply nested relationships',
+          'Browser Memory Pressure: Large objects causing parsing delays'
+        ]
+      },
+      {
+        category: 'Client-Side Issues',
+        issues: [
+          'Duplicate Effect Triggers: React useEffect running multiple times',
+          'Unnecessary Re-renders: Component mounting happening twice',
+          'Synchronous Processing: Data transformation blocking main thread'
+        ]
+      }
+    ];
+  };
+
   const roadmapData: PhaseData[] = [
     {
       id: "phase-1",
@@ -1079,15 +1160,274 @@ export default function PerformancePage() {
           </TabsContent>
 
           <TabsContent value="bottlenecks" className="space-y-6">
-            {performanceData && performanceData.bottlenecks && performanceData.bottlenecks.length > 0 ? (
+            {/* Critical Performance Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Load Time</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">5,028ms</div>
+                  <p className="text-xs text-muted-foreground">
+                    5.0 seconds (Target: &lt;1s)
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">2</div>
+                  <p className="text-xs text-muted-foreground">
+                    API + JSON parsing bottlenecks
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Performance Loss</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">97.7%</div>
+                  <p className="text-xs text-muted-foreground">
+                    From API + JSON issues
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Potential Gain</CardTitle>
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">92%</div>
+                  <p className="text-xs text-muted-foreground">
+                    With optimizations
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Critical Bottlenecks Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  Critical Bottlenecks Analysis
+                </CardTitle>
+                <p className="text-sm text-gray-600">Performance impact breakdown by operation type</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Duration Chart */}
+                  <ChartContainer config={{}} className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={getCriticalBottlenecks()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <ChartTooltip 
+                          content={({ active, payload, label }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-white p-3 border rounded shadow">
+                                  <p className="font-semibold">{label}</p>
+                                  <p className="text-red-600">{data.duration}ms</p>
+                                  <p className="text-sm text-gray-600">{data.description}</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar dataKey="duration" fill={(entry: any) => 
+                          entry.type === 'PRIMARY' ? '#dc2626' : 
+                          entry.type === 'SECONDARY' ? '#f59e0b' : '#6b7280'
+                        } />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+
+                  {/* Impact Pie Chart */}
+                  <ChartContainer config={{}} className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={getCriticalBottlenecks()}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          dataKey="impact"
+                          nameKey="name"
+                          label={({ name, impact }) => `${name}: ${impact}%`}
+                        >
+                          {getCriticalBottlenecks().map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.type === 'PRIMARY' ? '#dc2626' : 
+                                   entry.type === 'SECONDARY' ? '#f59e0b' : '#6b7280'} 
+                            />
+                          ))}
+                        </Pie>
+                        <ChartTooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              return (
+                                <div className="bg-white p-3 border rounded shadow">
+                                  <p className="font-semibold">{data.name}</p>
+                                  <p>{data.impact}% of total time</p>
+                                  <p className="text-sm">{data.duration}ms</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Timeline Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Detailed Timeline Breakdown
+                </CardTitle>
+                <p className="text-sm text-gray-600">Step-by-step performance analysis</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {getTimelineBreakdown().map((phase, index) => (
+                    <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
+                      phase.critical ? 'bg-red-50 border-red-200 dark:bg-red-900/10' : 'bg-gray-50 border-gray-200 dark:bg-gray-800'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                          phase.critical ? 'bg-red-500' : 'bg-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className={`font-semibold ${phase.critical ? 'text-red-900 dark:text-red-100' : ''}`}>
+                            {phase.phase}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {phase.percentage}% of total load time
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-xl font-bold ${phase.critical ? 'text-red-600' : 'text-gray-700'}`}>
+                          {phase.duration}ms
+                        </div>
+                        {phase.critical && (
+                          <Badge variant="destructive" className="mt-1">
+                            Critical
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Root Cause Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Root Cause Analysis
+                </CardTitle>
+                <p className="text-sm text-gray-600">Detailed breakdown of performance issues</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {getRootCauses().map((category, categoryIndex) => (
+                    <div key={categoryIndex} className="border rounded-lg p-4">
+                      <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                        <Wrench className="h-5 w-5" />
+                        {category.category}
+                      </h4>
+                      <div className="space-y-2">
+                        {category.issues.map((issue, issueIndex) => (
+                          <div key={issueIndex} className="flex items-start gap-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                            <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">{issue}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Impact Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  Performance Impact Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-6 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200">
+                    <div className="text-4xl font-bold text-red-600 mb-2">Critical</div>
+                    <div className="text-2xl font-semibold text-red-500 mb-1">97.7%</div>
+                    <p className="text-sm text-red-700">of load time from API + JSON parsing</p>
+                  </div>
+                  
+                  <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <div className="text-4xl font-bold text-gray-600 mb-2">Minor</div>
+                    <div className="text-2xl font-semibold text-gray-500 mb-1">2.3%</div>
+                    <p className="text-sm text-gray-600">from all other operations</p>
+                  </div>
+                  
+                  <div className="text-center p-6 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-200">
+                    <div className="text-4xl font-bold text-green-600 mb-2">Target</div>
+                    <div className="text-2xl font-semibold text-green-500 mb-1">&lt;1s</div>
+                    <p className="text-sm text-green-700">should be achieved with optimization</p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
+                  <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Key Findings:</h5>
+                  <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                    <li>• Primary bottleneck: API response time (3.5 seconds) - 69% of load time</li>
+                    <li>• Secondary bottleneck: JSON parsing (1.4 seconds) - 28% of load time</li>
+                    <li>• User experience: 5+ second load time is unacceptable</li>
+                    <li>• Optimization potential: Can reduce to &lt;400ms with proper fixes</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Original Dynamic Bottleneck Data */}
+            {performanceData && performanceData.bottlenecks && performanceData.bottlenecks.length > 0 && (
               <>
-                {/* Bottleneck Chart */}
+                {/* Dynamic Bottleneck Chart */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
-                      Performance Bottlenecks
+                      <Monitor className="h-5 w-5 text-purple-500" />
+                      Live Performance Bottlenecks
                     </CardTitle>
+                    <p className="text-sm text-gray-600">Real-time monitoring results</p>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={{}} className="h-[400px]">
@@ -1097,45 +1437,45 @@ export default function PerformancePage() {
                           <XAxis dataKey="name" />
                           <YAxis />
                           <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="duration" fill="#ef4444" />
+                          <Bar dataKey="duration" fill="#8b5cf6" />
                         </BarChart>
                       </ResponsiveContainer>
                     </ChartContainer>
                   </CardContent>
                 </Card>
 
-                {/* Detailed Bottleneck Analysis */}
+                {/* Detailed Live Analysis */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Database className="h-5 w-5" />
-                      Detailed Bottleneck Analysis
+                      <Activity className="h-5 w-5" />
+                      Live Monitoring Results
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {performanceData.bottlenecks.map((bottleneck, index) => (
-                        <div key={index} className="border rounded-lg p-4 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800">
+                        <div key={index} className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold">
+                              <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">
                                 {index + 1}
                               </div>
                               <div>
-                                <h4 className="font-semibold text-red-900 dark:text-red-100">
+                                <h4 className="font-semibold text-purple-900 dark:text-purple-100">
                                   {bottleneck.event}
                                 </h4>
-                                <p className="text-sm text-red-700 dark:text-red-300">
+                                <p className="text-sm text-purple-700 dark:text-purple-300">
                                   Phase: {bottleneck.phase}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-red-600">
+                              <div className="text-2xl font-bold text-purple-600">
                                 {(bottleneck.details?.duration || bottleneck.duration || 0).toFixed(0)}ms
                               </div>
-                              <Badge variant="destructive" className="mt-1">
-                                High Impact
+                              <Badge variant="secondary" className="mt-1">
+                                Live Data
                               </Badge>
                             </div>
                           </div>
@@ -1153,55 +1493,7 @@ export default function PerformancePage() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Parallel Operations Analysis */}
-                {performanceData.parallelOperations && performanceData.parallelOperations.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Network className="h-5 w-5" />
-                        Parallel Operations Analysis
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {performanceData.parallelOperations.map((parallel, index) => (
-                          <div key={index} className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-900/10">
-                            <div className="flex items-center justify-between mb-3">
-                              <h4 className="font-semibold">Time Window: {parallel.timeWindow}</h4>
-                              <Badge variant="secondary">{parallel.operationCount} operations</Badge>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {parallel.operations.map((op: any, opIndex: number) => (
-                                <div key={opIndex} className="bg-white dark:bg-gray-800 p-2 rounded text-sm">
-                                  <div className="font-medium">{op.event}</div>
-                                  <div className="text-gray-600 dark:text-gray-400">{op.phase} - {op.duration}ms</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </>
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <AlertTriangle className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    No Bottleneck Data Available
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Run performance monitoring to identify bottlenecks and optimization opportunities.
-                  </p>
-                  <Button onClick={startPerformanceMonitoring} disabled={isMonitoring}>
-                    <Activity className="h-4 w-4 mr-2" />
-                    Start Analysis
-                  </Button>
-                </CardContent>
-              </Card>
             )}
           </TabsContent>
 
