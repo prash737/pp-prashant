@@ -99,20 +99,25 @@ export default function PerformancePage() {
     }));
   };
 
-  const getPhaseProgress = (phase: PhaseData) => {
+  const getPhaseProgress = (phase: PhaseData | undefined) => {
+    if (!phase || !phase.tasks) return 0;
     const totalTasks = phase.tasks.length;
     const completedPhase = phase.tasks.filter(task => completedTasks.has(task.id)).length;
     return totalTasks > 0 ? (completedPhase / totalTasks) * 100 : 0;
   };
 
   const getTotalProgress = () => {
-    const allTasks = phases.flatMap(phase => phase.tasks);
+    if (phases.length === 0) return 0;
+    const allTasks = phases.flatMap(phase => phase.tasks || []);
     const completed = allTasks.filter(task => completedTasks.has(task.id)).length;
     return allTasks.length > 0 ? (completed / allTasks.length) * 100 : 0;
   };
 
   const getTasksByPriority = () => {
-    const allTasks = phases.flatMap(phase => phase.tasks);
+    if (phases.length === 0) {
+      return { Critical: 0, High: 0, Medium: 0, Low: 0 };
+    }
+    const allTasks = phases.flatMap(phase => phase.tasks || []);
     return {
       Critical: allTasks.filter(t => t.priority === 'Critical').length,
       High: allTasks.filter(t => t.priority === 'High').length,
@@ -122,7 +127,11 @@ export default function PerformancePage() {
   };
 
   const getCurrentPhase = () => {
-    return phases.find(phase => getPhaseProgress(phase) > 0 && getPhaseProgress(phase) < 100) || phases[0];
+    if (phases.length === 0) return undefined;
+    return phases.find(phase => {
+      const progress = getPhaseProgress(phase);
+      return progress > 0 && progress < 100;
+    }) || phases[0];
   };
 
   const roadmapData: PhaseData[] = [
@@ -498,10 +507,10 @@ export default function PerformancePage() {
   ];
 
   const overallStats = {
-    totalTasks: phases.flatMap(p => p.tasks).length,
+    totalTasks: phases.flatMap(p => p.tasks || []).length,
     completedTasks: Array.from(completedTasks).length,
-    totalEstimatedHours: phases.flatMap(p => p.tasks).reduce((sum, task) => sum + task.estimatedHours, 0),
-    completedHours: phases.flatMap(p => p.tasks).filter(task => completedTasks.has(task.id)).reduce((sum, task) => sum + task.estimatedHours, 0)
+    totalEstimatedHours: phases.flatMap(p => p.tasks || []).reduce((sum, task) => sum + task.estimatedHours, 0),
+    completedHours: phases.flatMap(p => p.tasks || []).filter(task => completedTasks.has(task.id)).reduce((sum, task) => sum + task.estimatedHours, 0)
   };
 
   const priorityStats = getTasksByPriority();
@@ -565,9 +574,11 @@ export default function PerformancePage() {
               <GitBranch className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{getCurrentPhase()?.name.split(':')[0] || 'Phase 1'}</div>
+              <div className="text-lg font-bold">
+                {getCurrentPhase()?.name?.split(':')[0] || 'Phase 1'}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {Math.round(getPhaseProgress(getCurrentPhase() || phases[0]))}% complete
+                {Math.round(getPhaseProgress(getCurrentPhase()))}% complete
               </p>
             </CardContent>
           </Card>
