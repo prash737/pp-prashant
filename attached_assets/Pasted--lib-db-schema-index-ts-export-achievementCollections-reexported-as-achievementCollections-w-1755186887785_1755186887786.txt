@@ -1,0 +1,65 @@
+ ./lib/db/schema/index.ts
+export 'achievementCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ GET /api/parent/children 401 in 1658ms
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: true
+API: User ID exists: true
+API: Fetching user profile from database...
+API: Profile found for role: student
+API: Error checking onboarding completion: TypeError: Cannot read properties of undefined (reading 'id')
+    at GET (app/api/auth/user/route.ts:175:45)
+  173 |         // Check interests and education in parallel for better performance
+  174 |         const [interests, education] = await Promise.all([
+> 175 |           db.select({ id: skillUserInterests.id })
+      |                                             ^
+  176 |             .from(skillUserInterests)
+  177 |             .where(eq(skillUserInterests.userId, profile.id))
+  178 |             .limit(1),
+API: Returning user data successfully
+ GET /api/auth/user 200 in 3354ms
+ ⚠ ./lib/db/schema/index.ts
+export 'achievementCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⚠ ./lib/db/schema/index.ts
+export 'achievementCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ GET /feed 200 in 3424ms
+🔄 [001] [INITIALIZATION] MONITORING_START - 0.09ms {
+  context: 'STUDENT_PROFILE_API',
+  startTime: 24762.370467,
+  userAgent: 'Server',
+  url: 'API Route'
+}
+🔄 [002] [PARAMS_RESOLUTION] PHASE_START_PARAMS_RESOLUTION - 1.02ms 
+🔄 [003] [PARAMS_RESOLUTION] PHASE_END_PARAMS_RESOLUTION - 1.28ms { phaseDuration: 0.22858999999880325 }
+🔄 [004] [AUTHENTICATION] PHASE_START_AUTHENTICATION - 1.50ms 
+🔄 [005] [AUTHENTICATION] PHASE_END_AUTHENTICATION - 116.24ms { phaseDuration: 114.73920799999905 }
+🔄 [006] [PERMISSION_CHECK] PHASE_START_PERMISSION_CHECK - 116.40ms 
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ ⚠ ./lib/db/schema/index.ts
+export 'achievementCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+🔄 [007] [PERMISSION_CHECK] PHASE_END_PERMISSION_CHECK - 940.72ms { phaseDuration: 824.3153469999997 }
+🔄 [008] [DATA_FETCH] PHASE_START_DATA_FETCH - 940.96ms 
+❌ Student Profile API Error: {
+  error: 'Cannot convert undefined or null to object',
+  totalDuration: 948.0582539999996,
+  phase: 'ERROR_HANDLING'
+}
+ GET /api/student/profile/006a3d59-ec4d-42e6-aee4-d04f1d0caf2b 500 in 5189ms
+ ⚠ ./lib/db/schema/index.ts
+export 'achievementCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
