@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { registerStudent, registerMentor, registerInstitution } from '@/lib/services/auth-service'
 
