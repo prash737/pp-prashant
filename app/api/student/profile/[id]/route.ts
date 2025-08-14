@@ -237,25 +237,20 @@ export async function GET(
       .where(eq(moodBoard.userId, studentId))
       .orderBy(moodBoard.position),
 
-      // Connections - get both directions
+      // Connections - get both directions  
       db.select({
         id: connections.id,
         user1Id: connections.user1Id,
         user2Id: connections.user2Id,
-        status: connections.status,
         connectedUserFirstName: profiles.firstName,
         connectedUserLastName: profiles.lastName,
         connectedUserProfileImage: profiles.profileImageUrl,
         connectedUserRole: profiles.role
       })
       .from(connections)
-      .leftJoin(profiles, eq(
-        profiles.id,
-        eq(connections.user1Id, studentId) ? connections.user2Id : connections.user1Id
-      ))
+      .leftJoin(profiles, eq(profiles.id, connections.user2Id))
       .where(
         and(
-          eq(connections.status, 'accepted'),
           eq(connections.user1Id, studentId)
         )
       )

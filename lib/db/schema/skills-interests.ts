@@ -1,4 +1,3 @@
-
 import { pgTable, uuid, varchar, text, timestamp, integer, serial } from 'drizzle-orm/pg-core';
 import { ageGroupEnum } from './enums';
 import { profiles } from './profiles';
@@ -19,8 +18,9 @@ export const interests = pgTable('interests', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// User Interests Junction Table
 export const userInterests = pgTable('user_interests', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
   interestId: integer('interest_id').notNull().references(() => interests.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow(),
@@ -43,11 +43,11 @@ export const skills = pgTable('skills', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// User Skills Junction Table  
 export const userSkills = pgTable('user_skills', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
   skillId: integer('skill_id').notNull().references(() => skills.id, { onDelete: 'cascade' }),
-  proficiencyLevel: integer('proficiency_level').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
