@@ -54,13 +54,14 @@ export * from './institutions'
 export * from './mentors'
 
 export {
-  conversations,
-  messageHistory,
   chatbotThemes as messageChatbotThemes,
   humanReviewQueue as messageReviewQueue,
   moderationLogs as messageModerationLogs,
   parentProfiles as messageParentProfiles
 } from './messages'
+
+// Export conversations and messageHistory from their actual locations
+export * from './conversations'
 
 export {
   chatbotThemes,
