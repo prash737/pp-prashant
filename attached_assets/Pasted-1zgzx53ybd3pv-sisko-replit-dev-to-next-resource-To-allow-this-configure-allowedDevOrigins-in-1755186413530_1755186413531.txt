@@ -1,0 +1,41 @@
+1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ GET /api/parent/children 500 in 8804ms
+ GET /api/auth/user 500 in 8813ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz_' -> '/home/runner/workspace/.next/cache/webpack/client-development-fallback/0.pack.gz'
+ GET / 500 in 23ms
