@@ -94,7 +94,8 @@ export {
 export * from './profiles'
 
 export {
-  interestCategories
+  interestCategories,
+  skillUserInterests
 } from './skills-interests'
 
 export {
