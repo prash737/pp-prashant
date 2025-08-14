@@ -1,0 +1,149 @@
+
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://172.31.126.66:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1700ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 986ms (159 modules)
+ ○ Compiling / ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (108kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled / in 8.7s (1676 modules)
+ GET / 200 in 10083ms
+ ✓ Compiled in 1684ms (789 modules)
+ ⚠ Blocked cross-origin request from 2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ⚠ ./lib/db/schema/index.ts
+export 'userCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ GET /api/parent/children 401 in 2267ms
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: true
+API: User ID exists: true
+API: Fetching user profile from database...
+API: Profile found for role: student
+API: Onboarding completion check: {
+  userId: '006a3d59-ec4d-42e6-aee4-d04f1d0caf2b',
+  hasBasicInfo: true,
+  hasInterests: '1 interests',
+  hasEducation: '1 education entries',
+  onboardingCompleted: true
+}
+API: Returning user data successfully
+ GET /api/auth/user 200 in 3700ms
+ ⚠ ./lib/db/schema/index.ts
+export 'userCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⚠ ./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./lib/db/schema/index.ts
+export 'userCollections' (reexported as 'achievementCollections') was not found in './achievements' (possible exports: achievementCategories, achievementTypes, achievements, customBadges, moodBoard)
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+🔄 [001] [INITIALIZATION] MONITORING_START - 0.06ms {
+  context: 'STUDENT_PROFILE_API',
+  startTime: 23196.185758,
+  userAgent: 'Server',
+  url: 'API Route'
+}
+🔄 [002] [PARAMS_RESOLUTION] PHASE_START_PARAMS_RESOLUTION - 0.51ms 
+🔄 [003] [PARAMS_RESOLUTION] PHASE_END_PARAMS_RESOLUTION - 0.76ms { phaseDuration: 0.20934000000124797 }
+🔄 [004] [AUTHENTICATION] PHASE_START_AUTHENTICATION - 0.85ms 
+🔄 [005] [AUTHENTICATION] PHASE_END_AUTHENTICATION - 250.62ms { phaseDuration: 249.74960199999987 }
+🔄 [006] [PERMISSION_CHECK] PHASE_START_PERMISSION_CHECK - 250.78ms 
+🔄 [007] [PERMISSION_CHECK] PHASE_END_PERMISSION_CHECK - 764.05ms { phaseDuration: 513.2619440000017 }
+🔄 [008] [DATA_FETCH] PHASE_START_DATA_FETCH - 764.24ms 
+❌ Student Profile API Error: {
+  error: "Cannot read properties of undefined (reading 'id')",
+  totalDuration: 765.772266,
+  phase: 'ERROR_HANDLING'
+}
