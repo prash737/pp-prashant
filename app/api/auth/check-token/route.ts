@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     console.log('API: Validating user ID:', userId)
 
-    // Verify user exists in database with timeout handling
+    // Verify user exists in database with fast query
     let userProfile
     try {
       const query = db
@@ -51,11 +51,11 @@ export async function GET(request: NextRequest) {
         .where(eq(profiles.id, userId))
         .limit(1)
 
-      // Add a 5-second timeout to prevent hanging
+      // Reduced timeout for faster response
       userProfile = await Promise.race([
         query,
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database query timeout')), 5000)
+          setTimeout(() => reject(new Error('Database query timeout')), 1500)
         )
       ])
     } catch (dbError) {

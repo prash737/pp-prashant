@@ -42,17 +42,18 @@ export async function GET(request: NextRequest) {
 
       let userExists
       try {
+        // Minimal query for fastest response
         const query = db
           .select({ id: profiles.id })
           .from(profiles)
           .where(eq(profiles.id, authCookies.userId))
           .limit(1)
 
-        // Add a 5-second timeout to prevent hanging
+        // Much faster timeout for cookie checks
         userExists = await Promise.race([
           query,
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Database query timeout')), 5000)
+            setTimeout(() => reject(new Error('Database query timeout')), 1000)
           )
         ])
       } catch (dbError) {

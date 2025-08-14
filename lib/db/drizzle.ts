@@ -5,14 +5,17 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not set')
 }
 
-// Create the postgres client with optimized connection pooling
+// Create the postgres client with highly optimized connection pooling
 const client = postgres(process.env.DATABASE_URL, {
-  max: 5,                    // Reduce max connections to prevent timeout
-  idle_timeout: 60,          // Keep connections alive longer
-  connect_timeout: 30,       // Increase connection timeout
-  max_lifetime: 600,         // Connection max lifetime (10 minutes)
-  prepare: false,            // Disable prepared statements for better compatibility
-  transform: postgres.camel  // Convert to camelCase
+  max: 20,                   // Increase max connections for better performance
+  idle_timeout: 20,          // Faster cleanup of idle connections
+  connect_timeout: 10,       // Reduce connection timeout for faster fails
+  max_lifetime: 1800,        // 30 minutes connection lifetime
+  prepare: true,             // Enable prepared statements for performance
+  transform: postgres.camel, // Convert to camelCase
+  connection: {
+    application_name: 'pathpiper_app'
+  }
 })
 
 // Create the drizzle instance

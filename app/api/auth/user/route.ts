@@ -30,29 +30,65 @@ export async function GET(request: NextRequest) {
     const { skillUserInterests, studentEducationHistory } = await import('@/lib/db/schema')
     const { eq } = await import('drizzle-orm')
 
-    // Get user's complete profile with all related data using Drizzle
+    // Get user's complete profile with optimized query
     let profileResult
     try {
-      const query = db
-        .select({
-          profile: profiles,
-          student: studentProfiles,
-          mentor: mentorProfiles,
-          institution: institutionProfiles
-        })
+      // First, get basic profile data quickly
+      const profileQuery = db
+        .select()
         .from(profiles)
-        .leftJoin(studentProfiles, eq(studentProfiles.id, profiles.id))
-        .leftJoin(mentorProfiles, eq(mentorProfiles.id, profiles.id))
-        .leftJoin(institutionProfiles, eq(institutionProfiles.id, profiles.id))
         .where(eq(profiles.id, userId))
+        .limit(1)
 
-      // Add a 8-second timeout for complex queries
       profileResult = await Promise.race([
-        query,
+        profileQuery,
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database query timeout')), 8000)
+          setTimeout(() => reject(new Error('Database query timeout')), 2000)
         )
       ])
+
+      if (!profileResult.length) {
+        console.log('API: No profile found for user ID:', userId)
+        return NextResponse.json(
+          { success: false, error: 'Profile not found' },
+          { status: 404 }
+        )
+      }
+
+      const profile = profileResult[0]
+      
+      // Get role-specific data only if needed
+      let roleSpecificData = null
+      if (profile.role === 'student') {
+        const studentData = await db
+          .select()
+          .from(studentProfiles)
+          .where(eq(studentProfiles.id, userId))
+          .limit(1)
+        roleSpecificData = studentData[0] || null
+      } else if (profile.role === 'mentor') {
+        const mentorData = await db
+          .select()
+          .from(mentorProfiles)
+          .where(eq(mentorProfiles.id, userId))
+          .limit(1)
+        roleSpecificData = mentorData[0] || null
+      } else if (profile.role === 'institution') {
+        const institutionData = await db
+          .select()
+          .from(institutionProfiles)
+          .where(eq(institutionProfiles.id, userId))
+          .limit(1)
+        roleSpecificData = institutionData[0] || null
+      }
+
+      // Restructure result to match expected format
+      profileResult = [{
+        profile: profile,
+        student: profile.role === 'student' ? roleSpecificData : null,
+        mentor: profile.role === 'mentor' ? roleSpecificData : null,
+        institution: profile.role === 'institution' ? roleSpecificData : null
+      }]
     } catch (dbError) {
       console.error('API: Drizzle query failed, falling back to direct query:', dbError)
       
@@ -134,19 +170,20 @@ export async function GET(request: NextRequest) {
         // Check if user has minimum required data for all three essential sections
         const hasBasicInfo = !!(profile.firstName && profile.lastName && profile.bio)
 
-        // Check interests using Drizzle
-        const interests = await db
-          .select()
-          .from(skillUserInterests)
-          .where(eq(skillUserInterests.userId, profile.id))
-        const hasInterests = !!(interests.length > 0)
-
-        // Check education using Drizzle
-        const education = await db
-          .select()
-          .from(studentEducationHistory)
-          .where(eq(studentEducationHistory.studentId, profile.id))
-        const hasEducation = !!(education.length > 0)
+        // Check interests and education in parallel for better performance
+        const [interests, education] = await Promise.all([
+          db.select({ id: skillUserInterests.id })
+            .from(skillUserInterests)
+            .where(eq(skillUserInterests.userId, profile.id))
+            .limit(1),
+          db.select({ id: studentEducationHistory.id })
+            .from(studentEducationHistory)
+            .where(eq(studentEducationHistory.studentId, profile.id))
+            .limit(1)
+        ])
+        
+        const hasInterests = interests.length > 0
+        const hasEducation = education.length > 0
 
         onboardingCompleted = hasBasicInfo && hasInterests && hasEducation
 
