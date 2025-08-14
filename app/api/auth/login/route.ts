@@ -2,7 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { db } from '@/lib/db/drizzle'
-import { profiles, studentProfiles } from '@/lib/db/schema'
+import { profiles } from '@/lib/db/schema/profiles'
+import { studentProfiles } from '@/lib/db/schema/students'
 import { eq } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
