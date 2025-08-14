@@ -52,23 +52,33 @@ export async function POST(request: NextRequest) {
     console.log('🔐 [API] Fetching user profile from database...')
     const dbStartTime = Date.now()
     
-    const userProfile = await db
-      .select({
-        id: profiles.id,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        email: profiles.email,
-        role: profiles.role,
-        profileImageUrl: profiles.profileImageUrl,
-        bio: profiles.bio,
-        onboardingCompleted: profiles.onboardingCompleted,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, authData.user.id))
-      .limit(1)
+    let userProfile
+    try {
+      userProfile = await db
+        .select({
+          id: profiles.id,
+          firstName: profiles.firstName,
+          lastName: profiles.lastName,
+          email: profiles.email,
+          role: profiles.role,
+          profileImageUrl: profiles.profileImageUrl,
+          bio: profiles.bio,
+          onboardingCompleted: profiles.onboardingCompleted,
+        })
+        .from(profiles)
+        .where(eq(profiles.id, authData.user.id))
+        .limit(1)
+    } catch (dbError) {
+      console.error('🔐 [API] Database query error:', dbError)
+      return NextResponse.json(
+        { success: false, message: 'Database error' },
+        { status: 500 }
+      )
+    }
 
     const dbDuration = Date.now() - dbStartTime
     console.log(`🔐 [API] Database query completed in ${dbDuration}ms`)
+    console.log('🔐 [API] User profile query result:', userProfile)
 
     if (!userProfile || userProfile.length === 0) {
       console.log('🔐 [API] User profile not found in database')
@@ -79,35 +89,47 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userProfile[0]
+    if (!user) {
+      console.log('🔐 [API] User object is null/undefined')
+      return NextResponse.json(
+        { success: false, message: 'User profile data is invalid' },
+        { status: 404 }
+      )
+    }
     console.log('🔐 [API] User profile found:', { 
-      id: user.id, 
-      role: user.role,
-      onboardingCompleted: user.onboardingCompleted 
+      id: user?.id, 
+      role: user?.role,
+      onboardingCompleted: user?.onboardingCompleted 
     })
 
     // Check onboarding status for students
-    let onboardingComplete = user.onboardingCompleted
-    if (user.role === 'student' && !onboardingComplete) {
+    let onboardingComplete = user?.onboardingCompleted || false
+    if (user?.role === 'student' && !onboardingComplete) {
       console.log('🔐 [API] Checking student onboarding status...')
       
-      const studentProfile = await db
-        .select({
-          id: studentProfiles.id,
-        })
-        .from(studentProfiles)
-        .where(eq(studentProfiles.studentId, user.id))
-        .limit(1)
+      try {
+        const studentProfile = await db
+          .select({
+            id: studentProfiles.id,
+          })
+          .from(studentProfiles)
+          .where(eq(studentProfiles.studentId, user.id))
+          .limit(1)
 
-      onboardingComplete = studentProfile.length > 0
-      console.log('🔐 [API] Student onboarding status:', onboardingComplete)
+        onboardingComplete = studentProfile?.length > 0
+        console.log('🔐 [API] Student onboarding status:', onboardingComplete)
 
-      // Update profile if onboarding is now complete
-      if (onboardingComplete && !user.onboardingCompleted) {
-        await db
-          .update(profiles)
-          .set({ onboardingCompleted: true })
-          .where(eq(profiles.id, user.id))
-        console.log('🔐 [API] Updated onboarding status to complete')
+        // Update profile if onboarding is now complete
+        if (onboardingComplete && !user.onboardingCompleted) {
+          await db
+            .update(profiles)
+            .set({ onboardingCompleted: true })
+            .where(eq(profiles.id, user.id))
+          console.log('🔐 [API] Updated onboarding status to complete')
+        }
+      } catch (studentError) {
+        console.error('🔐 [API] Error checking student profile:', studentError)
+        // Continue with original onboarding status if student check fails
       }
     }
 
@@ -116,16 +138,16 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Login successful',
       user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        profileImageUrl: user.profileImageUrl,
-        bio: user.bio,
+        id: user?.id || '',
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        email: user?.email || '',
+        role: user?.role || '',
+        profileImageUrl: user?.profileImageUrl || null,
+        bio: user?.bio || null,
         onboardingCompleted: onboardingComplete,
       },
-      redirect: onboardingComplete ? '/feed' : '/onboarding'
+      redirect: onboardingComplete ? (user?.role === 'institution' ? '/institution/profile' : '/feed') : (user?.role === 'institution' ? '/institution-onboarding' : '/onboarding')
     })
 
     // Set cookies with auth tokens
