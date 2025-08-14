@@ -4,8 +4,7 @@ export {
   achievementTypes,
   achievements,
   customBadges,
-  moodBoard,
-  achievementCollections
+  moodBoard
 } from './achievements';
 
 // Skills and Interests
