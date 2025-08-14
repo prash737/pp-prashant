@@ -236,69 +236,39 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     });
     performanceLogger.endPhase('AUTHENTICATION_CHECKS');
 
-    // Fetch all data in parallel - this is the key optimization
-    const fetchAllData = async () => {
+    // Fetch student data - now we know it's the current user's profile
+    const fetchStudentData = async () => {
       try {
-        performanceLogger.startPhase('PARALLEL_DATA_FETCHING');
-        performanceLogger.log('PARALLEL_FETCH_START', 'PARALLEL_DATA_FETCHING', {
-          userId: currentUser.id
+        performanceLogger.startPhase('DATA_FETCHING');
+        performanceLogger.log('FETCH_START', 'DATA_FETCHING', {
+          url: `/api/student/profile/${currentUser.id}`
         });
 
         setLoading(true)
         setError(null)
 
         const fetchStartTime = performance.now();
-
-        // Start all API calls in parallel immediately
-        const apiCalls = [
-          // Main profile API
-          fetch(`/api/student/profile/${currentUser.id}`, { credentials: 'include' }),
-          // All secondary APIs - these don't depend on the main API
-          fetch('/api/achievements', { credentials: 'include' }),
-          fetch('/api/connections', { credentials: 'include' }),
-          fetch(`/api/connections?userId=${currentUser.id}`, { credentials: 'include' }),
-          fetch('/api/connections/requests?type=received', { credentials: 'include' }),
-          fetch('/api/circles', { credentials: 'include' }),
-          fetch('/api/circles/invitations?type=received', { credentials: 'include' }),
-          fetch('/api/student/following', { credentials: 'include' }),
-          fetch(`/api/mood-board?userId=${currentUser.id}&isPublicView=false`, { credentials: 'include' }),
-          fetch('/api/user-collections', { credentials: 'include' }),
-          fetch('/api/education/verification', { credentials: 'include' })
-        ];
-
-        performanceLogger.log('API_CALLS_INITIATED', 'PARALLEL_DATA_FETCHING', {
-          totalCalls: apiCalls.length,
-          callTypes: [
-            'main-profile', 'achievements', 'connections', 'user-connections', 
-            'connection-requests', 'circles', 'circle-invitations', 'following',
-            'mood-board', 'collections', 'education-verification'
-          ]
-        });
-
-        // Wait for all API calls to complete in parallel
-        const responses = await Promise.all(apiCalls);
+        const response = await fetch(`/api/student/profile/${currentUser.id}`, {
+          credentials: 'include'
+        })
         const fetchEndTime = performance.now();
 
-        performanceLogger.log('PARALLEL_FETCH_COMPLETE', 'PARALLEL_DATA_FETCHING', {
-          totalFetchDuration: fetchEndTime - fetchStartTime,
-          responseStatuses: responses.map((r, i) => ({ 
-            api: i === 0 ? 'main-profile' : ['achievements', 'connections', 'user-connections', 'connection-requests', 'circles', 'circle-invitations', 'following', 'mood-board', 'collections', 'education-verification'][i-1],
-            status: r.status, 
-            ok: r.ok 
-          }))
+        performanceLogger.log('FETCH_COMPLETE', 'DATA_FETCHING', {
+          status: response.status,
+          ok: response.ok,
+          fetchDuration: fetchEndTime - fetchStartTime
         });
 
-        // Check if main profile API failed
-        if (!responses[0].ok) {
+        if (!response.ok) {
           let errorMessage = 'Failed to load profile';
-          if (responses[0].status === 404) {
+          if (response.status === 404) {
             errorMessage = 'Profile not found';
-          } else if (responses[0].status === 403) {
+          } else if (response.status === 403) {
             errorMessage = 'Access denied';
           }
           
-          performanceLogger.log('MAIN_PROFILE_ERROR', 'PARALLEL_DATA_FETCHING', {
-            status: responses[0].status,
+          performanceLogger.log('FETCH_ERROR', 'DATA_FETCHING', {
+            status: response.status,
             errorMessage
           });
           
@@ -306,62 +276,26 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
           return
         }
 
-        // Parse all responses in parallel
         const parseStartTime = performance.now();
-        const dataPromises = responses.map(async (response, index) => {
-          if (response.ok) {
-            try {
-              return await response.json();
-            } catch (error) {
-              performanceLogger.log('JSON_PARSE_ERROR', 'PARALLEL_DATA_FETCHING', {
-                apiIndex: index,
-                error: error instanceof Error ? error.message : 'Unknown parse error'
-              });
-              return null;
-            }
-          }
-          return null;
-        });
-
-        const allData = await Promise.all(dataPromises);
+        const data = await response.json();
         const parseEndTime = performance.now();
 
-        performanceLogger.log('PARALLEL_JSON_PARSE_COMPLETE', 'PARALLEL_DATA_FETCHING', {
+        performanceLogger.log('JSON_PARSE_COMPLETE', 'DATA_FETCHING', {
           parseDuration: parseEndTime - parseStartTime,
-          successfulParses: allData.filter(d => d !== null).length,
-          totalResponses: allData.length
+          dataKeys: Object.keys(data),
+          hasProfile: !!data.profile,
+          hasEducationHistory: !!data.educationHistory,
+          educationHistoryLength: data.educationHistory?.length || 0
         });
 
-        // Extract the main profile data (first response)
-        const mainProfileData = allData[0];
-        
-        if (!mainProfileData) {
-          performanceLogger.log('MAIN_PROFILE_DATA_MISSING', 'PARALLEL_DATA_FETCHING');
-          setError('Failed to load profile data');
-          return;
-        }
-
-        performanceLogger.log('STUDENT_DATA_PROCESSING', 'PARALLEL_DATA_FETCHING', {
-          hasMainProfile: !!mainProfileData,
-          hasProfile: !!mainProfileData.profile,
-          hasEducationHistory: !!mainProfileData.educationHistory,
-          educationHistoryLength: mainProfileData.educationHistory?.length || 0,
-          additionalDataCount: allData.slice(1).filter(d => d !== null).length
-        });
-
-        // Set the main student data
         performanceLogger.log('SET_STUDENT_DATA_START', 'STATE_UPDATES');
-        setStudentData(mainProfileData);
+        setStudentData(data);
         performanceLogger.log('SET_STUDENT_DATA_COMPLETE', 'STATE_UPDATES');
 
-        // Additional data from parallel APIs is now available for components to use
-        // The StudentProfile component and its children can access this data through their own API calls
-        // which will now be much faster due to browser caching
-
-        performanceLogger.endPhase('PARALLEL_DATA_FETCHING');
+        performanceLogger.endPhase('DATA_FETCHING');
         
       } catch (err) {
-        performanceLogger.log('PARALLEL_FETCH_EXCEPTION', 'PARALLEL_DATA_FETCHING', {
+        performanceLogger.log('FETCH_EXCEPTION', 'DATA_FETCHING', {
           error: err instanceof Error ? err.message : 'Unknown error',
           errorStack: err instanceof Error ? err.stack : undefined
         });
@@ -380,7 +314,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       }
     }
 
-    fetchAllData()
+    fetchStudentData()
   }, [handle, currentUser, authLoading, router, performanceLogger])
 
   if (authLoading || loading) {

@@ -2,15 +2,10 @@
 export {
   customBadges as achievementBadges,
   moodBoard as achievementMoodBoard,
-  userCollections as achievementCollections,
-  userAchievements
+  userCollections as achievementCollections
 } from './achievements'
 
-export {
-  circleBadges,
-  circleMemberships,
-  circleInvitations
-} from './circles'
+export * from './circles'
 
 export {
   customBadges as collectionBadges,
@@ -25,10 +20,6 @@ export {
 } from './communities'
 
 export * from './connections'
-
-export {
-  institutionFollowConnections
-} from './communities'
 
 export {
   skillEndorsements

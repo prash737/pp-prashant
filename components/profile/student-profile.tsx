@@ -24,17 +24,15 @@ interface StudentProfileProps {
   performanceLogger?: any // Performance logger instance
 }
 
-export default function StudentProfile({
-  studentId,
-  currentUser,
-  studentData,
+export default function StudentProfile({ 
+  studentId, 
+  currentUser, 
+  studentData, 
   isViewMode = false,
   isShareMode = false,
   onGoBack,
   performanceLogger
 }: StudentProfileProps) {
-  // Note: Additional APIs (achievements, connections, circles, etc.) are now pre-fetched
-  // in parallel on the page level, so child components will benefit from browser caching
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +70,7 @@ export default function StudentProfile({
       const fetchStartTime = performance.now();
       const response = await fetch('/api/connections');
       const fetchEndTime = performance.now();
-
+      
       if (performanceLogger) {
         performanceLogger.log('CONNECTIONS_API_RESPONSE', 'CONNECTIONS_FETCH', {
           status: response.status,
@@ -85,7 +83,7 @@ export default function StudentProfile({
         const parseStartTime = performance.now();
         const data = await response.json();
         const parseEndTime = performance.now();
-
+        
         if (performanceLogger) {
           performanceLogger.log('CONNECTIONS_DATA_PARSED', 'CONNECTIONS_FETCH', {
             parseDuration: parseEndTime - parseStartTime,
@@ -104,7 +102,7 @@ export default function StudentProfile({
           institutions: data.filter((conn: any) => conn.user.role === 'institution').length
         };
         const countsEndTime = performance.now();
-
+        
         if (performanceLogger) {
           performanceLogger.log('CONNECTIONS_COUNTS_CALCULATED', 'CONNECTIONS_FETCH', {
             calculationDuration: countsEndTime - countsStartTime,
@@ -217,7 +215,7 @@ export default function StudentProfile({
       }
 
       const transformEndTime = performance.now();
-
+      
       if (performanceLogger) {
         performanceLogger.log('STUDENT_DATA_TRANSFORMED', 'DATA_TRANSFORMATION', {
           transformDuration: transformEndTime - transformStartTime,
@@ -231,7 +229,7 @@ export default function StudentProfile({
       const setStudentStartTime = performance.now();
       setStudent(transformedStudent);
       const setStudentEndTime = performance.now();
-
+      
       if (performanceLogger) {
         performanceLogger.log('SET_STUDENT_STATE', 'DATA_TRANSFORMATION', {
           duration: setStudentEndTime - setStudentStartTime
@@ -241,7 +239,7 @@ export default function StudentProfile({
       const setLoadingStartTime = performance.now();
       setLoading(false);
       const setLoadingEndTime = performance.now();
-
+      
       if (performanceLogger) {
         performanceLogger.log('SET_LOADING_FALSE_FINAL', 'DATA_TRANSFORMATION', {
           duration: setLoadingEndTime - setLoadingStartTime
@@ -300,11 +298,11 @@ export default function StudentProfile({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader
-        student={student}
-        currentUser={currentUser}
-        connectionCounts={connectionCounts}
-        isViewMode={isViewMode}
+      <ProfileHeader 
+        student={student} 
+        currentUser={currentUser} 
+        connectionCounts={connectionCounts} 
+        isViewMode={isViewMode} 
         isShareMode={isShareMode}
         onGoBack={onGoBack} />
 
@@ -318,8 +316,8 @@ export default function StudentProfile({
           {activeTab === "skills" && <SkillsCanvas userId={student.id} skills={student.skills} isViewMode={isViewMode} />}
           {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
           {activeTab === "achievements" && (
-            <AchievementTimeline
-              userId={student?.id}
+            <AchievementTimeline 
+              userId={student?.id} 
               isOwnProfile={isOwnProfile}
               isViewMode={isViewMode}
               student={student}
