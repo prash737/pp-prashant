@@ -1,24 +1,15 @@
+
 import { pgTable, varchar, uuid, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { profiles } from './profiles';
-
-export const connections = pgTable('connections', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  user1Id: uuid('user1_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
-  user2Id: uuid('user2_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
-  status: varchar('status', { length: 50 }).notNull().default('accepted'),
-  connectedAt: timestamp('connected_at').defaultNow(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
 
 export const socialLinks = pgTable('social_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
-  platform: varchar('platform', { length: 100 }).notNull(),
-  url: varchar('url', { length: 500 }).notNull(),
-  isVisible: boolean('is_visible').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  platform: varchar('platform').notNull(),
+  url: varchar('url').notNull(),
+  displayName: varchar('display_name'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
 
 export const languages = pgTable('languages', {

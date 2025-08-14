@@ -1,20 +1,9 @@
-// Achievement and Badge Related
+// Export all schemas with specific exports to avoid conflicts
 export {
-  achievementCategories,
-  achievementTypes,
-  achievements,
-  customBadges,
-  moodBoard
-} from './achievements';
-
-// Skills and Interests
-export {
-  skillCategories,
-  skills,
-  interests,
-  userSkills,
-  userInterests
-} from './skills-interests';
+  customBadges as achievementBadges,
+  moodBoard as achievementMoodBoard,
+  userCollections as achievementCollections
+} from './achievements'
 
 export * from './circles'
 
@@ -94,16 +83,24 @@ export {
 export * from './profiles'
 
 export {
+  interests,
   interestCategories,
-  skillUserInterests
+  skills,
+  skillCategories,
+  userInterests as skillUserInterests,
+  userSkills,
+  hobbies as skillHobbies,
+  languages as skillLanguages,
+  userHobbies,
+  userLanguages
 } from './skills-interests'
 
 export {
   socialLinks,
   hobbies,
   languages,
-  userHobbies,
-  userLanguages
+  userHobbies as socialUserHobbies,
+  userLanguages as socialUserLanguages
 } from './social'
 
 export * from './students'
