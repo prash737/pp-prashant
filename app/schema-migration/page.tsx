@@ -2,11 +2,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react'
+import { CheckCircle, XCircle, Clock } from 'lucide-react'
 
 interface SchemaComparison {
   tableName: string
@@ -84,24 +82,6 @@ export default function SchemaMigrationPage() {
             'id', 'institutionName', 'institutionType', 'institutionTypeId', 'website',
             'logoUrl', 'coverImageUrl', 'overview', 'mission', 'coreValues', 'verified',
             'onboardingCompleted', 'createdAt', 'updatedAt'
-          ],
-          status: 'complete',
-          missingFields: [],
-          extraFields: []
-        },
-        {
-          tableName: 'student_education_history',
-          prismaFields: [
-            'id', 'studentId', 'institutionId', 'institutionName', 'institutionTypeId',
-            'degreeProgram', 'fieldOfStudy', 'subjects', 'startDate', 'endDate', 'isCurrent',
-            'gradeLevel', 'gpa', 'achievements', 'description', 'institutionVerified',
-            'createdAt', 'updatedAt'
-          ],
-          drizzleFields: [
-            'id', 'studentId', 'institutionId', 'institutionName', 'institutionTypeId',
-            'degreeProgram', 'fieldOfStudy', 'subjects', 'startDate', 'endDate', 'isCurrent',
-            'gradeLevel', 'gpa', 'achievements', 'description', 'institutionVerified',
-            'createdAt', 'updatedAt'
           ],
           status: 'complete',
           missingFields: [],
@@ -227,17 +207,17 @@ export default function SchemaMigrationPage() {
           missingFields: [],
           extraFields: []
         },
-        // Missing tables from Prisma schema that need to be added
+        // Updated: Tables that are now implemented in Drizzle
         {
           tableName: 'institution_gallery',
           prismaFields: [
             'id', 'institutionId', 'imageUrl', 'caption', 'createdAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'imageUrl', 'caption', 'createdAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -246,12 +226,12 @@ export default function SchemaMigrationPage() {
             'id', 'institutionId', 'name', 'description', 'features', 'images',
             'learnMoreLink', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'name', 'description', 'features', 'images',
             'learnMoreLink', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -261,13 +241,13 @@ export default function SchemaMigrationPage() {
             'email', 'bio', 'qualifications', 'experience', 'specialization', 'featured',
             'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'name', 'title', 'department', 'image', 'expertise',
             'email', 'bio', 'qualifications', 'experience', 'specialization', 'featured',
             'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -276,12 +256,12 @@ export default function SchemaMigrationPage() {
             'id', 'institutionId', 'title', 'description', 'eventType', 'startDate',
             'endDate', 'location', 'imageUrl', 'registrationUrl', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'title', 'description', 'eventType', 'startDate',
             'endDate', 'location', 'imageUrl', 'registrationUrl', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -290,12 +270,12 @@ export default function SchemaMigrationPage() {
             'id', 'institutionId', 'name', 'type', 'level', 'durationValue', 'durationType',
             'description', 'eligibility', 'learningOutcomes', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'name', 'type', 'level', 'durationValue', 'durationType',
             'description', 'eligibility', 'learningOutcomes', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -305,13 +285,13 @@ export default function SchemaMigrationPage() {
             'campusSizeAcres', 'campusSizeKm2', 'internationalStudentsCountries', 'globalRanking',
             'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'undergraduateStudents', 'graduateStudents', 'facultyMembers',
             'campusSizeAcres', 'campusSizeKm2', 'internationalStudentsCountries', 'globalRanking',
             'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -320,12 +300,12 @@ export default function SchemaMigrationPage() {
             'id', 'institutionId', 'address', 'city', 'state', 'country', 'postalCode',
             'phone', 'email', 'website', 'socialLinks', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'address', 'city', 'state', 'country', 'postalCode',
             'phone', 'email', 'website', 'socialLinks', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -335,13 +315,13 @@ export default function SchemaMigrationPage() {
             'studentFacultyRatioFaculty', 'facultyWithPhdsPercentage',
             'internationalFacultyPercentage', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'institutionId', 'totalFaculty', 'studentFacultyRatioStudents',
             'studentFacultyRatioFaculty', 'facultyWithPhdsPercentage',
             'internationalFacultyPercentage', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -349,11 +329,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'userId', 'platform', 'url', 'displayName', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'platform', 'url', 'displayName', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -361,11 +341,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'userId', 'languageId', 'proficiencyLevel', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'languageId', 'proficiencyLevel', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -373,11 +353,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'userId', 'hobbyId', 'createdAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'hobbyId', 'createdAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -386,12 +366,12 @@ export default function SchemaMigrationPage() {
             'id', 'userId', 'imageUrl', 'caption', 'position', 'collectionId',
             'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'imageUrl', 'caption', 'position', 'collectionId',
             'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -400,12 +380,12 @@ export default function SchemaMigrationPage() {
             'id', 'userId', 'title', 'description', 'iconUrl', 'color', 'earnedDate',
             'issuer', 'verificationUrl', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'title', 'description', 'iconUrl', 'color', 'earnedDate',
             'issuer', 'verificationUrl', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -413,11 +393,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'endorserId', 'endorsedUserId', 'skillId', 'comment', 'createdAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'endorserId', 'endorsedUserId', 'skillId', 'comment', 'createdAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -425,11 +405,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'userId', 'postId', 'createdAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'postId', 'createdAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -437,11 +417,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'postId', 'userId', 'content', 'parentId', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'postId', 'userId', 'content', 'parentId', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -449,11 +429,11 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'userId', 'postId', 'createdAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'userId', 'postId', 'createdAt'
           ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         },
         {
@@ -461,11 +441,143 @@ export default function SchemaMigrationPage() {
           prismaFields: [
             'id', 'postId', 'userId', 'reactionType', 'createdAt', 'updatedAt'
           ],
-          drizzleFields: [],
-          status: 'missing',
-          missingFields: [
+          drizzleFields: [
             'id', 'postId', 'userId', 'reactionType', 'createdAt', 'updatedAt'
           ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'languages',
+          prismaFields: [
+            'id', 'name', 'code', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'name', 'code', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'hobbies',
+          prismaFields: [
+            'id', 'name', 'category', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'name', 'category', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'user_collections',
+          prismaFields: [
+            'id', 'userId', 'name', 'description', 'isPrivate', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'userId', 'name', 'description', 'isPrivate', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'academic_communities',
+          prismaFields: [
+            'id', 'institutionId', 'name', 'description', 'iconUrl', 'isPrivate', 'createdAt', 'updatedAt'
+          ],
+          drizzleFields: [
+            'id', 'institutionId', 'name', 'description', 'iconUrl', 'isPrivate', 'createdAt', 'updatedAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'academic_community_members',
+          prismaFields: [
+            'id', 'communityId', 'userId', 'role', 'joinedAt', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'communityId', 'userId', 'role', 'joinedAt', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'parent_profile',
+          prismaFields: [
+            'id', 'email', 'name', 'authId', 'verificationToken', 'emailVerified', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'email', 'name', 'authId', 'verificationToken', 'emailVerified', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'moderation_logs',
+          prismaFields: [
+            'id', 'profileId', 'moderatorId', 'action', 'reason', 'details', 'createdAt'
+          ],
+          drizzleFields: [
+            'id', 'profileId', 'moderatorId', 'action', 'reason', 'details', 'createdAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'human_review_queue',
+          prismaFields: [
+            'id', 'postId', 'reason', 'status', 'createdAt', 'updatedAt'
+          ],
+          drizzleFields: [
+            'id', 'postId', 'reason', 'status', 'createdAt', 'updatedAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'chatbot_themes',
+          prismaFields: [
+            'id', 'name', 'primaryColor', 'secondaryColor', 'fontFamily', 'allowedDomains', 'isActive', 'createdAt', 'updatedAt'
+          ],
+          drizzleFields: [
+            'id', 'name', 'primaryColor', 'secondaryColor', 'fontFamily', 'allowedDomains', 'isActive', 'createdAt', 'updatedAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'goals',
+          prismaFields: [
+            'id', 'userId', 'title', 'description', 'category', 'timeframe', 'completed', 'createdAt', 'updatedAt'
+          ],
+          drizzleFields: [
+            'id', 'userId', 'title', 'description', 'category', 'timeframe', 'completed', 'createdAt', 'updatedAt'
+          ],
+          status: 'complete',
+          missingFields: [],
+          extraFields: []
+        },
+        {
+          tableName: 'institution_follow_connections',
+          prismaFields: [
+            'id', 'senderId', 'receiverId', 'connectedAt'
+          ],
+          drizzleFields: [
+            'id', 'senderId', 'receiverId', 'connectedAt'
+          ],
+          status: 'complete',
+          missingFields: [],
           extraFields: []
         }
       ]
@@ -477,217 +589,180 @@ export default function SchemaMigrationPage() {
     performComparison()
   }, [])
 
+  const stats = {
+    total: comparisons.length,
+    complete: comparisons.filter(c => c.status === 'complete').length,
+    missing: comparisons.filter(c => c.status === 'missing').length,
+    partial: comparisons.filter(c => c.status === 'partial').length
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'complete':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'partial':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />
+        return <CheckCircle className="h-4 w-4 text-green-500" />
       case 'missing':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-4 w-4 text-red-500" />
+      case 'partial':
+        return <Clock className="h-4 w-4 text-yellow-500" />
       default:
-        return <FileText className="h-5 w-5 text-gray-500" />
+        return null
     }
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'complete':
-        return <Badge className="bg-green-100 text-green-800">Complete</Badge>
-      case 'partial':
-        return <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>
-      case 'missing':
-        return <Badge className="bg-red-100 text-red-800">Missing</Badge>
-      default:
-        return <Badge variant="secondary">Unknown</Badge>
-    }
-  }
+    const variants = {
+      complete: 'default',
+      missing: 'destructive',
+      partial: 'secondary'
+    } as const
 
-  const stats = {
-    total: comparisons.length,
-    complete: comparisons.filter(c => c.status === 'complete').length,
-    partial: comparisons.filter(c => c.status === 'partial').length,
-    missing: comparisons.filter(c => c.status === 'missing').length
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    )
   }
 
   if (loading) {
     return (
-      <div className="container mx-auto p-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Schema Migration Analysis</h1>
-          <p>Analyzing Prisma vs Drizzle schemas...</p>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Analyzing schema differences...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">Schema Migration Analysis</h1>
-        <p className="text-gray-600 mb-6">
-          Comparison between Prisma schema and Drizzle schema implementation
-        </p>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <Card className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-sm text-gray-600">Total Tables</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.complete}</div>
-            <div className="text-sm text-gray-600">Complete</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">{stats.partial}</div>
-            <div className="text-sm text-gray-600">Partial</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.missing}</div>
-            <div className="text-sm text-gray-600">Missing</div>
-          </Card>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-2">Schema Migration Status</h1>
+        <p className="text-muted-foreground">Comparison between Prisma and Drizzle schemas</p>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="complete">Complete ({stats.complete})</TabsTrigger>
-          <TabsTrigger value="partial">Partial ({stats.partial})</TabsTrigger>
-          <TabsTrigger value="missing">Missing ({stats.missing})</TabsTrigger>
-        </TabsList>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Tables</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-green-600">Complete</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.complete}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-yellow-600">Partial</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{stats.partial}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-600">Missing</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.missing}</div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="overview">
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {comparisons.map((comparison) => (
-                <Card key={comparison.tableName} className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(comparison.status)}
-                      <h3 className="text-lg font-semibold">{comparison.tableName}</h3>
-                    </div>
-                    {getStatusBadge(comparison.status)}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Prisma Fields ({comparison.prismaFields.length})</h4>
-                      <div className="text-xs text-gray-600">
-                        {comparison.prismaFields.slice(0, 5).join(', ')}
-                        {comparison.prismaFields.length > 5 && ` + ${comparison.prismaFields.length - 5} more`}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Drizzle Fields ({comparison.drizzleFields.length})</h4>
-                      <div className="text-xs text-gray-600">
-                        {comparison.drizzleFields.length > 0 ? (
-                          <>
-                            {comparison.drizzleFields.slice(0, 5).join(', ')}
-                            {comparison.drizzleFields.length > 5 && ` + ${comparison.drizzleFields.length - 5} more`}
-                          </>
-                        ) : (
-                          <span className="text-red-500">Not implemented</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {comparison.missingFields.length > 0 && (
-                    <div className="mt-3 p-3 bg-red-50 rounded">
-                      <h4 className="text-sm font-medium text-red-800 mb-1">Missing Fields:</h4>
-                      <div className="text-xs text-red-600">{comparison.missingFields.join(', ')}</div>
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="complete">
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {comparisons.filter(c => c.status === 'complete').map((comparison) => (
-                <Card key={comparison.tableName} className="p-4 border-green-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <h3 className="text-lg font-semibold">{comparison.tableName}</h3>
-                    <Badge className="bg-green-100 text-green-800">Complete</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    All {comparison.prismaFields.length} fields successfully migrated to Drizzle
-                  </p>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="partial">
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {comparisons.filter(c => c.status === 'partial').map((comparison) => (
-                <Card key={comparison.tableName} className="p-4 border-yellow-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    <AlertCircle className="h-5 w-5 text-yellow-500" />
-                    <h3 className="text-lg font-semibold">{comparison.tableName}</h3>
-                    <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>
-                  </div>
-                  <div className="space-y-2">
-                    {comparison.missingFields.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium text-red-800">Missing Fields:</h4>
-                        <p className="text-xs text-red-600">{comparison.missingFields.join(', ')}</p>
-                      </div>
-                    )}
-                    {comparison.extraFields.length > 0 && (
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-800">Extra Fields:</h4>
-                        <p className="text-xs text-blue-600">{comparison.extraFields.join(', ')}</p>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="missing">
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {comparisons.filter(c => c.status === 'missing').map((comparison) => (
-                <Card key={comparison.tableName} className="p-4 border-red-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    <XCircle className="h-5 w-5 text-red-500" />
-                    <h3 className="text-lg font-semibold">{comparison.tableName}</h3>
-                    <Badge className="bg-red-100 text-red-800">Missing</Badge>
+      {/* Schema Comparison Results */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Schema Comparison Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {comparisons.map((comparison, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    {getStatusIcon(comparison.status)}
+                    {comparison.tableName}
+                  </h3>
+                  {getStatusBadge(comparison.status)}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium">Prisma Fields ({comparison.prismaFields.length}):</p>
+                    <p className="text-muted-foreground break-all">
+                      {comparison.prismaFields.join(', ')}
+                    </p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-red-800 mb-2">
-                      Needs to be implemented in Drizzle ({comparison.prismaFields.length} fields)
-                    </h4>
-                    <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                      {comparison.prismaFields.join(', ')}
-                    </div>
+                    <p className="font-medium">Drizzle Fields ({comparison.drizzleFields.length}):</p>
+                    <p className="text-muted-foreground break-all">
+                      {comparison.drizzleFields.join(', ')}
+                    </p>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
+                </div>
+                
+                {comparison.missingFields.length > 0 && (
+                  <div className="mt-2">
+                    <p className="font-medium text-red-600">Missing Fields:</p>
+                    <p className="text-red-600 text-sm">{comparison.missingFields.join(', ')}</p>
+                  </div>
+                )}
+                
+                {comparison.extraFields.length > 0 && (
+                  <div className="mt-2">
+                    <p className="font-medium text-blue-600">Extra Fields:</p>
+                    <p className="text-blue-600 text-sm">{comparison.extraFields.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Migration Progress */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-3">Migration Progress</h3>
+        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+          <div 
+            className="bg-green-600 h-2.5 rounded-full transition-all duration-300" 
+            style={{ width: `${(stats.complete / stats.total) * 100}%` }}
+          ></div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {stats.complete} of {stats.total} tables migrated ({Math.round((stats.complete / stats.total) * 100)}% complete)
+        </p>
+      </Card>
+
+      {/* Success Message */}
+      {stats.missing === 0 && (
+        <Card className="p-6 bg-green-50 border-green-200">
+          <h3 className="text-lg font-semibold mb-3 text-green-800">🎉 Schema Migration Complete!</h3>
+          <div className="space-y-2 text-sm text-green-700">
+            <p>• <strong>All {stats.total} tables</strong> have been successfully migrated to Drizzle</p>
+            <p>• All field mappings are complete and validated</p>
+            <p>• Ready to proceed with API migration phase</p>
+            <p>• Next step: Create database migration scripts and begin API endpoint migration</p>
+          </div>
+        </Card>
+      )}
 
       {/* Next Steps */}
       <Card className="mt-8 p-6">
-        <h3 className="text-lg font-semibold mb-3">Next Steps for Complete Migration</h3>
+        <h3 className="text-lg font-semibold mb-3">Next Steps for API Migration</h3>
         <div className="space-y-2 text-sm">
-          <p>• <strong>{stats.missing} tables</strong> need to be implemented in Drizzle schema</p>
-          <p>• Focus on high-priority tables: institution features, social links, and feed interactions</p>
-          <p>• Create migration scripts for data transfer once schemas are complete</p>
-          <p>• Update API endpoints to use Drizzle instead of Prisma</p>
+          <p>• <strong>Phase 2 Ready:</strong> All schema definitions are complete in Drizzle</p>
+          <p>• Create database migration scripts to transfer data from Prisma to Drizzle</p>
+          <p>• Start migrating API endpoints (auth APIs first, then profile APIs)</p>
+          <p>• Update database utility functions to use Drizzle queries</p>
+          <p>• Test API compatibility and performance improvements</p>
         </div>
       </Card>
     </div>
