@@ -96,7 +96,6 @@ export * from './profiles'
 
 export {
   interestCategories,
-  skills,
   skillCategories,
   userInterests,
   userSkills,
