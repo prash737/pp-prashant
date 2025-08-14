@@ -20,7 +20,11 @@ import {
   moodBoard,
   connections,
   institutionTypes,
-  institutionCategories
+  institutionCategories,
+  hobbies,
+  languages,
+  userHobbies,
+  userLanguages
 } from '@/lib/db/schema'
 import { performanceMonitor } from '@/lib/performance-monitor'
 

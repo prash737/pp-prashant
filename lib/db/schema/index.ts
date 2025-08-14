@@ -99,20 +99,17 @@ export {
   interestCategories,
   skills,
   skillCategories,
-  userInterests as skillUserInterests,
+  userInterests,
   userSkills,
-  hobbies as skillHobbies,
-  languages as skillLanguages,
-  userHobbies,
-  userLanguages
+  skillEndorsements
 } from './skills-interests'
 
 export {
   socialLinks,
   hobbies,
   languages,
-  userHobbies as socialUserHobbies,
-  userLanguages as socialUserLanguages
+  userHobbies,
+  userLanguages
 } from './social'
 
 export * from './students'
