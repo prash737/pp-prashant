@@ -1,6 +1,8 @@
 import { pgTable, uuid, varchar, text, timestamp, integer, serial } from 'drizzle-orm/pg-core';
 import { ageGroupEnum } from './enums';
 import { profiles } from './profiles';
+import { createTable } from 'drizzle-orm/sqlite-core';
+import { skillProficiencyEnum } from './enums';
 
 export const interestCategories = pgTable('interest_categories', {
   id: serial('id').primaryKey(),

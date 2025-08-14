@@ -1,9 +1,21 @@
-// Export all schemas with specific exports to avoid conflicts
+// Achievement and Badge Related
 export {
-  customBadges as achievementBadges,
-  moodBoard as achievementMoodBoard,
-  userCollections as achievementCollections
-} from './achievements'
+  achievementCategories,
+  achievementTypes,
+  achievements,
+  customBadges,
+  moodBoard,
+  achievementCollections
+} from './achievements';
+
+// Skills and Interests
+export {
+  skillCategories,
+  skills,
+  interests,
+  userSkills,
+  userInterests
+} from './skills-interests';
 
 export * from './circles'
 
