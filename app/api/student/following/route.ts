@@ -1,91 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
+import { db } from '@/lib/db/drizzle'
+import { institutionFollowConnections, profiles } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    let token = authHeader?.replace('Bearer ', '')
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
 
-    if (!token) {
-      // Try to get token from cookies as fallback
-      const authCookie = request.cookies.get('sb-access-token')?.value ||
-                        request.cookies.get('sb-refresh-token')?.value
-
-      if (authCookie) {
-        token = authCookie
-      }
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify the user
-    const { data: authData, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !authData.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get all institutions the student is following
-    const followingConnections = await prisma.institutionFollowConnection.findMany({
-      where: {
-        senderId: authData.user.id
-      },
-      include: {
+    // Get following institutions with profile data in optimized query
+    const following = await db
+      .select({
+        id: institutionFollowConnections.id,
+        senderId: institutionFollowConnections.senderId,
+        receiverId: institutionFollowConnections.receiverId,
+        connectedAt: institutionFollowConnections.connectedAt,
         receiver: {
-          include: {
-            institution: {
-              include: {
-                institutionTypeRef: {
-                  include: {
-                    category: true
-                  }
-                }
-              }
-            }
-          }
+          id: profiles.id,
+          firstName: profiles.firstName,
+          lastName: profiles.lastName,
+          profileImageUrl: profiles.profileImageUrl,
+          bio: profiles.bio,
+          location: profiles.location
         }
-      },
-      orderBy: {
-        connectedAt: 'desc'
-      }
-    })
+      })
+      .from(institutionFollowConnections)
+      .innerJoin(profiles, eq(institutionFollowConnections.receiverId, profiles.id))
+      .where(eq(institutionFollowConnections.senderId, userId))
+      .orderBy(desc(institutionFollowConnections.connectedAt))
 
-    // Format the response
-    const followingInstitutions = followingConnections.map(connection => {
-      const profile = connection.receiver
-      const institution = profile.institution
-
-      return {
-        id: profile.id,
-        institutionName: institution?.institutionName || `${profile.firstName} ${profile.lastName}`,
-        institutionType: institution?.institutionTypeRef?.name || institution?.institutionType || 'Institution',
-        institutionCategory: institution?.institutionTypeRef?.category?.name || 'Education',
-        website: institution?.website,
-        logoUrl: institution?.logoUrl,
-        coverImageUrl: institution?.coverImageUrl,
-        verified: institution?.verified || false,
-        bio: profile.bio,
-        location: profile.location,
-        followedAt: connection.connectedAt ? new Date(connection.connectedAt).toISOString() : new Date().toISOString()
-      }
-    })
-
-    return NextResponse.json({ 
-      success: true,
-      following: followingInstitutions,
-      count: followingInstitutions.length
-    })
-
+    return NextResponse.json({ following })
   } catch (error) {
     console.error('Error fetching following institutions:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch following institutions' }, { status: 500 })
   }
 }
