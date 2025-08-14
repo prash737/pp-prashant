@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
+import { db } from '@/lib/db/drizzle'
+import { connections, profiles } from '@/lib/db/schema'
+import { eq, or, desc } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -37,49 +39,55 @@ export async function GET(request: NextRequest) {
     const userIdToQuery = targetUserId || user.id
 
     // Get connections where user is either user1 or user2
-    const connections = await prisma.connection.findMany({
-      where: {
-        OR: [
-          { user1Id: userIdToQuery },
-          { user2Id: userIdToQuery }
-        ]
-      },
-      include: {
-        user1: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImageUrl: true,
-            role: true,
-            bio: true,
-            location: true,
-            lastActiveDate: true,
-            availabilityStatus: true
-          }
-        },
-        user2: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImageUrl: true,
-            role: true,
-            bio: true,
-            location: true,
-            lastActiveDate: true,
-            availabilityStatus: true
-          }
-        }
-      },
-      orderBy: {
-        connectedAt: 'desc'
-      }
-    })
+    const userConnections = await db
+      .select({
+        id: connections.id,
+        user1Id: connections.user1Id,
+        user2Id: connections.user2Id,
+        connectionType: connections.connectionType,
+        connectedAt: connections.connectedAt
+      })
+      .from(connections)
+      .where(
+        or(
+          eq(connections.user1Id, userIdToQuery),
+          eq(connections.user2Id, userIdToQuery)
+        )
+      )
+      .orderBy(desc(connections.connectedAt))
 
-    // Format connections to show the other user's info
-    const formattedConnections = connections.map(connection => {
-      const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
+    // Get all user IDs we need to fetch profiles for
+    const userIds = userConnections.flatMap(conn =>
+      conn.user1Id === userIdToQuery ? [conn.user2Id] : [conn.user1Id]
+    )
+
+    // Fetch all profiles in one query
+    const userProfiles = await db
+      .select({
+        id: profiles.id,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        profileImageUrl: profiles.profileImageUrl,
+        role: profiles.role,
+        bio: profiles.bio,
+        location: profiles.location,
+        lastActiveDate: profiles.lastActiveDate,
+        availabilityStatus: profiles.availabilityStatus
+      })
+      .from(profiles)
+      .where(eq(profiles.id, userIds[0])) // Start with first ID
+
+    // Create a map for quick lookup
+    const profileMap = new Map(userProfiles.map(p => [p.id, p]))
+
+    const formattedConnections = userConnections.map(connection => {
+      const otherUserId = connection.user1Id === userIdToQuery ? connection.user2Id : connection.user1Id
+      const otherUser = profileMap.get(otherUserId)
+
+      // Skip if otherUser is null/undefined
+      if (!otherUser) {
+        return null
+      }
 
       return {
         id: connection.id,
@@ -97,7 +105,7 @@ export async function GET(request: NextRequest) {
           lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
         }
       }
-    })
+    }).filter(Boolean) // Remove null entries
 
     return NextResponse.json(formattedConnections)
 
