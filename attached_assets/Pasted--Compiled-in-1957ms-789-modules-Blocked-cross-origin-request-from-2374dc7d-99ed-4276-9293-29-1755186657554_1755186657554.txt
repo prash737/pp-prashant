@@ -1,0 +1,41 @@
+
+ ✓ Compiled in 1957ms (789 modules)
+ ⚠ Blocked cross-origin request from 2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'userInterests' (23:29)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interestCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'userInterests' (23:29)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interestCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'userInterests' (23:29)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interestCategories, userInterests, userSkills, skillEndorsements } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies, userLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/auth/user/route.ts
+ GET /api/parent/children 500 in 10494ms
+ GET /api/auth/user 500 in 10495ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
