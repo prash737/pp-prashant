@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from 'react'
+import { AuthCacheManager } from '@/lib/auth-cache'
 
 interface User {
   id: string
@@ -44,9 +45,38 @@ export function useAuth() {
 
     const fetchUser = async () => {
       try {
-        // Check if we have valid cached data
+        // Ultra-fast client cache check first
+        const authCache = AuthCacheManager.getInstance()
+        const cachedAuth = authCache.getCachedAuth()
+        
+        if (cachedAuth) {
+          console.log('⚡ Using client-side cached auth - ultra fast!')
+          setUser({
+            id: cachedAuth.userId,
+            role: cachedAuth.role,
+            firstName: '',
+            lastName: '',
+            email: ''
+          } as User)
+          setLoading(false)
+          
+          // Fetch full user data in background
+          fetchFullUserData(cachedAuth.userId, cachedAuth.role)
+          return
+        }
+        
+        // Check if we have valid global cached data
         if (globalUserCache && (Date.now() - globalUserCache.timestamp) < CACHE_DURATION) {
-          setUser(globalUserCache.user)
+          const userData = globalUserCache.user
+          if (userData) {
+            // Update client cache
+            authCache.setCachedAuth(
+              'cached-token', // We'll get the real token from cookies
+              userData.id,
+              userData.role
+            )
+          }
+          setUser(userData)
           setLoading(false)
           return
         }
@@ -74,11 +104,10 @@ export function useAuth() {
               timestamp: Date.now()
             }
 
-            // Store user session info in localStorage for persistence
+            // Store user session info in client cache
             try {
-              localStorage.setItem('user_session_timestamp', Date.now().toString())
-              localStorage.setItem('user_role', userData.role)
-              localStorage.setItem('user_id', userData.id)
+              const authCache = AuthCacheManager.getInstance()
+              authCache.setCachedAuth('api-token', userData.id, userData.role)
             } catch (error) {
               console.error('Error storing session info:', error)
             }
@@ -118,6 +147,42 @@ export function useAuth() {
           fetchProfileData(userData.id)
         }
       } catch (error) {
+
+
+    const fetchFullUserData = async (userId: string, userRole: string) => {
+      try {
+        console.log('🔄 Fetching full user data in background...')
+        
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include',
+          cache: 'no-store'
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          const userData = data.user
+          
+          // Update with full user data
+          setUser(userData)
+          
+          // Update global cache
+          globalUserCache = {
+            user: userData,
+            timestamp: Date.now()
+          }
+          
+          // If user is a student, fetch complete profile data
+          if (userData.role === 'student') {
+            fetchProfileData(userData.id)
+          }
+          
+          console.log('✅ Full user data loaded in background')
+        }
+      } catch (error) {
+        console.error('Background user fetch error:', error)
+      }
+    }
+
         console.error('Error in useAuth:', error)
       } finally {
         setLoading(false)
