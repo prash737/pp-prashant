@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { loginUser } from '@/lib/services/auth-service';
@@ -49,35 +50,40 @@ export async function POST(request: NextRequest) {
 
       if (result.role === 'student') {
         try {
-          // Import prisma at the top of the file if not already imported
-          const { prisma } = await import('@/lib/prisma');
+          // Import drizzle instead of prisma
+          const { db } = await import('@/lib/db/drizzle');
+          const { profiles, studentProfiles, userInterests, studentEducationHistory } = await import('@/lib/db/schema');
+          const { eq } = await import('drizzle-orm');
 
-          // Get complete student profile with all required data
-          const studentProfile = await prisma.studentProfile.findUnique({
-            where: { id: result.user.id },
-            include: {
-              profile: {
-                include: {
-                  userInterests: true,
-                }
-              },
-              educationHistory: true
-            }
-          });
+          // Get complete student profile with all required data using Drizzle
+          const studentProfileResult = await db
+            .select({
+              profile: profiles,
+              student: studentProfiles,
+              interests: userInterests,
+              education: studentEducationHistory
+            })
+            .from(studentProfiles)
+            .leftJoin(profiles, eq(profiles.id, studentProfiles.id))
+            .leftJoin(userInterests, eq(userInterests.userId, studentProfiles.id))
+            .leftJoin(studentEducationHistory, eq(studentEducationHistory.studentId, studentProfiles.id))
+            .where(eq(studentProfiles.id, result.user.id));
 
-          if (studentProfile) {
+          if (studentProfileResult.length > 0) {
+            const profileData = studentProfileResult[0];
+            
             // Check 1: Personal Information (first name, last name, bio)
-            const hasBasicInfo = studentProfile.profile.firstName && 
-                               studentProfile.profile.lastName && 
-                               studentProfile.profile.bio;
+            const hasBasicInfo = profileData.profile?.firstName && 
+                               profileData.profile?.lastName && 
+                               profileData.profile?.bio;
 
             // Check 2: Interests (at least one interest)
-            const hasInterests = studentProfile.profile.userInterests && 
-                               studentProfile.profile.userInterests.length > 0;
+            const interestCount = studentProfileResult.filter(row => row.interests?.id).length;
+            const hasInterests = interestCount > 0;
 
             // Check 3: Education History (at least one education entry)
-            const hasEducation = studentProfile.educationHistory && 
-                               studentProfile.educationHistory.length > 0;
+            const educationCount = studentProfileResult.filter(row => row.education?.id).length;
+            const hasEducation = educationCount > 0;
 
             // Only redirect to profile if ALL THREE sections have data
             needsOnboarding = !hasBasicInfo || !hasInterests || !hasEducation;
