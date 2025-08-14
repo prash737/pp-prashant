@@ -104,10 +104,10 @@ export default function AuthTestPage() {
 
     // Test 4: Check Token with Authorization header
     console.log('4. Testing check-token with auth header...')
-    const authToken = document.cookie
+    const authToken = typeof document !== 'undefined' ? document.cookie
       .split('; ')
       .find(row => row.startsWith('sb-access-token='))
-      ?.split('=')[1]
+      ?.split('=')[1] : null
 
     if (authToken) {
       await testAPI('/api/auth/check-token', {
@@ -133,6 +133,9 @@ export default function AuthTestPage() {
   }
 
   const formatCookies = () => {
+    if (typeof document === 'undefined') {
+      return ['Server-side rendering - cookies not available']
+    }
     const cookies = document.cookie.split('; ').filter(Boolean)
     return cookies.length > 0 ? cookies : ['No cookies found']
   }
@@ -239,7 +242,7 @@ export default function AuthTestPage() {
                 <div>
                   <h4 className="font-semibold mb-2">User Agent:</h4>
                   <div className="bg-gray-50 p-3 rounded text-sm">
-                    {navigator.userAgent}
+                    {typeof navigator !== 'undefined' ? navigator.userAgent : 'Server-side rendering - user agent not available'}
                   </div>
                 </div>
               </div>
