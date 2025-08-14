@@ -1,8 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db/drizzle'
+import { profiles } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     const { searchParams } = new URL(request.url)
     const token = searchParams.get('token')
@@ -46,16 +50,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Find student profile
-    const studentProfile = await prisma.profile.findUnique({
-      where: { id: studentId },
-      select: { 
-        firstName: true, 
-        lastName: true, 
-        email: true,
-        emailVerified: true 
-      }
-    })
+    // Find student profile using Drizzle
+    const [studentProfile] = await db
+      .select({ 
+        firstName: profiles.firstName, 
+        lastName: profiles.lastName, 
+        email: profiles.email,
+        emailVerified: profiles.emailVerified 
+      })
+      .from(profiles)
+      .where(eq(profiles.id, studentId))
+      .limit(1)
 
     if (!studentProfile) {
       return NextResponse.json(
@@ -71,19 +76,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Update email verification status
-    await prisma.profile.update({
-      where: { id: studentId },
-      data: { emailVerified: true }
-    })
+    // Update email verification status using Drizzle
+    await db
+      .update(profiles)
+      .set({ emailVerified: true })
+      .where(eq(profiles.id, studentId))
 
-    console.log('✅ Student email verified successfully for:', studentEmail)
+    const duration = Date.now() - startTime
+    console.log(`✅ Student email verified successfully for: ${studentEmail} (${duration}ms)`)
 
     // Redirect to login page with success message
     return NextResponse.redirect(new URL('/login?email_verified=true', 'https://pathpiper.com'))
 
   } catch (error) {
-    console.error('Student email verification error:', error)
+    const duration = Date.now() - startTime
+    console.error(`❌ Student email verification error (${duration}ms):`, error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

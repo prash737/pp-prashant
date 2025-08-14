@@ -192,6 +192,22 @@ export default function AuthTestPage() {
             </Button>
             
             <Button 
+              onClick={() => runSingleTest('/api/auth/verify-student-email/performance-test', 'Verify Student Email')}
+              disabled={testing}
+              variant="outline"
+            >
+              Test Student Email Verification
+            </Button>
+            
+            <Button 
+              onClick={() => runSingleTest('/api/auth/verify-parent/performance-test', 'Verify Parent')}
+              disabled={testing}
+              variant="outline"
+            >
+              Test Parent Verification
+            </Button>
+            
+            <Button 
               onClick={clearResults}
               variant="outline"
               className="text-red-600 hover:text-red-700"
