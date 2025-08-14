@@ -1,0 +1,72 @@
+institution_gallery
+Missing
+Needs to be implemented in Drizzle (5 fields)
+id, institutionId, imageUrl, caption, createdAt
+institution_facilities
+Missing
+Needs to be implemented in Drizzle (9 fields)
+id, institutionId, name, description, features, images, learnMoreLink, createdAt, updatedAt
+institution_faculty
+Missing
+Needs to be implemented in Drizzle (15 fields)
+id, institutionId, name, title, department, image, expertise, email, bio, qualifications, experience, specialization, featured, createdAt, updatedAt
+institution_events
+Missing
+Needs to be implemented in Drizzle (12 fields)
+id, institutionId, title, description, eventType, startDate, endDate, location, imageUrl, registrationUrl, createdAt, updatedAt
+institution_programs
+Missing
+Needs to be implemented in Drizzle (12 fields)
+id, institutionId, name, type, level, durationValue, durationType, description, eligibility, learningOutcomes, createdAt, updatedAt
+institution_quick_facts
+Missing
+Needs to be implemented in Drizzle (11 fields)
+id, institutionId, undergraduateStudents, graduateStudents, facultyMembers, campusSizeAcres, campusSizeKm2, internationalStudentsCountries, globalRanking, createdAt, updatedAt
+institution_contact_info
+Missing
+Needs to be implemented in Drizzle (13 fields)
+id, institutionId, address, city, state, country, postalCode, phone, email, website, socialLinks, createdAt, updatedAt
+institution_faculty_stats
+Missing
+Needs to be implemented in Drizzle (9 fields)
+id, institutionId, totalFaculty, studentFacultyRatioStudents, studentFacultyRatioFaculty, facultyWithPhdsPercentage, internationalFacultyPercentage, createdAt, updatedAt
+social_links
+Missing
+Needs to be implemented in Drizzle (7 fields)
+id, userId, platform, url, displayName, createdAt, updatedAt
+user_languages
+Missing
+Needs to be implemented in Drizzle (6 fields)
+id, userId, languageId, proficiencyLevel, createdAt, updatedAt
+user_hobbies
+Missing
+Needs to be implemented in Drizzle (4 fields)
+id, userId, hobbyId, createdAt
+mood_board
+Missing
+Needs to be implemented in Drizzle (8 fields)
+id, userId, imageUrl, caption, position, collectionId, createdAt, updatedAt
+custom_badges
+Missing
+Needs to be implemented in Drizzle (11 fields)
+id, userId, title, description, iconUrl, color, earnedDate, issuer, verificationUrl, createdAt, updatedAt
+skill_endorsements
+Missing
+Needs to be implemented in Drizzle (6 fields)
+id, endorserId, endorsedUserId, skillId, comment, createdAt
+post_likes
+Missing
+Needs to be implemented in Drizzle (4 fields)
+id, userId, postId, createdAt
+post_comments
+Missing
+Needs to be implemented in Drizzle (7 fields)
+id, postId, userId, content, parentId, createdAt, updatedAt
+post_bookmarks
+Missing
+Needs to be implemented in Drizzle (4 fields)
+id, userId, postId, createdAt
+post_reactions
+Missing
+Needs to be implemented in Drizzle (6 fields)
+id, postId, userId, reactionType, createdAt, updatedAt
