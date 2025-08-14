@@ -21,7 +21,6 @@ interface StudentProfileProps {
   isViewMode?: boolean // New prop to indicate if this is a view-only mode
   isShareMode?: boolean
   onGoBack?: () => void // New prop for back button handler
-  performanceLogger?: any // Performance logger instance
 }
 
 export default function StudentProfile({ 
@@ -30,8 +29,7 @@ export default function StudentProfile({
   studentData, 
   isViewMode = false,
   isShareMode = false,
-  onGoBack,
-  performanceLogger
+  onGoBack 
 }: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -45,102 +43,36 @@ export default function StudentProfile({
     institutions: 0
   })
 
-  // Component mount logging
-  useEffect(() => {
-    if (performanceLogger) {
-      performanceLogger.log('STUDENT_PROFILE_COMPONENT_MOUNT', 'COMPONENT_LIFECYCLE', {
-        hasStudentData: !!studentData,
-        isViewMode,
-        isShareMode
-      });
-    }
-  }, []);
-
   // Determine if this is the current user's own profile
   const isOwnProfile = currentUser?.id === student?.id
 
   // Fetch connections data
   const fetchConnections = async () => {
-    if (performanceLogger) {
-      performanceLogger.startPhase('CONNECTIONS_FETCH');
-      performanceLogger.log('CONNECTIONS_FETCH_START', 'CONNECTIONS_FETCH');
-    }
-
     try {
-      const fetchStartTime = performance.now();
-      const response = await fetch('/api/connections');
-      const fetchEndTime = performance.now();
-      
-      if (performanceLogger) {
-        performanceLogger.log('CONNECTIONS_API_RESPONSE', 'CONNECTIONS_FETCH', {
-          status: response.status,
-          ok: response.ok,
-          fetchDuration: fetchEndTime - fetchStartTime
-        });
-      }
-
+      const response = await fetch('/api/connections')
       if (response.ok) {
-        const parseStartTime = performance.now();
-        const data = await response.json();
-        const parseEndTime = performance.now();
-        
-        if (performanceLogger) {
-          performanceLogger.log('CONNECTIONS_DATA_PARSED', 'CONNECTIONS_FETCH', {
-            parseDuration: parseEndTime - parseStartTime,
-            connectionsCount: data.length
-          });
-        }
-
-        setConnections(data);
+        const data = await response.json()
+        setConnections(data)
 
         // Calculate connection counts by role
-        const countsStartTime = performance.now();
         const counts = {
           total: data.length,
           students: data.filter((conn: any) => conn.user.role === 'student').length,
           mentors: data.filter((conn: any) => conn.user.role === 'mentor').length,
           institutions: data.filter((conn: any) => conn.user.role === 'institution').length
-        };
-        const countsEndTime = performance.now();
-        
-        if (performanceLogger) {
-          performanceLogger.log('CONNECTIONS_COUNTS_CALCULATED', 'CONNECTIONS_FETCH', {
-            calculationDuration: countsEndTime - countsStartTime,
-            counts
-          });
         }
-
-        setConnectionCounts(counts);
+        setConnectionCounts(counts)
       }
     } catch (error) {
-      if (performanceLogger) {
-        performanceLogger.log('CONNECTIONS_FETCH_ERROR', 'CONNECTIONS_FETCH', {
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-      console.error('Error fetching connections:', error);
-    }
-
-    if (performanceLogger) {
-      performanceLogger.endPhase('CONNECTIONS_FETCH');
+      console.error('Error fetching connections:', error)
     }
   }
 
   useEffect(() => {
     if (studentData) {
-      if (performanceLogger) {
-        performanceLogger.startPhase('DATA_TRANSFORMATION');
-        performanceLogger.log('DATA_TRANSFORMATION_START', 'DATA_TRANSFORMATION', {
-          hasStudentData: true,
-          originalDataKeys: Object.keys(studentData)
-        });
-      }
-
-      // Fetch connections in parallel
-      fetchConnections();
+      fetchConnections()
 
       // Transform the real data to match our component's expected structure
-      const transformStartTime = performance.now();
       const transformedStudent = {
         id: studentData.id,
         ageGroup: studentData.ageGroup || "young_adult",
@@ -214,40 +146,10 @@ export default function StudentProfile({
         }
       }
 
-      const transformEndTime = performance.now();
-      
-      if (performanceLogger) {
-        performanceLogger.log('STUDENT_DATA_TRANSFORMED', 'DATA_TRANSFORMATION', {
-          transformDuration: transformEndTime - transformStartTime,
-          interestsCount: transformedStudent.interests.length,
-          skillsCount: transformedStudent.skills.length,
-          educationHistoryCount: transformedStudent.educationHistory.length,
-          hasProfileImage: !!transformedStudent.profile.profileImageUrl
-        });
-      }
-
-      const setStudentStartTime = performance.now();
-      setStudent(transformedStudent);
-      const setStudentEndTime = performance.now();
-      
-      if (performanceLogger) {
-        performanceLogger.log('SET_STUDENT_STATE', 'DATA_TRANSFORMATION', {
-          duration: setStudentEndTime - setStudentStartTime
-        });
-      }
-
-      const setLoadingStartTime = performance.now();
-      setLoading(false);
-      const setLoadingEndTime = performance.now();
-      
-      if (performanceLogger) {
-        performanceLogger.log('SET_LOADING_FALSE_FINAL', 'DATA_TRANSFORMATION', {
-          duration: setLoadingEndTime - setLoadingStartTime
-        });
-        performanceLogger.endPhase('DATA_TRANSFORMATION');
-      }
+      setStudent(transformedStudent)
+      setLoading(false)
     }
-  }, [studentData, performanceLogger])
+  }, [studentData])
 
   if (loading) {
     return (

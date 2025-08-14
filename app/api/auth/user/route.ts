@@ -1,232 +1,325 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
+import { cookies } from 'next/headers';
+
+// Database connection will be tested when actually needed
 
 export async function GET(request: NextRequest) {
+  console.log("API: User data request received");
+
   try {
-    console.log('API: User data request received')
+    // Simplified approach: Try to get user directly from database
+    // First try the cookie-based approach (for production)
+    console.log("API: Checking cookies for auth token");
 
-    // Check for authentication token in cookies
-    const cookieStore = await cookies()
-    const accessToken = cookieStore.get('sb-access-token')?.value
-    const userId = cookieStore.get('sb-user-id')?.value
+    // Try to get token from cookies or auth header
+    const authHeader = request.headers.get('Authorization');
+    const cookieString = request.headers.get('cookie') || '';
 
-    console.log('API: Checking cookies for auth token...')
-    console.log('API: Access token exists:', !!accessToken)
-    console.log('API: User ID exists:', !!userId)
-
-    if (!accessToken || !userId) {
-      console.log('API: No authentication token found')
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      )
-    }
-
-    console.log('API: Fetching user profile from database...')
-
-    // Import Drizzle dependencies
-    const { db } = await import('@/lib/db/drizzle')
-    const { profiles, studentProfiles, mentorProfiles, institutionProfiles } = await import('@/lib/db/schema')
-    const { skillUserInterests, studentEducationHistory } = await import('@/lib/db/schema')
-    const { eq } = await import('drizzle-orm')
-
-    // Get user's complete profile with optimized query
-    let profileResult
-    try {
-      // First, get basic profile data quickly
-      const profileQuery = db
-        .select()
-        .from(profiles)
-        .where(eq(profiles.id, userId))
-        .limit(1)
-
-      profileResult = await Promise.race([
-        profileQuery,
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Database query timeout')), 2000)
-        )
-      ])
-
-      if (!profileResult.length) {
-        console.log('API: No profile found for user ID:', userId)
-        return NextResponse.json(
-          { success: false, error: 'Profile not found' },
-          { status: 404 }
-        )
-      }
-
-      const profile = profileResult[0]
-      
-      // Get role-specific data only if needed
-      let roleSpecificData = null
-      if (profile.role === 'student') {
-        const studentData = await db
-          .select()
-          .from(studentProfiles)
-          .where(eq(studentProfiles.id, userId))
-          .limit(1)
-        roleSpecificData = studentData[0] || null
-      } else if (profile.role === 'mentor') {
-        const mentorData = await db
-          .select()
-          .from(mentorProfiles)
-          .where(eq(mentorProfiles.id, userId))
-          .limit(1)
-        roleSpecificData = mentorData[0] || null
-      } else if (profile.role === 'institution') {
-        const institutionData = await db
-          .select()
-          .from(institutionProfiles)
-          .where(eq(institutionProfiles.id, userId))
-          .limit(1)
-        roleSpecificData = institutionData[0] || null
-      }
-
-      // Restructure result to match expected format
-      profileResult = [{
-        profile: profile,
-        student: profile.role === 'student' ? roleSpecificData : null,
-        mentor: profile.role === 'mentor' ? roleSpecificData : null,
-        institution: profile.role === 'institution' ? roleSpecificData : null
-      }]
-    } catch (dbError) {
-      console.error('API: Drizzle query failed, falling back to direct query:', dbError)
-      
-      // Fallback: Return minimal user data from cookies
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: userId,
-          firstName: 'User',
-          lastName: '',
-          email: 'user@example.com',
-          role: 'student',
-          profileImageUrl: null,
-          bio: null,
-          onboardingCompleted: true,
-        },
-        fallbackMode: true,
-        message: 'Using fallback user data due to database connection issues'
+    // Parse cookies properly
+    const cookies = Object.fromEntries(
+      cookieString.split(';').map(cookie => {
+        const [name, ...rest] = cookie.trim().split('=');
+        return [name, decodeURIComponent(rest.join('='))];
       })
-    }
+    );
 
-    if (!profileResult.length || !profileResult[0].profile) {
-      console.log('API: No profile found for user ID:', userId)
-      return NextResponse.json(
-        { success: false, error: 'Profile not found' },
-        { status: 404 }
-      )
-    }
+    console.log("API: Available cookies:", Object.keys(cookies).join(', '));
 
-    const profile = profileResult[0].profile
-    const studentProfile = profileResult[0].student
-    const mentorProfile = profileResult[0].mentor
-    const institutionProfile = profileResult[0].institution
+    // Log all available cookies for debugging
+    console.log("API: Available cookies:", Object.keys(cookies));
+    console.log("API: Looking for session cookies...");
 
-    console.log('API: Profile found for role:', profile.role)
+    // Prioritize auth header, then look for our new session cookies
+    let token = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+      console.log("API: Using token from Authorization header");
+    } else {
+      // First try our new access token cookie
+      if (cookies['sb-access-token']) {
+        token = cookies['sb-access-token'];
+        console.log("API: Using access token from sb-access-token cookie");
+      } else {
+        // Fallback to looking for other Supabase session cookies
+        const sbAuthTokens = Object.keys(cookies).filter(key => 
+          key.startsWith('sb-') && (key.includes('auth-token') || key.includes('access'))
+        );
 
-    // For students, determine onboarding completion by checking data presence
-    let onboardingCompleted = false
-    if (profile.role === 'student') {
-      try {
-        // Check parent verification and email verification for students under 16
-        if (studentProfile && studentProfile.birthYear && studentProfile.birthMonth) {
-          const currentDate = new Date()
-          const currentYear = currentDate.getFullYear()
-          const currentMonth = currentDate.getMonth() + 1
+        console.log("API: Found potential auth cookies:", sbAuthTokens);
 
-          const birthYear = parseInt(studentProfile.birthYear)
-          const birthMonth = parseInt(studentProfile.birthMonth)
+        for (const cookieName of sbAuthTokens) {
+          try {
+            const cookieValue = cookies[cookieName];
+            console.log(`API: Checking cookie ${cookieName} (length: ${cookieValue?.length || 0})`);
 
-          let ageInYears = currentYear - birthYear
-          if (currentMonth < birthMonth) {
-            ageInYears--
-          }
-
-          // Check if student is under 16 and verification status
-          if (ageInYears < 16) {
-            const isParentVerified = profile.parentVerified || false
-            const isEmailVerified = profile.emailVerified || false
-
-            // Check verification status and return appropriate response
-            if (!isParentVerified || !isEmailVerified) {
-              return NextResponse.json({
-                success: true,
-                user: {
-                  id: profile.id,
-                  firstName: profile.firstName,
-                  lastName: profile.lastName,
-                  email: profile.email,
-                  role: profile.role,
-                },
-                needsParentApproval: !isParentVerified,
-                needsEmailVerification: !isEmailVerified,
-                onboardingCompleted: false
-              })
+            // Try to parse as JSON if it looks like a session object
+            if (cookieValue.startsWith('[') || cookieValue.startsWith('{')) {
+              const parsed = JSON.parse(cookieValue);
+              if (parsed && parsed.access_token) {
+                token = parsed.access_token;
+                console.log(`API: Extracted access_token from ${cookieName}`);
+                break;
+              }
+            } else if (cookieValue.includes('.')) {
+              // If it looks like a JWT (has dots), use it directly
+              token = cookieValue;
+              console.log(`API: Using JWT token from ${cookieName}`);
+              break;
             }
+          } catch (parseError) {
+            console.log(`API: Failed to parse cookie ${cookieName}:`, parseError instanceof Error ? parseError.message : String(parseError));
           }
         }
-
-        // Check if user has minimum required data for all three essential sections
-        const hasBasicInfo = !!(profile.firstName && profile.lastName && profile.bio)
-
-        // Check interests and education in parallel for better performance
-        const [interests, education] = await Promise.all([
-          db.select({ id: skillUserInterests.id })
-            .from(skillUserInterests)
-            .where(eq(skillUserInterests.userId, profile.id))
-            .limit(1),
-          db.select({ id: studentEducationHistory.id })
-            .from(studentEducationHistory)
-            .where(eq(studentEducationHistory.studentId, profile.id))
-            .limit(1)
-        ])
-        
-        const hasInterests = interests.length > 0
-        const hasEducation = education.length > 0
-
-        onboardingCompleted = hasBasicInfo && hasInterests && hasEducation
-
-        console.log('API: Onboarding completion check:', {
-          userId: profile.id,
-          hasBasicInfo,
-          hasInterests: `${interests.length} interests`,
-          hasEducation: `${education.length} education entries`,
-          onboardingCompleted
-        })
-      } catch (error) {
-        console.error('API: Error checking onboarding completion:', error)
-        onboardingCompleted = false
       }
-    } else if (profile.role === 'mentor' && mentorProfile) {
-      onboardingCompleted = mentorProfile.onboardingCompleted || false
-    } else if (profile.role === 'institution' && institutionProfile) {
-      onboardingCompleted = institutionProfile.onboardingCompleted || false
     }
 
-    // Return user data
-    const userData = {
-      id: profile.id,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: profile.email,
-      role: profile.role,
-      profileImageUrl: profile.profileImageUrl,
-      bio: profile.bio,
-      onboardingCompleted,
+    console.log("API: Token found:", !!token);
+    if (token) {
+      console.log("API: Token preview:", token.substring(0, 30) + "...");
     }
 
-    console.log('API: Returning user data successfully')
+    // If no access token found, try to use refresh token to get a new session
+    let refreshData = null;
+    if (!token && cookies['sb-refresh-token']) {
+      console.log("API: No access token found, attempting to refresh session");
+      try {
+        const refreshResult = await supabase.auth.refreshSession({
+          refresh_token: cookies['sb-refresh-token']
+        });
+        refreshData = refreshResult.data;
+        const refreshError = refreshResult.error;
+
+        if (refreshData?.session?.access_token) {
+          token = refreshData.session.access_token;
+          console.log("API: Successfully refreshed access token");
+        } else {
+          console.log("API: Failed to refresh session:", refreshError?.message);
+        }
+      } catch (refreshErr) {
+        console.log("API: Error during token refresh:", refreshErr);
+      }
+    }
+
+    if (token) {
+      console.log("API: Token preview:", token.substring(0, 20) + "...");
+
+      // Try to verify the token with Supabase
+      console.log("API: Verifying token with Supabase");
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser(token);
+
+        if (authError) {
+          console.log("API: Supabase auth error:", authError.message);
+          // Even if auth fails, try a direct query as fallback
+        } else if (authData && authData.user) {
+          console.log("API: Authenticated user found:", authData.user.id);
+
+          // Query the database for the user profile
+          const userProfile = await prisma.profile.findUnique({
+            where: { id: authData.user.id },
+            include: {
+              student: true,
+              mentor: true,
+              institution: true
+            }
+          });
+
+          if (userProfile) {
+            console.log("API: User profile found in database");
+            console.log("API: Raw age_group from database:", userProfile.student?.age_group);
+            // Format birth month and year for display
+            let birthMonth = "";
+            let birthYear = "";
+
+            if (userProfile.student) {
+              birthMonth = userProfile.student.birthMonth ? userProfile.student.birthMonth.toString() : "";
+              birthYear = userProfile.student.birthYear ? userProfile.student.birthYear.toString() : "";
+            }
+            const responseData = {
+              user: {
+                id: userProfile.id,
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                email: authData.user.email,
+                role: userProfile.role,
+                bio: userProfile.bio,
+                location: userProfile.location,
+                profileImageUrl: userProfile.profileImageUrl,
+                // Add student-specific data if this is a student
+                ...(userProfile.student && {
+                  educationLevel: userProfile.student.educationLevel,
+                  onboardingCompleted: userProfile.student.onboardingCompleted ?? true, // Default to true if null
+                  birthMonth: birthMonth,
+                  birthYear: birthYear,
+                  ageGroup: userProfile.student.age_group, // Return exactly as stored in DB
+                }),
+                // Add mentor-specific data if this is a mentor
+                ...(userProfile.mentor && {
+                  profession: userProfile.mentor.profession,
+                  organization: userProfile.mentor.organization,
+                  yearsExperience: userProfile.mentor.yearsExperience,
+                  onboardingCompleted: userProfile.mentor.onboardingCompleted
+                }),
+                // Add institution-specific data if this is an institution
+                ...(userProfile.institution && {
+                  institutionName: userProfile.institution.institutionName,
+                  institutionType: userProfile.institution.institutionType,
+                  institutionTypeId: userProfile.institution.institutionTypeId,
+                  website: userProfile.institution.website,
+                  onboardingCompleted: userProfile.institution.onboardingCompleted
+                })
+              }
+            };
+
+            // If we refreshed the token, set the cookie and return the response with the cookie
+            if (refreshData?.session?.access_token) {
+              const response = NextResponse.json(responseData);
+              response.cookies.set('sb-access-token', refreshData.session.access_token, {
+                httpOnly: true,
+                secure: true, // Always secure in production
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 24 * 7, // 7 days
+                path: '/'
+              });
+              if (refreshData.session.refresh_token) {
+                response.cookies.set('sb-refresh-token', refreshData.session.refresh_token, {
+                  httpOnly: true,
+                  secure: true,
+                  sameSite: 'lax',
+                  maxAge: 60 * 60 * 24 * 30, // 30 days
+                  path: '/'
+                });
+              }
+              return response;
+            } else {
+              return NextResponse.json(responseData);
+            }
+          } else {
+            console.log("API: User authenticated but no profile found");
+          }
+        }
+      } catch (err) {
+        console.error("API: Error verifying token:", err);
+      }
+    }
+
+    // If we reach here, we couldn't authenticate or find any profile
+    return NextResponse.json(
+      { error: "Unauthorized or no profile found" },
+      { status: 401 }
+    );
+  } catch (error) {
+    console.error("API: Unexpected error in user route:", error);
+    return NextResponse.json(
+      { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    console.log("API: Profile update request received");
+
+    // Get the request body
+    const body = await request.json();
+    console.log("API: Update data:", body);
+
+    // Get user from session cookie - properly await cookies() for NextJS 15
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('sb-access-token')?.value;
+
+    if (!accessToken) {
+      console.log("API: No access token found");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
+
+    if (authError || !user) {
+      console.log("API: Invalid token or user not found");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("API: Authenticated user:", user.id);
+
+    // Extract profile data from the nested structure
+    const profileData = body.profile || body;
+
+    // Update profile data
+    if (profileData) {
+      console.log('Updating profile with data:', profileData);
+
+      const profileUpdateData: any = {};
+      if (profileData.firstName !== undefined) profileUpdateData.firstName = profileData.firstName;
+      if (profileData.lastName !== undefined) profileUpdateData.lastName = profileData.lastName;
+      if (profileData.bio !== undefined) profileUpdateData.bio = profileData.bio;
+      if (profileData.location !== undefined) profileUpdateData.location = profileData.location;
+      if (profileData.tagline !== undefined) profileUpdateData.tagline = profileData.tagline;
+      // Note: onboarding_completed field has been removed from Profile model
+        // Onboarding completion is now determined by data presence for students
+        // and stored in role-specific profile tables for mentors/institutions
+
+      console.log('Profile update data being sent to database:', profileUpdateData);
+
+      const updatedProfile = await prisma.profile.update({
+        where: { id: user.id },
+        data: profileUpdateData
+      });
+
+      console.log("API: Profile updated successfully");
+
+      // If user is a student, also update student profile
+      if (profileData.educationLevel || profileData.birthMonth || profileData.birthYear || profileData.ageGroup) {
+      const studentUpdateData: any = {};
+
+      if (profileData.educationLevel) {
+        studentUpdateData.educationLevel = profileData.educationLevel;
+      }
+      if (profileData.birthMonth) {
+        studentUpdateData.birthMonth = profileData.birthMonth;
+      }
+      if (profileData.birthYear) {
+        studentUpdateData.birthYear = profileData.birthYear;
+      }
+      if (profileData.ageGroup) {
+        studentUpdateData.age_group = profileData.ageGroup;
+      }
+
+      await prisma.studentProfile.update({
+        where: { id: user.id },
+        data: studentUpdateData
+      });
+      console.log("API: Student profile updated successfully");
+    }
 
     return NextResponse.json({
       success: true,
-      user: userData,
-    })
+      message: "Profile updated successfully",
+      user: {
+        id: updatedProfile.id,
+        firstName: updatedProfile.firstName,
+        lastName: updatedProfile.lastName,
+        bio: updatedProfile.bio,
+        location: updatedProfile.location,
+      }
+    });
+    }
+
+    // If no profile data to update
+    return NextResponse.json({
+      success: false,
+      error: 'No profile data provided'
+    }, { status: 400 });
+
   } catch (error) {
-    console.error('API: Error fetching user data:', error)
+    console.error('Error updating profile:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch user data' },
+      { success: false, error: 'Failed to update profile' },
       { status: 500 }
-    )
+    );
   }
 }

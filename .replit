@@ -65,28 +65,3 @@ args = "echo \"✅ Feed testing setup complete!\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
-
-[[workflows.workflow]]
-name = "Database Migration"
-author = 37308151
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo \"🚀 Starting Database Migration from Prisma to Drizzle...\""
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo \"📋 Running full migration orchestration...\""
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run migration:full"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo \"✅ Migration process completed!\""
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "echo \"📊 Check logs in scripts/logs/ for detailed results\""

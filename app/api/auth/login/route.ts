@@ -1,192 +1,175 @@
-
-import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { db } from '@/lib/db/drizzle'
-import { profiles } from '@/lib/db/schema/profiles'
-import { studentProfiles } from '@/lib/db/schema/students'
-import { eq } from 'drizzle-orm'
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { loginUser } from '@/lib/services/auth-service';
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  console.log('🔐 [API] Login request started')
-  
   try {
-    const { email, password } = await request.json()
-    console.log('🔐 [API] Login attempt for email:', email?.substring(0, 5) + '***')
+    const { email, password, expectedRole } = await request.json();
 
+    // Validate input
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, message: 'Email and password are required' },
+        { success: false, error: 'Email and password are required' },
         { status: 400 }
-      )
+      );
     }
 
-    // Supabase authentication
-    console.log('🔐 [API] Authenticating with Supabase...')
-    
-    const authStartTime = Date.now()
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    const authDuration = Date.now() - authStartTime
-    console.log(`🔐 [API] Supabase auth completed in ${authDuration}ms`)
+    // Call login service
+    const result = await loginUser({ email, password });
 
-    if (authError) {
-      console.log('🔐 [API] Authentication failed:', authError.message)
-      return NextResponse.json(
-        { success: false, message: 'Invalid credentials' },
-        { status: 401 }
-      )
-    }
+    console.log('Login API - Result success:', result.success);
+    console.log('Login API - User ID:', result.user?.id);
+    console.log('Login API - Session exists:', !!result.session);
 
-    if (!authData.user) {
-      console.log('🔐 [API] No user data returned from Supabase')
-      return NextResponse.json(
-        { success: false, message: 'Authentication failed' },
-        { status: 401 }
-      )
-    }
+    // If login successful, set session cookie
+    if (result.success && result.user) {
+      console.log('Login API - Setting up session cookies...');
 
-    // Fetch user profile using Drizzle
-    console.log('🔐 [API] Fetching user profile from database...')
-    const dbStartTime = Date.now()
-    
-    let userProfile
-    try {
-      userProfile = await db
-        .select({
-          id: profiles.id,
-          firstName: profiles.firstName,
-          lastName: profiles.lastName,
-          email: profiles.email,
-          role: profiles.role,
-          profileImageUrl: profiles.profileImageUrl,
-          bio: profiles.bio,
-          onboardingCompleted: profiles.onboardingCompleted,
-        })
-        .from(profiles)
-        .where(eq(profiles.id, authData.user.id))
-        .limit(1)
-    } catch (dbError) {
-      console.error('🔐 [API] Database query error:', dbError)
-      return NextResponse.json(
-        { success: false, message: 'Database error' },
-        { status: 500 }
-      )
-    }
-
-    const dbDuration = Date.now() - dbStartTime
-    console.log(`🔐 [API] Database query completed in ${dbDuration}ms`)
-    console.log('🔐 [API] User profile query result:', userProfile)
-
-    if (!userProfile || userProfile.length === 0) {
-      console.log('🔐 [API] User profile not found in database')
-      return NextResponse.json(
-        { success: false, message: 'User profile not found' },
-        { status: 404 }
-      )
-    }
-
-    const user = userProfile[0]
-    if (!user) {
-      console.log('🔐 [API] User object is null/undefined')
-      return NextResponse.json(
-        { success: false, message: 'User profile data is invalid' },
-        { status: 404 }
-      )
-    }
-    console.log('🔐 [API] User profile found:', { 
-      id: user?.id, 
-      role: user?.role,
-      onboardingCompleted: user?.onboardingCompleted 
-    })
-
-    // Check onboarding status for students
-    let onboardingComplete = user?.onboardingCompleted || false
-    if (user?.role === 'student' && !onboardingComplete) {
-      console.log('🔐 [API] Checking student onboarding status...')
-      
-      try {
-        const studentProfile = await db
-          .select({
-            id: studentProfiles.id,
-          })
-          .from(studentProfiles)
-          .where(eq(studentProfiles.studentId, user.id))
-          .limit(1)
-
-        onboardingComplete = studentProfile?.length > 0
-        console.log('🔐 [API] Student onboarding status:', onboardingComplete)
-
-        // Update profile if onboarding is now complete
-        if (onboardingComplete && !user.onboardingCompleted) {
-          await db
-            .update(profiles)
-            .set({ onboardingCompleted: true })
-            .where(eq(profiles.id, user.id))
-          console.log('🔐 [API] Updated onboarding status to complete')
-        }
-      } catch (studentError) {
-        console.error('🔐 [API] Error checking student profile:', studentError)
-        // Continue with original onboarding status if student check fails
+      // Log the complete session object
+      if (result.session) {
+        console.log('Login API - Session access_token preview:', result.session.access_token?.substring(0, 20) + '...');
+        console.log('Login API - Session refresh_token preview:', result.session.refresh_token?.substring(0, 20) + '...');
+        console.log('Login API - Session expires_at:', result.session.expires_at);
+        console.log('Login API - Session expires_in:', result.session.expires_in);
       }
+
+      // Validate role if expectedRole is provided
+      if (expectedRole && result.role !== expectedRole) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: `This account is registered as a ${result.role}, not a ${expectedRole}. Please use the correct login section.` 
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check if user has minimum required information for all three essential sections
+      let needsOnboarding = false;
+
+      if (result.role === 'student') {
+        try {
+          // Import prisma at the top of the file if not already imported
+          const { prisma } = await import('@/lib/prisma');
+
+          // Get complete student profile with all required data
+          const studentProfile = await prisma.studentProfile.findUnique({
+            where: { id: result.user.id },
+            include: {
+              profile: {
+                include: {
+                  userInterests: true,
+                }
+              },
+              educationHistory: true
+            }
+          });
+
+          if (studentProfile) {
+            // Check 1: Personal Information (first name, last name, bio)
+            const hasBasicInfo = studentProfile.profile.firstName && 
+                               studentProfile.profile.lastName && 
+                               studentProfile.profile.bio;
+
+            // Check 2: Interests (at least one interest)
+            const hasInterests = studentProfile.profile.userInterests && 
+                               studentProfile.profile.userInterests.length > 0;
+
+            // Check 3: Education History (at least one education entry)
+            const hasEducation = studentProfile.educationHistory && 
+                               studentProfile.educationHistory.length > 0;
+
+            // Only redirect to profile if ALL THREE sections have data
+            needsOnboarding = !hasBasicInfo || !hasInterests || !hasEducation;
+
+            console.log('Login onboarding check:', {
+              hasBasicInfo,
+              hasInterests,
+              hasEducation,
+              needsOnboarding
+            });
+          } else {
+            // No student profile found, definitely needs onboarding
+            needsOnboarding = true;
+          }
+        } catch (error) {
+          console.error('Error checking student profile completeness:', error);
+          // If there's an error checking, err on the side of caution and require onboarding
+          needsOnboarding = true;
+        }
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        role: result.role,
+        onboardingCompleted: !needsOnboarding,
+        userId: result.user.id,
+        email: result.user.email,
+        name: `${result.user.user_metadata?.first_name || ''} ${result.user.user_metadata?.last_name || ''}`.trim()
+      });
+
+      // Set session cookies manually using Supabase session data
+      if (result.session) {
+        console.log('Login API - Setting Supabase session cookies...');
+
+        // Set access token cookie (this is what we'll use for API calls)
+        response.cookies.set('sb-access-token', result.session.access_token, {
+          httpOnly: true,
+          secure: true, // Always secure for production
+          sameSite: 'lax',
+          maxAge: result.session.expires_in || 3600, // Use session expiry or 1 hour
+          path: '/',
+        });
+
+        // Set refresh token cookie
+        response.cookies.set('sb-refresh-token', result.session.refresh_token, {
+          httpOnly: true,
+          secure: true, // Always secure for production
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 30, // 30 days for refresh token
+          path: '/',
+        });
+
+        // Set user ID cookie for easy access
+        response.cookies.set('sb-user-id', result.user.id, {
+          httpOnly: true,
+          secure: true, // Always secure for production
+          sameSite: 'lax',
+          maxAge: result.session.expires_in || 3600,
+          path: '/',
+        });
+
+        console.log('Login API - Cookies set successfully');
+        console.log("API: Cookies set successfully - access token length:", result.session.access_token.length);
+      } else {
+        console.warn('Login API - No session data available to set cookies');
+      }
+
+      return response;
     }
 
-    // Set session cookies
-    const response = NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: user?.id || '',
-        firstName: user?.firstName || '',
-        lastName: user?.lastName || '',
-        email: user?.email || '',
-        role: user?.role || '',
-        profileImageUrl: user?.profileImageUrl || null,
-        bio: user?.bio || null,
-        onboardingCompleted: onboardingComplete,
-      },
-      redirect: onboardingComplete ? (user?.role === 'institution' ? '/institution/profile' : '/feed') : (user?.role === 'institution' ? '/institution-onboarding' : '/onboarding')
-    })
-
-    // Set cookies with auth tokens
-    if (authData.session) {
-      response.cookies.set('accessToken', authData.session.access_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      })
-
-      response.cookies.set('refreshToken', authData.session.refresh_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30 // 30 days
-      })
-
-      response.cookies.set('userId', authData.user.id, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      })
+    // Check if it's a verification error and return appropriate status
+    if (result.error && (result.error.includes('parent verify') || result.error.includes('email verify'))) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: result.error,
+          needsParentApproval: result.needsParentApproval || false,
+          needsEmailVerification: result.needsEmailVerification || false
+        },
+        { status: 403 } // Forbidden - different from 401 unauthorized
+      );
     }
 
-    const totalDuration = Date.now() - startTime
-    console.log(`🔐 [API] Login request completed successfully in ${totalDuration}ms`)
-    console.log(`🔐 [API] Performance breakdown: Auth=${authDuration}ms, DB=${dbDuration}ms`)
-
-    return response
-
-  } catch (error) {
-    const totalDuration = Date.now() - startTime
-    console.error('🔐 [API] Login error after', totalDuration + 'ms:', error)
-    
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, error: result.error || 'Login failed' },
+      { status: 401 }
+    );
+  } catch (error) {
+    console.error('Login API error:', error);
+    return NextResponse.json(
+      { success: false, error: 'An unexpected error occurred' },
       { status: 500 }
-    )
+    );
   }
 }

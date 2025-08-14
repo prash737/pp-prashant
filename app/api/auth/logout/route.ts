@@ -1,50 +1,69 @@
-
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  console.log('🔐 [API] Logout request started')
-
   try {
-    // Create response immediately
-    const response = NextResponse.json({
-      success: true,
-      message: 'Logged out successfully'
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+
+    // Clear the authentication cookies
+    const response = NextResponse.json({ 
+      success: true, 
+      message: "Logged out successfully",
+      clearStorage: true // Signal to client to clear all storage
     })
 
-    // Clear all authentication-related cookies in parallel
-    const cookiesToClear = [
-      'accessToken',
-      'refreshToken',
-      'userId',
-      'sb-access-token',
-      'sb-refresh-token', 
-      'sb-user-id'
-    ]
+    // Get the host from the request
+    const host = request.headers.get('host') || '';
+    const isProduction = process.env.NODE_ENV === 'production' || host.includes('.repl.co');
 
-    // Set all cookies to expire immediately
+    // Clear all possible authentication cookies
+    const cookiesToClear = [
+      'sb-access-token',
+      'sb-refresh-token',
+      'sb-user-id',
+      'supabase-auth-token',
+      'supabase.auth.token',
+      'auth-token'
+    ];
+
     cookiesToClear.forEach(cookieName => {
       response.cookies.set(cookieName, '', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 0,
-        path: '/'
-      })
-    })
+        path: '/',
+        domain: isProduction ? undefined : undefined
+      });
+      
+      // Also clear without httpOnly for client-accessible cookies
+      response.cookies.set(cookieName, '', {
+        httpOnly: false,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        maxAge: 0,
+        path: '/',
+        domain: isProduction ? undefined : undefined
+      });
+    });
 
-    const totalDuration = Date.now() - startTime
-    console.log(`🔐 [API] Logout completed successfully in ${totalDuration}ms`)
+    // Clear any session-related headers
+    response.headers.delete('x-user-id');
+    response.headers.delete('x-user-email');
 
-    return response
-
+    return response;
   } catch (error) {
-    const totalDuration = Date.now() - startTime
-    console.error('🔐 [API] Logout error after', totalDuration + 'ms:', error)
-    
+    console.error('Logout API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Logout failed' },
+      { success: false, error: 'An unexpected error occurred' },
       { status: 500 }
-    )
+    );
   }
 }

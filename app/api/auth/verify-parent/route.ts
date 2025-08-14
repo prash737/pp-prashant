@@ -1,12 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/drizzle'
-import { profiles, parentProfiles } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now()
-  
   try {
     const { searchParams } = new URL(request.url)
     const token = searchParams.get('token')
@@ -38,15 +33,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get student profile to display name in success message using Drizzle
-    const [studentProfile] = await db
-      .select({ 
-        firstName: profiles.firstName, 
-        lastName: profiles.lastName 
-      })
-      .from(profiles)
-      .where(eq(profiles.id, studentId))
-      .limit(1)
+    // Get student profile to display name in success message
+    const studentProfile = await prisma.profile.findUnique({
+      where: { id: studentId },
+      select: { firstName: true, lastName: true }
+    })
 
     if (!studentProfile) {
       return NextResponse.json(
@@ -67,19 +58,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Find parent profile with matching email and token using Drizzle
-    const [parentProfile] = await db
-      .select({ 
-        id: parentProfiles.id 
-      })
-      .from(parentProfiles)
-      .where(
-        and(
-          eq(parentProfiles.email, parentEmail),
-          eq(parentProfiles.verificationToken, token)
-        )
-      )
-      .limit(1)
+    // Find parent profile with matching email and token
+    const parentProfile = await prisma.parentProfile.findFirst({
+      where: {
+        email: parentEmail,
+        verificationToken: token
+      }
+    })
 
     if (!parentProfile) {
       return NextResponse.json(
@@ -88,14 +73,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Clear the verification token (but do NOT set parent_verified to true) using Drizzle
-    await db
-      .update(parentProfiles)
-      .set({ verificationToken: null })
-      .where(eq(parentProfiles.id, parentProfile.id))
+    // Clear the verification token (but do NOT set parent_verified to true)
+    await prisma.parentProfile.update({
+      where: { id: parentProfile.id },
+      data: {
+        verificationToken: null
+      }
+    })
 
-    const duration = Date.now() - startTime
-    console.log(`✅ Parent verification link clicked for student: ${studentId} (${duration}ms)`)
+    console.log('✅ Parent verification link clicked for student:', studentId)
     console.log('ℹ️ Parent_verified remains FALSE until parent completes registration/login')
 
     // Redirect based on parent registration status
@@ -109,8 +95,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(urlWithEmail)
 
   } catch (error) {
-    const duration = Date.now() - startTime
-    console.error(`❌ Parent verification error (${duration}ms):`, error)
+    console.error('Parent verification error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
