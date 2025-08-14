@@ -1,0 +1,34 @@
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests as skillUserInterests, userSkills, hobbies as skillHobbies, languages as skillLanguages, userHobbies, userLanguages } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies as socialUserHobbies, userLanguages as socialUserLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/student/profile/[id]/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests as skillUserInterests, userSkills, hobbies as skillHobbies, languages as skillLanguages, userHobbies, userLanguages } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies as socialUserHobbies, userLanguages as socialUserLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/student/profile/[id]/route.ts
+ ⨯ ./lib/db/schema/index.ts
+Module parse failed: Duplicate export 'interests' (23:9)
+| export { postBookmarks, postComments, postLikes, postReactions } from './posts';
+| export * from './profiles';
+> export { interests, interestCategories, skills, skillCategories, userInterests as skillUserInterests, userSkills, hobbies as skillHobbies, languages as skillLanguages, userHobbies, userLanguages } from './skills-interests';
+| export { socialLinks, hobbies, languages, userHobbies as socialUserHobbies, userLanguages as socialUserLanguages } from './social';
+| export * from './students';
+
+Import trace for requested module:
+./lib/db/schema/index.ts
+./app/api/student/profile/[id]/route.ts
+ GET /api/student/profile/006a3d59-ec4d-42e6-aee4-d04f1d0caf2b 500 in 18971ms
