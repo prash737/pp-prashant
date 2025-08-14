@@ -5,8 +5,18 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -H 0.0.0.0 -p 3000",
-    "lint": "next lint"
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:validate": "drizzle-kit check",
+    "db:test": "tsx scripts/test-connection.ts",
+    "migration:dry-run": "tsx scripts/database-migration.ts --dry-run",
+    "migration:execute": "tsx scripts/database-migration.ts",
+    "migration:api-analysis": "tsx scripts/api-migration.ts",
+    "migration:full": "tsx scripts/migration-orchestrator.ts --force",
+    "test:migration": "jest --testPathPattern=migration"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
