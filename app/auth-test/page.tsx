@@ -176,6 +176,22 @@ export default function AuthTestPage() {
             </Button>
             
             <Button 
+              onClick={() => runSingleTest('/api/auth/register', 'Register')}
+              disabled={testing}
+              variant="outline"
+            >
+              Test Register
+            </Button>
+            
+            <Button 
+              onClick={() => runSingleTest('/api/auth/logout', 'Logout')}
+              disabled={testing}
+              variant="outline"
+            >
+              Test Logout
+            </Button>
+            
+            <Button 
               onClick={clearResults}
               variant="outline"
               className="text-red-600 hover:text-red-700"
