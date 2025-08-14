@@ -1,14 +1,17 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase'
 import { db } from '@/lib/db/drizzle'
-import { profiles, studentProfiles, mentorProfiles, institutionProfiles, userInterests, studentEducationHistory } from '@/lib/db/schema'
+import { profiles } from '@/lib/db/schema/profiles'
+import { studentProfiles, studentEducationHistory } from '@/lib/db/schema/students'
+import { mentorProfiles } from '@/lib/db/schema/mentors'
+import { institutionProfiles } from '@/lib/db/schema/institutions'
+import { userInterests } from '@/lib/db/schema/skills-interests'
 import { eq, and } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   console.log('🔐 [API] Auth callback started')
-  
+
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
@@ -21,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Exchange code for session
     const supabase = createClient()
     const authStartTime = Date.now()
-    
+
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     const authDuration = Date.now() - authStartTime
     console.log(`🔐 [API] Session exchange completed in ${authDuration}ms`)
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Check for existing profile using Drizzle
     const dbStartTime = Date.now()
-    
+
     const [existingProfile] = await db
       .select()
       .from(profiles)
@@ -47,13 +50,13 @@ export async function GET(request: NextRequest) {
 
     if (!existingProfile) {
       console.log('🔐 [API] Creating new profile for social login user')
-      
+
       // Extract names from user metadata
-      const firstName = data.user.user_metadata?.full_name 
-        ? data.user.user_metadata.full_name.split(' ')[0] 
+      const firstName = data.user.user_metadata?.full_name
+        ? data.user.user_metadata.full_name.split(' ')[0]
         : 'New'
-      const lastName = data.user.user_metadata?.full_name 
-        ? data.user.user_metadata.full_name.split(' ').slice(1).join(' ') 
+      const lastName = data.user.user_metadata?.full_name
+        ? data.user.user_metadata.full_name.split(' ').slice(1).join(' ')
         : 'User'
 
       // Create profile
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
 
       const totalDuration = Date.now() - startTime
       console.log(`🔐 [API] Callback completed in ${totalDuration}ms - redirecting to onboarding`)
-      
+
       return NextResponse.redirect('https://pathpiper.com/onboarding')
     }
 
@@ -103,25 +106,25 @@ export async function GET(request: NextRequest) {
       const hasEducation = education.length > 0
 
       onboardingCompleted = hasBasicInfo && hasInterests && hasEducation
-      
+
       console.log('🔐 [API] Onboarding check:', { hasBasicInfo, hasInterests, hasEducation, onboardingCompleted })
-      
+
     } else if (existingProfile.role === 'mentor') {
       const [mentorProfile] = await db
         .select({ onboardingCompleted: mentorProfiles.onboardingCompleted })
         .from(mentorProfiles)
         .where(eq(mentorProfiles.id, existingProfile.id))
         .limit(1)
-      
+
       onboardingCompleted = mentorProfile?.onboardingCompleted || false
-      
+
     } else if (existingProfile.role === 'institution') {
       const [institutionProfile] = await db
         .select({ onboardingCompleted: institutionProfiles.onboardingCompleted })
         .from(institutionProfiles)
         .where(eq(institutionProfiles.id, existingProfile.id))
         .limit(1)
-      
+
       onboardingCompleted = institutionProfile?.onboardingCompleted || false
     }
 
@@ -130,7 +133,7 @@ export async function GET(request: NextRequest) {
 
     // Redirect based on role and onboarding status
     let redirectUrl = 'https://pathpiper.com'
-    
+
     if (!onboardingCompleted) {
       if (existingProfile.role === 'mentor') {
         redirectUrl += '/mentor-onboarding'
@@ -159,7 +162,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const totalDuration = Date.now() - startTime
     console.error('🔐 [API] Callback error after', totalDuration + 'ms:', error)
-    
+
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/login?error=server`)
   }
 }

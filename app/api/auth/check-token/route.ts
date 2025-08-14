@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db/drizzle'
-import { profiles } from '@/lib/db/schema'
+import { profiles } from '@/lib/db/schema/profiles'
 import { eq } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
