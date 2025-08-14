@@ -8,9 +8,9 @@ export {
 export * from './circles'
 
 export {
-  customBadges,
-  moodBoard,
-  userCollections
+  customBadges as collectionBadges,
+  moodBoard as collectionMoodBoard,
+  userCollections as collectionUserCollections
 } from './collections'
 
 export {

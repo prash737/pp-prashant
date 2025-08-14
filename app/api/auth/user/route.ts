@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
 
     // Import Drizzle dependencies
     const { db } = await import('@/lib/db/drizzle')
-    const { profiles, studentProfiles, mentorProfiles, institutionProfiles, userInterests, studentEducationHistory } = await import('@/lib/db/schema')
+    const { profiles, studentProfiles, mentorProfiles, institutionProfiles } = await import('@/lib/db/schema')
+    const { skillUserInterests, studentEducationHistory } = await import('@/lib/db/schema')
     const { eq } = await import('drizzle-orm')
 
     // Get user's complete profile with all related data using Drizzle
@@ -106,8 +107,8 @@ export async function GET(request: NextRequest) {
         // Check interests using Drizzle
         const interests = await db
           .select()
-          .from(userInterests)
-          .where(eq(userInterests.userId, profile.id))
+          .from(skillUserInterests)
+          .where(eq(skillUserInterests.userId, profile.id))
         const hasInterests = !!(interests.length > 0)
 
         // Check education using Drizzle
