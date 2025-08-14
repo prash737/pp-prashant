@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { db } from '@/lib/db/drizzle'
 import { profiles, studentProfiles } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Supabase authentication
-    const supabase = createClient()
     console.log('🔐 [API] Authenticating with Supabase...')
     
     const authStartTime = Date.now()
