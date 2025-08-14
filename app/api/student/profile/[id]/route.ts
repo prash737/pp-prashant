@@ -1,6 +1,28 @@
+
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db/drizzle'
 import { createClient } from '@supabase/supabase-js'
+import { eq, and, desc } from 'drizzle-orm'
+import { 
+  profiles, 
+  studentProfiles, 
+  studentEducationHistory,
+  userInterests,
+  userSkills,
+  interests,
+  skills,
+  interestCategories,
+  skillCategories,
+  socialLinks,
+  customBadges,
+  goals,
+  achievements,
+  moodBoard,
+  connections,
+  institutionTypes,
+  institutionCategories
+} from '@/lib/db/schema'
+import { performanceMonitor } from '@/lib/performance-monitor'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -10,25 +32,18 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const apiStartTime = performance.now();
-  console.log('🚀 [API] Student Profile API Request Started', { timestamp: apiStartTime });
+  const monitor = performanceMonitor;
+  monitor.startMonitoring('STUDENT_PROFILE_API');
 
   try {
-    const paramsStartTime = performance.now();
+    monitor.startPhase('PARAMS_RESOLUTION');
     const resolvedParams = await params;
-    const paramsEndTime = performance.now();
-    console.log('📋 [API] Params Resolution Complete', { 
-      duration: paramsEndTime - paramsStartTime,
-      studentId: resolvedParams.id 
-    });
+    const studentId = resolvedParams.id;
+    monitor.endPhase('PARAMS_RESOLUTION');
 
-    const studentId = resolvedParams.id
-
-    // Get user from session cookie to verify authentication
-    const authStartTime = performance.now();
-    console.log('🔐 [API] Authentication Started');
-
-    const cookieParseStartTime = performance.now();
+    // Authentication Phase - Optimized
+    monitor.startPhase('AUTHENTICATION');
+    
     const cookieStore = request.headers.get('cookie') || '';
     const cookies = Object.fromEntries(
       cookieStore.split(';').map(cookie => {
@@ -36,307 +51,331 @@ export async function GET(
         return [name, decodeURIComponent(rest.join('='))]
       })
     );
-    const cookieParseEndTime = performance.now();
-    console.log('🍪 [API] Cookie Parsing Complete', { 
-      duration: cookieParseEndTime - cookieParseStartTime,
-      hasCookies: Object.keys(cookies).length > 0
-    });
 
     const accessToken = cookies['sb-access-token'];
     if (!accessToken) {
-      console.log('❌ [API] No Access Token Found');
+      monitor.log('AUTH_ERROR', 'AUTHENTICATION', { error: 'No access token' });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Verify token with Supabase
-    const supabaseAuthStartTime = performance.now();
-    console.log('🔍 [API] Supabase Auth Verification Started');
-    
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
-    const supabaseAuthEndTime = performance.now();
     
-    console.log('🔍 [API] Supabase Auth Verification Complete', {
-      duration: supabaseAuthEndTime - supabaseAuthStartTime,
-      hasUser: !!user,
-      hasError: !!authError
-    });
-
     if (authError || !user) {
-      console.log('❌ [API] Authentication Failed', { authError });
+      monitor.log('AUTH_ERROR', 'AUTHENTICATION', { error: authError?.message });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const authEndTime = performance.now();
-    console.log('✅ [API] Authentication Complete', { 
-      totalAuthDuration: authEndTime - authStartTime,
-      userId: user.id
-    });
+    monitor.endPhase('AUTHENTICATION');
 
-    // Check if the current user has permission to view student profiles
-    const permissionCheckStartTime = performance.now();
-    console.log('🛡️ [API] Permission Check Started');
-
-    const currentUserQueryStartTime = performance.now();
-    const currentUserProfile = await prisma.profile.findUnique({
-      where: { id: user.id },
-      select: { role: true }
-    });
-    const currentUserQueryEndTime = performance.now();
-    console.log('👤 [API] Current User Profile Query Complete', {
-      duration: currentUserQueryEndTime - currentUserQueryStartTime,
-      role: currentUserProfile?.role
-    });
-
-    if (!currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
-      console.log('❌ [API] Access Denied - Invalid Role', { 
-        role: currentUserProfile?.role,
-        hasProfile: !!currentUserProfile
-      });
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      )
-    }
-
-    // Check if the target profile exists and is a student
-    const targetProfileQueryStartTime = performance.now();
-    const targetProfile = await prisma.profile.findUnique({
-      where: { id: studentId },
-      select: { role: true }
-    });
-    const targetProfileQueryEndTime = performance.now();
-    console.log('🎯 [API] Target Profile Query Complete', {
-      duration: targetProfileQueryEndTime - targetProfileQueryStartTime,
-      exists: !!targetProfile,
-      role: targetProfile?.role
-    });
-
-    if (!targetProfile) {
-      console.log('❌ [API] Target Profile Not Found');
-      return NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
-      )
-    }
-
-    if (targetProfile.role !== 'student') {
-      console.log('❌ [API] Target Profile Not Student', { role: targetProfile.role });
-      return NextResponse.json(
-        { error: 'Profile is not a student profile' },
-        { status: 403 }
-      )
-    }
-
-    const permissionCheckEndTime = performance.now();
-    console.log('✅ [API] Permission Checks Complete', {
-      totalDuration: permissionCheckEndTime - permissionCheckStartTime
-    });
-
-    const mainQueryStartTime = performance.now();
-    console.log('📊 [API] Main Student Profile Query Started', { studentId });
-
-    const studentProfile = await prisma.studentProfile.findUnique({
-      where: { id: studentId },
-      include: {
-        profile: {
-          include: {
-            userInterests: {
-              include: {
-                interest: {
-                  include: {
-                    category: true
-                  }
-                }
-              }
-            },
-            userSkills: {
-              include: {
-                skill: {
-                  include: {
-                    category: true
-                  }
-                }
-              }
-            },
-            socialLinks: true,
-            customBadges: true,
-            goals: true,
-            achievements: true,
-            moodBoard: {
-              orderBy: {
-                position: 'asc'
-              }
-            },
-            connections1: {
-              include: {
-                user2: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    profileImageUrl: true,
-                    role: true
-                  }
-                }
-              }
-            },
-            connections2: {
-              include: {
-                user1: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    profileImageUrl: true,
-                    role: true
-                  }
-                }
-              }
-            }
-          }
-        },
-        educationHistory: {
-          include: {
-            institutionType: {
-              include: {
-                category: true
-              }
-            }
-          },
-          orderBy: {
-            startDate: 'desc'
-          }
-        }
-      }
-    });
+    // Permission Check Phase - Optimized with single query
+    monitor.startPhase('PERMISSION_CHECK');
     
-    const mainQueryEndTime = performance.now();
-    console.log('📊 [API] Main Student Profile Query Complete', {
-      duration: mainQueryEndTime - mainQueryStartTime,
-      hasProfile: !!studentProfile,
-      interestsCount: studentProfile?.profile?.userInterests?.length || 0,
-      skillsCount: studentProfile?.profile?.userSkills?.length || 0,
-      educationHistoryCount: studentProfile?.educationHistory?.length || 0,
-      connectionsCount: ((studentProfile?.profile?.connections1?.length || 0) + (studentProfile?.profile?.connections2?.length || 0))
-    });
+    // Combined permission check - get both current user and target profile in parallel
+    const [currentUserProfile, targetProfile] = await Promise.all([
+      db.select({ role: profiles.role })
+        .from(profiles)
+        .where(eq(profiles.id, user.id))
+        .limit(1),
+      db.select({ role: profiles.role })
+        .from(profiles)
+        .where(eq(profiles.id, studentId))
+        .limit(1)
+    ]);
 
-    if (!studentProfile) {
-      console.log('❌ [API] Student Profile Not Found in Database');
-      return NextResponse.json(
-        { error: 'Student profile not found' },
-        { status: 404 }
-      )
+    if (!currentUserProfile[0] || !['student', 'institution', 'mentor'].includes(currentUserProfile[0].role)) {
+      monitor.log('PERMISSION_ERROR', 'PERMISSION_CHECK', { 
+        error: 'Invalid role',
+        role: currentUserProfile[0]?.role 
+      });
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    // Format the response - for viewing other profiles, we might want to limit some sensitive data
-    const dataFormattingStartTime = performance.now();
-    console.log('🔄 [API] Data Formatting Started');
+    if (!targetProfile[0]) {
+      monitor.log('PERMISSION_ERROR', 'PERMISSION_CHECK', { error: 'Profile not found' });
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    if (targetProfile[0].role !== 'student') {
+      monitor.log('PERMISSION_ERROR', 'PERMISSION_CHECK', { 
+        error: 'Not a student profile',
+        role: targetProfile[0].role 
+      });
+      return NextResponse.json({ error: 'Profile is not a student profile' }, { status: 403 })
+    }
+
+    monitor.endPhase('PERMISSION_CHECK');
+
+    // Main Data Fetch Phase - Optimized with parallel queries
+    monitor.startPhase('DATA_FETCH');
 
     const isOwnProfile = studentId === user.id;
 
-    const formattedProfile = {
-      id: studentProfile.id,
-      ageGroup: studentProfile.age_group,
-      educationLevel: studentProfile.educationLevel,
-      // Only show birth info for own profile
-      birthMonth: isOwnProfile ? studentProfile.birthMonth : null,
-      birthYear: isOwnProfile ? studentProfile.birthYear : null,
-      personalityType: studentProfile.personalityType,
-      learningStyle: studentProfile.learningStyle,
-      favoriteQuote: studentProfile.favoriteQuote,
-      profile: {
-        firstName: studentProfile.profile.firstName,
-        lastName: studentProfile.profile.lastName,
-        bio: studentProfile.profile.bio,
-        location: studentProfile.profile.location,
-        profileImageUrl: studentProfile.profile.profileImageUrl,
-        coverImageUrl: studentProfile.profile.coverImageUrl,
-        verificationStatus: studentProfile.profile.verificationStatus,
-        role: studentProfile.profile.role,
-        userInterests: studentProfile.profile.userInterests,
-        userSkills: studentProfile.profile.userSkills.map(userSkill => ({
-          ...userSkill,
-          skill: {
-            ...userSkill.skill,
-            categoryId: userSkill.skill.categoryId,
-            categoryName: userSkill.skill.category?.name || 'Uncategorized'
-          }
-        })),
-        // Social links are public, but sensitive contact info is private
-        socialLinks: studentProfile.profile.socialLinks || [],
-        goals: studentProfile.profile.goals,
-        customBadges: studentProfile.profile.customBadges,
-        moodBoard: studentProfile.profile.moodBoard
-      },
-      educationHistory: studentProfile.educationHistory.map(edu => {
-        // Debug log for complete raw database record
-        console.log('🔍 RAW DB Education record:', JSON.stringify({
-          id: edu.id,
-          institutionName: edu.institutionName,
-          institutionVerified: edu.institutionVerified,
-          fullRecord: edu
-        }, null, 2));
-
-        console.log('🔍 API Education verification status:', {
-          institution: edu.institutionName,
-          institutionVerified: edu.institutionVerified,
-          type: typeof edu.institutionVerified,
-          hasProperty: Object.prototype.hasOwnProperty.call(edu, 'institutionVerified'),
-          allKeys: Object.keys(edu)
-        });
-
-        return {
-          id: edu.id,
-          institutionName: edu.institutionName,
-          institutionTypeId: edu.institutionTypeId,
-          institutionTypeName: edu.institutionType?.name,
-          institutionCategoryName: edu.institutionType?.category?.name,
-          degreeProgram: edu.degreeProgram,
-          fieldOfStudy: edu.fieldOfStudy,
-          subjects: edu.subjects,
-          startDate: edu.startDate,
-          endDate: edu.endDate,
-          isCurrent: edu.isCurrent,
-          gradeLevel: edu.gradeLevel,
-          gpa: edu.gpa,
-          achievements: edu.achievements,
-          description: edu.description,
-          institutionVerified: edu.institutionVerified
-        };
+    // Execute all queries in parallel for maximum performance
+    const [
+      profileData,
+      studentData,
+      educationData,
+      interestsData,
+      skillsData,
+      socialLinksData,
+      customBadgesData,
+      goalsData,
+      achievementsData,
+      moodBoardData,
+      connectionsData
+    ] = await Promise.all([
+      // Basic profile data
+      db.select({
+        id: profiles.id,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        bio: profiles.bio,
+        location: profiles.location,
+        profileImageUrl: profiles.profileImageUrl,
+        coverImageUrl: profiles.coverImageUrl,
+        verificationStatus: profiles.verificationStatus,
+        role: profiles.role
       })
+      .from(profiles)
+      .where(eq(profiles.id, studentId))
+      .limit(1),
+
+      // Student profile data
+      db.select({
+        id: studentProfiles.id,
+        ageGroup: studentProfiles.ageGroup,
+        educationLevel: studentProfiles.educationLevel,
+        birthMonth: studentProfiles.birthMonth,
+        birthYear: studentProfiles.birthYear,
+        personalityType: studentProfiles.personalityType,
+        learningStyle: studentProfiles.learningStyle,
+        favoriteQuote: studentProfiles.favoriteQuote
+      })
+      .from(studentProfiles)
+      .where(eq(studentProfiles.id, studentId))
+      .limit(1),
+
+      // Education history with institution types
+      db.select({
+        id: studentEducationHistory.id,
+        institutionName: studentEducationHistory.institutionName,
+        institutionTypeId: studentEducationHistory.institutionTypeId,
+        institutionTypeName: institutionTypes.name,
+        institutionCategoryName: institutionCategories.name,
+        degreeProgram: studentEducationHistory.degreeProgram,
+        fieldOfStudy: studentEducationHistory.fieldOfStudy,
+        subjects: studentEducationHistory.subjects,
+        startDate: studentEducationHistory.startDate,
+        endDate: studentEducationHistory.endDate,
+        isCurrent: studentEducationHistory.isCurrent,
+        gradeLevel: studentEducationHistory.gradeLevel,
+        gpa: studentEducationHistory.gpa,
+        achievements: studentEducationHistory.achievements,
+        description: studentEducationHistory.description,
+        institutionVerified: studentEducationHistory.institutionVerified
+      })
+      .from(studentEducationHistory)
+      .leftJoin(institutionTypes, eq(studentEducationHistory.institutionTypeId, institutionTypes.id))
+      .leftJoin(institutionCategories, eq(institutionTypes.categoryId, institutionCategories.id))
+      .where(eq(studentEducationHistory.studentId, studentId))
+      .orderBy(desc(studentEducationHistory.startDate)),
+
+      // User interests with categories
+      db.select({
+        id: userInterests.id,
+        interestId: userInterests.interestId,
+        proficiencyLevel: userInterests.proficiencyLevel,
+        interestName: interests.name,
+        interestDescription: interests.description,
+        categoryId: interests.categoryId,
+        categoryName: interestCategories.name
+      })
+      .from(userInterests)
+      .leftJoin(interests, eq(userInterests.interestId, interests.id))
+      .leftJoin(interestCategories, eq(interests.categoryId, interestCategories.id))
+      .where(eq(userInterests.userId, studentId)),
+
+      // User skills with categories
+      db.select({
+        id: userSkills.id,
+        skillId: userSkills.skillId,
+        proficiencyLevel: userSkills.proficiencyLevel,
+        skillName: skills.name,
+        skillDescription: skills.description,
+        categoryId: skills.categoryId,
+        categoryName: skillCategories.name
+      })
+      .from(userSkills)
+      .leftJoin(skills, eq(userSkills.skillId, skills.id))
+      .leftJoin(skillCategories, eq(skills.categoryId, skillCategories.id))
+      .where(eq(userSkills.userId, studentId)),
+
+      // Social links
+      db.select()
+      .from(socialLinks)
+      .where(eq(socialLinks.userId, studentId)),
+
+      // Custom badges
+      db.select()
+      .from(customBadges)
+      .where(eq(customBadges.userId, studentId)),
+
+      // Goals
+      db.select()
+      .from(goals)
+      .where(eq(goals.userId, studentId)),
+
+      // Achievements
+      db.select()
+      .from(achievements)
+      .where(eq(achievements.userId, studentId)),
+
+      // Mood board
+      db.select()
+      .from(moodBoard)
+      .where(eq(moodBoard.userId, studentId))
+      .orderBy(moodBoard.position),
+
+      // Connections - get both directions
+      db.select({
+        id: connections.id,
+        user1Id: connections.user1Id,
+        user2Id: connections.user2Id,
+        status: connections.status,
+        connectedUserFirstName: profiles.firstName,
+        connectedUserLastName: profiles.lastName,
+        connectedUserProfileImage: profiles.profileImageUrl,
+        connectedUserRole: profiles.role
+      })
+      .from(connections)
+      .leftJoin(profiles, eq(
+        profiles.id,
+        eq(connections.user1Id, studentId) ? connections.user2Id : connections.user1Id
+      ))
+      .where(
+        and(
+          eq(connections.status, 'accepted'),
+          eq(connections.user1Id, studentId)
+        )
+      )
+    ]);
+
+    monitor.endPhase('DATA_FETCH');
+
+    // Data Processing Phase - Optimized formatting
+    monitor.startPhase('DATA_PROCESSING');
+
+    if (!profileData[0] || !studentData[0]) {
+      monitor.log('DATA_ERROR', 'DATA_PROCESSING', { error: 'Student profile not found' });
+      return NextResponse.json({ error: 'Student profile not found' }, { status: 404 })
     }
 
-    const dataFormattingEndTime = performance.now();
-    console.log('🔄 [API] Data Formatting Complete', {
-      duration: dataFormattingEndTime - dataFormattingStartTime,
-      responseDataKeys: Object.keys(formattedProfile)
+    // Format the response efficiently
+    const formattedProfile = {
+      id: studentData[0].id,
+      ageGroup: studentData[0].ageGroup,
+      educationLevel: studentData[0].educationLevel,
+      // Only show birth info for own profile
+      birthMonth: isOwnProfile ? studentData[0].birthMonth : null,
+      birthYear: isOwnProfile ? studentData[0].birthYear : null,
+      personalityType: studentData[0].personalityType,
+      learningStyle: studentData[0].learningStyle,
+      favoriteQuote: studentData[0].favoriteQuote,
+      profile: {
+        firstName: profileData[0].firstName,
+        lastName: profileData[0].lastName,
+        bio: profileData[0].bio,
+        location: profileData[0].location,
+        profileImageUrl: profileData[0].profileImageUrl,
+        coverImageUrl: profileData[0].coverImageUrl,
+        verificationStatus: profileData[0].verificationStatus,
+        role: profileData[0].role,
+        userInterests: interestsData.map(interest => ({
+          id: interest.id,
+          interestId: interest.interestId,
+          proficiencyLevel: interest.proficiencyLevel,
+          interest: {
+            id: interest.interestId,
+            name: interest.interestName,
+            description: interest.interestDescription,
+            categoryId: interest.categoryId,
+            category: {
+              name: interest.categoryName
+            }
+          }
+        })),
+        userSkills: skillsData.map(skill => ({
+          id: skill.id,
+          skillId: skill.skillId,
+          proficiencyLevel: skill.proficiencyLevel,
+          skill: {
+            id: skill.skillId,
+            name: skill.skillName,
+            description: skill.skillDescription,
+            categoryId: skill.categoryId,
+            categoryName: skill.categoryName,
+            category: {
+              name: skill.categoryName
+            }
+          }
+        })),
+        socialLinks: socialLinksData || [],
+        goals: goalsData || [],
+        customBadges: customBadgesData || [],
+        moodBoard: moodBoardData || []
+      },
+      educationHistory: educationData.map(edu => ({
+        id: edu.id,
+        institutionName: edu.institutionName,
+        institutionTypeId: edu.institutionTypeId,
+        institutionTypeName: edu.institutionTypeName,
+        institutionCategoryName: edu.institutionCategoryName,
+        degreeProgram: edu.degreeProgram,
+        fieldOfStudy: edu.fieldOfStudy,
+        subjects: edu.subjects,
+        startDate: edu.startDate,
+        endDate: edu.endDate,
+        isCurrent: edu.isCurrent,
+        gradeLevel: edu.gradeLevel,
+        gpa: edu.gpa,
+        achievements: edu.achievements,
+        description: edu.description,
+        institutionVerified: edu.institutionVerified
+      }))
+    };
+
+    monitor.endPhase('DATA_PROCESSING');
+
+    const report = await monitor.generateReport();
+    console.log('📊 Student Profile API Performance Report:', {
+      totalDuration: report.metadata.totalDuration,
+      phases: report.phaseAnalysis.map(p => ({ 
+        phase: p.phase, 
+        duration: p.duration 
+      })),
+      bottlenecks: report.bottlenecks.length,
+      recommendations: report.recommendations
     });
 
-    const apiEndTime = performance.now();
-    const totalDuration = apiEndTime - apiStartTime;
-    
-    console.log('🏁 [API] Student Profile API Request Complete', {
-      totalDuration,
+    monitor.log('API_SUCCESS', 'RESPONSE', {
       studentId,
       isOwnProfile,
-      breakdown: {
-        authentication: 'logged separately',
-        permissionChecks: 'logged separately', 
-        mainQuery: 'logged separately',
-        dataFormatting: dataFormattingEndTime - dataFormattingStartTime
-      }
+      totalDuration: report.metadata.totalDuration,
+      interestsCount: interestsData.length,
+      skillsCount: skillsData.length,
+      educationHistoryCount: educationData.length,
+      connectionsCount: connectionsData.length
     });
 
     return NextResponse.json(formattedProfile)
 
   } catch (error) {
-    const apiEndTime = performance.now();
-    const totalDuration = apiEndTime - apiStartTime;
-    
-    console.error('❌ [API] Error fetching student profile:', error);
-    console.log('🏁 [API] API Request Failed', {
-      totalDuration,
-      error: error instanceof Error ? error.message : 'Unknown error'
+    const report = await monitor.generateReport();
+    console.error('❌ Student Profile API Error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      totalDuration: report.metadata.totalDuration,
+      phase: 'ERROR_HANDLING'
     });
     
     return NextResponse.json(
