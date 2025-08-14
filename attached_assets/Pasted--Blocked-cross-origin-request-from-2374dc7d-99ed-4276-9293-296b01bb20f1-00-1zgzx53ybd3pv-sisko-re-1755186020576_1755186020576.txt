@@ -1,0 +1,340 @@
+
+ ⚠ Blocked cross-origin request from 2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /api/parent/children ...
+ ✓ Compiled /api/parent/children in 2.7s (1819 modules)
+ GET /api/parent/children 401 in 2862ms
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: false
+API: User ID exists: false
+API: No authentication token found
+ GET /api/auth/user 401 in 2876ms
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ GET / 200 in 189ms
+ GET /api/parent/children 401 in 23ms
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: false
+API: User ID exists: false
+API: No authentication token found
+ GET /api/auth/user 401 in 28ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 693ms (1884 modules)
+ GET /login 200 in 779ms
+ ✓ Compiled /api/auth/user-login in 496ms (1958 modules)
+🔍 Authenticated user ID: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+prisma:query SELECT "public"."student_profiles"."id", "public"."student_profiles"."age_group"::text, "public"."student_profiles"."education_level"::text, "public"."student_profiles"."birth_month", "public"."student_profiles"."birth_year", "public"."student_profiles"."personality_type", "public"."student_profiles"."learning_style", "public"."student_profiles"."favorite_quote", "public"."student_profiles"."onboarding_completed", "public"."student_profiles"."created_at", "public"."student_profiles"."updated_at" FROM "public"."student_profiles" WHERE ("public"."student_profiles"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."role"::text, "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."profile_image_url", "public"."profiles"."tagline", "public"."profiles"."professional_summary", "public"."profiles"."verification_status", "public"."profiles"."email", "public"."profiles"."email_verified", "public"."profiles"."phone", "public"."profiles"."cover_image_url", "public"."profiles"."theme_preference", "public"."profiles"."timezone", "public"."profiles"."availability_status", "public"."profiles"."last_active_date", "public"."profiles"."profile_views", "public"."profiles"."created_at", "public"."profiles"."updated_at", "public"."profiles"."parent_id", "public"."profiles"."parent_verified" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."user_interests"."id", "public"."user_interests"."user_id", "public"."user_interests"."interest_id", "public"."user_interests"."created_at", "public"."user_interests"."updated_at" FROM "public"."user_interests" WHERE "public"."user_interests"."user_id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."student_education_history"."id", "public"."student_education_history"."student_id", "public"."student_education_history"."institution_id", "public"."student_education_history"."institution_name", "public"."student_education_history"."institution_type_id", "public"."student_education_history"."degree_program", "public"."student_education_history"."field_of_study", "public"."student_education_history"."subjects", "public"."student_education_history"."start_date", "public"."student_education_history"."end_date", "public"."student_education_history"."is_current", "public"."student_education_history"."grade_level", "public"."student_education_history"."gpa", "public"."student_education_history"."achievements", "public"."student_education_history"."description", "public"."student_education_history"."institution_verified", "public"."student_education_history"."created_at", "public"."student_education_history"."updated_at" FROM "public"."student_education_history" WHERE "public"."student_education_history"."student_id" IN ($1) OFFSET $2
+✅ Found student profile
+🔍 Student onboarding check: {
+  hasBasicInfo: 'Passionate about Data architectures and scalable systems !',
+  hasInterests: true,
+  hasEducation: true,
+  onboardingCompleted: true
+}
+ POST /api/auth/user-login 200 in 2259ms
+ ✓ Compiled /student/profile in 287ms (1965 modules)
+ GET /student/profile 200 in 375ms
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: true
+API: User ID exists: true
+API: Fetching user profile from database...
+API: Profile found for role: student
+API: Onboarding completion check: {
+  userId: '006a3d59-ec4d-42e6-aee4-d04f1d0caf2b',
+  hasBasicInfo: true,
+  hasInterests: '1 interests',
+  hasEducation: '1 education entries',
+  onboardingCompleted: true
+}
+API: Returning user data successfully
+ GET /api/auth/user 200 in 1364ms
+ ○ Compiling /student/profile/[handle] ...
+ ⚠ ./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+ GET /student/profile/006a3d59-ec4d-42e6-aee4-d04f1d0caf2b 200 in 3297ms
+🔄 [001] [INITIALIZATION] MONITORING_START - 0.06ms {
+  context: 'STUDENT_PROFILE_API',
+  startTime: 46049.941316,
+  userAgent: 'Server',
+  url: 'API Route'
+}
+🔄 [002] [PARAMS_RESOLUTION] PHASE_START_PARAMS_RESOLUTION - 0.38ms 
+🔄 [003] [PARAMS_RESOLUTION] PHASE_END_PARAMS_RESOLUTION - 0.58ms { phaseDuration: 0.1704200000021956 }
+🔄 [004] [AUTHENTICATION] PHASE_START_AUTHENTICATION - 0.69ms 
+🔄 [005] [AUTHENTICATION] PHASE_END_AUTHENTICATION - 96.32ms { phaseDuration: 95.62651899999764 }
+🔄 [006] [PERMISSION_CHECK] PHASE_START_PERMISSION_CHECK - 96.49ms 
+ ⚠ ./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+🔄 [007] [PERMISSION_CHECK] PHASE_END_PERMISSION_CHECK - 728.00ms { phaseDuration: 631.5017910000024 }
+🔄 [008] [DATA_FETCH] PHASE_START_DATA_FETCH - 728.17ms 
+❌ Student Profile API Error: {
+  error: "Cannot read properties of undefined (reading 'id')",
+  totalDuration: 729.5339999999997,
+  phase: 'ERROR_HANDLING'
+}
+ GET /api/student/profile/006a3d59-ec4d-42e6-aee4-d04f1d0caf2b 500 in 4307ms
+ ⚠ ./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'userInterests' is not exported from '@/lib/db/schema' (imported as 'userInterests').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'customBadges' is not exported from '@/lib/db/schema' (imported as 'customBadges').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'achievements' is not exported from '@/lib/db/schema' (imported as 'achievements').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+
+./app/api/student/profile/[id]/route.ts
+Attempted import error: 'moodBoard' is not exported from '@/lib/db/schema' (imported as 'moodBoard').
+
+Import trace for requested module:
+./app/api/student/profile/[id]/route.ts
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: true
+API: User ID exists: true
+API: Fetching user profile from database...
+prisma:query SELECT "public"."circle_invitations"."id", "public"."circle_invitations"."circle_id", "public"."circle_invitations"."inviter_id", "public"."circle_invitations"."invitee_id", "public"."circle_invitations"."status", "public"."circle_invitations"."message", "public"."circle_invitations"."created_at", "public"."circle_invitations"."updated_at" FROM "public"."circle_invitations" WHERE "public"."circle_invitations"."invitee_id" = $1 ORDER BY "public"."circle_invitations"."created_at" DESC OFFSET $2
+ GET /api/circles/invitations?type=received 200 in 1247ms
+🔄 [001] [INITIALIZATION] MONITORING_START - 0.06ms {
+  context: 'STUDENT_PROFILE_API',
+  startTime: 47831.371302,
+  userAgent: 'Server',
+  url: 'API Route'
+}
+🔄 [002] [PARAMS_RESOLUTION] PHASE_START_PARAMS_RESOLUTION - 0.27ms 
+🔄 [003] [PARAMS_RESOLUTION] PHASE_END_PARAMS_RESOLUTION - 0.50ms { phaseDuration: 0.2250899999999092 }
+🔄 [004] [AUTHENTICATION] PHASE_START_AUTHENTICATION - 0.61ms 
+prisma:query SELECT "public"."connection_requests"."id", "public"."connection_requests"."sender_id", "public"."connection_requests"."receiver_id", "public"."connection_requests"."status", "public"."connection_requests"."message", "public"."connection_requests"."created_at", "public"."connection_requests"."updated_at" FROM "public"."connection_requests" WHERE "public"."connection_requests"."sender_id" = $1 ORDER BY "public"."connection_requests"."created_at" DESC OFFSET $2
+ GET /api/connections/requests?type=sent 200 in 976ms
+🔄 [005] [AUTHENTICATION] PHASE_END_AUTHENTICATION - 205.19ms { phaseDuration: 204.57718800000293 }
+🔄 [006] [PERMISSION_CHECK] PHASE_START_PERMISSION_CHECK - 205.34ms 
+prisma:query SELECT "public"."connections"."id", "public"."connections"."user1_id", "public"."connections"."user2_id", "public"."connections"."connection_type", "public"."connections"."connected_at" FROM "public"."connections" WHERE ("public"."connections"."user1_id" = $1 OR "public"."connections"."user2_id" = $2) ORDER BY "public"."connections"."connected_at" DESC OFFSET $3
+API: Profile found for role: student
+prisma:query SELECT "public"."student_education_history"."id", "public"."student_education_history"."student_id", "public"."student_education_history"."institution_id", "public"."student_education_history"."institution_name", "public"."student_education_history"."institution_type_id", "public"."student_education_history"."degree_program", "public"."student_education_history"."field_of_study", "public"."student_education_history"."subjects", "public"."student_education_history"."start_date", "public"."student_education_history"."end_date", "public"."student_education_history"."is_current", "public"."student_education_history"."grade_level", "public"."student_education_history"."gpa", "public"."student_education_history"."achievements", "public"."student_education_history"."description", "public"."student_education_history"."institution_verified", "public"."student_education_history"."created_at", "public"."student_education_history"."updated_at" FROM "public"."student_education_history" WHERE ("public"."student_education_history"."institution_id" = $1 AND "public"."student_education_history"."institution_verified" IS NULL) ORDER BY "public"."student_education_history"."created_at" DESC OFFSET $2
+ GET /api/education/verification 200 in 1817ms
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."role"::text, "public"."profiles"."bio", "public"."profiles"."location", "public"."profiles"."last_active_date", "public"."profiles"."availability_status" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1) OFFSET $2
+prisma:query SELECT "public"."connection_requests"."id", "public"."connection_requests"."sender_id", "public"."connection_requests"."receiver_id", "public"."connection_requests"."status", "public"."connection_requests"."message", "public"."connection_requests"."created_at", "public"."connection_requests"."updated_at" FROM "public"."connection_requests" WHERE "public"."connection_requests"."receiver_id" = $1 ORDER BY "public"."connection_requests"."created_at" DESC OFFSET $2
+🔄 [007] [PERMISSION_CHECK] PHASE_END_PERMISSION_CHECK - 654.47ms { phaseDuration: 449.11556199999904 }
+🔄 [008] [DATA_FETCH] PHASE_START_DATA_FETCH - 654.63ms 
+❌ Student Profile API Error: {
+  error: "Cannot read properties of undefined (reading 'id')",
+  totalDuration: 655.7501479999992,
+  phase: 'ERROR_HANDLING'
+}
