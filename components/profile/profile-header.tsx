@@ -290,8 +290,12 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
 
         if (response.ok) {
           const data = await response.json()
+          
+          // Ensure data is an array before filtering
+          const circlesArray = Array.isArray(data) ? data : []
+          
           // Filter out disabled circles
-          const enabledCircles = data.filter((circle: any) => {
+          const enabledCircles = circlesArray.filter((circle: any) => {
             // Check if circle is globally disabled
             if (circle.isDisabled) return false;
 
@@ -532,7 +536,9 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
       })
       if (response.ok) {
         const data = await response.json()
-        setCircles(data)
+        // Ensure data is an array before setting
+        const circlesArray = Array.isArray(data) ? data : []
+        setCircles(circlesArray)
       } else {
         console.error('Error fetching circles:', response.status)
       }
