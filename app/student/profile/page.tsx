@@ -1,14 +1,9 @@
+
 "use client"
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { FastStudentProfileGuard } from '@/components/client-auth-guard'
-import { Suspense } from 'react'
-import { ProfileSkeleton } from '@/components/profile-skeleton'
-import { StudentProfile } from '@/components/student-profile'
-import { InternalNavbar } from '@/components/internal-navbar'
-
 
 export default function StudentProfilePage() {
   const { user, loading } = useAuth()
@@ -40,16 +35,5 @@ export default function StudentProfilePage() {
   }
 
   // This component will redirect, so we don't need to render anything else
-  return (
-    <FastStudentProfileGuard>
-      <div className="min-h-screen bg-background">
-        <InternalNavbar />
-        <main className="container mx-auto px-4 py-6">
-          <Suspense fallback={<ProfileSkeleton />}>
-            <StudentProfile userId={user?.id || ''} />
-          </Suspense>
-        </main>
-      </div>
-    </FastStudentProfileGuard>
-  )
+  return null
 }

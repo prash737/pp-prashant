@@ -4,8 +4,7 @@ import { Nunito } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Inter } from "next/font/google"
-import { Toaster } from "@/components/ui/toaster" // Assuming Toaster is imported from here based on context
-import ClientAuthGuard from '@/components/client-auth-guard' // Added import
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -42,10 +41,8 @@ export default function RootLayout({
           forcedTheme="light"
           disableTransitionOnChange
         >
-          <ClientAuthGuard> {/* Wrapped children with ClientAuthGuard */}
-            {children}
-          </ClientAuthGuard>
           <Toaster position="top-center" closeButton richColors />
+          {children}
         </ThemeProvider>
       </body>
     </html>
