@@ -8,7 +8,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
-  // Skip auth for static files, API routes (let them handle their own auth), and public paths
+  // Skip middleware entirely for static assets and API routes
   if (
     path.startsWith('/_next/') ||
     path.startsWith('/api/') ||
@@ -19,64 +19,87 @@ export async function middleware(request: NextRequest) {
     path === '/register' ||
     path === '/signup' ||
     path === '/forgot-password' ||
-    path === '/'
+    path === '/' ||
+    path.startsWith('/public-view/') ||
+    path.startsWith('/share-profile/')
   ) {
     return NextResponse.next();
   }
   
-  // Define paths that require authentication
-  const protectedPaths = [
-    '/onboarding',
-    '/feed',
-    '/explore',
-    '/immersive-feed',
-    '/profile',
-    '/student',
-    '/mentor',
-    '/institution',
-    '/messages',
-    '/notifications'
-  ];
+  // Ultra-fast path for student profiles - minimal auth check
+  if (path.startsWith('/student/profile/')) {
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    
+    if (!accessToken) {
+      const redirectUrl = new URL('/login', request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Skip Supabase validation entirely - just pass the token through
+    // Let the page components handle detailed auth if needed
+    const response = NextResponse.next();
+    response.headers.set('x-middleware-auth', 'minimal');
+    return response;
+  }
   
-  // Check if current path needs authentication
-  const requiresAuth = protectedPaths.some(pp => 
-    path === pp || path.startsWith(`${pp}/`)
-  );
-  
-  if (!requiresAuth) {
+  // Relaxed auth for other student pages
+  if (path.startsWith('/student/')) {
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    
+    if (!accessToken) {
+      const redirectUrl = new URL('/login', request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    
+    // Skip validation, just check token exists
     return NextResponse.next();
   }
   
-  // Fast token check - only get access token first
+  // Standard auth for critical paths only
+  const criticalPaths = [
+    '/onboarding',
+    '/feed',
+    '/messages',
+    '/mentor/profile',
+    '/institution/profile'
+  ];
+  
+  const isCritical = criticalPaths.some(cp => 
+    path === cp || path.startsWith(`${cp}/`)
+  );
+  
+  if (!isCritical) {
+    // Non-critical paths get minimal auth
+    const accessToken = request.cookies.get('sb-access-token')?.value;
+    return accessToken ? NextResponse.next() : NextResponse.redirect(new URL('/login', request.url));
+  }
+  
+  // Full auth only for critical paths
   const accessToken = request.cookies.get('sb-access-token')?.value;
   
   if (!accessToken) {
-    // No access token, redirect immediately
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('from', path);
     return NextResponse.redirect(redirectUrl);
   }
   
-  // Quick token validation without full user fetch
+  // Quick validation for critical paths
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data: { user }, error } = await supabase.auth.getUser(accessToken);
     
     if (error || !user) {
-      // Token invalid, redirect to login
       const redirectUrl = new URL('/login', request.url);
       redirectUrl.searchParams.set('from', path);
       return NextResponse.redirect(redirectUrl);
     }
     
-    // Valid token - pass user info to app
     const response = NextResponse.next();
     response.headers.set('x-user-id', user.id);
     response.headers.set('x-user-email', user.email || '');
     return response;
     
   } catch (error) {
-    console.error('Middleware auth error:', error);
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('from', path);
     return NextResponse.redirect(redirectUrl);
@@ -85,6 +108,14 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|images).*)',
+    // Only run middleware on specific paths to reduce overhead
+    '/student/:path*',
+    '/mentor/:path*',
+    '/institution/:path*',
+    '/onboarding/:path*',
+    '/feed/:path*',
+    '/messages/:path*',
+    '/explore/:path*',
+    '/notifications/:path*'
   ],
 };
