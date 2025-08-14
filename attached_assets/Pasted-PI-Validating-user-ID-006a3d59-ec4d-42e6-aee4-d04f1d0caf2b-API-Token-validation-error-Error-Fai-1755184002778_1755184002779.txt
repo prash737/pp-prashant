@@ -1,0 +1,95 @@
+PI: Validating user ID: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+API: Token validation error: Error: Failed query: select "id", "email", "first_name", "last_name", "role", "profile_image_url" from "profiles" where "profiles"."id" = $1 limit $2
+params: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b,1
+    at async GET (app/api/auth/check-token/route.ts:39:24)
+  37 |
+  38 |     // Verify user exists in database
+> 39 |     const userProfile = await db
+     |                        ^
+  40 |       .select({
+  41 |         id: profiles.id,
+  42 |         email: profiles.email, {
+  query: 'select "id", "email", "first_name", "last_name", "role", "profile_image_url" from "profiles" where "profiles"."id" = $1 limit $2',
+  params: [Array],
+  [cause]: Error: Connection terminated due to connection timeout
+      at async GET (app/api/auth/check-token/route.ts:39:24)
+    37 |
+    38 |     // Verify user exists in database
+  > 39 |     const userProfile = await db
+       |                        ^
+    40 |       .select({
+    41 |         id: profiles.id,
+    42 |         email: profiles.email, {
+    [cause]: [Error: Connection terminated unexpectedly]
+  }
+}
+ GET /api/auth/check-token 500 in 10574ms
+ ✓ Compiled /api/auth/cookie-check in 229ms (1644 modules)
+API: Cookie validation check started
+API: Found cookies: { hasAccessToken: true, hasRefreshToken: true, hasUserId: true }
+API: Verifying user exists in database: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+API: Cookie check error: Error: Failed query: select "id" from "profiles" where "profiles"."id" = $1 limit $2
+params: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b,1
+    at async GET (app/api/auth/cookie-check/route.ts:43:25)
+  41 |       console.log('API: Verifying user exists in database:', authCookies.userId)
+  42 |
+> 43 |       const userExists = await db
+     |                         ^
+  44 |         .select({ id: profiles.id })
+  45 |         .from(profiles)
+  46 |         .where(eq(profiles.id, authCookies.userId)) {
+  query: 'select "id" from "profiles" where "profiles"."id" = $1 limit $2',
+  params: [Array],
+  [cause]: Error: Connection terminated due to connection timeout
+      at async GET (app/api/auth/cookie-check/route.ts:43:25)
+    41 |       console.log('API: Verifying user exists in database:', authCookies.userId)
+    42 |
+  > 43 |       const userExists = await db
+       |                         ^
+    44 |         .select({ id: profiles.id })
+    45 |         .from(profiles)
+    46 |         .where(eq(profiles.id, authCookies.userId)) {
+    [cause]: [Error: Connection terminated unexpectedly]
+  }
+}
+ GET /api/auth/cookie-check 500 in 10467ms
+ ✓ Compiled /api/auth/user in 123ms (603 modules)
+API: User data request received
+API: Checking cookies for auth token...
+API: Access token exists: true
+API: User ID exists: true
+API: Fetching user profile from database...
+prisma:query SELECT 1
+prisma:query SELECT 1
+prisma:query SELECT "public"."student_education_history"."id", "public"."student_education_history"."student_id", "public"."student_education_history"."institution_id", "public"."student_education_history"."institution_name", "public"."student_education_history"."institution_type_id", "public"."student_education_history"."degree_program", "public"."student_education_history"."field_of_study", "public"."student_education_history"."subjects", "public"."student_education_history"."start_date", "public"."student_education_history"."end_date", "public"."student_education_history"."is_current", "public"."student_education_history"."grade_level", "public"."student_education_history"."gpa", "public"."student_education_history"."achievements", "public"."student_education_history"."description", "public"."student_education_history"."institution_verified", "public"."student_education_history"."created_at", "public"."student_education_history"."updated_at" FROM "public"."student_education_history" WHERE ("public"."student_education_history"."institution_id" = $1 AND "public"."student_education_history"."institution_verified" IS NULL) ORDER BY "public"."student_education_history"."created_at" DESC OFFSET $2
+ GET /api/education/verification 200 in 307ms
+prisma:query SELECT "public"."circle_invitations"."id", "public"."circle_invitations"."circle_id", "public"."circle_invitations"."inviter_id", "public"."circle_invitations"."invitee_id", "public"."circle_invitations"."status", "public"."circle_invitations"."message", "public"."circle_invitations"."created_at", "public"."circle_invitations"."updated_at" FROM "public"."circle_invitations" WHERE "public"."circle_invitations"."invitee_id" = $1 ORDER BY "public"."circle_invitations"."created_at" DESC OFFSET $2
+ GET /api/circles/invitations?type=received 200 in 375ms
+prisma:query SELECT "public"."connection_requests"."id", "public"."connection_requests"."sender_id", "public"."connection_requests"."receiver_id", "public"."connection_requests"."status", "public"."connection_requests"."message", "public"."connection_requests"."created_at", "public"."connection_requests"."updated_at" FROM "public"."connection_requests" WHERE "public"."connection_requests"."receiver_id" = $1 ORDER BY "public"."connection_requests"."created_at" DESC OFFSET $2
+prisma:query SELECT "public"."profiles"."id", "public"."profiles"."first_name", "public"."profiles"."last_name", "public"."profiles"."profile_image_url", "public"."profiles"."role"::text, "public"."profiles"."bio", "public"."profiles"."location" FROM "public"."profiles" WHERE "public"."profiles"."id" IN ($1,$2) OFFSET $3
+ GET /api/connections/requests?type=received 200 in 785ms
+API: Error fetching user data: Error: Failed query: select "profiles"."id", "profiles"."role", "profiles"."first_name", "profiles"."last_name", "profiles"."bio", "profiles"."location", "profiles"."profile_image_url", "profiles"."tagline", "profiles"."professional_summary", "profiles"."verification_status", "profiles"."email", "profiles"."email_verified", "profiles"."phone", "profiles"."cover_image_url", "profiles"."theme_preference", "profiles"."timezone", "profiles"."availability_status", "profiles"."last_active_date", "profiles"."profile_views", "profiles"."parent_id", "profiles"."parent_verified", "profiles"."created_at", "profiles"."updated_at", "student_profiles"."id", "student_profiles"."age_group", "student_profiles"."education_level", "student_profiles"."birth_month", "student_profiles"."birth_year", "student_profiles"."personality_type", "student_profiles"."learning_style", "student_profiles"."favorite_quote", "student_profiles"."onboarding_completed", "student_profiles"."created_at", "student_profiles"."updated_at", "mentor_profiles"."id", "mentor_profiles"."profession", "mentor_profiles"."organization", "mentor_profiles"."years_experience", "mentor_profiles"."verified", "mentor_profiles"."onboarding_completed", "mentor_profiles"."hours_per_week", "mentor_profiles"."max_mentees", "mentor_profiles"."created_at", "mentor_profiles"."updated_at", "institution_profiles"."id", "institution_profiles"."institution_name", "institution_profiles"."institution_type", "institution_profiles"."institution_type_id", "institution_profiles"."website", "institution_profiles"."logo_url", "institution_profiles"."cover_image_url", "institution_profiles"."overview", "institution_profiles"."mission", "institution_profiles"."core_values", "institution_profiles"."verified", "institution_profiles"."onboarding_completed", "institution_profiles"."created_at", "institution_profiles"."updated_at" from "profiles" left join "student_profiles" on "student_profiles"."id" = "profiles"."id" left join "mentor_profiles" on "mentor_profiles"."id" = "profiles"."id" left join "institution_profiles" on "institution_profiles"."id" = "profiles"."id" where "profiles"."id" = $1
+params: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+    at async GET (app/api/auth/user/route.ts:34:26)
+  32 |
+  33 |     // Get user's complete profile with all related data using Drizzle
+> 34 |     const profileResult = await db
+     |                          ^
+  35 |       .select({
+  36 |         profile: profiles,
+  37 |         student: studentProfiles, {
+  query: 'select "profiles"."id", "profiles"."role", "profiles"."first_name", "profiles"."last_name", "profiles"."bio", "profiles"."location", "profiles"."profile_image_url", "profiles"."tagline", "profiles"."professional_summary", "profiles"."verification_status", "profiles"."email", "profiles"."email_verified", "profiles"."phone", "profiles"."cover_image_url", "profiles"."theme_preference", "profiles"."timezone", "profiles"."availability_status", "profiles"."last_active_date", "profiles"."profile_views", "profiles"."parent_id", "profiles"."parent_verified", "profiles"."created_at", "profiles"."updated_at", "student_profiles"."id", "student_profiles"."age_group", "student_profiles"."education_level", "student_profiles"."birth_month", "student_profiles"."birth_year", "student_profiles"."personality_type", "student_profiles"."learning_style", "student_profiles"."favorite_quote", "student_profiles"."onboarding_completed", "student_profiles"."created_at", "student_profiles"."updated_at", "mentor_profiles"."id", "mentor_profiles"."profession", "mentor_profiles"."organization", "mentor_profiles"."years_experience", "mentor_profiles"."verified", "mentor_profiles"."onboarding_completed", "mentor_profiles"."hours_per_week", "mentor_profiles"."max_mentees", "mentor_profiles"."created_at", "mentor_profiles"."updated_at", "institution_profiles"."id", "institution_profiles"."institution_name", "institution_profiles"."institution_type", "institution_profiles"."institution_type_id", "institution_profiles"."website", "institution_profiles"."logo_url", "institution_profiles"."cover_image_url", "institution_profiles"."overview", "institution_profiles"."mission", "institution_profiles"."core_values", "institution_profiles"."verified", "institution_profiles"."onboarding_completed", "institution_profiles"."created_at", "institution_profiles"."updated_at" from "profiles" left join "student_profiles" on "student_profiles"."id" = "profiles"."id" left join "mentor_profiles" on "mentor_profiles"."id" = "profiles"."id" left join "institution_profiles" on "institution_profiles"."id" = "profiles"."id" where "profiles"."id" = $1',
+  params: [Array],
+  [cause]: Error: Connection terminated due to connection timeout
+      at async GET (app/api/auth/user/route.ts:34:26)
+    32 |
+    33 |     // Get user's complete profile with all related data using Drizzle
+  > 34 |     const profileResult = await db
+       |                          ^
+    35 |       .select({
+    36 |         profile: profiles,
+    37 |         student: studentProfiles, {
+    [cause]: [Error: Connection terminated unexpectedly]
+  }
+}
+ GET /api/auth/user 500 in 10371ms
