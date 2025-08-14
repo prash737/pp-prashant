@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     console.log('API: User data request received')
 
     // Check for authentication token in cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get('sb-access-token')?.value
     const userId = cookieStore.get('sb-user-id')?.value
 

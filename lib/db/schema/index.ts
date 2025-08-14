@@ -1,25 +1,105 @@
-// Core schemas
-export * from './enums';
-export * from './profiles';
+// Export all schemas with specific exports to avoid conflicts
+export {
+  customBadges as achievementBadges,
+  moodBoard as achievementMoodBoard,
+  userCollections as achievementCollections
+} from './achievements'
 
-// Feature schemas
-export * from './students';
-export * from './mentors';
-export * from './institutions';
-export * from './connections';
-export * from './feed';
-export * from './skills-interests';
-export * from './circles';
-export * from './achievements';
-export * from './messages';
+export * from './circles'
 
-// Extended schemas
-export * from './social';
-export * from './collections';
-export * from './endorsements';
-export * from './posts';
-export * from './institution-extended';
-export * from './communities';
-export * from './parent';
-export * from './moderation';
-export * from './goals';
+export {
+  customBadges,
+  moodBoard,
+  userCollections
+} from './collections'
+
+export {
+  academicCommunities,
+  academicCommunityMembers,
+  institutionFollowConnections as communityConnections
+} from './communities'
+
+export * from './connections'
+
+export {
+  skillEndorsements
+} from './endorsements'
+
+export * from './enums'
+
+export {
+  feedPosts,
+  postBookmarks as feedBookmarks,
+  postComments as feedComments,
+  postLikes as feedLikes,
+  postReactions as feedReactions
+} from './feed'
+
+export {
+  goals
+} from './goals'
+
+export {
+  institutionContactInfo,
+  institutionEvents,
+  institutionFacilities,
+  institutionFaculty,
+  institutionFacultyStats,
+  institutionGallery,
+  institutionPrograms,
+  institutionQuickFacts
+} from './institution-extended'
+
+export * from './institutions'
+export * from './mentors'
+
+export {
+  conversations,
+  messageHistory,
+  chatbotThemes as messageChatbotThemes,
+  humanReviewQueue as messageReviewQueue,
+  moderationLogs as messageModerationLogs,
+  parentProfiles as messageParentProfiles
+} from './messages'
+
+export {
+  chatbotThemes,
+  humanReviewQueue,
+  moderationLogs
+} from './moderation'
+
+export {
+  parentProfiles
+} from './parent'
+
+export {
+  postBookmarks,
+  postComments,
+  postLikes,
+  postReactions
+} from './posts'
+
+export * from './profiles'
+
+export {
+  interests,
+  interestCategories,
+  skills,
+  skillCategories,
+  userInterests as skillUserInterests,
+  userSkills,
+  hobbies as skillHobbies,
+  languages as skillLanguages,
+  userHobbies,
+  userLanguages
+} from './skills-interests'
+
+export {
+  socialLinks,
+  hobbies,
+  languages,
+  userHobbies as socialUserHobbies,
+  userLanguages as socialUserLanguages
+} from './social'
+
+export * from './students'
