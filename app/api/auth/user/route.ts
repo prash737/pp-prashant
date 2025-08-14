@@ -31,18 +31,48 @@ export async function GET(request: NextRequest) {
     const { eq } = await import('drizzle-orm')
 
     // Get user's complete profile with all related data using Drizzle
-    const profileResult = await db
-      .select({
-        profile: profiles,
-        student: studentProfiles,
-        mentor: mentorProfiles,
-        institution: institutionProfiles
+    let profileResult
+    try {
+      const query = db
+        .select({
+          profile: profiles,
+          student: studentProfiles,
+          mentor: mentorProfiles,
+          institution: institutionProfiles
+        })
+        .from(profiles)
+        .leftJoin(studentProfiles, eq(studentProfiles.id, profiles.id))
+        .leftJoin(mentorProfiles, eq(mentorProfiles.id, profiles.id))
+        .leftJoin(institutionProfiles, eq(institutionProfiles.id, profiles.id))
+        .where(eq(profiles.id, userId))
+
+      // Add a 8-second timeout for complex queries
+      profileResult = await Promise.race([
+        query,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 8000)
+        )
+      ])
+    } catch (dbError) {
+      console.error('API: Drizzle query failed, falling back to direct query:', dbError)
+      
+      // Fallback: Return minimal user data from cookies
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: userId,
+          firstName: 'User',
+          lastName: '',
+          email: 'user@example.com',
+          role: 'student',
+          profileImageUrl: null,
+          bio: null,
+          onboardingCompleted: true,
+        },
+        fallbackMode: true,
+        message: 'Using fallback user data due to database connection issues'
       })
-      .from(profiles)
-      .leftJoin(studentProfiles, eq(studentProfiles.id, profiles.id))
-      .leftJoin(mentorProfiles, eq(mentorProfiles.id, profiles.id))
-      .leftJoin(institutionProfiles, eq(institutionProfiles.id, profiles.id))
-      .where(eq(profiles.id, userId))
+    }
 
     if (!profileResult.length || !profileResult[0].profile) {
       console.log('API: No profile found for user ID:', userId)

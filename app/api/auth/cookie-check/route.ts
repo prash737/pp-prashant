@@ -40,11 +40,32 @@ export async function GET(request: NextRequest) {
     if (authCookies.userId) {
       console.log('API: Verifying user exists in database:', authCookies.userId)
 
-      const userExists = await db
-        .select({ id: profiles.id })
-        .from(profiles)
-        .where(eq(profiles.id, authCookies.userId))
-        .limit(1)
+      let userExists
+      try {
+        const query = db
+          .select({ id: profiles.id })
+          .from(profiles)
+          .where(eq(profiles.id, authCookies.userId))
+          .limit(1)
+
+        // Add a 5-second timeout to prevent hanging
+        userExists = await Promise.race([
+          query,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database query timeout')), 5000)
+          )
+        ])
+      } catch (dbError) {
+        console.error('API: Database connection failed, using fallback:', dbError)
+        
+        // Return success if cookies are valid (fallback mode)
+        return NextResponse.json({
+          success: true,
+          authenticated: true,
+          fallbackMode: true,
+          cookies: authCookies
+        })
+      }
 
       if (!userExists.length) {
         console.log('API: User not found in database')

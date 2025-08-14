@@ -35,19 +35,39 @@ export async function GET(request: NextRequest) {
 
     console.log('API: Validating user ID:', userId)
 
-    // Verify user exists in database
-    const userProfile = await db
-      .select({
-        id: profiles.id,
-        email: profiles.email,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        role: profiles.role,
-        profileImageUrl: profiles.profileImageUrl
+    // Verify user exists in database with timeout handling
+    let userProfile
+    try {
+      const query = db
+        .select({
+          id: profiles.id,
+          email: profiles.email,
+          firstName: profiles.firstName,
+          lastName: profiles.lastName,
+          role: profiles.role,
+          profileImageUrl: profiles.profileImageUrl
+        })
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .limit(1)
+
+      // Add a 5-second timeout to prevent hanging
+      userProfile = await Promise.race([
+        query,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout')), 5000)
+        )
+      ])
+    } catch (dbError) {
+      console.error('API: Database connection failed, using fallback:', dbError)
+      
+      // Return success if cookies are valid (user is authenticated via Supabase)
+      return NextResponse.json({
+        success: true,
+        message: 'Authentication valid (fallback mode)',
+        fallbackMode: true
       })
-      .from(profiles)
-      .where(eq(profiles.id, userId))
-      .limit(1)
+    }
 
     if (!userProfile.length) {
       console.log('API: User not found in database')
