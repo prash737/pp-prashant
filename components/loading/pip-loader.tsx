@@ -26,25 +26,37 @@ const loadingSteps: LoadingStep[] = [
     id: 'auth',
     message: "🔐 Authenticating your credentials...",
     description: "Verifying your login details",
-    progress: 20
+    progress: 15
   },
   {
     id: 'profile',
     message: "👤 Loading your profile...",
     description: "Fetching your personal information",
-    progress: 40
+    progress: 30
   },
   {
     id: 'education',
     message: "🎓 Gathering education history...",
     description: "Loading your academic background",
-    progress: 60
+    progress: 45
   },
   {
     id: 'interests',
     message: "💡 Collecting your interests...",
     description: "Retrieving your passions and hobbies",
-    progress: 80
+    progress: 60
+  },
+  {
+    id: 'skills',
+    message: "🛠️ Loading your skills...",
+    description: "Gathering your abilities and expertise",
+    progress: 75
+  },
+  {
+    id: 'connections',
+    message: "🔗 Setting up connections...",
+    description: "Loading your network and circles",
+    progress: 90
   },
   {
     id: 'complete',
@@ -69,17 +81,19 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
         const step = loadingSteps[nextIndex]
 
         // Update Pip's message based on progress
-        if (step.progress <= 40) {
+        if (step.progress <= 30) {
           setPipMessage("I'm setting up your profile... almost there!")
-        } else if (step.progress <= 80) {
+        } else if (step.progress <= 60) {
           setPipMessage("Loading your awesome data! This is exciting!")
+        } else if (step.progress <= 90) {
+          setPipMessage("Gathering all your information! Looking great!")
         } else {
-          setPipMessage("Perfect! Everything looks great! 🎉")
+          setPipMessage("Perfect! Everything looks amazing! 🎉")
         }
 
         return nextIndex
       })
-    }, 1200) // Slightly faster progression
+    }, 800) // Faster progression for better UX
 
     return () => clearInterval(interval)
   }, [isVisible])

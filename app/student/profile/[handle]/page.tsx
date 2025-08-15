@@ -141,23 +141,32 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         <div className="min-h-screen flex flex-col relative">
           <InternalNavbar />
           <main className={`flex-grow pt-16 sm:pt-24 transition-all duration-500 ${(authLoading || loading || !studentData) ? 'blur-sm' : 'blur-none'}`}>
-            {/* Skeleton Profile Structure */}
+            {/* Enhanced Skeleton Profile Structure with Progressive Loading */}
             <div className="container mx-auto px-4 py-8">
               {/* Header Skeleton */}
               <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
                 <div className="flex flex-col lg:flex-row gap-6">
                   <div className="flex-shrink-0">
-                    <div className="w-32 h-32 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="w-32 h-32 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full animate-pulse"></div>
                   </div>
                   <div className="flex-grow space-y-4">
-                    <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/3 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-2/3 animate-pulse"></div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 animate-pulse"></div>
                     <div className="flex gap-2">
-                      <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
-                      <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-20 animate-pulse"></div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Navigation Tabs Skeleton */}
+              <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+                <div className="flex space-x-8 overflow-x-auto">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-20 animate-pulse flex-shrink-0"></div>
+                  ))}
                 </div>
               </div>
 
@@ -167,23 +176,36 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
                 <div className="lg:col-span-2 space-y-6">
                   {/* About Section Skeleton */}
                   <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-4/6 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-5/6 animate-pulse"></div>
+                      <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-4/6 animate-pulse"></div>
+                      <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-3/4 animate-pulse"></div>
                     </div>
                   </div>
 
                   {/* Education Section Skeleton */}
                   <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
                     <div className="space-y-4">
-                      <div className="border rounded p-4">
-                        <div className="h-5 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2 animate-pulse"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-                      </div>
+                      {[...Array(2)].map((_, i) => (
+                        <div key={i} className="border rounded p-4">
+                          <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 mb-2 animate-pulse"></div>
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/3 animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Additional Content Sections */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-20 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded animate-pulse"></div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -192,32 +214,49 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
                 <div className="space-y-6">
                   {/* Interests Section Skeleton */}
                   <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="h-6 bg-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
                     <div className="flex flex-wrap gap-2">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full w-16 animate-pulse"></div>
                       ))}
                     </div>
                   </div>
 
                   {/* Skills Section Skeleton */}
                   <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="h-6 bg-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
                     <div className="flex flex-wrap gap-2">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="h-6 bg-gray-200 rounded-full w-20 animate-pulse"></div>
+                      {[...Array(10)].map((_, i) => (
+                        <div key={i} className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full w-20 animate-pulse"></div>
                       ))}
                     </div>
                   </div>
 
                   {/* Goals Section Skeleton */}
                   <div className="bg-white rounded-lg shadow-sm border p-6">
-                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+                    <div className="space-y-3">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="border rounded p-3">
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 mb-1 animate-pulse"></div>
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/3 animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Connections Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
                     <div className="space-y-3">
                       {[...Array(3)].map((_, i) => (
-                        <div key={i} className="border rounded p-3">
-                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                        <div key={i} className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full animate-pulse"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-2/3 mb-1 animate-pulse"></div>
+                            <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded w-1/2 animate-pulse"></div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -270,28 +309,42 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     <ProtectedLayout>
       <div className="min-h-screen flex flex-col relative">
         <InternalNavbar />
-        <main className={`flex-grow pt-16 sm:pt-24 transition-all duration-500 ${showPipLoader ? 'blur-sm' : 'blur-none'}`}>
+        <main className={`flex-grow pt-16 sm:pt-24 transition-all duration-700 ease-in-out ${showPipLoader ? 'blur-sm opacity-70' : 'blur-none opacity-100'}`}>
           {studentData && (
-            <>
+            <div className={`transition-all duration-1000 ease-in-out ${profileDataLoaded && !showPipLoader ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'}`}>
               <StudentProfile
                 studentId={currentUser.id}
                 currentUser={currentUser}
                 studentData={studentData}
               />
-            </>
+            </div>
+          )}
+          
+          {/* Fallback skeleton if studentData is not ready but not in initial loading */}
+          {!studentData && !authLoading && !loading && (
+            <div className="container mx-auto px-4 py-8">
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your profile...</p>
+                </div>
+              </div>
+            </div>
           )}
         </main>
         <Footer />
         
-        {/* PipLoader Overlay */}
+        {/* PipLoader Overlay with enhanced backdrop */}
         {showPipLoader && (
-          <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 z-50 bg-black/5 backdrop-blur-[2px]">
             <PipLoader 
               isVisible={showPipLoader} 
               userType="student"
               onComplete={() => {
-                // This will be called when PipLoader completes its animation
-                setShowPipLoader(false)
+                // Smooth transition when PipLoader completes
+                setTimeout(() => {
+                  setShowPipLoader(false)
+                }, 300)
               }}
             />
           </div>
