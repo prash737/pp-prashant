@@ -10,10 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Upload, User } from "lucide-react"
 import { toast } from "sonner"
-import PipLoader from "@/components/loading/pip-loader"
 
 // Reuse the same schema from onboarding for consistency
 const personalInfoSchema = z.object({
@@ -72,7 +70,6 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
   const [coverImagePreview, setCoverImagePreview] = useState<string>("")
   const [isDirty, setIsDirty] = useState(false)
   const [originalData, setOriginalData] = useState<PersonalInfoData | null>(null)
-  const [loading, setLoading] = useState(true); // State to manage loading status
 
   // Default data structure
   const defaultData: PersonalInfoData = {
@@ -138,7 +135,6 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
       setCoverImagePreview(data.coverImageUrl || "")
 
       console.log("✅ Form reset completed")
-      setLoading(false); // Set loading to false once data is loaded and form is reset
     }
   }, [data, form])
 
@@ -298,28 +294,6 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
       console.error("💥 Error updating profile:", error)
       toast.error("An error occurred while updating your profile")
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Personal Information</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Tell us about yourself to help others get to know you better
-          </p>
-        </div>
-        
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="personal"
-            onComplete={() => {}}
-          />
-        </div>
-      </div>
-    )
   }
 
   return (

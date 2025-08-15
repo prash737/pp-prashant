@@ -1,13 +1,12 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Plus, X, Search, Heart } from "lucide-react"
 import { toast } from "sonner"
-import PipLoader from "@/components/loading/pip-loader"
 
 interface Interest {
   id: number
@@ -54,8 +53,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
 
         // Fetch interests based on user's age group
-        const interestsUrl = user.ageGroup
-          ? `/api/interests?ageGroup=${user.ageGroup}`
+        const interestsUrl = user.ageGroup 
+          ? `/api/interests?ageGroup=${user.ageGroup}` 
           : '/api/interests'
 
         console.log('🔍 Fetching interests from:', interestsUrl)
@@ -95,10 +94,10 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
   // Re-filter selected interests when interest categories change (age group change)
   useEffect(() => {
     if (interestCategories.length > 0 && selectedInterests.length > 0) {
-      const availableInterestIds = interestCategories.flatMap(category =>
+      const availableInterestIds = interestCategories.flatMap(category => 
         category.interests.map(interest => interest.id)
       )
-      const filteredInterests = selectedInterests.filter(interest =>
+      const filteredInterests = selectedInterests.filter(interest => 
         availableInterestIds.includes(interest.id)
       )
 
@@ -116,12 +115,12 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
+          const userCustomInterests = selectedInterests.filter(selected => 
+            category.interests.some(categoryInterest => 
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-
+          
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -132,7 +131,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-
+      
       setFilteredCategories(filteredCategories)
     }
   }, [interestCategories, selectedInterests])
@@ -143,7 +142,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     const initialNames = [...initialInterests].sort()
 
     // Check if arrays are different
-    const hasChanges = selectedNames.length !== initialNames.length ||
+    const hasChanges = selectedNames.length !== initialNames.length || 
                       !selectedNames.every((name, index) => name === initialNames[index])
 
     if (isDirty !== hasChanges) {
@@ -160,12 +159,12 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
+          const userCustomInterests = selectedInterests.filter(selected => 
+            category.interests.some(categoryInterest => 
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-
+          
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -176,7 +175,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-
+      
       setFilteredCategories(filteredCategories)
       return
     }
@@ -186,12 +185,12 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       .map((category) => {
         if (category.name === "Custom") {
           // For custom category, only show user's own custom interests that match search
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
+          const userCustomInterests = selectedInterests.filter(selected => 
+            category.interests.some(categoryInterest => 
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
-
+          
           return {
             name: category.name,
             interests: userCustomInterests.map(interest => ({
@@ -200,7 +199,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             }))
           }
         }
-
+        
         return {
           name: category.name,
           interests: category.interests.filter((interest) => interest.name.toLowerCase().includes(term)),
@@ -220,7 +219,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }
 
-
+  
 
   const addCustomInterest = () => {
     const trimmedInterest = customInterest.trim()
@@ -283,21 +282,10 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Interests & Passions</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Select topics you're passionate about to help us connect you with like-minded people and relevant content
-          </p>
-        </div>
-        
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          <PipLoader
-            isVisible={true}
-            userType="student"
-            currentStep="interests"
-            onComplete={() => {}}
-          />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading interests...</p>
         </div>
       </div>
     )
@@ -434,8 +422,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           onClick={handleSave}
           disabled={!isDirty}
           className={`w-full max-w-md mx-auto block ${
-            isDirty
-              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90'
+            isDirty 
+              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90' 
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >

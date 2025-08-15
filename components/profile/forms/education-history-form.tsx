@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Plus, X, GraduationCap, Edit, Calendar, Loader2 } from "lucide-react"
@@ -13,8 +13,6 @@ import { toast } from "sonner"
 import { getPlaceholdersForType } from "@/data/institution-placeholders"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { getSubjectSuggestions } from "@/data/subject-suggestions"
-import PipLoader from "@/components/loading/pip-loader"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 interface InstitutionSearchResult {
   id: string
@@ -151,7 +149,7 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
       }
     }
   }, [searchTimeout])
-
+  
   // Search institutions function with debouncing
   const searchInstitutions = async (query: string) => {
     if (query.length < 2) {
@@ -170,9 +168,9 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
       try {
         setInstitutionSearchLoading(true)
         console.log('🔍 Searching institutions for:', query)
-
+        
         const response = await fetch(`/api/institutions/search?q=${encodeURIComponent(query)}`)
-
+        
         if (response.ok) {
           const data = await response.json()
           console.log('✅ Search results:', data.institutions?.length || 0, 'institutions')
@@ -214,7 +212,7 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
       // Close dropdown and clear results
       setShowInstitutionDropdown(false)
       setInstitutionSearchResults([])
-
+      
       console.log('✅ Institution selected:', institution.name)
     } catch (error) {
       console.error('❌ Error selecting institution:', error)
@@ -539,18 +537,10 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
       <div className="space-y-8">
         <div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Education History</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Add your educational background from any type of institution - traditional schools, online platforms, bootcamps, vocational training, and more
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your education history...</p>
         </div>
-        
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="education"
-            onComplete={() => {}}
-          />
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-pathpiper-teal" />
         </div>
       </div>
     )
@@ -671,7 +661,7 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
                     </div>
                   )}
                 </div>
-
+                
                 {/* Institution Search Dropdown */}
                 {showInstitutionDropdown && institutionSearchResults.length > 0 && (
                   <div className="institution-dropdown absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -699,7 +689,7 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
                     ))}
                   </div>
                 )}
-
+                
                 <p className="text-xs text-gray-500 mt-1">
                   Start typing to search for your institution or enter a custom name
                 </p>

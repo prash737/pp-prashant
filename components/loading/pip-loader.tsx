@@ -66,128 +66,40 @@ const loadingSteps: LoadingStep[] = [
   }
 ]
 
-const sectionSpecificSteps: Record<string, LoadingStep[]> = {
-  'personal-info': [
-    {
-      id: 'loading',
-      message: "👤 Loading personal information...",
-      description: "Fetching your profile details",
-      progress: 50
-    },
-    {
-      id: 'complete',
-      message: "✨ Personal info ready!",
-      description: "All set to edit your details",
-      progress: 100
-    }
-  ],
-  'interests': [
-    {
-      id: 'loading',
-      message: "💡 Loading your interests...",
-      description: "Gathering your passions and hobbies",
-      progress: 50
-    },
-    {
-      id: 'complete',
-      message: "✨ Interests loaded!",
-      description: "Ready to explore your passions",
-      progress: 100
-    }
-  ],
-  'skills': [
-    {
-      id: 'loading',
-      message: "🛠️ Loading your skills...",
-      description: "Collecting your abilities and expertise",
-      progress: 50
-    },
-    {
-      id: 'complete',
-      message: "✨ Skills ready!",
-      description: "Time to showcase your talents",
-      progress: 100
-    }
-  ],
-  'education': [
-    {
-      id: 'loading',
-      message: "🎓 Loading education history...",
-      description: "Retrieving your academic journey",
-      progress: 50
-    },
-    {
-      id: 'complete',
-      message: "✨ Education loaded!",
-      description: "Your academic story is ready",
-      progress: 100
-    }
-  ],
-  'goals': [
-    {
-      id: 'loading',
-      message: "🎯 Loading your goals...",
-      description: "Gathering your aspirations and targets",
-      progress: 50
-    },
-    {
-      id: 'complete',
-      message: "✨ Goals ready!",
-      description: "Let's work on your dreams",
-      progress: 100
-    }
-  ]
-}
-
 export default function PipLoader({ isVisible, currentStep, userType, onComplete }: PipLoaderProps) {
   const router = useRouter()
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [pipMessage, setPipMessage] = useState("Let me help you get started!")
 
-  // Use section-specific steps if currentStep is provided, otherwise use default steps
-  const stepsToUse = currentStep && sectionSpecificSteps[currentStep] 
-    ? sectionSpecificSteps[currentStep] 
-    : loadingSteps
-
   useEffect(() => {
     if (!isVisible) return
 
     const interval = setInterval(() => {
       setCurrentStepIndex(prev => {
-        const nextIndex = prev < stepsToUse.length - 1 ? prev + 1 : prev
-        const step = stepsToUse[nextIndex]
+        const nextIndex = prev < loadingSteps.length - 1 ? prev + 1 : prev
+        const step = loadingSteps[nextIndex]
 
-        // Update Pip's message based on current step and section
-        if (currentStep && sectionSpecificSteps[currentStep]) {
-          // Section-specific messages
-          if (step.progress <= 50) {
-            setPipMessage(`Loading your ${currentStep}... I'm on it! 🚀`)
-          } else {
-            setPipMessage("Perfect! Everything is ready to edit! ✨")
-          }
+        // Update Pip's message based on progress
+        if (step.progress <= 30) {
+          setPipMessage("I'm setting up your profile... almost there!")
+        } else if (step.progress <= 60) {
+          setPipMessage("Loading your awesome data! This is exciting!")
+        } else if (step.progress <= 90) {
+          setPipMessage("Gathering all your information! Looking great!")
         } else {
-          // Default messages for full profile loading
-          if (step.progress <= 30) {
-            setPipMessage("I'm setting up your profile... almost there!")
-          } else if (step.progress <= 60) {
-            setPipMessage("Loading your awesome data! This is exciting!")
-          } else if (step.progress <= 90) {
-            setPipMessage("Gathering all your information! Looking great!")
-          } else {
-            setPipMessage("Perfect! Everything looks amazing! 🎉")
-          }
+          setPipMessage("Perfect! Everything looks amazing! 🎉")
         }
 
         return nextIndex
       })
-    }, currentStep ? 1000 : 800) // Faster for section-specific loading
+    }, 800) // Faster progression for better UX
 
     return () => clearInterval(interval)
-  }, [isVisible, currentStep, stepsToUse])
+  }, [isVisible])
 
   useEffect(() => {
-    const currentStepData = stepsToUse[currentStepIndex]
+    const currentStepData = loadingSteps[currentStepIndex]
     if (currentStepData) {
       // Animate progress smoothly
       const timer = setTimeout(() => {
@@ -200,16 +112,16 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
           if (onComplete) {
             onComplete()
           }
-        }, currentStep ? 800 : 1000) // Faster completion for section-specific loading
+        }, 1000) // Delay the completion slightly to show the final state
       }
 
       return () => clearTimeout(timer)
     }
-  }, [currentStepIndex, isVisible, userType, onComplete, router, currentStep, stepsToUse])
+  }, [currentStepIndex, isVisible, userType, onComplete, router])
 
   if (!isVisible) return null
 
-  const currentLoadingStep = stepsToUse[currentStepIndex]
+  const currentLoadingStep = loadingSteps[currentStepIndex]
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-teal-50 via-blue-50 to-purple-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -327,7 +239,7 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
 
               {/* Loading Steps Indicator */}
               <div className="flex justify-center space-x-2 mt-4">
-                {stepsToUse.map((step, index) => (
+                {loadingSteps.map((step, index) => (
                   <motion.div
                     key={step.id}
                     className={`w-2 h-2 rounded-full transition-colors duration-300 ${

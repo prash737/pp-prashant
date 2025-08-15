@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -6,9 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Plus, X, Search, Award } from "lucide-react"
-import PipLoader from "@/components/loading/pip-loader"
 
 interface Skill {
   id?: number
@@ -55,12 +54,12 @@ export default function SkillsAbilitiesForm({
           const userData = await userResponse.json()
           // Try both possible field names for age group
           const actualAgeGroup = userData.user?.ageGroup || userData.user?.studentProfile?.age_group
-
+          
           console.log('🔍 Full user data:', userData.user)
           console.log('🔍 Age group from ageGroup field:', userData.user?.ageGroup)
           console.log('🔍 Age group from studentProfile.age_group:', userData.user?.studentProfile?.age_group)
           console.log('🔍 Final actualAgeGroup:', actualAgeGroup)
-
+          
           if (!actualAgeGroup) {
             console.error('❌ No age_group found in student profile. Please set age_group first.')
             setLoading(false)
@@ -130,7 +129,7 @@ export default function SkillsAbilitiesForm({
             id: skill.id || -Date.now(),
             name: skill.name
           }))
-
+          
           return {
             ...category,
             skills: userCustomSkills
@@ -159,7 +158,7 @@ export default function SkillsAbilitiesForm({
     }
 
     const term = searchTerm.toLowerCase()
-
+    
     // Filter with search term, ensuring Custom category only shows user's own skills
     const filtered = skillCategories
       .map((category) => {
@@ -172,13 +171,13 @@ export default function SkillsAbilitiesForm({
             id: skill.id || -Date.now(),
             name: skill.name
           }))
-
+          
           return {
             name: category.name,
             skills: userCustomSkills
           }
         }
-
+        
         return {
           name: category.name,
           skills: category.skills.filter((skill) =>
@@ -214,7 +213,7 @@ export default function SkillsAbilitiesForm({
         const originalSkill = originalSkills.find(orig => orig.name === skill.name)
         return !originalSkill || originalSkill.level !== skill.level
       })
-
+    
     console.log("🔍 Skills dirty bit:", skillsChanged)
     setIsDirty(skillsChanged)
     onChange("skills", skills, skillsChanged)
@@ -267,7 +266,7 @@ export default function SkillsAbilitiesForm({
 
   const getLevelLabel = (level: number) => {
     const isYoungChild = userAgeGroup === "early_childhood" || userAgeGroup === "elementary"
-
+    
     if (isYoungChild) {
       switch (level) {
         case 1: return "Just Started"
@@ -297,7 +296,7 @@ export default function SkillsAbilitiesForm({
         console.log("💾 Skills have changes, saving to database...")
         console.log("🔍 User age group for save:", userAgeGroup)
         console.log("🔍 Skills to save:", skills)
-
+        
         // Send all skills (with and without IDs) to the API
         // The API will handle filtering based on user's actual age group
         const response = await fetch('/api/user/skills', {
@@ -313,7 +312,7 @@ export default function SkillsAbilitiesForm({
           console.error('Failed to save skills:', errorData)
           throw new Error(errorData.error || 'Failed to save skills')
         }
-
+        
         setIsDirty(false)
         setOriginalSkills([...skills])
         // Notify parent component that changes have been saved
@@ -332,21 +331,10 @@ export default function SkillsAbilitiesForm({
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Skills & Abilities</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Showcase your skills and expertise to help mentors understand your strengths and areas for growth
-          </p>
-        </div>
-        
-        <div className="relative min-h-[400px] flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="skills"
-            onComplete={() => {}}
-          />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading skills...</p>
         </div>
       </div>
     )
@@ -389,7 +377,7 @@ export default function SkillsAbilitiesForm({
                   <Plus size={16} />
                 </Button>
               </div>
-
+              
               {/* Default Level for New Skills */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                 <Label className="text-sm font-medium mb-2 block">
