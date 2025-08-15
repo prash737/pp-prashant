@@ -13,27 +13,20 @@ export default function StudentProfilePage() {
     if (loading) return
 
     if (!user) {
-      router.push('/login')
+      router.replace('/login')
       return
     }
 
     if (user.role !== 'student') {
-      router.push('/login')
+      router.replace('/login')
       return
     }
 
-    // Redirect to the user's profile using their ID as handle
-    router.push(`/student/profile/${user.id}`)
+    // Immediate redirect to the user's profile using their ID as handle
+    router.replace(`/student/profile/${user.id}`)
   }, [user, loading, router])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
-      </div>
-    )
-  }
-
-  // This component will redirect, so we don't need to render anything else
+  // Return null instead of showing any loading UI
+  // since this should redirect immediately
   return null
 }
