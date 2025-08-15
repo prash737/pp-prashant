@@ -536,34 +536,13 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
 
   if (loading) {
     return (
-      <div className="relative">
-        <Card className="opacity-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Education History
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="border rounded-lg p-4 space-y-2">
-                  <div className="h-6 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="education"
-            onComplete={() => {}}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PipLoader 
+          isVisible={true} 
+          userType="student"
+          currentStep="education"
+          onComplete={() => {}}
+        />
       </div>
     )
   }

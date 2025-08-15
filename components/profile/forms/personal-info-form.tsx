@@ -302,33 +302,13 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
 
   if (loading) {
     return (
-      <div className="relative">
-        <Card className="opacity-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="personal-info"
-            onComplete={() => {}}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PipLoader 
+          isVisible={true} 
+          userType="student"
+          currentStep="personal"
+          onComplete={() => {}}
+        />
       </div>
     )
   }

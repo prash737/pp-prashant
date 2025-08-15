@@ -54,8 +54,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
 
         // Fetch interests based on user's age group
-        const interestsUrl = user.ageGroup 
-          ? `/api/interests?ageGroup=${user.ageGroup}` 
+        const interestsUrl = user.ageGroup
+          ? `/api/interests?ageGroup=${user.ageGroup}`
           : '/api/interests'
 
         console.log('🔍 Fetching interests from:', interestsUrl)
@@ -95,10 +95,10 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
   // Re-filter selected interests when interest categories change (age group change)
   useEffect(() => {
     if (interestCategories.length > 0 && selectedInterests.length > 0) {
-      const availableInterestIds = interestCategories.flatMap(category => 
+      const availableInterestIds = interestCategories.flatMap(category =>
         category.interests.map(interest => interest.id)
       )
-      const filteredInterests = selectedInterests.filter(interest => 
+      const filteredInterests = selectedInterests.filter(interest =>
         availableInterestIds.includes(interest.id)
       )
 
@@ -116,8 +116,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
@@ -143,7 +143,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     const initialNames = [...initialInterests].sort()
 
     // Check if arrays are different
-    const hasChanges = selectedNames.length !== initialNames.length || 
+    const hasChanges = selectedNames.length !== initialNames.length ||
                       !selectedNames.every((name, index) => name === initialNames[index])
 
     if (isDirty !== hasChanges) {
@@ -160,8 +160,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
@@ -186,8 +186,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       .map((category) => {
         if (category.name === "Custom") {
           // For custom category, only show user's own custom interests that match search
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
@@ -283,37 +283,13 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
 
   if (isLoading) {
     return (
-      <div className="relative">
-        <Card className="opacity-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5" />
-              Interests & Passions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-6 w-20 bg-gray-200 rounded-full animate-pulse"></div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="interests"
-            onComplete={() => {}}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PipLoader
+          isVisible={true}
+          userType="student"
+          currentStep="interests"
+          onComplete={() => {}}
+        />
       </div>
     )
   }
@@ -449,8 +425,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           onClick={handleSave}
           disabled={!isDirty}
           className={`w-full max-w-md mx-auto block ${
-            isDirty 
-              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90' 
+            isDirty
+              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >

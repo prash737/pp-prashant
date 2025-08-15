@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Plus, X, Search, Award } from "lucide-react"
-import PipLoader from "@/components/loading/pip-loader" // Import PipLoader
+import PipLoader from "@/components/loading/pip-loader"
 
 interface Skill {
   id?: number
@@ -331,37 +332,13 @@ export default function SkillsAbilitiesForm({
 
   if (loading) {
     return (
-      <div className="relative">
-        <Card className="opacity-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Skills & Abilities
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {[...Array(10)].map((_, i) => (
-                  <div key={i} className="h-6 w-24 bg-gray-200 rounded-full animate-pulse"></div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <PipLoader 
-            isVisible={true} 
-            userType="student"
-            currentStep="skills"
-            onComplete={() => {}}
-          />
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <PipLoader 
+          isVisible={true} 
+          userType="student"
+          currentStep="skills"
+          onComplete={() => {}}
+        />
       </div>
     )
   }
