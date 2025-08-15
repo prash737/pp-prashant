@@ -8,6 +8,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🤖 Self-analysis API request received')
