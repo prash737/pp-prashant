@@ -1,12 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function GET(
   request: NextRequest,
@@ -17,33 +11,24 @@ export async function GET(
     
     console.log('API: Student goals request received for:', studentId)
 
-    const cookieStore = request.cookies
-    const accessToken = cookieStore.get('sb-access-token')?.value
-
-    if (!accessToken) {
-      console.log('API: No access token found in cookies')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
-
-    if (error || !user) {
-      console.log('API: Token verification failed:', error?.message)
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    console.log('API: Authenticated user found:', user.id)
-
-    // Check if Goal model exists
-    if (!prisma.goal) {
-      console.error('Goal model not found in Prisma client')
-      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
-    }
-
-    // Get goals for the specific student
+    // Get goals for the specific student - optimized query
     const goals = await prisma.goal.findMany({
       where: {
         userId: studentId
+      },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+        description: true,
+        category: true,
+        timeframe: true,
+        status: true,
+        priority: true,
+        targetDate: true,
+        progress: true,
+        createdAt: true,
+        updatedAt: true
       },
       orderBy: {
         createdAt: 'desc'
