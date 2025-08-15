@@ -96,25 +96,9 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
       if (currentStepData.progress === 100) {
         setTimeout(() => {
           if (onComplete) {
-            if (userType === 'student') {
-              // Get the user ID from the response and redirect directly
-              fetch('/api/auth/user', { credentials: 'include' })
-                .then(res => res.json())
-                .then(data => {
-                  if (data.user?.id) {
-                    router.replace(`/student/profile/${data.user.id}`)
-                  } else {
-                    router.push('/student/profile')
-                  }
-                })
-                .catch(() => router.push('/student/profile'))
-            } else if (userType === 'parent') {
-              router.push('/parent/dashboard')
-            } else {
-              router.push('/feed')
-            }
+            onComplete() // Call the completion callback without redirecting
           }
-        }, 1000) // Delay the redirect slightly to show the final state
+        }, 1000) // Delay the completion to show the final state
       }
 
       return () => clearTimeout(timer)

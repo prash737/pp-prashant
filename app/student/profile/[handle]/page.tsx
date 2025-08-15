@@ -7,6 +7,7 @@ import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
 import StudentProfile from "@/components/profile/student-profile"
+import PipLoader from "@/components/loading/pip-loader"
 
 interface StudentData {
   id: string
@@ -46,6 +47,8 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
+  const [profileDataLoaded, setProfileDataLoaded] = useState(false)
+  const [showPipLoader, setShowPipLoader] = useState(true)
   const router = useRouter()
   // Resolve params first
   useEffect(() => {
@@ -106,9 +109,19 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
         const data = await response.json()
         setStudentData(data)
+        
+        // Add a small delay to ensure all components have rendered
+        setTimeout(() => {
+          setProfileDataLoaded(true)
+          // Hide PipLoader after data is fully loaded and rendered
+          setTimeout(() => {
+            setShowPipLoader(false)
+          }, 1500) // Allow time for final loading steps in PipLoader
+        }, 500)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
+        setShowPipLoader(false)
       } finally {
         setLoading(false)
       }
@@ -117,7 +130,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     fetchStudentData()
   }, [handle, currentUser, authLoading, router])
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col">
@@ -159,9 +172,9 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
   return (
     <ProtectedLayout>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
         <InternalNavbar />
-        <main className="flex-grow pt-16 sm:pt-24">
+        <main className={`flex-grow pt-16 sm:pt-24 transition-all duration-500 ${showPipLoader ? 'blur-sm' : 'blur-none'}`}>
           {studentData && (
             <>
               <StudentProfile
@@ -173,6 +186,20 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
           )}
         </main>
         <Footer />
+        
+        {/* PipLoader Overlay */}
+        {showPipLoader && (
+          <div className="fixed inset-0 z-50">
+            <PipLoader 
+              isVisible={showPipLoader} 
+              userType="student"
+              onComplete={() => {
+                // This will be called when PipLoader completes its animation
+                setShowPipLoader(false)
+              }}
+            />
+          </div>
+        )}
       </div>
     </ProtectedLayout>
   )

@@ -1,31 +1,24 @@
-
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useEffect } from 'react'
+import { useAuth } from '@/hooks/use-auth'
+import { useRouter } from 'next/navigation'
 
-export default function StudentProfilePage() {
+export default function StudentProfileRedirect() {
   const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (loading) return
-
-    if (!user) {
-      router.replace('/login')
+    if (loading) {
       return
     }
 
-    if (user.role !== 'student') {
-      router.replace('/login')
-      return
+    if (user?.id) {
+      // Immediate redirect with replace to avoid history entry
+      router.replace(`/student/profile/${user.id}`)
     }
-
-    // Immediate redirect with no scroll, no loading state
-    router.replace(`/student/profile/${user.id}`, { scroll: false })
   }, [user, loading, router])
 
-  // Return null - no UI rendering at all
+  // Return completely empty - no rendering at all
   return null
 }
