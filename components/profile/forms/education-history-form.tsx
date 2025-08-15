@@ -536,13 +536,22 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <PipLoader 
-          isVisible={true} 
-          userType="student"
-          currentStep="education"
-          onComplete={() => {}}
-        />
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Education History</h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Add your educational background from any type of institution - traditional schools, online platforms, bootcamps, vocational training, and more
+          </p>
+        </div>
+        
+        <div className="relative min-h-[400px] flex items-center justify-center">
+          <PipLoader 
+            isVisible={true} 
+            userType="student"
+            currentStep="education"
+            onComplete={() => {}}
+          />
+        </div>
       </div>
     )
   }

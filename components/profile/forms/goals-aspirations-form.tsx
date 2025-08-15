@@ -205,13 +205,22 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <PipLoader 
-          isVisible={true} 
-          userType="student"
-          currentStep="goals"
-          onComplete={() => {}}
-        />
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals & Aspirations</h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Share your goals to help mentors understand what you're working towards and how they can support you
+          </p>
+        </div>
+        
+        <div className="relative min-h-[400px] flex items-center justify-center">
+          <PipLoader 
+            isVisible={true} 
+            userType="student"
+            currentStep="goals"
+            onComplete={() => {}}
+          />
+        </div>
       </div>
     )
   }
