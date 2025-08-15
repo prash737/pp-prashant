@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { loginUser } from '@/lib/services/auth-service';
@@ -48,26 +47,26 @@ export async function POST(request: NextRequest) {
 
     if (studentProfile) {
       console.log('✅ Found student profile');
-      
+
       // Check verification status for students under 16
       if (studentProfile.birthYear && studentProfile.birthMonth) {
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1;
-        
+
         const birthYear = parseInt(studentProfile.birthYear);
         const birthMonth = parseInt(studentProfile.birthMonth);
-        
+
         let ageInYears = currentYear - birthYear;
         if (currentMonth < birthMonth) {
           ageInYears--;
         }
-        
+
         // Check if student is under 16 and verification status
         if (ageInYears < 16) {
           const isParentVerified = studentProfile.profile.parentVerified || false;
           const isEmailVerified = studentProfile.profile.emailVerified || false;
-          
+
           // Check verification status and return appropriate response
           if (!isParentVerified || !isEmailVerified) {
             return NextResponse.json({
@@ -81,14 +80,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Check onboarding completion for student
-      const hasBasicInfo = studentProfile.profile.firstName && 
-                         studentProfile.profile.lastName && 
+      const hasBasicInfo = studentProfile.profile.firstName &&
+                         studentProfile.profile.lastName &&
                          studentProfile.profile.bio;
 
-      const hasInterests = studentProfile.profile.userInterests && 
+      const hasInterests = studentProfile.profile.userInterests &&
                          studentProfile.profile.userInterests.length > 0;
 
-      const hasEducation = studentProfile.educationHistory && 
+      const hasEducation = studentProfile.educationHistory &&
                          studentProfile.educationHistory.length > 0;
 
       const onboardingCompleted = hasBasicInfo && hasInterests && hasEducation;
@@ -138,6 +137,15 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // Determine redirect path based on user type and onboarding status
+        let redirectPath = '/feed' // default
+
+        if (data.userType === 'student') {
+          redirectPath = data.onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
+        } else if (data.userType === 'parent') {
+          redirectPath = '/parent/dashboard'
+        }
+        
       return response;
     }
 
@@ -148,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     if (parentProfile) {
       console.log('✅ Found parent profile');
-      
+
       // Set session cookies for parent
       const response = NextResponse.json({
         success: true,
