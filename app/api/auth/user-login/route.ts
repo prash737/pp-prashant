@@ -140,7 +140,12 @@ export async function POST(request: NextRequest) {
       // For students, redirect based on onboarding status
       // Since we know this is a student (we're in the studentProfile block)
       const redirectPath = onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
-      return response; // Changed to return response after setting cookies
+      
+      // Set redirect header to avoid intermediate redirects
+      response.headers.set('Location', redirectPath)
+      response.headers.set('X-Redirect-To', redirectPath)
+      
+      return response;
     }
 
     // Check if user exists in parent_profile table

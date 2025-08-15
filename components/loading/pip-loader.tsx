@@ -79,7 +79,7 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
 
         return nextIndex
       })
-    }, 1500) // Change step every 1.5 seconds
+    }, 1200) // Slightly faster progression
 
     return () => clearInterval(interval)
   }, [isVisible])

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect } from 'react'
@@ -9,16 +10,19 @@ export default function StudentProfileRedirect() {
   const router = useRouter()
 
   useEffect(() => {
-    if (loading) {
-      return
-    }
-
-    if (user?.id) {
-      // Immediate redirect with replace to avoid history entry
+    // If we reach this page, it means something went wrong with direct routing
+    // Redirect to the user's profile if they're authenticated
+    if (!loading && user?.id) {
       router.replace(`/student/profile/${user.id}`)
+    } else if (!loading && !user) {
+      router.replace('/login')
     }
   }, [user, loading, router])
 
-  // Return completely empty - no rendering at all
-  return null
+  // Show minimal loading state while redirecting
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal"></div>
+    </div>
+  )
 }

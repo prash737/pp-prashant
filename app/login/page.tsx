@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef, Suspense } from "react"
@@ -113,7 +112,7 @@ function LoginPageContent() {
           needsEmailVerification: data.needsEmailVerification || false,
           message: data.error || "Verification required"
         })
-        
+
         // Clear form fields
         setUserEmail("")
         setUserPassword("")
@@ -129,15 +128,22 @@ function LoginPageContent() {
         let redirectPath = '/feed' // default
 
         if (data.userType === 'student') {
-          redirectPath = data.onboardingCompleted ? '/student/profile' : '/onboarding'
+          if (data.onboardingCompleted) {
+            // Redirect directly to the user's profile with their ID
+            router.push(`/student/profile/${data.userId}`)
+          } else {
+            router.push('/onboarding')
+          }
         } else if (data.userType === 'parent') {
-          redirectPath = '/parent/dashboard'
+          router.push('/parent/dashboard')
         }
-
-        // Force a hard navigation to ensure fresh session
+        
+        // Reduced delay for faster redirect
         setTimeout(() => {
-          window.location.href = redirectPath
-        }, 1000)
+          // The actual navigation happens via router.push above.
+          // This timeout is primarily to ensure `isRedirecting` is true when the component re-renders
+          // or if there's a subsequent client-side navigation.
+        }, 500) 
       } else {
         // Check if it's a parent approval error
         if (data.needsParentApproval) {
@@ -464,7 +470,7 @@ function LoginPageContent() {
                       <p className="text-amber-700">
                         Before you can log in, please complete both verification steps:
                       </p>
-                      
+
                       <div className="space-y-2">
                         <div className="bg-amber-100 p-3 rounded-lg border border-amber-200">
                           <div className="flex items-center space-x-2 text-amber-700">
@@ -475,7 +481,7 @@ function LoginPageContent() {
                             Check your inbox for a verification email and click the link.
                           </p>
                         </div>
-                        
+
                         <div className="bg-amber-100 p-3 rounded-lg border border-amber-200">
                           <div className="flex items-center space-x-2 text-amber-700">
                             <Shield className="h-4 w-4" />
@@ -486,7 +492,7 @@ function LoginPageContent() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <p className="text-sm text-amber-600">
                         Both steps must be completed before you can access your account.
                       </p>

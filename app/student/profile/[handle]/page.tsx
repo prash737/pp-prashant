@@ -49,6 +49,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [handle, setHandle] = useState<string | null>(null)
   const [profileDataLoaded, setProfileDataLoaded] = useState(false)
   const [showPipLoader, setShowPipLoader] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true)
   const router = useRouter()
   // Resolve params first
   useEffect(() => {
@@ -109,15 +110,18 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
         const data = await response.json()
         setStudentData(data)
+        setProfileDataLoaded(true)
         
-        // Add a small delay to ensure all components have rendered
-        setTimeout(() => {
-          setProfileDataLoaded(true)
-          // Hide PipLoader after data is fully loaded and rendered
+        // If this is the initial load, keep PipLoader for smooth transition
+        // If it's a subsequent load, hide immediately
+        if (initialLoad) {
           setTimeout(() => {
             setShowPipLoader(false)
-          }, 1500) // Allow time for final loading steps in PipLoader
-        }, 500)
+            setInitialLoad(false)
+          }, 2000) // Keep PipLoader for 2 seconds on initial load
+        } else {
+          setShowPipLoader(false)
+        }
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
