@@ -137,14 +137,9 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Determine redirect path based on user type and onboarding status
-        let redirectPath = '/feed' // default
-
-        if (data.userType === 'student') {
-          redirectPath = data.onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
-        } else if (data.userType === 'parent') {
-          redirectPath = '/parent/dashboard'
-        }
+      // For students, redirect based on onboarding status
+      // Since we know this is a student (we're in the studentProfile block)
+      const redirectPath = onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
         
       return response;
     }
