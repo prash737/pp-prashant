@@ -1,0 +1,93 @@
+?   moderatorLogs?: true,
+?   _count?: true
+  }
+}
+
+Unknown field `studentProfile` for select statement on model `Profile`. Available options are listed in green.
+Error fetching user interests: Error [PrismaClientValidationError]: 
+Invalid `prisma.profile.findUnique()` invocation:
+
+{
+  where: {
+    id: "006a3d59-ec4d-42e6-aee4-d04f1d0caf2b"
+  },
+  select: {
+    role: true,
+    studentProfile: {
+    ~~~~~~~~~~~~~~
+      select: {
+        age_group: true
+      }
+    },
+?   id?: true,
+?   firstName?: true,
+?   lastName?: true,
+?   bio?: true,
+?   location?: true,
+?   profileImageUrl?: true,
+?   tagline?: true,
+?   professionalSummary?: true,
+?   verificationStatus?: true,
+?   email?: true,
+?   emailVerified?: true,
+?   phone?: true,
+?   coverImageUrl?: true,
+?   themePreference?: true,
+?   timezone?: true,
+?   availabilityStatus?: true,
+?   lastActiveDate?: true,
+?   profileViews?: true,
+?   createdAt?: true,
+?   updatedAt?: true,
+?   parentId?: true,
+?   parentVerified?: true,
+?   student?: true,
+?   mentor?: true,
+?   institution?: true,
+?   posts?: true,
+?   userInterests?: true,
+?   userSkills?: true,
+?   socialLinks?: true,
+?   userLanguages?: true,
+?   userHobbies?: true,
+?   moodBoard?: true,
+?   userCollections?: true,
+?   customBadges?: true,
+?   sentConnections?: true,
+?   receivedConnections?: true,
+?   connections1?: true,
+?   connections2?: true,
+?   givenEndorsements?: true,
+?   receivedEndorsements?: true,
+?   createdCircles?: true,
+?   circleMemberships?: true,
+?   sentCircleInvitations?: true,
+?   receivedCircleInvitations?: true,
+?   goals?: true,
+?   achievements?: true,
+?   parent?: true,
+?   postLikes?: true,
+?   postComments?: true,
+?   postBookmarks?: true,
+?   postReactions?: true,
+?   institutionFollowers?: true,
+?   institutionFollowing?: true,
+?   academicCommunityMemberships?: true,
+?   moderationLogs?: true,
+?   moderatorLogs?: true,
+?   _count?: true
+  }
+}
+
+Unknown field `studentProfile` for select statement on model `Profile`. Available options are listed in green.
+    at async GET (app/api/user/interests/route.ts:203:41)
+  201 |
+  202 |     // Get user's age group and interests in parallel - optimized query
+> 203 |     const [profileData, userInterests] = await Promise.all([
+      |                                         ^
+  204 |       prisma.profile.findUnique({
+  205 |         where: { id: userId },
+  206 |         select: {  {
+  clientVersion: '6.14.0'
+}
+ GET /api/user/interests 500 in 147ms
