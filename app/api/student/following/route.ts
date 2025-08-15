@@ -8,35 +8,20 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    let token = authHeader?.replace('Bearer ', '')
+    // No authentication check - open access
 
-    if (!token) {
-      // Try to get token from cookies as fallback
-      const authCookie = request.cookies.get('sb-access-token')?.value ||
-                        request.cookies.get('sb-refresh-token')?.value
-
-      if (authCookie) {
-        token = authCookie
-      }
-    }
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify the user
-    const { data: authData, error: authError } = await supabase.auth.getUser(token)
-
-    if (authError || !authData.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Get studentId from query params since no auth
+    const { searchParams } = new URL(request.url)
+    const studentId = searchParams.get('studentId')
+    
+    if (!studentId) {
+      return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
     }
 
     // Get all institutions the student is following
     const followingConnections = await prisma.institutionFollowConnection.findMany({
       where: {
-        senderId: authData.user.id
+        senderId: studentId
       },
       include: {
         receiver: {

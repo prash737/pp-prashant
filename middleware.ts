@@ -28,10 +28,10 @@ export async function middleware(request: NextRequest) {
     path === pp || path.startsWith(`${pp}/`)
   );
   
-  // Check if the current path is a public path
+  // Check if the current path is a public path or student/profile API
   const isPublicPath = publicPaths.some(pp => 
     path === pp || path.startsWith(`${pp}/`)
-  );
+  ) || path.startsWith('/api/student/profile') || path.startsWith('/api/institution/profile');
   
   // If it's a protected path, validate authentication properly
   if (isProtectedPath && !isPublicPath) {
