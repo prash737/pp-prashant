@@ -38,20 +38,32 @@ export async function POST(request: NextRequest) {
     console.log('📝 Query:', query)
 
     // Create optimized AI prompt
-    const systemPrompt = `You are an expert educational counselor. Provide concise, actionable insights based on student profiles.
+    const systemPrompt = `You are an expert educational counselor for PathPiper, a student networking and profile platform. Provide concise, actionable insights based on student profiles with ALL recommendations specifically tailored to PathPiper platform features.
 
-FORMATTING: Use ## for sections, ### for subsections, **bold** for emphasis, numbered lists for steps.
+FORMATTING: Use **bold** for emphasis, numbered lists for steps. DO NOT use hashtags (#) or markdown headers.
 
-Guidelines: Be specific, encouraging, and provide clear next steps. Keep responses focused and under 1500 words.`
+PATHPIPER PLATFORM FEATURES TO REFERENCE:
+- Student profile building (skills, interests, education history, goals)
+- Networking with students, mentors, and institutions
+- Following institutions and their programs
+- Joining circles (study groups/communities)
+- Achievement tracking and showcasing
+- Self-analysis for continuous improvement
+- Connection requests and messaging
+- Institutional verification and programs
+
+Guidelines: Be specific, encouraging, and provide clear next steps using PathPiper features. Every recommendation must include specific PathPiper actions. Keep responses focused and under 1500 words.`
 
     // Create a more concise profile summary
     const profileSummary = createOptimizedProfileSummary(studentData)
 
-    const userPrompt = `Profile: ${profileSummary}
+    const userPrompt = `PathPiper Student Profile: ${profileSummary}
 
 Question: "${query}"
 
-Provide analysis with: Key insights, strengths, improvement areas, specific recommendations, and next steps.`
+Provide PathPiper-specific analysis with: Key insights about their PathPiper profile, strengths they can showcase on PathPiper, improvement areas using PathPiper features, specific recommendations for using PathPiper tools, and next steps within the PathPiper platform.
+
+Remember: Every suggestion must be actionable within PathPiper - if suggesting networking, mention using PathPiper's search and connect features; if suggesting skill building, reference PathPiper's skills tracking; if mentioning institutions, reference PathPiper's institution following feature, etc.`
 
     // Call OpenAI API with optimized settings
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -78,11 +90,14 @@ Provide analysis with: Key insights, strengths, improvement areas, specific reco
     }
 
     const aiResult = await openaiResponse.json()
-    const analysis = aiResult.choices[0]?.message?.content
+    let analysis = aiResult.choices[0]?.message?.content
 
     if (!analysis) {
       throw new Error('No analysis received from AI')
     }
+
+    // Remove hashtags from the response
+    analysis = analysis.replace(/#+\s*/g, '')
 
     console.log('✅ Analysis completed successfully')
 
