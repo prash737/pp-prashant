@@ -434,7 +434,7 @@ export function InternalNavbar() {
                             setShowSearchResults(false);
                             setSearchQuery("");
                             if (searchUser.id === user?.id) {
-                              router.push(`/student/profile`);
+                              router.push(`/student/profile/${user.id}`);
                             } else {
                               if (searchUser.role === 'student') {
                                 router.push(`/public-view/student/profile/${searchUser.id}`);
