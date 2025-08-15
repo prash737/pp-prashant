@@ -565,9 +565,17 @@ export function InternalNavbar() {
                       key={link.name}
                       onClick={(e) => {
                         e.preventDefault();
-                        if (!userLoading && user?.id) {
+                        console.log('🔍 Profile button clicked. User data:', { user, userLoading });
+                        
+                        // Force navigation even if user data is still loading
+                        if (user?.id) {
                           const directUrl = user.role === 'student' ? `/student/profile/${user.id}` : link.href;
+                          console.log('🔍 Navigating to:', directUrl);
                           router.push(directUrl);
+                        } else {
+                          // Fallback to default profile route if user data not ready
+                          console.log('🔍 User data not ready, using fallback route');
+                          router.push('/student/profile');
                         }
                       }}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
@@ -712,11 +720,17 @@ export function InternalNavbar() {
                   key={item.name}
                   onClick={(e) => {
                     e.preventDefault();
-                    if (!userLoading && user?.id) {
+                    console.log('🔍 Mobile Profile button clicked. User data:', { user, userLoading });
+                    
+                    // Force navigation even if user data is still loading
+                    if (user?.id) {
                       const directUrl = user.role === 'student' ? `/student/profile/${user.id}` : item.href;
+                      console.log('🔍 Mobile navigating to:', directUrl);
                       router.push(directUrl);
                     } else {
-                      item.onClick?.(e);
+                      // Fallback to default profile route if user data not ready
+                      console.log('🔍 Mobile user data not ready, using fallback route');
+                      router.push('/student/profile');
                     }
                   }}
                   className={`flex flex-col items-center p-2 ${
