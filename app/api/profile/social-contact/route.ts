@@ -1,32 +1,31 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { supabase } from '@/lib/supabase'
 import { updateUserProfile, getUserSocialLinks, updateUserSocialLinks, getUserProfile } from '@/lib/db/profile'
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔄 Fetching social contact data')
 
-    // Get user from session
-    const cookieStore = await cookies()
-    const accessToken = cookieStore.get('sb-access-token')?.value
-
-    if (!accessToken) {
-      console.log('❌ No access token found')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Get userId from query params or cookies
+    const { searchParams } = new URL(request.url)
+    let userId = searchParams.get('userId')
+    
+    // If no userId in query params, try to get from cookies
+    if (!userId) {
+      const cookieStore = request.cookies
+      userId = cookieStore.get('sb-user-id')?.value
+    }
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
-
-    if (authError || !user) {
-      console.log('❌ Authentication failed')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Fetch profile data and social links
-    const profile = await getUserProfile(user.id)
-    const socialLinks = await getUserSocialLinks(user.id)
+    // Fetch profile data and social links - optimized parallel execution
+    const [profile, socialLinks] = await Promise.all([
+      getUserProfile(userId),
+      getUserSocialLinks(userId)
+    ])
+    
     console.log('✅ Fetched profile and social links:', { email: profile?.email, phone: profile?.phone, socialLinksCount: socialLinks.length })
 
     return NextResponse.json({ 
@@ -50,40 +49,38 @@ export async function POST(request: NextRequest) {
   try {
     console.log('💾 Saving social contact data')
 
-    // Get user from session
-    const cookieStore = await cookies()
-    const accessToken = cookieStore.get('sb-access-token')?.value
-
-    if (!accessToken) {
-      console.log('❌ No access token found')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
-
-    if (authError || !user) {
-      console.log('❌ Authentication failed')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { email, phone, socialLinks } = body
+    const { userId, email, phone, socialLinks } = body
 
-    console.log('📊 Received data:', { email, phone, socialLinksCount: socialLinks?.length || 0 })
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    }
 
-    // Update profile contact info if provided
+    console.log('📊 Received data:', { userId, email, phone, socialLinksCount: socialLinks?.length || 0 })
+
+    // Update profile contact info and social links in parallel if both provided
+    const promises = []
+    
     if (email !== undefined || phone !== undefined) {
       const profileData: any = {}
       if (email !== undefined) profileData.email = email
       if (phone !== undefined) profileData.phone = phone
       
-      await updateUserProfile(user.id, profileData)
-      console.log('✅ Updated profile contact info')
+      promises.push(updateUserProfile(userId, profileData))
+      console.log('✅ Queued profile contact info update')
     }
 
-    // Update social links if provided
     if (socialLinks && Array.isArray(socialLinks)) {
-      const updatedLinks = await updateUserSocialLinks(user.id, socialLinks)
+      promises.push(updateUserSocialLinks(userId, socialLinks))
+      console.log('✅ Queued social links update')
+    }
+
+    // Execute all updates in parallel for maximum speed
+    const results = await Promise.all(promises)
+    
+    // Return updated social links if they were updated
+    if (socialLinks && Array.isArray(socialLinks)) {
+      const updatedLinks = results[promises.length - 1] // Last result is social links
       console.log('✅ Updated social links:', updatedLinks.length)
       
       return NextResponse.json({ 
