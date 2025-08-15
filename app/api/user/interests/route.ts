@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -20,15 +19,15 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
       select: { 
         role: true,
-        studentProfile: {
+        student: {
           select: { age_group: true }
         }
       }
     })
 
     let ageGroup = 'young_adult' // default
-    if (profileData?.role === 'student' && profileData.studentProfile?.age_group) {
-      ageGroup = profileData.studentProfile.age_group
+    if (profileData?.role === 'student' && profileData.student?.age_group) {
+      ageGroup = profileData.student.age_group
     }
 
     // Get available interests and custom category in parallel
@@ -188,13 +187,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     let userId = searchParams.get('userId')
-    
+
     // If no userId in query params, try to get from cookies
     if (!userId) {
       const cookieStore = request.cookies
       userId = cookieStore.get('sb-user-id')?.value
     }
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
@@ -205,7 +204,7 @@ export async function GET(request: NextRequest) {
         where: { id: userId },
         select: { 
           role: true,
-          studentProfile: {
+          student: {
             select: { age_group: true }
           }
         }
@@ -225,8 +224,8 @@ export async function GET(request: NextRequest) {
     ])
 
     let ageGroup = 'young_adult' // default
-    if (profileData?.role === 'student' && profileData.studentProfile?.age_group) {
-      ageGroup = profileData.studentProfile.age_group
+    if (profileData?.role === 'student' && profileData.student?.age_group) {
+      ageGroup = profileData.student.age_group
     }
 
     // Get available interests for current age group
