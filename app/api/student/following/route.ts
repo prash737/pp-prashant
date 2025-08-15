@@ -8,11 +8,15 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(request: NextRequest) {
   try {
-    // No authentication check - open access
-
-    // Get studentId from query params since no auth
+    // Get studentId from query params or cookies
     const { searchParams } = new URL(request.url)
-    const studentId = searchParams.get('studentId')
+    let studentId = searchParams.get('studentId')
+    
+    // If no studentId in query params, try to get from cookies
+    if (!studentId) {
+      const cookieStore = request.cookies
+      studentId = cookieStore.get('sb-user-id')?.value
+    }
     
     if (!studentId) {
       return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
