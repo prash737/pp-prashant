@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
 import { Upload, User } from "lucide-react"
 import { toast } from "sonner"
+import PipLoader from "@/components/loading/pip-loader"
 
 // Reuse the same schema from onboarding for consistency
 const personalInfoSchema = z.object({
@@ -70,6 +71,7 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
   const [coverImagePreview, setCoverImagePreview] = useState<string>("")
   const [isDirty, setIsDirty] = useState(false)
   const [originalData, setOriginalData] = useState<PersonalInfoData | null>(null)
+  const [loading, setLoading] = useState(true); // State to manage loading status
 
   // Default data structure
   const defaultData: PersonalInfoData = {
@@ -135,6 +137,7 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
       setCoverImagePreview(data.coverImageUrl || "")
 
       console.log("✅ Form reset completed")
+      setLoading(false); // Set loading to false once data is loaded and form is reset
     }
   }, [data, form])
 
@@ -294,6 +297,39 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
       console.error("💥 Error updating profile:", error)
       toast.error("An error occurred while updating your profile")
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="relative">
+        <Card className="opacity-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Personal Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-20 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <PipLoader 
+            isVisible={true} 
+            userType="student"
+            currentStep="personal-info"
+            onComplete={() => {}}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (

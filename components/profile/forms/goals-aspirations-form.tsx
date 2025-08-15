@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Plus, X, Calendar, Target, Edit, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import PipLoader from "@/components/loading/pip-loader"
 
 interface Goal {
   id: number | string
@@ -204,13 +205,23 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals & Aspirations</h3>
-          <p className="text-gray-600 dark:text-gray-400">Loading your goals...</p>
+      <div className="relative">
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Goals & Aspirations</h3>
+            <p className="text-gray-600 dark:text-gray-400">Loading your goals...</p>
+          </div>
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-pathpiper-teal" />
+          </div>
         </div>
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-pathpiper-teal" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <PipLoader 
+            isVisible={true} 
+            userType="student"
+            currentStep="goals"
+            onComplete={() => {}}
+          />
         </div>
       </div>
     )

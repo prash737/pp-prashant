@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, X, Search, Heart } from "lucide-react"
 import { toast } from "sonner"
+import PipLoader from "@/components/loading/pip-loader"
 
 interface Interest {
   id: number
@@ -120,7 +120,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -131,7 +131,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
     }
   }, [interestCategories, selectedInterests])
@@ -164,7 +164,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -175,7 +175,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
       return
     }
@@ -190,7 +190,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
-          
+
           return {
             name: category.name,
             interests: userCustomInterests.map(interest => ({
@@ -199,7 +199,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             }))
           }
         }
-        
+
         return {
           name: category.name,
           interests: category.interests.filter((interest) => interest.name.toLowerCase().includes(term)),
@@ -219,7 +219,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }
 
-  
+
 
   const addCustomInterest = () => {
     const trimmedInterest = customInterest.trim()
@@ -282,10 +282,36 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading interests...</p>
+      <div className="relative">
+        <Card className="opacity-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5" />
+              Interests & Passions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="h-6 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <PipLoader 
+            isVisible={true} 
+            userType="student"
+            currentStep="interests"
+            onComplete={() => {}}
+          />
         </div>
       </div>
     )
