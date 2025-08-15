@@ -5,12 +5,18 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract user ID from query params or URL since no auth check
+    // Extract user ID from query params or cookies
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    let userId = searchParams.get('userId')
+    
+    // If no userId in query params, try to get from cookies
+    if (!userId) {
+      const cookieStore = request.cookies
+      userId = cookieStore.get('sb-user-id')?.value || cookieStore.get('user-id')?.value
+    }
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
     // Optimized single query to get all profile data - fastest possible query
@@ -136,7 +142,13 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const userId = body.userId || body.id
+    let userId = body.userId || body.id
+
+    // If no userId in body, try to get from cookies
+    if (!userId) {
+      const cookieStore = request.cookies
+      userId = cookieStore.get('sb-user-id')?.value || cookieStore.get('user-id')?.value
+    }
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
