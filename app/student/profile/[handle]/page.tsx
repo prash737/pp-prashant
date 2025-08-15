@@ -134,23 +134,110 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     fetchStudentData()
   }, [handle, currentUser, authLoading, router])
 
-  // Skip the circular loader and let PipLoader handle all loading states
-  if (authLoading) {
+  // Show immediate skeleton structure with blur while loading
+  if (authLoading || loading || !studentData) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col relative">
           <InternalNavbar />
-          <main className="flex-grow pt-16 sm:pt-24"></main>
+          <main className={`flex-grow pt-16 sm:pt-24 transition-all duration-500 ${(authLoading || loading || !studentData) ? 'blur-sm' : 'blur-none'}`}>
+            {/* Skeleton Profile Structure */}
+            <div className="container mx-auto px-4 py-8">
+              {/* Header Skeleton */}
+              <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-shrink-0">
+                    <div className="w-32 h-32 bg-gray-200 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="flex-grow space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                    <div className="flex gap-2">
+                      <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-8 bg-gray-200 rounded w-20 animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Grid Skeleton */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* About Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4 animate-pulse"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-4/6 animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  {/* Education Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+                    <div className="space-y-4">
+                      <div className="border rounded p-4">
+                        <div className="h-5 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Interests Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                    <div className="flex flex-wrap gap-2">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Skills Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gray-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                    <div className="flex flex-wrap gap-2">
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="h-6 bg-gray-200 rounded-full w-20 animate-pulse"></div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Goals Section Skeleton */}
+                  <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="border rounded p-3">
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
           <Footer />
           
-          {/* Show PipLoader immediately during auth loading */}
-          <div className="fixed inset-0 z-50">
-            <PipLoader 
-              isVisible={true} 
-              userType="student"
-              onComplete={() => {}}
-            />
-          </div>
+          {/* Show PipLoader overlay during loading */}
+          {(authLoading || loading || !studentData) && (
+            <div className="fixed inset-0 z-50">
+              <PipLoader 
+                isVisible={true} 
+                userType="student"
+                onComplete={() => {}}
+              />
+            </div>
+          )}
         </div>
       </ProtectedLayout>
     )

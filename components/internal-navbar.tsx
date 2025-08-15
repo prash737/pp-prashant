@@ -583,10 +583,9 @@ export function InternalNavbar() {
                     <button
                       key={link.name}
                       onClick={link.onClick}
-                      disabled={userLoading}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
                         pathname === link.href ? "text-teal-500" : ""
-                      } ${userLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                      }`}
                     >
                       {link.icon}
                       <span>{link.name}</span>
@@ -725,12 +724,11 @@ export function InternalNavbar() {
                 <button
                   key={item.name}
                   onClick={item.onClick}
-                  disabled={userLoading}
                   className={`flex flex-col items-center p-2 ${
                     pathname === item.href
                       ? "text-teal-500"
                       : "text-gray-500 hover:text-teal-500"
-                  } ${userLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  }`}
                 >
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>
