@@ -96,9 +96,9 @@ export default function PipLoader({ isVisible, currentStep, userType, onComplete
       if (currentStepData.progress === 100) {
         setTimeout(() => {
           if (onComplete) {
-            onComplete() // Call the completion callback without redirecting
+            onComplete()
           }
-        }, 1000) // Delay the completion to show the final state
+        }, 1000) // Delay the completion slightly to show the final state
       }
 
       return () => clearTimeout(timer)
