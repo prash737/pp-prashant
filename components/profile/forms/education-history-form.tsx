@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Plus, X, GraduationCap, Edit, Calendar, Loader2 } from "lucide-react"
@@ -14,6 +14,7 @@ import { getPlaceholdersForType } from "@/data/institution-placeholders"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { getSubjectSuggestions } from "@/data/subject-suggestions"
 import PipLoader from "@/components/loading/pip-loader"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 interface InstitutionSearchResult {
   id: string
@@ -536,15 +537,25 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
   if (loading) {
     return (
       <div className="relative">
-        <div className="space-y-8">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Education History</h3>
-            <p className="text-gray-600 dark:text-gray-400">Loading your education history...</p>
-          </div>
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-pathpiper-teal" />
-          </div>
-        </div>
+        <Card className="opacity-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Education History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="border rounded-lg p-4 space-y-2">
+                  <div className="h-6 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
         <div className="absolute inset-0 flex items-center justify-center">
           <PipLoader 
             isVisible={true} 

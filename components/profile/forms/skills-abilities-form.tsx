@@ -335,7 +335,7 @@ export default function SkillsAbilitiesForm({
         <Card className="opacity-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
+              <Award className="h-5 w-5" />
               Skills & Abilities
             </CardTitle>
           </CardHeader>
