@@ -7,13 +7,27 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🏛️ Institution profile GET request received')
 
-    // No authentication check - open access to institution profiles
+    // Get auth token from cookies
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
 
-    console.log('🔍 Fetching institution profile')
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('Auth error:', error)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.log('🔍 Fetching institution profile for user:', user.id)
 
     // Get institution profile with all related data
     const profile = await prisma.profile.findUnique({
-      where: { id: "clx2y0o5h000008jph18t86l0" }, // Hardcoded user ID for now
+      where: { id: user.id },
       include: {
         institution: true
       }
@@ -71,13 +85,27 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🏛️ Institution profile POST request received')
 
-    // No authentication check - open access to institution profiles
+    // Get auth token from cookies
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
 
-    console.log('🔍 Fetching institution profile')
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('Auth error:', error)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.log('🔍 Fetching institution profile for user:', user.id)
 
     // Get institution profile with all related data
     const profile = await prisma.profile.findUnique({
-      where: { id: "clx2y0o5h000008jph18t86l0" }, // Hardcoded user ID for now
+      where: { id: user.id },
       include: {
         institution: true
       }
@@ -118,7 +146,7 @@ export async function POST(request: NextRequest) {
         bio: profile.bio,
         overview: profile.institution?.overview,
         logoUrl: getImageUrl(profile.institution?.logoUrl),
-        coverImageUrl: getImageUrl(profile.institution?.coverImageUrl),
+        coverImageUrl: getImageUrl(profile.institution?.coverImage),
       }
     })
 
@@ -135,16 +163,30 @@ export async function PATCH(request: NextRequest) {
   try {
     console.log('🏛️ Institution profile PATCH request received')
 
-    // No authentication check - open access to institution profiles
+    // Get auth token from cookies
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('Auth error:', error)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const body = await request.json()
     const { overview, mission, coreValues, logoUrl, coverImageUrl } = body
 
-    console.log('📝 Updating institution profile for user:', "clx2y0o5h000008jph18t86l0") // Hardcoded user ID for now
+    console.log('📝 Updating institution profile for user:', user.id)
 
     // Get current profile to ensure it's an institution
     const profile = await prisma.profile.findUnique({
-      where: { id: "clx2y0o5h000008jph18t86l0" }, // Hardcoded user ID for now
+      where: { id: user.id },
       include: {
         institution: true
       }

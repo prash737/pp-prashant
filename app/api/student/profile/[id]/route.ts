@@ -14,7 +14,39 @@ export async function GET(
     const resolvedParams = await params
     const studentId = resolvedParams.id
 
-    // No authentication check - open access to student profiles
+    // Get user from session cookie to verify authentication
+    const cookieStore = request.headers.get('cookie') || ''
+    const cookies = Object.fromEntries(
+      cookieStore.split(';').map(cookie => {
+        const [name, ...rest] = cookie.trim().split('=')
+        return [name, decodeURIComponent(rest.join('='))]
+      })
+    )
+
+    const accessToken = cookies['sb-access-token']
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if the current user has permission to view student profiles
+    const currentUserProfile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      select: { role: true }
+    })
+
+    if (!currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      )
+    }
 
     // Check if the target profile exists and is a student
     const targetProfile = await prisma.profile.findUnique({
@@ -118,15 +150,16 @@ export async function GET(
       )
     }
 
-    // Format the response - showing public profile data
+    // Format the response - for viewing other profiles, we might want to limit some sensitive data
+    const isOwnProfile = studentId === user.id
 
     const formattedProfile = {
       id: studentProfile.id,
       ageGroup: studentProfile.age_group,
       educationLevel: studentProfile.educationLevel,
-      // Show birth info
-      birthMonth: studentProfile.birthMonth,
-      birthYear: studentProfile.birthYear,
+      // Only show birth info for own profile
+      birthMonth: isOwnProfile ? studentProfile.birthMonth : null,
+      birthYear: isOwnProfile ? studentProfile.birthYear : null,
       personalityType: studentProfile.personalityType,
       learningStyle: studentProfile.learningStyle,
       favoriteQuote: studentProfile.favoriteQuote,

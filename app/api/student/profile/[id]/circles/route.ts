@@ -1,6 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +17,24 @@ export async function GET(
     
     console.log('API: Student circles request received for:', studentId)
 
-    // Get circles for the specific student - optimized query
+    const cookieStore = request.cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
+
+    if (!accessToken) {
+      console.log('API: No access token found in cookies')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
+      console.log('API: Token verification failed:', error?.message)
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    console.log('API: Authenticated user found:', user.id)
+
+    // Get circles for the specific student (only those visible to others)
     const circles = await prisma.circleBadge.findMany({
       where: {
         OR: [
@@ -33,20 +56,11 @@ export async function GET(
             // Don't show if circle is globally disabled
             isDisabled: { not: true }
           }
-        ]
+        ],
+        // Only show non-private circles in public view
+        // Add privacy filter here if you have privacy settings
       },
-      select: {
-        id: true,
-        creatorId: true,
-        name: true,
-        description: true,
-        color: true,
-        icon: true,
-        isDefault: true,
-        isDisabled: true,
-        isCreatorDisabled: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
         creator: {
           select: {
             id: true,
@@ -59,11 +73,7 @@ export async function GET(
           where: {
             status: 'active'
           },
-          select: {
-            id: true,
-            status: true,
-            joinedAt: true,
-            isDisabledMember: true,
+          include: {
             user: {
               select: {
                 id: true,
@@ -85,7 +95,7 @@ export async function GET(
               }
             }
           }
-        }
+        },
       },
       orderBy: [
         { isDefault: 'desc' },

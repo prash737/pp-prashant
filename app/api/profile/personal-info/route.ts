@@ -1,80 +1,48 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserProfile, updateUserProfile, updateStudentProfile } from '@/lib/db/profile'
 import { prisma } from '@/lib/prisma'
+import { supabase } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract user ID from query params or cookies
-    const { searchParams } = new URL(request.url)
-    let userId = searchParams.get('userId')
-    
-    // If no userId in query params, try to get from cookies
-    if (!userId) {
-      const cookieStore = request.cookies
-      userId = cookieStore.get('sb-user-id')?.value || cookieStore.get('user-id')?.value
+    const cookieStore = await cookies()
+
+    // Get the access token from cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized - no access token' }, { status: 401 })
     }
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized - invalid token' }, { status: 401 })
     }
 
-    // Optimized single query to get all profile data - fastest possible query
+    // Use optimized single query to get all profile data
     const profile = await prisma.profile.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        bio: true,
-        location: true,
-        tagline: true,
-        professionalSummary: true,
-        profileImageUrl: true,
-        coverImageUrl: true,
-        timezone: true,
-        availabilityStatus: true,
-        role: true,
-        student: {
-          select: {
-            educationLevel: true,
-            age_group: true,
-            birthMonth: true,
-            birthYear: true,
-            personalityType: true,
-            learningStyle: true,
-            favoriteQuote: true
-          }
-        },
+      where: { id: user.id },
+      include: {
+        student: true,
         mentor: true,
         institution: true,
         userInterests: {
-          select: {
+          include: {
             interest: {
-              select: {
-                id: true,
-                name: true,
-                category: {
-                  select: {
-                    name: true
-                  }
-                }
+              include: {
+                category: true
               }
             }
           }
         },
         userSkills: {
-          select: {
-            proficiencyLevel: true,
+          include: {
             skill: {
-              select: {
-                id: true,
-                name: true,
-                category: {
-                  select: {
-                    name: true
-                  }
-                }
+              include: {
+                category: true
               }
             }
           }
@@ -141,20 +109,25 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const cookieStore = await cookies()
+
+    // Get the access token from cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized - no access token' }, { status: 401 })
+    }
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
+      return NextResponse.json({ error: 'Unauthorized - invalid token' }, { status: 401 })
+    }
+
     const body = await request.json()
-    let userId = body.userId || body.id
 
-    // If no userId in body, try to get from cookies
-    if (!userId) {
-      const cookieStore = request.cookies
-      userId = cookieStore.get('sb-user-id')?.value || cookieStore.get('user-id')?.value
-    }
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
-    }
-
-    // Validate required fields
+    // Validate required fields (use authenticated user ID)
     if (!body.firstName || !body.lastName) {
       return NextResponse.json(
         { error: 'First name and last name are required' },
@@ -176,8 +149,8 @@ export async function PUT(request: NextRequest) {
       ...profileData
     } = body
 
-    // Update main profile using Prisma - optimized update
-    const updatedProfile = await updateUserProfile(userId, {
+    // Update main profile using Prisma
+    const updatedProfile = await updateUserProfile(user.id, {
       firstName: profileData.firstName.trim(),
       lastName: profileData.lastName.trim(),
       bio: profileData.bio?.trim() || null,
@@ -223,9 +196,9 @@ export async function PUT(request: NextRequest) {
         }
       };
 
-      // Get existing student profile to access birth data - optimized query
+      // Get existing student profile to access birth data
       const existingStudentProfile = await prisma.studentProfile.findUnique({
-        where: { id: userId },
+        where: { id: user.id },
         select: { birthMonth: true, birthYear: true }
       });
 
@@ -233,7 +206,7 @@ export async function PUT(request: NextRequest) {
         ? calculateAgeGroup(existingStudentProfile.birthMonth || "", existingStudentProfile.birthYear || "")
         : "young_adult";
 
-      await updateStudentProfile(userId, {
+      await updateStudentProfile(user.id, {
         educationLevel,
         age_group: calculatedAgeGroup, // Note: using age_group as per database schema
         birthMonth,
