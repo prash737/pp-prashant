@@ -134,18 +134,23 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     fetchStudentData()
   }, [handle, currentUser, authLoading, router])
 
+  // Skip the circular loader and let PipLoader handle all loading states
   if (authLoading) {
     return (
       <ProtectedLayout>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col relative">
           <InternalNavbar />
-          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
-              <p className="mt-4 text-gray-600">Loading profile...</p>
-            </div>
-          </main>
+          <main className="flex-grow pt-16 sm:pt-24"></main>
           <Footer />
+          
+          {/* Show PipLoader immediately during auth loading */}
+          <div className="fixed inset-0 z-50">
+            <PipLoader 
+              isVisible={true} 
+              userType="student"
+              onComplete={() => {}}
+            />
+          </div>
         </div>
       </ProtectedLayout>
     )
