@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -6,6 +5,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
 
 interface LoadingStep {
   id: string
@@ -17,6 +17,8 @@ interface LoadingStep {
 interface PipLoaderProps {
   isVisible: boolean
   currentStep?: string
+  userType?: string
+  onComplete?: () => void
 }
 
 const loadingSteps: LoadingStep[] = [
@@ -52,7 +54,8 @@ const loadingSteps: LoadingStep[] = [
   }
 ]
 
-export default function PipLoader({ isVisible, currentStep }: PipLoaderProps) {
+export default function PipLoader({ isVisible, currentStep, userType, onComplete }: PipLoaderProps) {
+  const router = useRouter()
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [pipMessage, setPipMessage] = useState("Let me help you get started!")
@@ -64,7 +67,7 @@ export default function PipLoader({ isVisible, currentStep }: PipLoaderProps) {
       setCurrentStepIndex(prev => {
         const nextIndex = prev < loadingSteps.length - 1 ? prev + 1 : prev
         const step = loadingSteps[nextIndex]
-        
+
         // Update Pip's message based on progress
         if (step.progress <= 40) {
           setPipMessage("I'm setting up your profile... almost there!")
@@ -82,16 +85,41 @@ export default function PipLoader({ isVisible, currentStep }: PipLoaderProps) {
   }, [isVisible])
 
   useEffect(() => {
-    const currentStep = loadingSteps[currentStepIndex]
-    if (currentStep) {
+    const currentStepData = loadingSteps[currentStepIndex]
+    if (currentStepData) {
       // Animate progress smoothly
       const timer = setTimeout(() => {
-        setAnimatedProgress(currentStep.progress)
+        setAnimatedProgress(currentStepData.progress)
       }, 300)
+
+      // Trigger onComplete when the last step is reached
+      if (currentStepData.progress === 100) {
+        setTimeout(() => {
+          if (onComplete) {
+            if (userType === 'student') {
+              // Get the user ID from the response and redirect directly
+              fetch('/api/auth/user', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.user?.id) {
+                    router.replace(`/student/profile/${data.user.id}`)
+                  } else {
+                    router.push('/student/profile')
+                  }
+                })
+                .catch(() => router.push('/student/profile'))
+            } else if (userType === 'parent') {
+              router.push('/parent/dashboard')
+            } else {
+              router.push('/feed')
+            }
+          }
+        }, 1000) // Delay the redirect slightly to show the final state
+      }
 
       return () => clearTimeout(timer)
     }
-  }, [currentStepIndex])
+  }, [currentStepIndex, isVisible, userType, onComplete, router])
 
   if (!isVisible) return null
 
@@ -102,7 +130,7 @@ export default function PipLoader({ isVisible, currentStep }: PipLoaderProps) {
       <Card className="w-full max-w-lg bg-white/90 backdrop-blur-md border-0 shadow-2xl">
         <CardContent className="p-8">
           <div className="flex flex-col items-center space-y-6">
-            
+
             {/* Animated Pip Character */}
             <div className="relative">
               <motion.div
