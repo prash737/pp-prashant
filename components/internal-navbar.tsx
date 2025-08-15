@@ -317,7 +317,7 @@ export function InternalNavbar() {
   const getProfileUrl = () => {
     if (!user || userLoading) return "/student/profile"; // Default fallback
 
-    console.log('🔍 Navbar: Getting profile URL for user role:', user.role);
+    console.log('🔍 Navbar: Getting profile URL for user role:', user.role, 'user ID:', user.id);
 
     switch (user.role) {
       case "institution":
@@ -326,29 +326,11 @@ export function InternalNavbar() {
         return "/mentor/profile";
       case "student":
       default:
-        return "/student/profile";
+        return `/student/profile/${user.id}`;
     }
   };
 
-  // Function to handle profile navigation
-  const handleProfileNavigation = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (userLoading) {
-      console.log('🔍 Navbar: User still loading, waiting...');
-      return;
-    }
-
-    if (!user) {
-      console.log('🔍 Navbar: No user found, redirecting to login');
-      router.push('/login');
-      return;
-    }
-
-    const profileUrl = getProfileUrl();
-    console.log('🔍 Navbar: Navigating to profile URL:', profileUrl);
-    router.push(profileUrl);
-  };
+  
 
   // Navigation items for logged-in users
   const navItems = [
@@ -358,8 +340,7 @@ export function InternalNavbar() {
     { 
       name: "Profile", 
       href: getProfileUrl(), 
-      icon: <User size={20} />,
-      onClick: handleProfileNavigation
+      icon: <User size={20} />
     },
   ];
 
@@ -582,9 +563,15 @@ export function InternalNavbar() {
                   return (
                     <button
                       key={link.name}
-                      onClick={link.onClick}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!userLoading && user?.id) {
+                          const directUrl = user.role === 'student' ? `/student/profile/${user.id}` : link.href;
+                          router.push(directUrl);
+                        }
+                      }}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
-                        pathname === link.href ? "text-teal-500" : ""
+                        pathname === link.href || pathname === `/student/profile/${user?.id}` ? "text-teal-500" : ""
                       }`}
                     >
                       {link.icon}
@@ -723,9 +710,17 @@ export function InternalNavbar() {
               return (
                 <button
                   key={item.name}
-                  onClick={item.onClick}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!userLoading && user?.id) {
+                      const directUrl = user.role === 'student' ? `/student/profile/${user.id}` : item.href;
+                      router.push(directUrl);
+                    } else {
+                      item.onClick?.(e);
+                    }
+                  }}
                   className={`flex flex-col items-center p-2 ${
-                    pathname === item.href
+                    pathname === item.href || pathname === `/student/profile/${user?.id}`
                       ? "text-teal-500"
                       : "text-gray-500 hover:text-teal-500"
                   }`}
