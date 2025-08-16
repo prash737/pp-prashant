@@ -233,7 +233,7 @@ export default function SelfAnalysisPage() {
         skills: skills.data || skills.userSkills || [],
         educationHistory: education.data || education.educationHistory || [],
         achievements: achievements.data || achievements.achievements || [],
-        goals: goals.goals || []
+        goals: goals.data || goals.goals || []
       }
 
       console.log('✅ Student data fetched:', {
