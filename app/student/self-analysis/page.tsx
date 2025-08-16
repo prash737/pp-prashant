@@ -729,43 +729,23 @@ export default function SelfAnalysisPage() {
                       className="min-h-[120px] resize-none"
                     />
 
-                    <div className="flex gap-4">
-                      <Button
-                        onClick={generateAIAnalysis}
-                        disabled={generatingAnalysis}
-                        className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
-                      >
-                        {generatingAnalysis ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="mr-2 h-4 w-4" />
-                            Get AI Analysis
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleAnalysis}
-                        disabled={!query.trim() || isAnalyzing}
-                        className="w-full"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Analyzing... (30-60s)
-                          </>
-                        ) : (
-                          <>
-                            <Send className="mr-2 h-4 w-4" />
-                            Get Text Analysis
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={generateAIAnalysis}
+                      disabled={generatingAnalysis}
+                      className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+                    >
+                      {generatingAnalysis ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Get AI Analysis
+                        </>
+                      )}
+                    </Button>
 
 
                     {generatingAnalysis && (
