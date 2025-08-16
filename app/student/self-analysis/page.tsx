@@ -13,6 +13,22 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp } from "lucide-react"
 import { toast } from "sonner"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { 
+  User, 
+  Target, 
+  Award, 
+  BookOpen, 
+  Users, 
+  TrendingUp,
+  Brain,
+  Sparkles,
+  Loader2,
+  Search,
+  UserPlus,
+  ExternalLink
+} from 'lucide-react'
 
 interface StudentData {
   profile: any
@@ -33,6 +49,12 @@ export default function SelfAnalysisPage() {
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
   // isLoading state variable is missing from original code, defining it here to prevent runtime errors.
   const [isLoading, setIsLoading] = useState(false)
+  const [aiAnalysis, setAiAnalysis] = useState<string>('')
+  const [generatingAnalysis, setGeneratingAnalysis] = useState(false)
+  const [showConnectionSearch, setShowConnectionSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
 
 
   useEffect(() => {
@@ -242,7 +264,7 @@ export default function SelfAnalysisPage() {
       // Extract goals and achievements with detailed logging
       const extractedGoals = goalsData.goals || goalsData || []
       const extractedAchievements = achievementsData.achievements || achievementsData || []
-      
+
       console.log('📊 Extracted goals:', extractedGoals, 'Length:', extractedGoals.length)
       console.log('📊 Extracted achievements:', extractedAchievements, 'Length:', extractedAchievements.length)
 
@@ -305,6 +327,139 @@ export default function SelfAnalysisPage() {
       setIsAnalyzing(false)
     }
   }
+
+  // Function to process AI response and replace placeholders with interactive buttons
+  const processAIResponse = (response: string) => {
+    return response
+      .replace(/\[connection\]/g, '<button class="ai-connection-btn inline-flex items-center px-3 py-1 mx-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors cursor-pointer">🔗 Connect</button>')
+      .replace(/\[goals\]/g, '<button class="ai-goals-btn inline-flex items-center px-3 py-1 mx-1 text-xs font-medium bg-green-100 text-green-800 rounded-full hover:bg-green-200 transition-colors cursor-pointer">🎯 Add Goals</button>')
+  }
+
+  // Function to handle button clicks in AI response
+  const handleAIButtonClick = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement
+
+    if (target.classList.contains('ai-connection-btn')) {
+      setShowConnectionSearch(true)
+    } else if (target.classList.contains('ai-goals-btn')) {
+      router.push('/student/profile/edit?section=goals')
+    }
+  }
+
+  const generateAIAnalysis = async () => {
+    if (!studentData) {
+      toast.error("Student data not available.")
+      return;
+    }
+
+    setGeneratingAnalysis(true);
+    try {
+      const prompt = `
+        You are PathPiper's AI assistant helping students with self-analysis and growth recommendations.
+
+        Based on this student's profile data:
+        ${JSON.stringify(studentData, null, 2)}
+
+        Provide personalized recommendations for:
+        1. Career paths that align with their interests and skills
+        2. Learning opportunities and skill development suggestions
+        3. Goal-setting recommendations based on their current achievements
+        4. Networking and connection opportunities
+        5. Personal growth areas to focus on
+
+        IMPORTANT PLACEHOLDERS TO USE:
+        - When suggesting to connect with people, mentors, or anyone, end that suggestion with "[connection]"
+        - When suggesting to add or set goals, end that suggestion with "[goals]"
+
+        Keep recommendations practical, actionable, and age-appropriate for a student.
+        Format your response in a clear, encouraging tone with specific next steps they can take.
+        `
+
+      const response = await fetch('/api/self-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate AI analysis');
+      }
+
+      const result = await response.json();
+      console.log('✅ AI Analysis received:', result.analysis)
+
+      // Process the analysis to replace placeholders with interactive elements
+      const processedAnalysis = processAIResponse(result.analysis)
+      setAiAnalysis(processedAnalysis)
+      toast.success('AI analysis generated successfully!')
+
+    } catch (error) {
+      console.error('Error generating AI analysis:', error)
+      toast.error('Failed to generate AI analysis. Please try again.')
+    } finally {
+      setGeneratingAnalysis(false)
+    }
+  }
+
+  // Search users function (similar to navbar)
+  const searchUsers = async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([])
+      return
+    }
+
+    setSearchLoading(true)
+    try {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`)
+      if (response.ok) {
+        const users = await response.json()
+        setSearchResults(users)
+      }
+    } catch (error) {
+      console.error('Error searching users:', error)
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  // Handle connection request
+  const sendConnectionRequest = async (receiverId: string) => {
+    try {
+      const response = await fetch('/api/connections/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiverId,
+          message: `Hi! I'd like to connect with you on PathPiper.`,
+        }),
+      })
+
+      if (response.ok) {
+        // Remove user from search results after sending request
+        setSearchResults(prev => prev.filter(user => user.id !== receiverId))
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to send connection request')
+      }
+    } catch (error) {
+      console.error('Error sending connection request:', error)
+      alert('Failed to send connection request')
+    }
+  }
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchUsers(searchQuery)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
+
 
   if (loading || (profileDataLoading && !studentData)) {
     return (
@@ -573,25 +728,46 @@ export default function SelfAnalysisPage() {
                       className="min-h-[120px] resize-none"
                     />
 
-                    <Button
-                      onClick={handleAnalysis}
-                      disabled={!query.trim() || isAnalyzing}
-                      className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
-                    >
-                      {isAnalyzing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Analyzing... (30-60s)
-                        </>
-                      ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Get AI Analysis
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={generateAIAnalysis}
+                        disabled={generatingAnalysis}
+                        className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+                      >
+                        {generatingAnalysis ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Get AI Analysis
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleAnalysis}
+                        disabled={!query.trim() || isAnalyzing}
+                        className="w-full"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Analyzing... (30-60s)
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Get Text Analysis
+                          </>
+                        )}
+                      </Button>
+                    </div>
 
-                    {isAnalyzing && (
+
+                    {generatingAnalysis && (
                       <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
                         <p className="text-sm text-blue-700 dark:text-blue-300">
                           🤖 AI is processing your profile data... This usually takes 30-60 seconds for detailed analysis.
@@ -690,6 +866,30 @@ export default function SelfAnalysisPage() {
                   </Card>
                 )}
 
+                {/* AI Generated Analysis Result */}
+                {aiAnalysis && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                        AI Generated Insights
+                      </CardTitle>
+                      <CardDescription>
+                        Actionable insights and recommendations from our AI assistant. Click on interactive elements to proceed.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose dark:prose-invert max-w-none">
+                        <div 
+                          className="whitespace-pre-wrap font-sans text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: aiAnalysis }}
+                          onClick={handleAIButtonClick}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Tips */}
                 <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
                   <CardContent className="pt-6">
@@ -707,6 +907,47 @@ export default function SelfAnalysisPage() {
           </div>
         </main>
         <Footer />
+
+        {/* Connection Search Dialog */}
+        <Dialog open={showConnectionSearch} onOpenChange={setShowConnectionSearch}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Connect with Others</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <Input
+                placeholder="Search for users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="col-span-3"
+              />
+              {searchLoading ? (
+                <div className="flex justify-center items-center py-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="max-h-[300px] overflow-y-auto">
+                  {searchResults.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Avatar>
+                          <AvatarImage src={user.avatarUrl || ""} alt={user.firstName} />
+                          <AvatarFallback>{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span>{user.firstName} {user.lastName}</span>
+                      </div>
+                      <Button size="sm" onClick={() => sendConnectionRequest(user.id)} className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700">
+                        <UserPlus className="h-4 w-4 mr-1" /> Connect
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-4">No users found.</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedLayout>
   )
