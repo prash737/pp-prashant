@@ -16,7 +16,6 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { 
-  Target, 
   Award, 
   BookOpen, 
   Users, 
@@ -28,6 +27,7 @@ import {
   UserPlus,
   ExternalLink
 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface StudentData {
   profile: any
