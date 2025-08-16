@@ -11,22 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp } from "lucide-react"
+import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink } from "lucide-react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { 
-  Award, 
-  BookOpen, 
-  Users, 
-  TrendingUp,
-  Brain,
-  Sparkles,
-  Loader2,
-  Search,
-  UserPlus,
-  ExternalLink
-} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface StudentData {
