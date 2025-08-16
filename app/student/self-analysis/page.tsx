@@ -198,61 +198,56 @@ export default function SelfAnalysisPage() {
   const fetchStudentData = async () => {
     try {
       setIsLoading(true)
-      const token = await getCookie('sb-access-token')
+      console.log('🔄 Fetching fresh student data for self-analysis')
 
-      if (!token) {
-        throw new Error('No authentication token')
-      }
-
-      // Fetch all required data including goals
       const [
-        interestsRes,
-        skillsRes,
-        educationRes,
-        achievementsRes,
-        goalsRes
+        profileResponse,
+        interestsResponse,
+        skillsResponse,
+        educationResponse,
+        achievementsResponse,
+        goalsResponse
       ] = await Promise.all([
-        fetch('/api/user/interests', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/user/skills', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/education', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/achievements', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch('/api/goals', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        fetch('/api/auth/user', { credentials: 'include' }),
+        fetch('/api/user/interests', { credentials: 'include' }),
+        fetch('/api/user/skills', { credentials: 'include' }),
+        fetch('/api/education', { credentials: 'include' }),
+        fetch('/api/achievements', { credentials: 'include' }),
+        fetch('/api/goals', { credentials: 'include' })
       ])
 
-      if (!interestsRes.ok || !skillsRes.ok || !educationRes.ok || !achievementsRes.ok || !goalsRes.ok) {
-        throw new Error('Failed to fetch some data')
+      if (!profileResponse.ok) throw new Error('Failed to fetch profile')
+
+      const [profile, interests, skills, education, achievements, goals] = await Promise.all([
+        profileResponse.json(),
+        interestsResponse.ok ? interestsResponse.json() : { data: [] },
+        skillsResponse.ok ? skillsResponse.json() : { data: [] },
+        educationResponse.ok ? educationResponse.json() : { data: [] },
+        achievementsResponse.ok ? achievementsResponse.json() : { data: [] },
+        goalsResponse.ok ? goalsResponse.json() : { goals: [] }
+      ])
+
+      const studentData = {
+        profile: profile.profile,
+        interests: interests.data || [],
+        skills: skills.data || [],
+        educationHistory: education.data || [],
+        achievements: achievements.data || [],
+        goals: goals.goals || []
       }
 
-      const [interests, skills, educationHistory, achievements, goals] = await Promise.all([
-        interestsRes.json(),
-        skillsRes.json(),
-        educationRes.json(),
-        achievementsRes.json(),
-        goalsRes.json()
-      ])
-
-      setStudentData({
-        profile: user,
-        interests: interests.userInterests || [],
-        skills: skills.userSkills || [],
-        educationHistory: educationHistory.educationHistory || [],
-        achievements: achievements.achievements || [],
-        goals: goals.goals || []
+      console.log('✅ Student data fetched:', {
+        profile: !!studentData.profile,
+        interests: studentData.interests.length,
+        skills: studentData.skills.length,
+        education: studentData.educationHistory.length,
+        achievements: studentData.achievements.length,
+        goals: studentData.goals.length
       })
 
+      setStudentData(studentData)
     } catch (error) {
-      console.error('Error fetching student data:', error)
-      toast.error('Failed to load profile data')
+      console.error('❌ Error fetching student data:', error)
     } finally {
       setIsLoading(false)
     }
