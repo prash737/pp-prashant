@@ -167,7 +167,7 @@ export default function SelfAnalysisPage() {
 
       // Convert bullet points to styled lists
       .replace(/- \*\*(.*?)\*\*: (.*?)$/gm, '<div class="flex items-start space-x-3 mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div><span class="font-semibold text-blue-700 dark:text-blue-300">$1:</span> <span class="text-gray-700 dark:text-gray-300">$2</span></div></div>')
-      .replace(/- (.*?)$/gm, '<div class="flex items-start space-x-3 mb-2"><div class="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 flex-shrink-0"></div><span class="text-gray-700 dark:text-gray-300">$1</span></div>')
+      .replace(/- (.*?)$/gm, '<div class="flex items-start space-x-3 mb-3"><div class="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 flex-shrink-0"></div><span class="text-gray-700 dark:text-gray-300">$1</span></div>')
 
       // Convert bold text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
@@ -198,17 +198,22 @@ export default function SelfAnalysisPage() {
   const fetchStudentData = async () => {
     try {
       setIsLoading(true)
-      console.log('🔄 Fetching fresh student data for self-analysis')
+      console.log('🔍 Fetching student data for self-analysis...')
 
-      const [
-        profileResponse,
-        interestsResponse,
-        skillsResponse,
-        educationResponse,
-        achievementsResponse,
-        goalsResponse
-      ] = await Promise.all([
-        fetch('/api/auth/user', { credentials: 'include' }),
+      // Fetch profile data
+      const profileResponse = await fetch('/api/student/profile', {
+        credentials: 'include'
+      })
+
+      if (!profileResponse.ok) {
+        throw new Error('Failed to fetch profile data')
+      }
+
+      const profileData = await profileResponse.json()
+      console.log('📊 Profile data fetched:', profileData)
+
+      // Fetch additional data
+      const [interestsRes, skillsRes, educationRes, achievementsRes, goalsRes] = await Promise.all([
         fetch('/api/user/interests', { credentials: 'include' }),
         fetch('/api/user/skills', { credentials: 'include' }),
         fetch('/api/education', { credentials: 'include' }),
@@ -216,38 +221,36 @@ export default function SelfAnalysisPage() {
         fetch('/api/goals', { credentials: 'include' })
       ])
 
-      if (!profileResponse.ok) throw new Error('Failed to fetch profile')
-
-      const [profile, interests, skills, education, achievements, goals] = await Promise.all([
-        profileResponse.json(),
-        interestsResponse.ok ? interestsResponse.json() : { data: [] },
-        skillsResponse.ok ? skillsResponse.json() : { data: [] },
-        educationResponse.ok ? educationResponse.json() : { data: [] },
-        achievementsResponse.ok ? achievementsResponse.json() : { data: [] },
-        goalsResponse.ok ? goalsResponse.json() : { goals: [] }
+      const [interests, skills, educationHistory, achievementsData, goalsData] = await Promise.all([
+        interestsRes.json(),
+        skillsRes.json(),
+        educationRes.json(),
+        achievementsRes.json(),
+        goalsRes.json()
       ])
 
-      const studentData = {
-        profile: profile.profile,
-        interests: interests.data || [],
-        skills: skills.data || [],
-        educationHistory: education.data || [],
-        achievements: achievements.data || [],
-        goals: goals.goals || []
+      console.log('🎯 Raw goals response:', goalsData)
+      console.log('🏆 Raw achievements response:', achievementsData)
+
+      const compiledData = {
+        profile: profileData.profile,
+        interests: interests.interests || [],
+        skills: skills.skills || [],
+        educationHistory: educationHistory.educationHistory || [],
+        achievements: achievementsData || [], // Use the exact format from API
+        goals: goalsData || [] // Use the exact format from API
       }
 
-      console.log('✅ Student data fetched:', {
-        profile: !!studentData.profile,
-        interests: studentData.interests.length,
-        skills: studentData.skills.length,
-        education: studentData.educationHistory.length,
-        achievements: studentData.achievements.length,
-        goals: studentData.goals.length
-      })
+      console.log('✅ Compiled student data:', compiledData)
+      setStudentData(compiledData)
 
-      setStudentData(studentData)
     } catch (error) {
       console.error('❌ Error fetching student data:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load your profile data. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(false)
     }
