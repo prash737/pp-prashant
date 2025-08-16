@@ -1,8 +1,11 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +15,7 @@ export async function GET(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
 
     if (authError || !user) {
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ goals })
   } catch (error) {
     console.error('Goals API error:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
 
     if (authError || !user) {
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
     const goalsToUpdate = existingGoalsFromClient.filter(clientGoal => {
       const dbGoal = existingGoals.find(g => g.id === clientGoal.id)
       if (!dbGoal) return false
-      
+
       // Check if any field has changed
       return (
         dbGoal.title !== clientGoal.title ||
@@ -151,22 +154,22 @@ export async function POST(request: NextRequest) {
       })
       operationsCount++
     }
-    
+
     if (goalsToUpdate.length > 0) {
       console.log(`✏️ Updated ${goalsToUpdate.length} goals`)
     }
 
     if (operationsCount === 0) {
       console.log(`✅ No changes detected - goals are already up to date`)
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: 'No changes detected - goals are already up to date',
         operations: 0
       })
     }
 
     console.log(`✅ Successfully processed ${operationsCount} goal operations for user ${user.id}`)
-    return NextResponse.json({ 
-      message: 'Goals updated successfully', 
+    return NextResponse.json({
+      message: 'Goals updated successfully',
       operations: operationsCount,
       deleted: goalsToDelete.length,
       added: newGoals.length,
@@ -175,9 +178,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Goals save API error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -32,6 +31,9 @@ export default function SelfAnalysisPage() {
   const [analysis, setAnalysis] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
+  // isLoading state variable is missing from original code, defining it here to prevent runtime errors.
+  const [isLoading, setIsLoading] = useState(false)
+
 
   useEffect(() => {
     if (loading) return
@@ -58,14 +60,14 @@ export default function SelfAnalysisPage() {
   // Parse analysis into sections and consolidate short content
   const parseAnalysisIntoSections = (text: string) => {
     const sections = [];
-    
+
     // Split by major headers (## pattern)
     const majorSections = text.split(/## (.*?)$/gm);
-    
+
     for (let i = 1; i < majorSections.length; i += 2) {
       const title = majorSections[i].trim();
       const content = majorSections[i + 1] || '';
-      
+
       if (title && content.trim()) {
         sections.push({
           title: title,
@@ -73,14 +75,14 @@ export default function SelfAnalysisPage() {
         });
       }
     }
-    
+
     // If no major sections found, try to split by other patterns
     if (sections.length === 0) {
       const fallbackSections = text.split(/### (.*?)$/gm);
       for (let i = 1; i < fallbackSections.length; i += 2) {
         const title = fallbackSections[i].trim();
         const content = fallbackSections[i + 1] || '';
-        
+
         if (title && content.trim()) {
           sections.push({
             title: title,
@@ -89,7 +91,7 @@ export default function SelfAnalysisPage() {
         }
       }
     }
-    
+
     // If still no sections, create a single section
     if (sections.length === 0) {
       sections.push({
@@ -97,15 +99,15 @@ export default function SelfAnalysisPage() {
         content: text
       });
     }
-    
+
     // Consolidate sections with less than 10 words
     const consolidatedSections = [];
     let i = 0;
-    
+
     while (i < sections.length) {
       const currentSection = sections[i];
       const wordCount = currentSection.content.split(/\s+/).length;
-      
+
       if (wordCount < 10 && i < sections.length - 1) {
         // Merge with next section
         const nextSection = sections[i + 1];
@@ -119,14 +121,14 @@ export default function SelfAnalysisPage() {
         i++;
       }
     }
-    
+
     return consolidatedSections;
   };
 
   // Get icon for section based on title
   const getSectionIcon = (title: string) => {
     const titleLower = title.toLowerCase();
-    
+
     if (titleLower.includes('insight') || titleLower.includes('overview')) {
       return <Lightbulb className="h-5 w-5 text-yellow-500" />;
     } else if (titleLower.includes('strength') || titleLower.includes('skills')) {
@@ -162,57 +164,97 @@ export default function SelfAnalysisPage() {
       .replace(/#### (.*?)$/gm, '<h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400 mt-6 mb-3 flex items-center"><span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>$1</h4>')
       .replace(/### (.*?)$/gm, '<h3 class="text-xl font-bold text-purple-600 dark:text-purple-400 mt-8 mb-4 flex items-center"><span class="w-3 h-3 bg-purple-600 rounded-full mr-2"></span>$1</h3>')
       .replace(/## (.*?)$/gm, '<h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mt-10 mb-6 border-l-4 border-purple-500 pl-4">$1</h2>')
-      
+
       // Convert bullet points to styled lists
       .replace(/- \*\*(.*?)\*\*: (.*?)$/gm, '<div class="flex items-start space-x-3 mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400"><div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div><div><span class="font-semibold text-blue-700 dark:text-blue-300">$1:</span> <span class="text-gray-700 dark:text-gray-300">$2</span></div></div>')
       .replace(/- (.*?)$/gm, '<div class="flex items-start space-x-3 mb-2"><div class="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 flex-shrink-0"></div><span class="text-gray-700 dark:text-gray-300">$1</span></div>')
-      
+
       // Convert bold text
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>')
-      
+
       // Convert numbered lists
       .replace(/(\d+)\. (.*?)$/gm, '<div class="flex items-start space-x-3 mb-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"><div class="flex items-center justify-center w-6 h-6 bg-green-500 text-white text-sm font-bold rounded-full flex-shrink-0">$1</div><span class="text-gray-700 dark:text-gray-300">$2</span></div>')
-      
+
       // Convert line breaks to proper spacing
       .replace(/\n\n/g, '<div class="my-4"></div>')
       .replace(/\n/g, '<br/>')
   }
 
+  // Helper function to get cookies, assumed to be available in the context.
+  // If getCookie is not defined, it needs to be imported or defined.
+  // For this example, assuming getCookie is defined elsewhere and accessible.
+  const getCookie = async (name: string): Promise<string | undefined> => {
+    if (typeof document === 'undefined') return undefined; // Avoid running in server-side rendering
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return undefined;
+  }
+
   const fetchStudentData = async () => {
     try {
-      console.log('⚠️ Fallback: Fetching profile data (cache miss)')
-      
-      const response = await fetch(`/api/student/profile/${user.id}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile data')
-      }
-      
-      const data = await response.json()
-      
-      const studentData: StudentData = {
-        profile: {
-          ...data.profile,
-          ageGroup: data.ageGroup || 'young_adult',
-          educationLevel: data.educationLevel || 'undergraduate'
-        },
-        interests: data.profile?.userInterests || [],
-        skills: data.profile?.userSkills || [],
-        educationHistory: data.educationHistory || [],
-        achievements: data.profile?.customBadges || [],
-        goals: data.profile?.careerGoals || []
+      setIsLoading(true)
+      const token = await getCookie('sb-access-token')
+
+      if (!token) {
+        throw new Error('No authentication token')
       }
 
-      setStudentData(studentData)
-      console.log('📦 Fallback data loaded:', {
-        interests: studentData.interests.length,
-        skills: studentData.skills.length,
-        education: studentData.educationHistory.length,
-        goals: studentData.goals.length,
-        achievements: studentData.achievements.length
+      // Fetch all required data including goals
+      const [
+        interestsRes,
+        skillsRes,
+        educationRes,
+        achievementsRes,
+        goalsRes
+      ] = await Promise.all([
+        fetch('/api/user/interests', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/user/skills', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/education', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/achievements', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/goals', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ])
+
+      if (!interestsRes.ok || !skillsRes.ok || !educationRes.ok || !achievementsRes.ok || !goalsRes.ok) {
+        throw new Error('Failed to fetch some data')
+      }
+
+      const [interests, skills, educationHistory, achievements, goals] = await Promise.all([
+        interestsRes.json(),
+        skillsRes.json(),
+        educationRes.json(),
+        achievementsRes.json(),
+        goalsRes.json()
+      ])
+
+      setStudentData({
+        profile: user,
+        interests: interests.userInterests || [],
+        skills: skills.userSkills || [],
+        educationHistory: educationHistory.educationHistory || [],
+        achievements: achievements.achievements || [],
+        goals: goals.goals || []
       })
+
     } catch (error) {
       console.error('Error fetching student data:', error)
-      toast.error('Failed to load your profile data')
+      toast.error('Failed to load profile data')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -304,7 +346,7 @@ export default function SelfAnalysisPage() {
           .dark .analysis-content h4 {
             color: #60a5fa;
           }
-          
+
           /* Custom scrollbar styles */
           .scrollbar-thin {
             scrollbar-width: thin;
@@ -509,15 +551,15 @@ export default function SelfAnalysisPage() {
                         Reality Check
                       </Button>
                     </div>
-                    
+
                     <Textarea
                       placeholder="Type your question here... For example: 'What are my strengths and weaknesses?', 'How can I improve my profile?', 'What career paths suit me best?'"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       className="min-h-[120px] resize-none"
                     />
-                    
-                    <Button 
+
+                    <Button
                       onClick={handleAnalysis}
                       disabled={!query.trim() || isAnalyzing}
                       className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
@@ -534,7 +576,7 @@ export default function SelfAnalysisPage() {
                         </>
                       )}
                     </Button>
-                    
+
                     {isAnalyzing && (
                       <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
                         <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -592,15 +634,15 @@ export default function SelfAnalysisPage() {
                                   </svg>
                                 </div>
                               </button>
-                              
+
                               {/* Collapsible Content */}
                               {expandedSections.has(index) && (
                                 <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700">
                                   <div className="pt-4 space-y-3">
-                                    <div 
+                                    <div
                                       className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                      dangerouslySetInnerHTML={{ 
-                                        __html: formatAnalysisText(section.content) 
+                                      dangerouslySetInnerHTML={{
+                                        __html: formatAnalysisText(section.content)
                                       }}
                                     />
                                   </div>
@@ -609,7 +651,7 @@ export default function SelfAnalysisPage() {
                             </div>
                           ));
                         })()}
-                        
+
                         {/* Expand All / Collapse All Controls */}
                         <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                           <button
