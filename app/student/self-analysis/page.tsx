@@ -200,45 +200,52 @@ export default function SelfAnalysisPage() {
       setIsLoading(true)
       console.log('🔍 Fetching student data for self-analysis...')
 
-      // Fetch profile data
-      const profileResponse = await fetch('/api/student/profile', {
+      // Get current user ID first
+      const userResponse = await fetch('/api/auth/user', {
         credentials: 'include'
       })
 
-      if (!profileResponse.ok) {
-        throw new Error('Failed to fetch profile data')
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user data')
       }
 
-      const profileData = await profileResponse.json()
-      console.log('📊 Profile data fetched:', profileData)
+      const userData = await userResponse.json()
+      const userId = userData.user?.id
 
-      // Fetch additional data
+      if (!userId) {
+        throw new Error('User ID not found')
+      }
+
+      console.log('👤 User ID:', userId)
+
+      // Fetch all data in parallel
       const [interestsRes, skillsRes, educationRes, achievementsRes, goalsRes] = await Promise.all([
         fetch('/api/user/interests', { credentials: 'include' }),
         fetch('/api/user/skills', { credentials: 'include' }),
         fetch('/api/education', { credentials: 'include' }),
-        fetch('/api/achievements', { credentials: 'include' }),
-        fetch('/api/goals', { credentials: 'include' })
+        fetch(`/api/student/profile/${userId}/achievements`, { credentials: 'include' }),
+        fetch(`/api/student/profile/${userId}/goals`, { credentials: 'include' })
       ])
 
+      // Parse responses
       const [interests, skills, educationHistory, achievementsData, goalsData] = await Promise.all([
-        interestsRes.json(),
-        skillsRes.json(),
-        educationRes.json(),
-        achievementsRes.json(),
-        goalsRes.json()
+        interestsRes.ok ? interestsRes.json() : { interests: [] },
+        skillsRes.ok ? skillsRes.json() : { skills: [] },
+        educationRes.ok ? educationRes.json() : { educationHistory: [] },
+        achievementsRes.ok ? achievementsRes.json() : { achievements: [] },
+        goalsRes.ok ? goalsRes.json() : { goals: [] }
       ])
 
       console.log('🎯 Raw goals response:', goalsData)
       console.log('🏆 Raw achievements response:', achievementsData)
 
       const compiledData = {
-        profile: profileData.profile,
+        profile: userData.profile || userData.user,
         interests: interests.interests || [],
         skills: skills.skills || [],
         educationHistory: educationHistory.educationHistory || [],
-        achievements: achievementsData || [], // Use the exact format from API
-        goals: goalsData || [] // Use the exact format from API
+        achievements: achievementsData.achievements || achievementsData || [],
+        goals: goalsData.goals || goalsData || []
       }
 
       console.log('✅ Compiled student data:', compiledData)
