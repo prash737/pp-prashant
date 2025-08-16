@@ -882,8 +882,8 @@ export default function SelfAnalysisPage() {
                     <CardContent>
                       <div className="prose dark:prose-invert max-w-none">
                         <div 
-                          className="whitespace-pre-wrap font-sans text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: aiAnalysis }}
+                          className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: formatAnalysisText(aiAnalysis) }}
                           onClick={handleAIButtonClick}
                         />
                       </div>
