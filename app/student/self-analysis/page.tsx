@@ -287,29 +287,41 @@ export default function SelfAnalysisPage() {
       return
     }
 
+    console.log('🔍 Starting text analysis with query:', query.trim())
+    console.log('📊 Student data available:', !!studentData)
+
     setIsAnalyzing(true)
     try {
+      const requestBody = {
+        query: query.trim(),
+        studentData: studentData
+      }
+
+      console.log('📤 Sending request body:', JSON.stringify(requestBody, null, 2))
+
       const response = await fetch('/api/self-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: query.trim(),
-          studentData
-        })
+        body: JSON.stringify(requestBody)
       })
 
+      console.log('📥 Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error('Analysis failed')
+        const errorData = await response.json()
+        console.error('❌ API Error Response:', errorData)
+        throw new Error(errorData.error || 'Analysis failed')
       }
 
       const result = await response.json()
+      console.log('✅ Analysis result received:', result)
       setAnalysis(result.analysis)
       toast.success('Analysis complete!')
     } catch (error) {
-      console.error('Analysis error:', error)
-      toast.error('Failed to analyze your profile. Please try again.')
+      console.error('❌ Analysis error:', error)
+      toast.error(`Failed to analyze your profile: ${error.message}`)
     } finally {
       setIsAnalyzing(false)
     }
@@ -344,9 +356,6 @@ export default function SelfAnalysisPage() {
       const prompt = `
         You are PathPiper's AI assistant helping students with self-analysis and growth recommendations.
 
-        Based on this student's profile data:
-        ${JSON.stringify(studentData, null, 2)}
-
         Provide personalized recommendations for:
         1. Career paths that align with their interests and skills
         2. Learning opportunities and skill development suggestions
@@ -367,11 +376,16 @@ export default function SelfAnalysisPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          query: prompt,
+          studentData: studentData
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate AI analysis');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'Failed to generate AI analysis');
       }
 
       const result = await response.json();
