@@ -16,7 +16,6 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { 
-  User, 
   Target, 
   Award, 
   BookOpen, 
