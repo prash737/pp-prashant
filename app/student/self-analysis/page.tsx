@@ -229,11 +229,11 @@ export default function SelfAnalysisPage() {
 
       const studentData = {
         profile: profile.profile,
-        interests: interests.data || interests.userInterests || [],
-        skills: skills.data || skills.userSkills || [],
-        educationHistory: education.data || education.educationHistory || [],
-        achievements: achievements.data || achievements.achievements || [],
-        goals: goals.data || goals.goals || []
+        interests: interests.data || [],
+        skills: skills.data || [],
+        educationHistory: education.data || [],
+        achievements: achievements.data || [],
+        goals: goals.goals || []
       }
 
       console.log('✅ Student data fetched:', {

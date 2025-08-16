@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       orderBy: { dateOfAchievement: 'desc' }
     })
 
-    return NextResponse.json({ data: achievements })
+    return NextResponse.json({ achievements })
   } catch (error) {
     console.error('Error fetching achievements:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

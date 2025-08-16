@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ data: goals })
+    return NextResponse.json({ goals })
   } catch (error) {
     console.error('Goals API error:', error)
     return NextResponse.json({
