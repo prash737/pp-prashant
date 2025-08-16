@@ -239,16 +239,25 @@ export default function SelfAnalysisPage() {
       console.log('🎯 Raw goals response:', goalsData)
       console.log('🏆 Raw achievements response:', achievementsData)
 
+      // Extract goals and achievements with detailed logging
+      const extractedGoals = goalsData.goals || goalsData || []
+      const extractedAchievements = achievementsData.achievements || achievementsData || []
+      
+      console.log('📊 Extracted goals:', extractedGoals, 'Length:', extractedGoals.length)
+      console.log('📊 Extracted achievements:', extractedAchievements, 'Length:', extractedAchievements.length)
+
       const compiledData = {
         profile: userData.profile || userData.user,
         interests: interests.interests || [],
         skills: skills.skills || [],
         educationHistory: educationHistory.educationHistory || [],
-        achievements: achievementsData.achievements || achievementsData || [],
-        goals: goalsData.goals || goalsData || []
+        achievements: extractedAchievements,
+        goals: extractedGoals
       }
 
       console.log('✅ Compiled student data:', compiledData)
+      console.log('🔍 Final goals count:', compiledData.goals.length)
+      console.log('🔍 Final achievements count:', compiledData.achievements.length)
       setStudentData(compiledData)
 
     } catch (error) {
@@ -497,14 +506,14 @@ export default function SelfAnalysisPage() {
                           <Target className="h-4 w-4" />
                           Goals
                         </h4>
-                        <p className="text-xs text-gray-500">{Array.isArray(studentData?.goals) ? studentData.goals.length : 0} goals set</p>
+                        <p className="text-xs text-gray-500">{(studentData?.goals || []).length} goals set</p>
                       </div>
                       <div>
                         <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1 flex items-center gap-1">
                           <Award className="h-4 w-4" />
                           Achievements
                         </h4>
-                        <p className="text-xs text-gray-500">{Array.isArray(studentData?.achievements) ? studentData.achievements.length : 0} achievements</p>
+                        <p className="text-xs text-gray-500">{(studentData?.achievements || []).length} achievements</p>
                       </div>
                     </div>
                   </CardContent>
