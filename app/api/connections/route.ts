@@ -174,16 +174,17 @@ export async function GET(request: NextRequest) {
         )
     })
 
-    // Create map for quick lookup with null check
+    // Create map for quick lookup with comprehensive null checks
     const userProfilesMap = new Map()
     try {
-      if (userProfiles && Array.isArray(userProfiles)) {
+      if (userProfiles && Array.isArray(userProfiles) && userProfiles.length > 0) {
         userProfiles.forEach(profile => {
-          if (profile && profile.id) {
+          if (profile && typeof profile === 'object' && profile.id) {
             userProfilesMap.set(profile.id, profile)
           }
         })
       }
+      console.log(`📋 Profile map created with ${userProfilesMap.size} entries`)
     } catch (profileMapError) {
       console.error('Error creating profile map:', profileMapError)
     }
@@ -195,57 +196,67 @@ export async function GET(request: NextRequest) {
     let finalConnections = []
     try {
       if (connectionResults && Array.isArray(connectionResults) && connectionResults.length > 0) {
+        console.log(`📋 Processing ${connectionResults.length} connection results`)
+        
         finalConnections = connectionResults
-          .map(row => {
+          .map((row, index) => {
             // Validate row object
             if (!row || typeof row !== 'object') {
-              console.warn('⚠️ Invalid connection row:', row)
+              console.warn(`⚠️ Invalid connection row at index ${index}:`, row)
               return null
             }
 
             // Validate required fields
             if (!row.id || !row.user1Id || !row.user2Id) {
-              console.warn('⚠️ Missing required fields in connection:', row)
+              console.warn(`⚠️ Missing required fields in connection at index ${index}:`, {
+                id: row.id,
+                user1Id: row.user1Id,
+                user2Id: row.user2Id
+              })
               return null
             }
 
-            const user1Profile = userProfilesMap.get(row.user1Id)
-            const user2Profile = userProfilesMap.get(row.user2Id)
+            const user1Profile = userProfilesMap.get(row.user1Id) || null
+            const user2Profile = userProfilesMap.get(row.user2Id) || null
+
+            // Create safe user objects with fallbacks
+            const createSafeUserObject = (profile) => {
+              if (!profile || typeof profile !== 'object') return null
+              
+              return {
+                id: profile.id || '',
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                profileImageUrl: profile.profileImageUrl || null,
+                role: profile.role || '',
+                bio: profile.bio || null,
+                location: profile.location || null,
+                lastActiveDate: profile.lastActiveDate || null,
+                availabilityStatus: profile.availabilityStatus || null,
+              }
+            }
 
             return {
               id: row.id,
               user1Id: row.user1Id,
               user2Id: row.user2Id,
               connectionType: row.connectionType || 'friend',
-              connectedAt: row.connectedAt,
-              user1: user1Profile ? {
-                id: user1Profile.id,
-                firstName: user1Profile.firstName || '',
-                lastName: user1Profile.lastName || '',
-                profileImageUrl: user1Profile.profileImageUrl,
-                role: user1Profile.role || '',
-                bio: user1Profile.bio,
-                location: user1Profile.location,
-                lastActiveDate: user1Profile.lastActiveDate,
-                availabilityStatus: user1Profile.availabilityStatus,
-              } : null,
-              user2: user2Profile ? {
-                id: user2Profile.id,
-                firstName: user2Profile.firstName || '',
-                lastName: user2Profile.lastName || '',
-                profileImageUrl: user2Profile.profileImageUrl,
-                role: user2Profile.role || '',
-                bio: user2Profile.bio,
-                location: user2Profile.location,
-                lastActiveDate: user2Profile.lastActiveDate,
-                availabilityStatus: user2Profile.availabilityStatus,
-              } : null
+              connectedAt: row.connectedAt || null,
+              user1: createSafeUserObject(user1Profile),
+              user2: createSafeUserObject(user2Profile)
             }
           })
-          .filter(connection => connection !== null) // Remove null entries
+          .filter(connection => {
+            // Only keep connections where we have valid user data
+            return connection !== null && connection.user1 && connection.user2
+          })
+          
+        console.log(`✅ Successfully processed ${finalConnections.length} valid connections`)
+      } else {
+        console.log('📋 No connection results to process')
       }
     } catch (processingError) {
-      console.error('Error processing connections:', processingError)
+      console.error('❌ Error processing connections:', processingError)
       finalConnections = []
     }
 
@@ -255,42 +266,55 @@ export async function GET(request: NextRequest) {
     let formattedConnections = []
     try {
       if (finalConnections && Array.isArray(finalConnections) && finalConnections.length > 0) {
+        console.log(`🎨 Formatting ${finalConnections.length} connections for user: ${userIdToQuery}`)
+        
         formattedConnections = finalConnections
-          .map(connection => {
+          .map((connection, index) => {
             // Validate connection object
             if (!connection || typeof connection !== 'object') {
-              console.warn('⚠️ Invalid connection object:', connection)
+              console.warn(`⚠️ Invalid connection object at index ${index}:`, connection)
               return null
             }
 
+            // Determine which user is the "other" user
             const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
+            const otherUserId = connection.user1Id === userIdToQuery ? connection.user2Id : connection.user1Id
 
-            if (!otherUser || typeof otherUser !== 'object') {
-              console.warn(`⚠️ Missing user data for connection ${connection.id}`)
+            if (!otherUser || typeof otherUser !== 'object' || !otherUser.id) {
+              console.warn(`⚠️ Missing or invalid user data for connection ${connection.id}, otherUserId: ${otherUserId}`)
               return null
             }
 
-            return {
-              id: connection.id,
-              connectionType: connection.connectionType || 'friend',
-              connectedAt: connection.connectedAt,
-              user: {
-                id: otherUser.id,
-                firstName: otherUser.firstName || '',
-                lastName: otherUser.lastName || '',
-                profileImageUrl: otherUser.profileImageUrl,
-                role: otherUser.role || '',
-                bio: otherUser.bio,
-                location: otherUser.location,
-                status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
-                lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
+            try {
+              return {
+                id: connection.id,
+                connectionType: connection.connectionType || 'friend',
+                connectedAt: connection.connectedAt || null,
+                user: {
+                  id: otherUser.id,
+                  firstName: otherUser.firstName || '',
+                  lastName: otherUser.lastName || '',
+                  profileImageUrl: otherUser.profileImageUrl || null,
+                  role: otherUser.role || '',
+                  bio: otherUser.bio || null,
+                  location: otherUser.location || null,
+                  status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
+                  lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
+                }
               }
+            } catch (userFormatError) {
+              console.error(`❌ Error formatting user data for connection ${connection.id}:`, userFormatError)
+              return null
             }
           })
           .filter(connection => connection !== null) // Remove null entries
+          
+        console.log(`✅ Successfully formatted ${formattedConnections.length} connections`)
+      } else {
+        console.log('🎨 No final connections to format')
       }
     } catch (formattingError) {
-      console.error('Error formatting connections:', formattingError)
+      console.error('❌ Error formatting connections:', formattingError)
       formattedConnections = []
     }
 
