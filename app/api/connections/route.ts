@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
 import { connections, profiles } from '@/lib/drizzle/schema'
-import { eq, or, desc } from 'drizzle-orm'
+import { eq, or, desc, inArray } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
       .from(profiles)
       .where(
         // Use IN operator with array of user IDs
-        profiles.id.in(Array.from(allUserIds))
+        inArray(profiles.id, Array.from(allUserIds))
       )
 
     // Create map for quick lookup
