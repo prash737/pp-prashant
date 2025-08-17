@@ -23,6 +23,32 @@ export const profiles = pgTable('profiles', {
   location: varchar('location'),
   profileImageUrl: varchar('profile_image_url'),
   verificationStatus: boolean('verification_status').default(false),
+  availabilityStatus: varchar('availability_status'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const circleBadges = pgTable('circle_badges', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  creatorId: uuid('creator_id').notNull(),
+  name: varchar('name', { length: 50 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 20 }).default('#3B82F6'),
+  icon: varchar('icon', { length: 50 }).default('users'),
+  isDefault: boolean('is_default').default(false),
+  isDisabled: boolean('is_disabled').default(false),
+  isCreatorDisabled: boolean('is_creator_disabled').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const circleMemberships = pgTable('circle_memberships', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  circleId: uuid('circle_id').notNull(),
+  userId: uuid('user_id').notNull(),
+  status: varchar('status', { length: 20 }).default('active'),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+  isDisabledMember: boolean('is_disabled_member').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
