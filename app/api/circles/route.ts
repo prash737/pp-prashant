@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
 import { circleBadges, circleMemberships, profiles } from '@/lib/drizzle/schema'
-import { eq, or, and, not } from 'drizzle-orm'
+import { eq, or, and, not, inArray } from 'drizzle-orm'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,63 +36,66 @@ export async function GET(request: NextRequest) {
 
     console.log('API: Authenticated user found:', user.id)
 
-    // Get circles where user is creator
-    console.log('🔍 Drizzle Query: Fetching creator circles for user:', user.id)
-    const creatorCircles = await db
-      .select({
-        id: circleBadges.id,
-        name: circleBadges.name,
-        description: circleBadges.description,
-        color: circleBadges.color,
-        icon: circleBadges.icon,
-        isDefault: circleBadges.isDefault,
-        isDisabled: circleBadges.isDisabled,
-        isCreatorDisabled: circleBadges.isCreatorDisabled,
-        creatorId: circleBadges.creatorId,
-        createdAt: circleBadges.createdAt,
-        // Creator profile info
-        creatorFirstName: profiles.firstName,
-        creatorLastName: profiles.lastName,
-        creatorProfileImageUrl: profiles.profileImageUrl
-      })
-      .from(circleBadges)
-      .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
-      .where(eq(circleBadges.creatorId, user.id))
-    
-    console.log('✅ Drizzle Result: Creator circles found:', creatorCircles.length)
+    // Run all queries in parallel for better performance
+    console.log('🔍 Drizzle Query: Fetching all user circles in parallel')
+    const startTime = Date.now()
 
-    // Get circles where user is a member
-    console.log('🔍 Drizzle Query: Fetching member circles for user:', user.id)
-    const memberCircles = await db
-      .select({
-        id: circleBadges.id,
-        name: circleBadges.name,
-        description: circleBadges.description,
-        color: circleBadges.color,
-        icon: circleBadges.icon,
-        isDefault: circleBadges.isDefault,
-        isDisabled: circleBadges.isDisabled,
-        isCreatorDisabled: circleBadges.isCreatorDisabled,
-        creatorId: circleBadges.creatorId,
-        createdAt: circleBadges.createdAt,
-        // Creator profile info
-        creatorFirstName: profiles.firstName,
-        creatorLastName: profiles.lastName,
-        creatorProfileImageUrl: profiles.profileImageUrl
-      })
-      .from(circleBadges)
-      .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
-      .innerJoin(circleMemberships, eq(circleBadges.id, circleMemberships.circleId))
-      .where(
-        and(
-          eq(circleMemberships.userId, user.id),
-          eq(circleMemberships.status, 'active')
+    const [creatorCircles, memberCircles] = await Promise.all([
+      // Get circles where user is creator
+      db
+        .select({
+          id: circleBadges.id,
+          name: circleBadges.name,
+          description: circleBadges.description,
+          color: circleBadges.color,
+          icon: circleBadges.icon,
+          isDefault: circleBadges.isDefault,
+          isDisabled: circleBadges.isDisabled,
+          isCreatorDisabled: circleBadges.isCreatorDisabled,
+          creatorId: circleBadges.creatorId,
+          createdAt: circleBadges.createdAt,
+          // Creator profile info
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
+        })
+        .from(circleBadges)
+        .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+        .where(eq(circleBadges.creatorId, user.id)),
+
+      // Get circles where user is a member
+      db
+        .select({
+          id: circleBadges.id,
+          name: circleBadges.name,
+          description: circleBadges.description,
+          color: circleBadges.color,
+          icon: circleBadges.icon,
+          isDefault: circleBadges.isDefault,
+          isDisabled: circleBadges.isDisabled,
+          isCreatorDisabled: circleBadges.isCreatorDisabled,
+          creatorId: circleBadges.creatorId,
+          createdAt: circleBadges.createdAt,
+          // Creator profile info
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
+        })
+        .from(circleBadges)
+        .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+        .innerJoin(circleMemberships, eq(circleBadges.id, circleMemberships.circleId))
+        .where(
+          and(
+            eq(circleMemberships.userId, user.id),
+            eq(circleMemberships.status, 'active')
+          )
         )
-      )
-    
+    ])
+
+    console.log('✅ Drizzle Result: Creator circles found:', creatorCircles.length)
     console.log('✅ Drizzle Result: Member circles found:', memberCircles.length)
 
-    // Combine both arrays and remove duplicates
+    // Combine and deduplicate circles
     const allCircles = [...creatorCircles, ...memberCircles]
     const uniqueCircles = allCircles.filter((circle, index, self) => 
       index === self.findIndex(c => c.id === circle.id)
@@ -105,12 +108,12 @@ export async function GET(request: NextRequest) {
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     })
 
-    // Get memberships for each circle
+    // Get memberships only for user's circles (more efficient)
     const circleIds = userCircles.map(circle => circle.id)
-
     let memberships = []
+    
     if (circleIds.length > 0) {
-      console.log('🔍 Drizzle Query: Fetching memberships for circles:', circleIds)
+      console.log('🔍 Drizzle Query: Fetching memberships for', circleIds.length, 'circles')
       memberships = await db
         .select({
           circleId: circleMemberships.circleId,
@@ -130,11 +133,14 @@ export async function GET(request: NextRequest) {
         .where(
           and(
             eq(circleMemberships.status, 'active'),
-            not(eq(circleMemberships.isDisabledMember, true))
+            not(eq(circleMemberships.isDisabledMember, true)),
+            // Only get memberships for this user's circles
+            inArray(circleMemberships.circleId, circleIds)
           )
         )
       
       console.log('✅ Drizzle Result: Total memberships found:', memberships.length)
+      console.log('⚡ Query execution time:', Date.now() - startTime, 'ms')
     } else {
       console.log('ℹ️ No circles found, skipping memberships query')
     }
