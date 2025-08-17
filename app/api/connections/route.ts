@@ -1,8 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/drizzle/client'
-import { connection, profiles } from '@/lib/drizzle/schema'
-import { eq, or } from 'drizzle-orm'
+import { connections, profiles } from '@/lib/drizzle/schema'
+import { eq, or, desc, inArray } from 'drizzle-orm'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -40,20 +39,20 @@ export async function GET(request: NextRequest) {
     const userIdToQuery = targetUserId || user.id
 
     // Get connections where user is either user1 or user2
-    const connections = await db
+    const userConnections = await db
       .select()
-      .from(connection)
+      .from(connections)
       .where(
         or(
-          eq(connection.user1Id, userIdToQuery),
-          eq(connection.user2Id, userIdToQuery)
+          eq(connections.user1Id, userIdToQuery),
+          eq(connections.user2Id, userIdToQuery)
         )
       )
-      .orderBy(connection.connectedAt)
+      .orderBy(desc(connections.connectedAt))
 
     // Get all unique user IDs from connections
     const userIds = new Set<string>()
-    connections.forEach(conn => {
+    userConnections.forEach(conn => {
       userIds.add(conn.user1Id)
       userIds.add(conn.user2Id)
     })
@@ -80,7 +79,7 @@ export async function GET(request: NextRequest) {
     const userProfileMap = new Map(userProfiles.map(p => [p.id, p]))
 
     // Format connections to show the other user's info
-    const formattedConnections = connections.map(conn => {
+    const formattedConnections = userConnections.map(conn => {
       // Get the other user's profile
       const otherUserId = conn.user1Id === userIdToQuery ? conn.user2Id : conn.user1Id
       const otherUser = userProfileMap.get(otherUserId)
@@ -134,7 +133,7 @@ function getStatusFromAvailability(availabilityStatus: string | null, lastActive
 
 function formatLastInteraction(lastActiveDate: Date | null): string {
   if (!lastActiveDate) return 'Never'
-  
+
   const now = new Date()
   const lastActive = new Date(lastActiveDate)
   const diffMs = now.getTime() - lastActive.getTime()
