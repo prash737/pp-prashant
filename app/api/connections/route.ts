@@ -176,89 +176,123 @@ export async function GET(request: NextRequest) {
 
     // Create map for quick lookup with null check
     const userProfilesMap = new Map()
-    if (userProfiles && Array.isArray(userProfiles)) {
-      userProfiles.forEach(profile => {
-        if (profile && profile.id) {
-          userProfilesMap.set(profile.id, profile)
-        }
-      })
+    try {
+      if (userProfiles && Array.isArray(userProfiles)) {
+        userProfiles.forEach(profile => {
+          if (profile && profile.id) {
+            userProfilesMap.set(profile.id, profile)
+          }
+        })
+      }
+    } catch (profileMapError) {
+      console.error('Error creating profile map:', profileMapError)
     }
 
     const queryEndTime = Date.now()
     console.log(`⚡ Query execution time: ${queryEndTime - queryStartTime} ms`)
 
-    // Process results to create final connections array with safety checks
-    const finalConnections = connectionResults && Array.isArray(connectionResults) 
-      ? connectionResults.map(row => {
-          if (!row) return null
+    // Process results to create final connections array with comprehensive safety checks
+    let finalConnections = []
+    try {
+      if (connectionResults && Array.isArray(connectionResults) && connectionResults.length > 0) {
+        finalConnections = connectionResults
+          .map(row => {
+            // Validate row object
+            if (!row || typeof row !== 'object') {
+              console.warn('⚠️ Invalid connection row:', row)
+              return null
+            }
 
-          const user1Profile = userProfilesMap.get(row.user1Id)
-          const user2Profile = userProfilesMap.get(row.user2Id)
+            // Validate required fields
+            if (!row.id || !row.user1Id || !row.user2Id) {
+              console.warn('⚠️ Missing required fields in connection:', row)
+              return null
+            }
 
-          return {
-            id: row.id,
-            user1Id: row.user1Id,
-            user2Id: row.user2Id,
-            connectionType: row.connectionType,
-            connectedAt: row.connectedAt,
-            user1: user1Profile ? {
-              id: user1Profile.id,
-              firstName: user1Profile.firstName,
-              lastName: user1Profile.lastName,
-              profileImageUrl: user1Profile.profileImageUrl,
-              role: user1Profile.role,
-              bio: user1Profile.bio,
-              location: user1Profile.location,
-              lastActiveDate: user1Profile.lastActiveDate,
-              availabilityStatus: user1Profile.availabilityStatus,
-            } : null,
-            user2: user2Profile ? {
-              id: user2Profile.id,
-              firstName: user2Profile.firstName,
-              lastName: user2Profile.lastName,
-              profileImageUrl: user2Profile.profileImageUrl,
-              role: user2Profile.role,
-              bio: user2Profile.bio,
-              location: user2Profile.location,
-              lastActiveDate: user2Profile.lastActiveDate,
-              availabilityStatus: user2Profile.availabilityStatus,
-            } : null
-          }
-        }).filter(Boolean) // Remove null entries
-      : []
+            const user1Profile = userProfilesMap.get(row.user1Id)
+            const user2Profile = userProfilesMap.get(row.user2Id)
+
+            return {
+              id: row.id,
+              user1Id: row.user1Id,
+              user2Id: row.user2Id,
+              connectionType: row.connectionType || 'friend',
+              connectedAt: row.connectedAt,
+              user1: user1Profile ? {
+                id: user1Profile.id,
+                firstName: user1Profile.firstName || '',
+                lastName: user1Profile.lastName || '',
+                profileImageUrl: user1Profile.profileImageUrl,
+                role: user1Profile.role || '',
+                bio: user1Profile.bio,
+                location: user1Profile.location,
+                lastActiveDate: user1Profile.lastActiveDate,
+                availabilityStatus: user1Profile.availabilityStatus,
+              } : null,
+              user2: user2Profile ? {
+                id: user2Profile.id,
+                firstName: user2Profile.firstName || '',
+                lastName: user2Profile.lastName || '',
+                profileImageUrl: user2Profile.profileImageUrl,
+                role: user2Profile.role || '',
+                bio: user2Profile.bio,
+                location: user2Profile.location,
+                lastActiveDate: user2Profile.lastActiveDate,
+                availabilityStatus: user2Profile.availabilityStatus,
+              } : null
+            }
+          })
+          .filter(connection => connection !== null) // Remove null entries
+      }
+    } catch (processingError) {
+      console.error('Error processing connections:', processingError)
+      finalConnections = []
+    }
 
     console.log(`✅ Drizzle Result: Found ${finalConnections.length} connections`)
 
-    // Format connections to show the other user's info with safety checks
-    const formattedConnections = finalConnections && Array.isArray(finalConnections) 
-      ? finalConnections.map(connection => {
-          if (!connection) return null
-
-          const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
-
-          if (!otherUser) {
-            console.warn(`⚠️ Missing user data for connection ${connection.id}`)
-            return null
-          }
-
-          return {
-            id: connection.id,
-            connectionType: connection.connectionType,
-            connectedAt: connection.connectedAt,
-            user: {
-              id: otherUser.id,
-              firstName: otherUser.firstName,
-              lastName: otherUser.lastName,
-              profileImageUrl: otherUser.profileImageUrl,
-              role: otherUser.role,
-              bio: otherUser.bio,
-              location: otherUser.location,
-              status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
-              lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
+    // Format connections to show the other user's info with comprehensive safety checks
+    let formattedConnections = []
+    try {
+      if (finalConnections && Array.isArray(finalConnections) && finalConnections.length > 0) {
+        formattedConnections = finalConnections
+          .map(connection => {
+            // Validate connection object
+            if (!connection || typeof connection !== 'object') {
+              console.warn('⚠️ Invalid connection object:', connection)
+              return null
             }
-          }
-        }).filter(Boolean) // Remove null entries
-      : []
+
+            const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
+
+            if (!otherUser || typeof otherUser !== 'object') {
+              console.warn(`⚠️ Missing user data for connection ${connection.id}`)
+              return null
+            }
+
+            return {
+              id: connection.id,
+              connectionType: connection.connectionType || 'friend',
+              connectedAt: connection.connectedAt,
+              user: {
+                id: otherUser.id,
+                firstName: otherUser.firstName || '',
+                lastName: otherUser.lastName || '',
+                profileImageUrl: otherUser.profileImageUrl,
+                role: otherUser.role || '',
+                bio: otherUser.bio,
+                location: otherUser.location,
+                status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
+                lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
+              }
+            }
+          })
+          .filter(connection => connection !== null) // Remove null entries
+      }
+    } catch (formattingError) {
+      console.error('Error formatting connections:', formattingError)
+      formattedConnections = []
+    }
 
     const endTime = Date.now()
     console.log(`🎯 API Response: Returning ${formattedConnections.length} connections for user: ${userIdToQuery}`)
