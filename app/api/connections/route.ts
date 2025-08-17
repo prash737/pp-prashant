@@ -79,30 +79,18 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Drizzle Query: Fetching connections with optimized single JOIN query')
 
-    // Optimized single query with alias for self-joins
+    // Get all connections first
     const queryStartTime = Date.now()
 
     const connectionResults = await db
       .select({
-        // Connection data
         id: connections.id,
         user1Id: connections.user1Id,
         user2Id: connections.user2Id,
         connectionType: connections.connectionType,
         connectedAt: connections.connectedAt,
-        // User1 profile data
-        user1Id_profile: profiles.id,
-        user1FirstName: profiles.firstName,
-        user1LastName: profiles.lastName,
-        user1ProfileImageUrl: profiles.profileImageUrl,
-        user1Role: profiles.role,
-        user1Bio: profiles.bio,
-        user1Location: profiles.location,
-        user1LastActiveDate: profiles.lastActiveDate,
-        user1AvailabilityStatus: profiles.availabilityStatus,
       })
       .from(connections)
-      .innerJoin(profiles, eq(connections.user1Id, profiles.id))
       .where(
         or(
           eq(connections.user1Id, userIdToQuery),
@@ -111,9 +99,22 @@ export async function GET(request: NextRequest) {
       )
       .orderBy(desc(connections.connectedAt))
 
-    // Separate query for user2 profiles
-    const user2ProfilesMap = new Map()
-    const user2Results = await db
+    if (connectionResults.length === 0) {
+      const queryEndTime = Date.now()
+      console.log(`⚡ Query execution time: ${queryEndTime - queryStartTime} ms`)
+      console.log(`✅ Drizzle Result: Found 0 connections`)
+      return NextResponse.json([])
+    }
+
+    // Get unique user IDs from connections
+    const allUserIds = new Set()
+    connectionResults.forEach(conn => {
+      allUserIds.add(conn.user1Id)
+      allUserIds.add(conn.user2Id)
+    })
+
+    // Fetch all user profiles in a single query
+    const userProfiles = await db
       .select({
         id: profiles.id,
         firstName: profiles.firstName,
@@ -127,22 +128,14 @@ export async function GET(request: NextRequest) {
       })
       .from(profiles)
       .where(
-        eq(profiles.id,
-          // Get unique user2 IDs from connections
-          db.select({ user2Id: connections.user2Id })
-            .from(connections)
-            .where(
-              or(
-                eq(connections.user1Id, userIdToQuery),
-                eq(connections.user2Id, userIdToQuery)
-              )
-            )
-        )
+        // Use IN operator with array of user IDs
+        profiles.id.in(Array.from(allUserIds))
       )
 
     // Create map for quick lookup
-    user2Results.forEach(profile => {
-      user2ProfilesMap.set(profile.id, profile)
+    const userProfilesMap = new Map()
+    userProfiles.forEach(profile => {
+      userProfilesMap.set(profile.id, profile)
     })
 
     const queryEndTime = Date.now()
@@ -150,8 +143,8 @@ export async function GET(request: NextRequest) {
 
     // Process results to create final connections array
     const finalConnections = connectionResults.map(row => {
-      // Get user2 profile from map
-      const user2Profile = user2ProfilesMap.get(row.user2Id)
+      const user1Profile = userProfilesMap.get(row.user1Id)
+      const user2Profile = userProfilesMap.get(row.user2Id)
 
       return {
         id: row.id,
@@ -159,17 +152,17 @@ export async function GET(request: NextRequest) {
         user2Id: row.user2Id,
         connectionType: row.connectionType,
         connectedAt: row.connectedAt,
-        user1: {
-          id: row.user1Id,
-          firstName: row.user1FirstName,
-          lastName: row.user1LastName,
-          profileImageUrl: row.user1ProfileImageUrl,
-          role: row.user1Role,
-          bio: row.user1Bio,
-          location: row.user1Location,
-          lastActiveDate: row.user1LastActiveDate,
-          availabilityStatus: row.user1AvailabilityStatus,
-        },
+        user1: user1Profile ? {
+          id: user1Profile.id,
+          firstName: user1Profile.firstName,
+          lastName: user1Profile.lastName,
+          profileImageUrl: user1Profile.profileImageUrl,
+          role: user1Profile.role,
+          bio: user1Profile.bio,
+          location: user1Profile.location,
+          lastActiveDate: user1Profile.lastActiveDate,
+          availabilityStatus: user1Profile.availabilityStatus,
+        } : null,
         user2: user2Profile ? {
           id: user2Profile.id,
           firstName: user2Profile.firstName,
