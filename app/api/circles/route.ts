@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Check authentication
     console.log('API: Checking cookies for auth token')
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     console.log('API: Cookie store available')
 
     const token = cookieStore.get('supabase-auth-token')?.value
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const token = cookieStore.get('supabase-auth-token')?.value
 
     if (!token) {
