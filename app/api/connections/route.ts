@@ -132,79 +132,91 @@ export async function GET(request: NextRequest) {
         inArray(profiles.id, Array.from(allUserIds))
       )
 
-    // Create map for quick lookup
+    // Create map for quick lookup with null check
     const userProfilesMap = new Map()
-    userProfiles.forEach(profile => {
-      userProfilesMap.set(profile.id, profile)
-    })
+    if (userProfiles && Array.isArray(userProfiles)) {
+      userProfiles.forEach(profile => {
+        if (profile && profile.id) {
+          userProfilesMap.set(profile.id, profile)
+        }
+      })
+    }
 
     const queryEndTime = Date.now()
     console.log(`⚡ Query execution time: ${queryEndTime - queryStartTime} ms`)
 
-    // Process results to create final connections array
-    const finalConnections = connectionResults.map(row => {
-      const user1Profile = userProfilesMap.get(row.user1Id)
-      const user2Profile = userProfilesMap.get(row.user2Id)
+    // Process results to create final connections array with safety checks
+    const finalConnections = connectionResults && Array.isArray(connectionResults) 
+      ? connectionResults.map(row => {
+          if (!row) return null
 
-      return {
-        id: row.id,
-        user1Id: row.user1Id,
-        user2Id: row.user2Id,
-        connectionType: row.connectionType,
-        connectedAt: row.connectedAt,
-        user1: user1Profile ? {
-          id: user1Profile.id,
-          firstName: user1Profile.firstName,
-          lastName: user1Profile.lastName,
-          profileImageUrl: user1Profile.profileImageUrl,
-          role: user1Profile.role,
-          bio: user1Profile.bio,
-          location: user1Profile.location,
-          lastActiveDate: user1Profile.lastActiveDate,
-          availabilityStatus: user1Profile.availabilityStatus,
-        } : null,
-        user2: user2Profile ? {
-          id: user2Profile.id,
-          firstName: user2Profile.firstName,
-          lastName: user2Profile.lastName,
-          profileImageUrl: user2Profile.profileImageUrl,
-          role: user2Profile.role,
-          bio: user2Profile.bio,
-          location: user2Profile.location,
-          lastActiveDate: user2Profile.lastActiveDate,
-          availabilityStatus: user2Profile.availabilityStatus,
-        } : null
-      }
-    })
+          const user1Profile = userProfilesMap.get(row.user1Id)
+          const user2Profile = userProfilesMap.get(row.user2Id)
+
+          return {
+            id: row.id,
+            user1Id: row.user1Id,
+            user2Id: row.user2Id,
+            connectionType: row.connectionType,
+            connectedAt: row.connectedAt,
+            user1: user1Profile ? {
+              id: user1Profile.id,
+              firstName: user1Profile.firstName,
+              lastName: user1Profile.lastName,
+              profileImageUrl: user1Profile.profileImageUrl,
+              role: user1Profile.role,
+              bio: user1Profile.bio,
+              location: user1Profile.location,
+              lastActiveDate: user1Profile.lastActiveDate,
+              availabilityStatus: user1Profile.availabilityStatus,
+            } : null,
+            user2: user2Profile ? {
+              id: user2Profile.id,
+              firstName: user2Profile.firstName,
+              lastName: user2Profile.lastName,
+              profileImageUrl: user2Profile.profileImageUrl,
+              role: user2Profile.role,
+              bio: user2Profile.bio,
+              location: user2Profile.location,
+              lastActiveDate: user2Profile.lastActiveDate,
+              availabilityStatus: user2Profile.availabilityStatus,
+            } : null
+          }
+        }).filter(Boolean) // Remove null entries
+      : []
 
     console.log(`✅ Drizzle Result: Found ${finalConnections.length} connections`)
 
-    // Format connections to show the other user's info
-    const formattedConnections = finalConnections.map(connection => {
-      const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
+    // Format connections to show the other user's info with safety checks
+    const formattedConnections = finalConnections && Array.isArray(finalConnections) 
+      ? finalConnections.map(connection => {
+          if (!connection) return null
 
-      if (!otherUser) {
-        console.warn(`⚠️ Missing user data for connection ${connection.id}`)
-        return null
-      }
+          const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
 
-      return {
-        id: connection.id,
-        connectionType: connection.connectionType,
-        connectedAt: connection.connectedAt,
-        user: {
-          id: otherUser.id,
-          firstName: otherUser.firstName,
-          lastName: otherUser.lastName,
-          profileImageUrl: otherUser.profileImageUrl,
-          role: otherUser.role,
-          bio: otherUser.bio,
-          location: otherUser.location,
-          status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
-          lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
-        }
-      }
-    }).filter(Boolean) // Remove null entries
+          if (!otherUser) {
+            console.warn(`⚠️ Missing user data for connection ${connection.id}`)
+            return null
+          }
+
+          return {
+            id: connection.id,
+            connectionType: connection.connectionType,
+            connectedAt: connection.connectedAt,
+            user: {
+              id: otherUser.id,
+              firstName: otherUser.firstName,
+              lastName: otherUser.lastName,
+              profileImageUrl: otherUser.profileImageUrl,
+              role: otherUser.role,
+              bio: otherUser.bio,
+              location: otherUser.location,
+              status: getStatusFromAvailability(otherUser.availabilityStatus, otherUser.lastActiveDate),
+              lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
+            }
+          }
+        }).filter(Boolean) // Remove null entries
+      : []
 
     const endTime = Date.now()
     console.log(`🎯 API Response: Returning ${formattedConnections.length} connections for user: ${userIdToQuery}`)
