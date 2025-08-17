@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
 
     console.log('API: Authenticated user found:', user.id)
 
-    // Get circles where user is creator or member using Drizzle
-    const userCircles = await db
+    // Get circles where user is creator
+    const creatorCircles = await db
       .select({
         id: circleBadges.id,
         name: circleBadges.name,
@@ -56,17 +56,48 @@ export async function GET(request: NextRequest) {
       })
       .from(circleBadges)
       .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+      .where(eq(circleBadges.creatorId, user.id))
+
+    // Get circles where user is a member
+    const memberCircles = await db
+      .select({
+        id: circleBadges.id,
+        name: circleBadges.name,
+        description: circleBadges.description,
+        color: circleBadges.color,
+        icon: circleBadges.icon,
+        isDefault: circleBadges.isDefault,
+        isDisabled: circleBadges.isDisabled,
+        isCreatorDisabled: circleBadges.isCreatorDisabled,
+        creatorId: circleBadges.creatorId,
+        createdAt: circleBadges.createdAt,
+        // Creator profile info
+        creatorFirstName: profiles.firstName,
+        creatorLastName: profiles.lastName,
+        creatorProfileImageUrl: profiles.profileImageUrl
+      })
+      .from(circleBadges)
+      .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+      .innerJoin(circleMemberships, eq(circleBadges.id, circleMemberships.circleId))
       .where(
-        or(
-          eq(circleBadges.creatorId, user.id),
-          and(
-            eq(circleMemberships.userId, user.id),
-            eq(circleMemberships.status, 'active')
-          )
+        and(
+          eq(circleMemberships.userId, user.id),
+          eq(circleMemberships.status, 'active')
         )
       )
-      .leftJoin(circleMemberships, eq(circleBadges.id, circleMemberships.circleId))
-      .orderBy(circleBadges.isDefault, circleBadges.createdAt)
+
+    // Combine both arrays and remove duplicates
+    const allCircles = [...creatorCircles, ...memberCircles]
+    const uniqueCircles = allCircles.filter((circle, index, self) => 
+      index === self.findIndex(c => c.id === circle.id)
+    )
+    
+    // Sort by isDefault and createdAt
+    const userCircles = uniqueCircles.sort((a, b) => {
+      if (a.isDefault && !b.isDefault) return -1
+      if (!a.isDefault && b.isDefault) return 1
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    })
 
     // Get memberships for each circle
     const circleIds = userCircles.map(circle => circle.id)
