@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     console.log('API: Authenticated user found:', user.id)
 
     // Get circles where user is creator
+    console.log('🔍 Drizzle Query: Fetching creator circles for user:', user.id)
     const creatorCircles = await db
       .select({
         id: circleBadges.id,
@@ -57,8 +58,11 @@ export async function GET(request: NextRequest) {
       .from(circleBadges)
       .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
       .where(eq(circleBadges.creatorId, user.id))
+    
+    console.log('✅ Drizzle Result: Creator circles found:', creatorCircles.length)
 
     // Get circles where user is a member
+    console.log('🔍 Drizzle Query: Fetching member circles for user:', user.id)
     const memberCircles = await db
       .select({
         id: circleBadges.id,
@@ -85,6 +89,8 @@ export async function GET(request: NextRequest) {
           eq(circleMemberships.status, 'active')
         )
       )
+    
+    console.log('✅ Drizzle Result: Member circles found:', memberCircles.length)
 
     // Combine both arrays and remove duplicates
     const allCircles = [...creatorCircles, ...memberCircles]
@@ -104,6 +110,7 @@ export async function GET(request: NextRequest) {
 
     let memberships = []
     if (circleIds.length > 0) {
+      console.log('🔍 Drizzle Query: Fetching memberships for circles:', circleIds)
       memberships = await db
         .select({
           circleId: circleMemberships.circleId,
@@ -126,6 +133,10 @@ export async function GET(request: NextRequest) {
             not(eq(circleMemberships.isDisabledMember, true))
           )
         )
+      
+      console.log('✅ Drizzle Result: Total memberships found:', memberships.length)
+    } else {
+      console.log('ℹ️ No circles found, skipping memberships query')
     }
 
     // Format response to match the expected structure
@@ -166,6 +177,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log('🎯 API Response: Returning', formattedCircles.length, 'circles for user:', user.id)
     return NextResponse.json(formattedCircles)
   } catch (error) {
     console.error('Error fetching circles:', error)
@@ -197,6 +209,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new circle using Drizzle
+    console.log('🔍 Drizzle Query: Creating new circle for user:', user.id, 'with name:', name)
     const newCircle = await db
       .insert(circleBadges)
       .values({
@@ -210,6 +223,8 @@ export async function POST(request: NextRequest) {
         isCreatorDisabled: false
       })
       .returning()
+    
+    console.log('✅ Drizzle Result: New circle created with ID:', newCircle[0]?.id)
 
     return NextResponse.json(newCircle[0])
   } catch (error) {
