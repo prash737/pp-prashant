@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies()
     console.log('API: Cookie store available')
 
-    const token = cookieStore.get('supabase-auth-token')?.value
+    const token = cookieStore.get('sb-access-token')?.value
 
     if (!token) {
       console.log('API: No auth token found')
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     const uniqueCircles = allCircles.filter((circle, index, self) => 
       index === self.findIndex(c => c.id === circle.id)
     )
-    
+
     // Sort by isDefault and createdAt
     const userCircles = uniqueCircles.sort((a, b) => {
       if (a.isDefault && !b.isDefault) return -1
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const cookieStore = await cookies()
-    const token = cookieStore.get('supabase-auth-token')?.value
+    const token = cookieStore.get('sb-access-token')?.value
 
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
