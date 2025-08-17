@@ -1,5 +1,5 @@
 
-import { pgTable, uuid, varchar, text, timestamp, integer, boolean, serial } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, integer, boolean, serial, sql } from 'drizzle-orm/pg-core'
 
 export const userAchievements = pgTable('user_achievements', {
   id: serial('id').primaryKey(),

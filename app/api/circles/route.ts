@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     console.log('API: Authenticated user found:', user.id)
 
     // Get user's circle badges with member counts using Drizzle
-    const circles = await db.execute(sql`
+    const circlesResult = await db.execute(sql`
       SELECT 
         cb.id,
         cb.creator_id,
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         cb.created_at,
         cb.updated_at,
         -- Creator info
-        p_creator.id as creator_id,
+        p_creator.id as creator_profile_id,
         p_creator.first_name as creator_first_name,
         p_creator.last_name as creator_last_name,
         p_creator.profile_image_url as creator_profile_image_url,
@@ -79,12 +79,14 @@ export async function GET(request: NextRequest) {
       ORDER BY cb.is_default DESC, cb.created_at ASC
     `)
 
+    const circles = circlesResult.rows || []
+
     // Get memberships for each circle
-    const circleIds = circles.rows.map(circle => circle.id)
+    const circleIds = circles.map(circle => circle.id)
     
     let memberships = []
     if (circleIds.length > 0) {
-      memberships = await db.execute(sql`
+      const membershipsResult = await db.execute(sql`
         SELECT 
           cm.id,
           cm.circle_id,
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
           cm.created_at,
           cm.updated_at,
           -- User info
-          p.id as user_id,
+          p.id as user_profile_id,
           p.first_name as user_first_name,
           p.last_name as user_last_name,
           p.profile_image_url as user_profile_image_url,
@@ -108,10 +110,11 @@ export async function GET(request: NextRequest) {
           AND cm.status = 'active'
         ORDER BY cm.joined_at ASC
       `)
+      memberships = membershipsResult.rows || []
     }
 
     // Transform the data to match the original Prisma structure
-    const transformedCircles = circles.rows.map(circle => ({
+    const transformedCircles = circles.map(circle => ({
       id: circle.id,
       creatorId: circle.creator_id,
       name: circle.name,
@@ -129,7 +132,7 @@ export async function GET(request: NextRequest) {
         lastName: circle.creator_last_name,
         profileImageUrl: circle.creator_profile_image_url
       },
-      memberships: memberships.rows
+      memberships: memberships
         .filter(membership => membership.circle_id === circle.id)
         .map(membership => ({
           id: membership.id,
@@ -195,7 +198,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create circle using Drizzle
-    const newCircle = await db.execute(sql`
+    const newCircleResult = await db.execute(sql`
       INSERT INTO circle_badges (
         creator_id, 
         name, 
@@ -219,30 +222,32 @@ export async function POST(request: NextRequest) {
       RETURNING id, creator_id, name, description, color, icon, is_default, created_at, updated_at
     `)
 
-    const circleId = newCircle.rows[0].id
+    const newCircle = newCircleResult.rows[0]
 
     // Get creator info
-    const creator = await db.execute(sql`
+    const creatorResult = await db.execute(sql`
       SELECT id, first_name, last_name, profile_image_url
       FROM profiles 
       WHERE id = ${user.id}
     `)
 
+    const creator = creatorResult.rows[0]
+
     // Format response to match original Prisma structure
     const circle = {
-      id: newCircle.rows[0].id,
-      creatorId: newCircle.rows[0].creator_id,
-      name: newCircle.rows[0].name,
-      description: newCircle.rows[0].description,
-      color: newCircle.rows[0].color,
-      icon: newCircle.rows[0].icon,
-      isDefault: newCircle.rows[0].is_default,
-      createdAt: newCircle.rows[0].created_at,
-      updatedAt: newCircle.rows[0].updated_at,
+      id: newCircle.id,
+      creatorId: newCircle.creator_id,
+      name: newCircle.name,
+      description: newCircle.description,
+      color: newCircle.color,
+      icon: newCircle.icon,
+      isDefault: newCircle.is_default,
+      createdAt: newCircle.created_at,
+      updatedAt: newCircle.updated_at,
       creator: {
-        firstName: creator.rows[0].first_name,
-        lastName: creator.rows[0].last_name,
-        profileImageUrl: creator.rows[0].profile_image_url
+        firstName: creator.first_name,
+        lastName: creator.last_name,
+        profileImageUrl: creator.profile_image_url
       },
       memberships: [],
       _count: {
