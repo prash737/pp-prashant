@@ -53,11 +53,3 @@ export const circleMemberships = pgTable('circle_memberships', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
-
-export const connections = pgTable('connections', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  user1Id: uuid('user1_id').notNull(),
-  user2Id: uuid('user2_id').notNull(),
-  connectionType: varchar('connection_type').default('friend'),
-  connectedAt: timestamp('connected_at').defaultNow().notNull(),
-})
