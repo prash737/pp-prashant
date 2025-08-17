@@ -53,3 +53,13 @@ export const circleMemberships = pgTable('circle_memberships', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
+
+export const connection = pgTable('connection', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  user1Id: uuid('user1_id').notNull(),
+  user2Id: uuid('user2_id').notNull(),
+  connectionType: varchar('connection_type', { length: 50 }).notNull().default('friend'),
+  connectedAt: timestamp('connected_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
