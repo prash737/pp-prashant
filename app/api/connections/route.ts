@@ -1,12 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/drizzle/client'
+import { db, checkDatabaseConnection } from '@/lib/drizzle/client'
 import { connections, profiles } from '@/lib/drizzle/schema'
 import { eq, or, desc, inArray } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+// Retry function for database operations with exponential backoff
+async function retryDatabaseOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 1000
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: any) {
+      const isConnectionError = error?.code === 'CONNECT_TIMEOUT' || 
+                               error?.message?.includes('timeout') ||
+                               error?.message?.includes('connection')
+      
+      if (isConnectionError && attempt < maxRetries) {
+        const delayMs = baseDelayMs * Math.pow(2, attempt - 1) // Exponential backoff
+        console.warn(`🔄 Database operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delayMs}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delayMs))
+        continue
+      }
+      
+      throw error
+    }
+  }
+  
+  throw new Error('Max retries exceeded')
+}
 
 function getStatusFromAvailability(availabilityStatus: string | null, lastActiveDate: Date | null): string {
   if (!availabilityStatus || !lastActiveDate) return 'offline'
@@ -79,25 +107,37 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Drizzle Query: Fetching connections with optimized single JOIN query')
 
-    // Get all connections first
+    // Check database connection health first
+    const isDatabaseHealthy = await checkDatabaseConnection()
+    if (!isDatabaseHealthy) {
+      console.error('❌ Database health check failed')
+      return NextResponse.json(
+        { error: 'Database temporarily unavailable' },
+        { status: 503 }
+      )
+    }
+
+    // Get all connections first with retry logic
     const queryStartTime = Date.now()
 
-    const connectionResults = await db
+    const connectionResults = await retryDatabaseOperation(async () => {
+      return await db
       .select({
-        id: connections.id,
-        user1Id: connections.user1Id,
-        user2Id: connections.user2Id,
-        connectionType: connections.connectionType,
-        connectedAt: connections.connectedAt,
-      })
-      .from(connections)
-      .where(
-        or(
-          eq(connections.user1Id, userIdToQuery),
-          eq(connections.user2Id, userIdToQuery)
+          id: connections.id,
+          user1Id: connections.user1Id,
+          user2Id: connections.user2Id,
+          connectionType: connections.connectionType,
+          connectedAt: connections.connectedAt,
+        })
+        .from(connections)
+        .where(
+          or(
+            eq(connections.user1Id, userIdToQuery),
+            eq(connections.user2Id, userIdToQuery)
+          )
         )
-      )
-      .orderBy(desc(connections.connectedAt))
+        .orderBy(desc(connections.connectedAt))
+    })
 
     if (connectionResults.length === 0) {
       const queryEndTime = Date.now()
@@ -113,24 +153,26 @@ export async function GET(request: NextRequest) {
       allUserIds.add(conn.user2Id)
     })
 
-    // Fetch all user profiles in a single query
-    const userProfiles = await db
+    // Fetch all user profiles in a single query with retry logic
+    const userProfiles = await retryDatabaseOperation(async () => {
+      return await db
       .select({
-        id: profiles.id,
-        firstName: profiles.firstName,
-        lastName: profiles.lastName,
-        profileImageUrl: profiles.profileImageUrl,
-        role: profiles.role,
-        bio: profiles.bio,
-        location: profiles.location,
-        lastActiveDate: profiles.lastActiveDate,
-        availabilityStatus: profiles.availabilityStatus,
-      })
-      .from(profiles)
-      .where(
-        // Use IN operator with array of user IDs
-        inArray(profiles.id, Array.from(allUserIds))
-      )
+          id: profiles.id,
+          firstName: profiles.firstName,
+          lastName: profiles.lastName,
+          profileImageUrl: profiles.profileImageUrl,
+          role: profiles.role,
+          bio: profiles.bio,
+          location: profiles.location,
+          lastActiveDate: profiles.lastActiveDate,
+          availabilityStatus: profiles.availabilityStatus,
+        })
+        .from(profiles)
+        .where(
+          // Use IN operator with array of user IDs
+          inArray(profiles.id, Array.from(allUserIds))
+        )
+    })
 
     // Create map for quick lookup with null check
     const userProfilesMap = new Map()
@@ -224,8 +266,30 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedConnections)
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching connections:', error)
+    
+    // Handle specific error types
+    if (error?.code === 'CONNECT_TIMEOUT' || error?.message?.includes('timeout')) {
+      return NextResponse.json(
+        { 
+          error: 'Database connection timeout. Please try again in a few moments.',
+          code: 'CONNECTION_TIMEOUT'
+        },
+        { status: 503 }
+      )
+    }
+    
+    if (error?.message?.includes('connection')) {
+      return NextResponse.json(
+        { 
+          error: 'Database temporarily unavailable. Please try again.',
+          code: 'CONNECTION_ERROR'
+        },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
