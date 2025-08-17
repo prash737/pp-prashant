@@ -1,5 +1,8 @@
+
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { userAchievements } from '@/lib/drizzle/schema'
+import { eq, desc } from 'drizzle-orm'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -35,11 +38,12 @@ export async function GET(request: NextRequest) {
 
     const userId = authData.user.id
 
-    // Fetch user achievements
-    const achievements = await prisma.userAchievement.findMany({
-      where: { userId: userId },
-      orderBy: { dateOfAchievement: 'desc' }
-    })
+    // Fetch user achievements using Drizzle
+    const achievements = await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.dateOfAchievement))
 
     return NextResponse.json({ achievements })
   } catch (error) {
@@ -86,19 +90,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new achievement
-    const achievement = await prisma.userAchievement.create({
-      data: {
+    // Create new achievement using Drizzle
+    const achievement = await db
+      .insert(userAchievements)
+      .values({
         userId,
         name,
         description,
         dateOfAchievement: new Date(dateOfAchievement),
         achievementTypeId: parseInt(achievementTypeId),
         achievementImageIcon: achievementImageIcon || null
-      }
-    })
+      })
+      .returning()
 
-    return NextResponse.json({ achievement })
+    return NextResponse.json({ achievement: achievement[0] })
   } catch (error) {
     console.error('Error creating achievement:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -150,31 +155,32 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Verify the achievement belongs to the user before updating
-    const existingAchievement = await prisma.userAchievement.findFirst({
-      where: { 
-        id: parseInt(achievementId),
-        userId: userId 
-      }
-    })
+    // Verify the achievement belongs to the user before updating using Drizzle
+    const existingAchievement = await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.id, parseInt(achievementId)))
+      .limit(1)
 
-    if (!existingAchievement) {
+    if (!existingAchievement.length || existingAchievement[0].userId !== userId) {
       return NextResponse.json({ error: 'Achievement not found' }, { status: 404 })
     }
 
-    // Update the achievement
-    const updatedAchievement = await prisma.userAchievement.update({
-      where: { id: parseInt(achievementId) },
-      data: {
+    // Update the achievement using Drizzle
+    const updatedAchievement = await db
+      .update(userAchievements)
+      .set({
         name,
         description,
         dateOfAchievement: new Date(dateOfAchievement),
         achievementTypeId: parseInt(achievementTypeId),
-        achievementImageIcon: achievementImageIcon || null
-      }
-    })
+        achievementImageIcon: achievementImageIcon || null,
+        updatedAt: new Date()
+      })
+      .where(eq(userAchievements.id, parseInt(achievementId)))
+      .returning()
 
-    return NextResponse.json({ achievement: updatedAchievement })
+    return NextResponse.json({ achievement: updatedAchievement[0] })
   } catch (error) {
     console.error('Error updating achievement:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -216,22 +222,21 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Achievement ID is required' }, { status: 400 })
     }
 
-    // Verify the achievement belongs to the user before deleting
-    const achievement = await prisma.userAchievement.findFirst({
-      where: { 
-        id: parseInt(achievementId),
-        userId: userId 
-      }
-    })
+    // Verify the achievement belongs to the user before deleting using Drizzle
+    const achievement = await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.id, parseInt(achievementId)))
+      .limit(1)
 
-    if (!achievement) {
+    if (!achievement.length || achievement[0].userId !== userId) {
       return NextResponse.json({ error: 'Achievement not found' }, { status: 404 })
     }
 
-    // Delete the achievement
-    await prisma.userAchievement.delete({
-      where: { id: parseInt(achievementId) }
-    })
+    // Delete the achievement using Drizzle
+    await db
+      .delete(userAchievements)
+      .where(eq(userAchievements.id, parseInt(achievementId)))
 
     return NextResponse.json({ message: 'Achievement deleted successfully' })
   } catch (error) {

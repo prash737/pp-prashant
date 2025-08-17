@@ -36,12 +36,6 @@ export async function GET(
 
     console.log('API: Authenticated user found:', user.id)
 
-    // Check if UserAchievement model exists
-    if (!prisma.userAchievement) {
-      console.error('UserAchievement model not found in Prisma client')
-      return NextResponse.json({ error: 'UserAchievement model not available' }, { status: 500 })
-    }
-
     // Get achievements for the specific student
     const achievements = await db
       .select()
