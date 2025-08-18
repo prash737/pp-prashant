@@ -1,16 +1,29 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/drizzle/client'
 import { profiles, studentProfiles, interestCategories, interests, userInterests } from '@/lib/drizzle/schema'
-import { eq, and, inArray } from 'drizzle-orm'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { eq, asc, inArray } from 'drizzle-orm'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { data: { user } } = await supabase.auth.getUser()
+    // Get the access token from cookies
+    const cookieStore = cookies()
+    const accessToken = cookieStore.get('sb-access-token')?.value
 
-    if (!user) {
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Create Supabase client and verify token
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -25,8 +38,8 @@ export async function GET(request: NextRequest) {
 
     let ageGroup = null
 
-    // Get student's age group if user is a student
     if (profile[0].role === 'student') {
+      // Get student's age group
       const studentProfile = await db.select({
         ageGroup: studentProfiles.ageGroup
       }).from(studentProfiles).where(eq(studentProfiles.id, user.id)).limit(1)
@@ -36,76 +49,77 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get available interest categories for age group filtering
-    let availableInterestCategories = []
-    if (ageGroup) {
-      availableInterestCategories = await db.select({
-        name: interestCategories.name,
-        interests: interests.name
-      }).from(interestCategories)
-        .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
-        .where(eq(interestCategories.ageGroup, ageGroup))
+    if (!ageGroup) {
+      return NextResponse.json({ error: 'Age group not found' }, { status: 400 })
     }
 
-    // Get user's interests with both ID and name
+    // Get available interest categories for age group filtering
+    const availableCategories = await db.select({
+      id: interestCategories.id,
+      name: interestCategories.name
+    }).from(interestCategories)
+      .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
+      .where(eq(interestCategories.ageGroup, ageGroup))
+
+    const availableInterestNames = new Set()
+    for (const category of availableCategories) {
+      const categoryInterests = await db.select({
+        name: interests.name
+      }).from(interests).where(eq(interests.categoryId, category.id))
+      
+      categoryInterests.forEach(interest => {
+        availableInterestNames.add(interest.name)
+      })
+    }
+
+    // Get user's current interests with details
     const currentUserInterests = await db.select({
-      id: userInterests.id,
-      interestId: userInterests.interestId,
+      userInterestId: userInterests.id,
+      interestId: interests.id,
       interestName: interests.name,
       categoryId: interests.categoryId
     }).from(userInterests)
       .innerJoin(interests, eq(interests.id, userInterests.interestId))
       .where(eq(userInterests.userId, user.id))
 
-    // Get all available interests for user's current age group with their IDs
-    let availableInterests = []
-    if (ageGroup) {
-      availableInterests = await db.select({
-        id: interests.id,
-        name: interests.name,
-        categoryId: interests.categoryId
-      }).from(interests)
-        .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
-        .where(eq(interestCategories.ageGroup, ageGroup))
-    }
+    // Get all available interests for user's current age group
+    const availableInterests = await db.select({
+      id: interests.id,
+      name: interests.name,
+      categoryId: interests.categoryId
+    }).from(interests)
+      .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
+      .where(eq(interestCategories.ageGroup, ageGroup))
 
-    // Find invalid interests (interests not valid for current age group)
-    const validInterestIds = availableInterests.map(interest => interest.id)
+    // Filter valid interests (those that exist in current age group)
+    const validInterests = currentUserInterests.filter(userInterest => 
+      availableInterestNames.has(userInterest.interestName)
+    )
+
+    // Find invalid interests to cleanup
     const invalidInterestIds = currentUserInterests
-      .filter(ui => !validInterestIds.includes(ui.interestId))
-      .map(ui => ui.interestId)
+      .filter(userInterest => !availableInterestNames.has(userInterest.interestName))
+      .map(userInterest => userInterest.interestId)
 
-    // Cleanup invalid interests (if user's age group changed)
+    // Cleanup invalid interests if any exist
     if (invalidInterestIds.length > 0) {
       await db.delete(userInterests)
-        .where(and(
-          eq(userInterests.userId, user.id),
+        .where(
+          eq(userInterests.userId, user.id) && 
           inArray(userInterests.interestId, invalidInterestIds)
-        ))
+        )
     }
 
-    // Get updated user interests after cleanup
-    const validUserInterests = await db.select({
-      id: userInterests.id,
-      interestId: userInterests.interestId,
-      interestName: interests.name,
-      categoryId: interests.categoryId
-    }).from(userInterests)
-      .innerJoin(interests, eq(interests.id, userInterests.interestId))
-      .where(eq(userInterests.userId, user.id))
-
     // Format response to match Prisma structure
-    const formattedInterests = validUserInterests.map(ui => ({
+    const formattedInterests = validInterests.map(userInterest => ({
       interest: {
-        id: ui.interestId,
-        name: ui.interestName,
-        categoryId: ui.categoryId
+        id: userInterest.interestId,
+        name: userInterest.interestName,
+        categoryId: userInterest.categoryId
       }
     }))
 
-    return NextResponse.json({
-      interests: formattedInterests
-    })
+    return NextResponse.json({ interests: formattedInterests })
 
   } catch (error) {
     console.error('Error fetching user interests:', error)
@@ -118,16 +132,29 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { data: { user } } = await supabase.auth.getUser()
+    // Get the access token from cookies
+    const cookieStore = cookies()
+    const accessToken = cookieStore.get('sb-access-token')?.value
 
-    if (!user) {
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Create Supabase client and verify token
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { interests: selectedInterests } = await request.json()
 
-    // Get user's current age group
+    if (!Array.isArray(selectedInterests)) {
+      return NextResponse.json({ error: 'Invalid interests format' }, { status: 400 })
+    }
+
+    // Get user's role and age group
     const profile = await db.select({
       role: profiles.role
     }).from(profiles).where(eq(profiles.id, user.id)).limit(1)
@@ -137,6 +164,7 @@ export async function POST(request: NextRequest) {
     }
 
     let ageGroup = null
+
     if (profile[0].role === 'student') {
       const studentProfile = await db.select({
         ageGroup: studentProfiles.ageGroup
@@ -147,74 +175,70 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get available interests for user's age group
-    let availableInterests = []
-    if (ageGroup) {
-      availableInterests = await db.select({
-        id: interests.id,
-        name: interests.name
-      }).from(interests)
-        .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
-        .where(eq(interestCategories.ageGroup, ageGroup))
+    if (!ageGroup) {
+      return NextResponse.json({ error: 'Age group not found' }, { status: 400 })
     }
 
-    const availableInterestNames = availableInterests.map(interest => interest.name)
-    const interestNameToIdMap = new Map(availableInterests.map(interest => [interest.name, interest.id]))
+    // Get available interests for user's age group
+    const availableInterests = await db.select({
+      id: interests.id,
+      name: interests.name
+    }).from(interests)
+      .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
+      .where(eq(interestCategories.ageGroup, ageGroup))
 
-    // Filter selected interests to only include valid ones for age group
-    const validSelectedInterests = selectedInterests.filter((interest: string) => 
-      availableInterestNames.includes(interest)
-    )
-
-    // Handle custom interests
-    const customInterests = selectedInterests.filter((interest: string) => 
-      !availableInterestNames.includes(interest)
-    )
+    const availableInterestMap = new Map()
+    availableInterests.forEach(interest => {
+      availableInterestMap.set(interest.name, interest.id)
+    })
 
     // Get or create custom interest category for this age group
-    let customInterestCategory = null
-    if (customInterests.length > 0 && ageGroup) {
-      const existingCustomCategory = await db.select({
-        id: interestCategories.id
-      }).from(interestCategories)
-        .where(and(
-          eq(interestCategories.name, 'Custom'),
-          eq(interestCategories.ageGroup, ageGroup)
-        )).limit(1)
+    let customCategory = await db.select({
+      id: interestCategories.id
+    }).from(interestCategories)
+      .where(
+        eq(interestCategories.name, 'Custom') && 
+        eq(interestCategories.ageGroup, ageGroup)
+      ).limit(1)
 
-      if (existingCustomCategory.length) {
-        customInterestCategory = existingCustomCategory[0]
-      } else {
-        const newCustomCategory = await db.insert(interestCategories).values({
-          name: 'Custom',
-          ageGroup: ageGroup
-        }).returning({ id: interestCategories.id })
-
-        customInterestCategory = newCustomCategory[0]
-      }
+    if (!customCategory.length) {
+      const newCategory = await db.insert(interestCategories).values({
+        name: 'Custom',
+        ageGroup: ageGroup
+      }).returning({ id: interestCategories.id })
+      
+      customCategory = newCategory
     }
 
-    // Create custom interests if they don't exist
-    for (const customInterest of customInterests) {
-      if (customInterestCategory) {
-        const existingCustomInterest = await db.select({
-          id: interests.id,
-          name: interests.name
+    const customCategoryId = customCategory[0].id
+
+    // Process interests and create custom ones if needed
+    const interestIds = []
+
+    for (const interestName of selectedInterests) {
+      if (availableInterestMap.has(interestName)) {
+        // Existing interest
+        interestIds.push(availableInterestMap.get(interestName))
+      } else {
+        // Check if custom interest already exists
+        const existingCustom = await db.select({
+          id: interests.id
         }).from(interests)
-          .where(and(
-            eq(interests.name, customInterest),
-            eq(interests.categoryId, customInterestCategory.id)
-          )).limit(1)
+          .where(
+            eq(interests.name, interestName) && 
+            eq(interests.categoryId, customCategoryId)
+          ).limit(1)
 
-        if (!existingCustomInterest.length) {
-          const newCustomInterest = await db.insert(interests).values({
-            name: customInterest,
-            categoryId: customInterestCategory.id
-          }).returning({ id: interests.id, name: interests.name })
-
-          interestNameToIdMap.set(customInterest, newCustomInterest[0].id)
+        if (existingCustom.length) {
+          interestIds.push(existingCustom[0].id)
         } else {
-          interestNameToIdMap.set(customInterest, existingCustomInterest[0].id)
+          // Create new custom interest
+          const newInterest = await db.insert(interests).values({
+            name: interestName,
+            categoryId: customCategoryId
+          }).returning({ id: interests.id })
+          
+          interestIds.push(newInterest[0].id)
         }
       }
     }
@@ -228,33 +252,30 @@ export async function POST(request: NextRequest) {
       .innerJoin(interests, eq(interests.id, userInterests.interestId))
       .where(eq(userInterests.userId, user.id))
 
-    const currentInterestNames = currentUserInterests.map(ui => ui.interestName)
-
-    // Find interests to remove (currently saved but not in new selection)
-    const interestsToRemove = currentUserInterests.filter(ui => 
-      !selectedInterests.includes(ui.interestName)
-    )
-
-    // Find interests to add (in new selection but not currently saved)
-    const interestsToAdd = selectedInterests.filter((interestName: string) => 
-      !currentInterestNames.includes(interestName) && interestNameToIdMap.has(interestName)
+    // Find interests to remove (those not in the new selection)
+    const interestsToRemove = currentUserInterests.filter(
+      ui => !interestIds.includes(ui.interestId)
     )
 
     // Remove interests that are no longer selected
     if (interestsToRemove.length > 0) {
-      const interestIdsToRemove = interestsToRemove.map(ui => ui.interestId)
+      const idsToRemove = interestsToRemove.map(ui => ui.interestId)
       await db.delete(userInterests)
-        .where(and(
-          eq(userInterests.userId, user.id),
-          inArray(userInterests.interestId, interestIdsToRemove)
-        ))
+        .where(
+          eq(userInterests.userId, user.id) && 
+          inArray(userInterests.interestId, idsToRemove)
+        )
     }
 
+    // Find new interests to add
+    const currentInterestIds = currentUserInterests.map(ui => ui.interestId)
+    const newInterestIds = interestIds.filter(id => !currentInterestIds.includes(id))
+
     // Add new interests
-    if (interestsToAdd.length > 0) {
-      const userInterestData = interestsToAdd.map((interestName: string) => ({
+    if (newInterestIds.length > 0) {
+      const userInterestData = newInterestIds.map(interestId => ({
         userId: user.id,
-        interestId: interestNameToIdMap.get(interestName)!
+        interestId: interestId
       }))
 
       await db.insert(userInterests).values(userInterestData)
@@ -262,7 +283,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       message: 'Interests updated successfully',
-      added: interestsToAdd.length,
+      added: newInterestIds.length,
       removed: interestsToRemove.length
     })
 
