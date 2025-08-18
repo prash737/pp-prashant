@@ -338,7 +338,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           {/* Interest Categories */}
           <div className="space-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             {filteredCategories.map((category) => (
-              <div key={category.name}>
+              <div key={category.name} className="mb-6">
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
                   {category.name}
                 </h4>
@@ -393,7 +393,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
                 <div className="flex flex-wrap gap-2">
                   {selectedInterests.map((interest) => (
                     <div
-                      key={interest.id}
+                      key={`selected-${interest.id}`}
                       className="flex items-center bg-pathpiper-teal text-white px-3 py-1 rounded-full text-sm"
                     >
                       <span className="font-medium">{interest.name}</span>
