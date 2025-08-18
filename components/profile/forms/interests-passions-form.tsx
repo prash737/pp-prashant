@@ -391,18 +391,18 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             ) : (
               <div className="flex-1 overflow-y-auto">
                 <div className="flex flex-wrap gap-2">
-                  {selectedInterests.map((interest) => (
+                  {selectedInterests.map((interest, index) => (
                     <div
-                      key={`selected-${interest.id}`}
+                      key={interest.id !== undefined ? `selected-${interest.id}` : `selected-custom-${index}-${interest.name}`}
                       className="flex items-center bg-pathpiper-teal text-white px-3 py-1 rounded-full text-sm"
                     >
-                      <span className="font-medium">{interest.name}</span>
+                      <span className="font-medium mr-2">{interest.name || 'Unnamed Interest'}</span>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeInterest(interest.id)}
-                        className="ml-2 p-0 h-auto text-white hover:text-red-200 hover:bg-transparent"
+                        className="p-0 h-auto text-white hover:text-red-200 hover:bg-transparent"
                       >
                         <X size={14} />
                       </Button>
