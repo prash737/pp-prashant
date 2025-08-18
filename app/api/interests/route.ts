@@ -1,159 +1,94 @@
+
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { profiles, studentProfiles, interestCategories, interests } from '@/lib/drizzle/schema'
+import { eq, asc } from 'drizzle-orm'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check for valid session cookie
-    const cookieStore = await cookies()
-    const accessTokenCookie = cookieStore.get('sb-access-token')
-    const parentAuthTokenCookie = cookieStore.get('parent-auth-token')
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await supabase.auth.getUser()
 
-    // Check if this is a parent or regular user request
-    let user, isParentRequest = false
-    
-    if (parentAuthTokenCookie) {
-      // Parent authentication
-      try {
-        const parentId = parentAuthTokenCookie.value
-        const parentProfile = await prisma.parentProfile.findUnique({
-          where: { id: parentId }
-        })
-        
-        if (!parentProfile) {
-          return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
-        }
-        
-        isParentRequest = true
-        // For parent requests, we'll use the age group from query params
-      } catch (error) {
-        return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
-      }
-    } else if (accessTokenCookie) {
-      // Regular user authentication - try internal API call first
-      try {
-        const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-          headers: {
-            cookie: `sb-access-token=${accessTokenCookie.value}`,
-          },
-        })
-
-        if (!userResponse.ok) {
-          console.log('⚠️ Failed to validate user session via API, checking token directly')
-          // If API call fails, try direct Supabase verification
-          const { createClient } = require('@supabase/supabase-js')
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-          )
-          
-          const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
-          
-          if (error || !supabaseUser) {
-            return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-          }
-          
-          // Create a user object for compatibility
-          user = {
-            id: supabaseUser.id,
-            email: supabaseUser.email
-          }
-        } else {
-          const result = await userResponse.json()
-          user = result.user
-        }
-      } catch (error) {
-        console.error('Error validating user session:', error)
-        return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-      }
-    } else {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let ageGroup = 'young_adult' // default
+    const { searchParams } = new URL(request.url)
+    const parentId = searchParams.get('parentId')
+    const ageGroupParam = searchParams.get('ageGroup')
 
-    if (isParentRequest) {
-      // For parent requests, use the age group from query params
-      const { searchParams } = new URL(request.url)
-      const ageGroupOverride = searchParams.get('ageGroup')
-      if (ageGroupOverride) {
-        ageGroup = ageGroupOverride
-        console.log('ℹ️ Parent user accessing interests, using age group from query parameter:', ageGroup)
-      } else {
-        console.log('ℹ️ Parent user accessing interests, no age group parameter provided. Using default age group:', ageGroup)
-      }
-    } else {
-      // Regular user authentication - get user's profile to determine age group
-      const profile = await prisma.profile.findUnique({
-        where: { id: user.id },
-        select: { role: true }
-      })
+    // Get user's role for age group determination
+    const profile = await db.select({
+      role: profiles.role
+    }).from(profiles).where(eq(profiles.id, user.id)).limit(1)
 
-      if (!profile) {
-        return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-      }
+    if (!profile.length) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
 
-      // If user is a student, get their age group from student profile
-      if (profile.role === 'student') {
-        const studentProfile = await prisma.studentProfile.findUnique({
-          where: { id: user.id },
-          select: { age_group: true }
-        })
+    let ageGroup = null
 
-        if (studentProfile?.age_group) {
-          ageGroup = studentProfile.age_group
-          console.log('✅ Found student age group:', ageGroup)
-        } else {
-          console.log('⚠️ Student profile found but no age_group set, using default:', ageGroup)
-        }
-      } else {
-        console.log('ℹ️ User is not a student, using default age group:', ageGroup)
-      }
+    // For parent requests, validate parent profile and use provided age group
+    if (parentId) {
+      // For parent requests, use the provided age group parameter
+      ageGroup = ageGroupParam
+    } else if (profile[0].role === 'student') {
+      // Get student's age group
+      const studentProfile = await db.select({
+        ageGroup: studentProfiles.ageGroup
+      }).from(studentProfiles).where(eq(studentProfiles.id, user.id)).limit(1)
 
-      // Allow override via query parameter for testing
-      const { searchParams } = new URL(request.url)
-      const ageGroupOverride = searchParams.get('ageGroup')
-      if (ageGroupOverride) {
-        ageGroup = ageGroupOverride
+      if (studentProfile.length) {
+        ageGroup = studentProfile[0].ageGroup
       }
     }
 
+    if (!ageGroup) {
+      return NextResponse.json({ error: 'Age group not found' }, { status: 400 })
+    }
+
     // Fetch interest categories and interests for the specified age group
-    console.log('🔍 Fetching interest categories for age group:', ageGroup)
-    const interestCategories = await prisma.interestCategory.findMany({
-      where: { ageGroup: ageGroup as any },
-      include: { 
-        interests: {
-          select: {
-            id: true,
-            name: true
-          },
-          orderBy: {
-            name: 'asc'
-          }
-        }
-      },
-      orderBy: [
-        { name: 'asc' }
-      ]
+    const categoriesWithInterests = await db.select({
+      categoryId: interestCategories.id,
+      categoryName: interestCategories.name,
+      interestId: interests.id,
+      interestName: interests.name
+    }).from(interestCategories)
+      .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
+      .where(eq(interestCategories.ageGroup, ageGroup))
+      .orderBy(asc(interestCategories.name), asc(interests.name))
+
+    // Group interests by category
+    const categoriesMap = new Map()
+
+    categoriesWithInterests.forEach(row => {
+      if (!categoriesMap.has(row.categoryId)) {
+        categoriesMap.set(row.categoryId, {
+          name: row.categoryName,
+          interests: []
+        })
+      }
+
+      if (row.interestId && row.interestName) {
+        categoriesMap.get(row.categoryId).interests.push({
+          id: row.interestId,
+          name: row.interestName
+        })
+      }
     })
 
-    console.log('✅ Found', interestCategories.length, 'interest categories for age group:', ageGroup)
-
-    const formattedCategories = interestCategories.map(category => ({
-      name: category.name,
-      interests: category.interests.map(interest => ({
-        id: interest.id,
-        name: interest.name
-      }))
-    }))
-
-    console.log('✅ Formatted categories with interests:', formattedCategories.map(cat => `${cat.name}: ${cat.interests.length} interests`))
-    console.log('🔍 Sample interest IDs from category data:', formattedCategories[0]?.interests.slice(0, 3).map(i => ({ id: i.id, name: i.name })))
+    // Convert map to array format matching Prisma response
+    const formattedCategories = Array.from(categoriesMap.values())
 
     return NextResponse.json(formattedCategories)
+
   } catch (error) {
     console.error('Error fetching interests:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch interests' },
+      { status: 500 }
+    )
   }
 }

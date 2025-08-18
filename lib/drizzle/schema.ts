@@ -1,6 +1,10 @@
 
-import { pgTable, uuid, varchar, text, timestamp, integer, boolean, serial } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, text, timestamp, integer, boolean, serial, pgEnum } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
+
+// Enums
+export const ageGroupEnum = pgEnum('age_group', ['early_childhood', 'elementary', 'middle_school', 'high_school', 'young_adult'])
+export const userRoleEnum = pgEnum('user_role', ['student', 'mentor', 'institution'])
 
 export const userAchievements = pgTable('user_achievements', {
   id: serial('id').primaryKey(),
@@ -19,12 +23,75 @@ export const profiles = pgTable('profiles', {
   firstName: varchar('first_name', { length: 255 }).notNull(),
   lastName: varchar('last_name', { length: 255 }).notNull(),
   email: varchar('email'),
-  role: varchar('role').notNull(),
+  role: userRoleEnum('role').notNull(),
   bio: text('bio'),
   location: varchar('location'),
   profileImageUrl: varchar('profile_image_url'),
   verificationStatus: boolean('verification_status').default(false),
   availabilityStatus: varchar('availability_status'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const studentProfiles = pgTable('student_profiles', {
+  id: uuid('id').primaryKey(),
+  ageGroup: ageGroupEnum('age_group'),
+  educationLevel: varchar('education_level').notNull(),
+  birthMonth: varchar('birth_month'),
+  birthYear: varchar('birth_year'),
+  personalityType: varchar('personality_type'),
+  learningStyle: varchar('learning_style'),
+  favoriteQuote: varchar('favorite_quote'),
+  onboardingCompleted: boolean('onboarding_completed').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const interestCategories = pgTable('interest_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name').notNull(),
+  ageGroup: ageGroupEnum('age_group').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const interests = pgTable('interests', {
+  id: serial('id').primaryKey(),
+  name: varchar('name').notNull(),
+  categoryId: integer('category_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const userInterests = pgTable('user_interests', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  interestId: integer('interest_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const skillCategories = pgTable('skill_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name').notNull(),
+  ageGroup: ageGroupEnum('age_group').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const skills = pgTable('skills', {
+  id: serial('id').primaryKey(),
+  name: varchar('name').notNull(),
+  categoryId: integer('category_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const userSkills = pgTable('user_skills', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  skillId: integer('skill_id').notNull(),
+  proficiencyLevel: integer('proficiency_level').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

@@ -1,391 +1,276 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { profiles, studentProfiles, interestCategories, interests, userInterests } from '@/lib/drizzle/schema'
+import { eq, and, inArray } from 'drizzle-orm'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const accessTokenCookie = cookieStore.get('sb-access-token')
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!accessTokenCookie) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from session - try API first, fallback to direct validation
-    let user
-    try {
-      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-        headers: {
-          cookie: `sb-access-token=${accessTokenCookie.value}`,
-        },
-      })
+    // Get user's role
+    const profile = await db.select({
+      role: profiles.role
+    }).from(profiles).where(eq(profiles.id, user.id)).limit(1)
 
-      if (!userResponse.ok) {
-        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
-        // Fallback to direct Supabase validation
-        const { createClient } = require('@supabase/supabase-js')
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        )
+    if (!profile.length) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
 
-        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
+    let ageGroup = null
 
-        if (error || !supabaseUser) {
-          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-        }
+    // Get student's age group if user is a student
+    if (profile[0].role === 'student') {
+      const studentProfile = await db.select({
+        ageGroup: studentProfiles.ageGroup
+      }).from(studentProfiles).where(eq(studentProfiles.id, user.id)).limit(1)
 
-        user = {
-          id: supabaseUser.id,
-          email: supabaseUser.email
-        }
-      } else {
-        const result = await userResponse.json()
-        user = result.user
+      if (studentProfile.length) {
+        ageGroup = studentProfile[0].ageGroup
       }
-    } catch (error) {
-      console.error('Error validating user session for interests save:', error)
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    // Get available interest categories for age group filtering
+    let availableInterestCategories = []
+    if (ageGroup) {
+      availableInterestCategories = await db.select({
+        name: interestCategories.name,
+        interests: interests.name
+      }).from(interestCategories)
+        .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
+        .where(eq(interestCategories.ageGroup, ageGroup))
     }
 
-    const { interests } = await request.json()
+    // Get user's interests with both ID and name
+    const currentUserInterests = await db.select({
+      id: userInterests.id,
+      interestId: userInterests.interestId,
+      interestName: interests.name,
+      categoryId: interests.categoryId
+    }).from(userInterests)
+      .innerJoin(interests, eq(interests.id, userInterests.interestId))
+      .where(eq(userInterests.userId, user.id))
 
-    if (!Array.isArray(interests)) {
-      return NextResponse.json({ error: 'Interests must be an array' }, { status: 400 })
+    // Get all available interests for user's current age group with their IDs
+    let availableInterests = []
+    if (ageGroup) {
+      availableInterests = await db.select({
+        id: interests.id,
+        name: interests.name,
+        categoryId: interests.categoryId
+      }).from(interests)
+        .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
+        .where(eq(interestCategories.ageGroup, ageGroup))
     }
 
-    // Get user's current age group
-    const profile = await prisma.profile.findUnique({
-      where: { id: user.id },
-      select: { role: true }
+    // Find invalid interests (interests not valid for current age group)
+    const validInterestIds = availableInterests.map(interest => interest.id)
+    const invalidInterestIds = currentUserInterests
+      .filter(ui => !validInterestIds.includes(ui.interestId))
+      .map(ui => ui.interestId)
+
+    // Cleanup invalid interests (if user's age group changed)
+    if (invalidInterestIds.length > 0) {
+      await db.delete(userInterests)
+        .where(and(
+          eq(userInterests.userId, user.id),
+          inArray(userInterests.interestId, invalidInterestIds)
+        ))
+    }
+
+    // Get updated user interests after cleanup
+    const validUserInterests = await db.select({
+      id: userInterests.id,
+      interestId: userInterests.interestId,
+      interestName: interests.name,
+      categoryId: interests.categoryId
+    }).from(userInterests)
+      .innerJoin(interests, eq(interests.id, userInterests.interestId))
+      .where(eq(userInterests.userId, user.id))
+
+    // Format response to match Prisma structure
+    const formattedInterests = validUserInterests.map(ui => ({
+      interest: {
+        id: ui.interestId,
+        name: ui.interestName,
+        categoryId: ui.categoryId
+      }
+    }))
+
+    return NextResponse.json({
+      interests: formattedInterests
     })
 
-    let ageGroup = 'young_adult' // default
-    if (profile?.role === 'student') {
-      const studentProfile = await prisma.studentProfile.findUnique({
-        where: { id: user.id },
-        select: { age_group: true }
-      })
-      if (studentProfile?.age_group) {
-        ageGroup = studentProfile.age_group
+  } catch (error) {
+    console.error('Error fetching user interests:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch user interests' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { interests: selectedInterests } = await request.json()
+
+    // Get user's current age group
+    const profile = await db.select({
+      role: profiles.role
+    }).from(profiles).where(eq(profiles.id, user.id)).limit(1)
+
+    if (!profile.length) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    let ageGroup = null
+    if (profile[0].role === 'student') {
+      const studentProfile = await db.select({
+        ageGroup: studentProfiles.ageGroup
+      }).from(studentProfiles).where(eq(studentProfiles.id, user.id)).limit(1)
+
+      if (studentProfile.length) {
+        ageGroup = studentProfile[0].ageGroup
       }
     }
 
     // Get available interests for user's age group
-    const availableInterests = await prisma.interest.findMany({
-      where: {
-        category: {
-          ageGroup: ageGroup as any
-        }
-      },
-      select: {
-        id: true,
-        name: true
-      }
-    })
-
-    const availableInterestIds = availableInterests.map(interest => interest.id)
-    const availableInterestNamesMap = new Map(availableInterests.map(interest => [interest.name, interest.id]))
-
-    // Get or create custom interest category for this age group
-    let customInterestCategory = await prisma.interestCategory.findFirst({
-      where: {
-        name: 'Custom',
-        ageGroup: ageGroup as any
-      }
-    })
-
-    if (!customInterestCategory) {
-      customInterestCategory = await prisma.interestCategory.create({
-        data: {
-          name: 'Custom',
-          ageGroup: ageGroup as any
-        }
-      })
-      console.log('✅ Created custom interest category for age group:', ageGroup)
+    let availableInterests = []
+    if (ageGroup) {
+      availableInterests = await db.select({
+        id: interests.id,
+        name: interests.name
+      }).from(interests)
+        .innerJoin(interestCategories, eq(interestCategories.id, interests.categoryId))
+        .where(eq(interestCategories.ageGroup, ageGroup))
     }
 
-    // Process custom interests and create them in database
-    for (const interest of interests) {
-      const interestId = typeof interest === 'object' ? interest.id : null
-      const interestName = typeof interest === 'object' ? interest.name : interest
+    const availableInterestNames = availableInterests.map(interest => interest.name)
+    const interestNameToIdMap = new Map(availableInterests.map(interest => [interest.name, interest.id]))
 
-      if (!interestId && !availableInterestNamesMap.has(interestName)) {
-        console.log('🔍 Processing custom interest:', interestName)
-
-        // Check if this custom interest already exists
-        const existingCustomInterest = await prisma.interest.findFirst({
-          where: {
-            name: interestName,
-            categoryId: customInterestCategory.id
-          }
-        })
-
-        if (!existingCustomInterest) {
-          // Create the custom interest
-          const newCustomInterest = await prisma.interest.create({
-            data: {
-              name: interestName,
-              categoryId: customInterestCategory.id
-            }
-          })
-
-          // Add to our maps so it can be processed normally
-          availableInterestIds.push(newCustomInterest.id)
-          availableInterestNamesMap.set(interestName, newCustomInterest.id)
-          console.log('✅ Created custom interest:', interestName, 'with ID:', newCustomInterest.id)
-        } else {
-          // Add existing custom interest to our maps
-          availableInterestIds.push(existingCustomInterest.id)
-          availableInterestNamesMap.set(interestName, existingCustomInterest.id)
-          console.log('✅ Found existing custom interest:', interestName, 'with ID:', existingCustomInterest.id)
-        }
-      }
-    }
-
-    // Now all interests (including newly created custom ones) should be valid
-    const validInterests = interests.filter(interest => {
-      const interestId = typeof interest === 'object' ? interest.id : null
-      const interestName = typeof interest === 'object' ? interest.name : interest
-
-      return interestId ? availableInterestIds.includes(interestId) : availableInterestNamesMap.has(interestName)
-    })
-
-    console.log('🔍 Processing interests for age group', ageGroup, '. Valid:', validInterests.length, 'out of', interests.length)
-
-    // Get currently saved user interests
-    const currentUserInterests = await prisma.userInterest.findMany({
-      where: { userId: user.id },
-      include: { interest: { select: { name: true, id: true } } }
-    })
-
-    const currentInterestNames = currentUserInterests.map(ui => ui.interest.name)
-    const currentInterestIds = currentUserInterests.map(ui => ui.interest.id)
-
-    console.log('🔍 Current saved interests:', currentInterestNames.length, currentInterestNames)
-    console.log('🔍 New interests to save:', validInterests.length, validInterests)
-
-    // Find interests to add (in new list but not in current)
-    const interestsToAdd = validInterests.filter(interest => !currentInterestNames.includes(interest))
-
-    // Find interests to remove (in current but not in new list, or not valid for current age group)
-    const interestsToRemove = currentUserInterests.filter(ui => 
-      !validInterests.includes(ui.interest.name) || !availableInterestIds.includes(ui.interest.id)
+    // Filter selected interests to only include valid ones for age group
+    const validSelectedInterests = selectedInterests.filter((interest: string) => 
+      availableInterestNames.includes(interest)
     )
 
-    console.log('➕ Interests to add:', interestsToAdd.length, interestsToAdd)
-    console.log('➖ Interests to remove:', interestsToRemove.length, interestsToRemove.map(ui => ui.interest.name))
+    // Handle custom interests
+    const customInterests = selectedInterests.filter((interest: string) => 
+      !availableInterestNames.includes(interest)
+    )
 
-    // Remove interests that are no longer selected or not valid for current age group
+    // Get or create custom interest category for this age group
+    let customInterestCategory = null
+    if (customInterests.length > 0 && ageGroup) {
+      const existingCustomCategory = await db.select({
+        id: interestCategories.id
+      }).from(interestCategories)
+        .where(and(
+          eq(interestCategories.name, 'Custom'),
+          eq(interestCategories.ageGroup, ageGroup)
+        )).limit(1)
+
+      if (existingCustomCategory.length) {
+        customInterestCategory = existingCustomCategory[0]
+      } else {
+        const newCustomCategory = await db.insert(interestCategories).values({
+          name: 'Custom',
+          ageGroup: ageGroup
+        }).returning({ id: interestCategories.id })
+
+        customInterestCategory = newCustomCategory[0]
+      }
+    }
+
+    // Create custom interests if they don't exist
+    for (const customInterest of customInterests) {
+      if (customInterestCategory) {
+        const existingCustomInterest = await db.select({
+          id: interests.id,
+          name: interests.name
+        }).from(interests)
+          .where(and(
+            eq(interests.name, customInterest),
+            eq(interests.categoryId, customInterestCategory.id)
+          )).limit(1)
+
+        if (!existingCustomInterest.length) {
+          const newCustomInterest = await db.insert(interests).values({
+            name: customInterest,
+            categoryId: customInterestCategory.id
+          }).returning({ id: interests.id, name: interests.name })
+
+          interestNameToIdMap.set(customInterest, newCustomInterest[0].id)
+        } else {
+          interestNameToIdMap.set(customInterest, existingCustomInterest[0].id)
+        }
+      }
+    }
+
+    // Get currently saved user interests
+    const currentUserInterests = await db.select({
+      id: userInterests.id,
+      interestId: userInterests.interestId,
+      interestName: interests.name
+    }).from(userInterests)
+      .innerJoin(interests, eq(interests.id, userInterests.interestId))
+      .where(eq(userInterests.userId, user.id))
+
+    const currentInterestNames = currentUserInterests.map(ui => ui.interestName)
+
+    // Find interests to remove (currently saved but not in new selection)
+    const interestsToRemove = currentUserInterests.filter(ui => 
+      !selectedInterests.includes(ui.interestName)
+    )
+
+    // Find interests to add (in new selection but not currently saved)
+    const interestsToAdd = selectedInterests.filter((interestName: string) => 
+      !currentInterestNames.includes(interestName) && interestNameToIdMap.has(interestName)
+    )
+
+    // Remove interests that are no longer selected
     if (interestsToRemove.length > 0) {
-      const removedCount = await prisma.userInterest.deleteMany({
-        where: {
-          userId: user.id,
-          interestId: {
-            in: interestsToRemove.map(ui => ui.interest.id)
-          }
-        },
-      })
-      console.log('🗑️ Removed', removedCount.count, 'interests')
+      const interestIdsToRemove = interestsToRemove.map(ui => ui.interestId)
+      await db.delete(userInterests)
+        .where(and(
+          eq(userInterests.userId, user.id),
+          inArray(userInterests.interestId, interestIdsToRemove)
+        ))
     }
 
     // Add new interests
     if (interestsToAdd.length > 0) {
-      const userInterestData = interestsToAdd
-        .map(interestName => {
-          const interestId = availableInterestNamesMap.get(interestName)
-          return interestId ? {
-            userId: user.id,
-            interestId: interestId,
-          } : null
-        })
-        .filter(Boolean) as { userId: string; interestId: number }[]
-
-      if (userInterestData.length > 0) {
-        const created = await prisma.userInterest.createMany({
-          data: userInterestData,
-        })
-        console.log('✅ Added', created.count, 'new interests')
-      }
-    }
-
-    // Handle custom interests that don't exist in database
-    const customInterests = validInterests.filter(interest => !availableInterestNamesMap.has(interest))
-    if (customInterests.length > 0) {
-      console.log('⚠️ Custom interests not saved (not in database for age group', ageGroup, '):', customInterests)
-    }
-
-    // Log filtered out interests (those not valid for current age group)
-    const filteredOutInterests = interests.filter(interest => !validInterests.includes(interest))
-    if (filteredOutInterests.length > 0) {
-      console.log('❌ Interests filtered out (not valid for age group', ageGroup, '):', filteredOutInterests)
-    }
-
-    const unchangedCount = currentInterestNames.filter(name => validInterests.includes(name)).length
-    console.log('🔄 Unchanged interests:', unchangedCount)
-
-    return NextResponse.json({ message: 'Interests saved successfully' })
-  } catch (error) {
-    console.error('Error saving user interests:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
-
-export async function GET() {
-  try {
-    const cookieStore = await cookies()
-    const accessTokenCookie = cookieStore.get('sb-access-token')
-
-    if (!accessTokenCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user from session - try API first, fallback to direct validation
-    let user
-    try {
-      const userResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/user`, {
-        headers: {
-          cookie: `sb-access-token=${accessTokenCookie.value}`,
-        },
-      })
-
-      if (!userResponse.ok) {
-        console.log('⚠️ Failed to validate user via API, trying direct Supabase validation')
-        // Fallback to direct Supabase validation
-        const { createClient } = require('@supabase/supabase-js')
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        )
-
-        const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(accessTokenCookie.value)
-
-        if (error || !supabaseUser) {
-          return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-        }
-
-        user = {
-          id: supabaseUser.id,
-          email: supabaseUser.email
-        }
-      } else {
-        const result = await userResponse.json()
-        user = result.user
-      }
-    } catch (error) {
-      console.error('Error validating user session for interests get:', error)
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    // Get user's age group to filter interests
-    let ageGroup = 'young_adult' // default
-
-    const profile = await prisma.profile.findUnique({
-      where: { id: user.id },
-      select: { role: true }
-    })
-
-    if (profile?.role === 'student') {
-      const studentProfile = await prisma.studentProfile.findUnique({
-        where: { id: user.id },
-        select: { age_group: true }
-      })
-      if (studentProfile?.age_group) {
-        ageGroup = studentProfile.age_group
-      }
-    }
-
-    // Get available interests for user's current age group
-    const availableInterestCategories = await prisma.interestCategory.findMany({
-      where: { ageGroup: ageGroup as any },
-      include: { interests: { select: { name: true } } }
-    })
-
-    const availableInterestNames = availableInterestCategories.flatMap(
-      category => category.interests.map(interest => interest.name)
-    )
-
-    // Get user's interests with both ID and name
-    const userInterests = await prisma.userInterest.findMany({
-      where: {
+      const userInterestData = interestsToAdd.map((interestName: string) => ({
         userId: user.id,
-      },
-      include: {
-        interest: {
-          select: {
-            id: true,
-            name: true,
-            categoryId: true,
-          },
-        },
-      },
-    })
+        interestId: interestNameToIdMap.get(interestName)!
+      }))
 
-    // Get all available interests for user's current age group with their IDs
-    const availableInterests = await prisma.interest.findMany({
-      where: {
-        category: {
-          ageGroup: ageGroup as any
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        categoryId: true
-      }
-    })
-
-    const availableInterestIds = availableInterests.map(interest => interest.id)
-
-    console.log('🔍 Available interest IDs for age group', ageGroup, ':', availableInterestIds.length)
-    console.log('🔍 User interest IDs:', userInterests.map(ui => ui.interest.id))
-
-    // Since we now only store age-appropriate interests, all user interests should be valid
-    // But let's still filter as a safety measure
-    const validUserInterests = userInterests.filter(ui => 
-      availableInterestIds.includes(ui.interest.id)
-    )
-
-    const interests = validUserInterests.map(ui => ({
-      id: ui.interest.id,
-      name: ui.interest.name,
-      categoryId: ui.interest.categoryId
-    }))
-
-    console.log('✅ User interests for age group', ageGroup, '. Total stored:', userInterests.length, 'Valid for current age:', interests.length, 'Available for age group:', availableInterestIds.length)
-
-    // If there are stored interests that are not valid for current age group, 
-    // it means the user's age group changed and we should clean them up
-    if (userInterests.length > interests.length) {
-      const invalidInterestIds = userInterests
-        .filter(ui => !availableInterestIds.includes(ui.interest.id))
-        .map(ui => ui.interest.id)
-
-      console.log('🧹 Found interests from other age groups, cleaning up:', invalidInterestIds)
-
-      await prisma.userInterest.deleteMany({
-        where: {
-          userId: user.id,
-          interestId: {
-            in: invalidInterestIds
-          }
-        }
-      })
-
-      console.log('✅ Cleaned up', invalidInterestIds.length, 'interests from previous age groups')
+      await db.insert(userInterests).values(userInterestData)
     }
 
-    return NextResponse.json({ interests })
+    return NextResponse.json({ 
+      message: 'Interests updated successfully',
+      added: interestsToAdd.length,
+      removed: interestsToRemove.length
+    })
+
   } catch (error) {
-    console.error('Error fetching user interests:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error updating user interests:', error)
+    return NextResponse.json(
+      { error: 'Failed to update user interests' },
+      { status: 500 }
+    )
   }
 }
