@@ -11,11 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink, CheckCircle, Clock, Calendar, Star } from "lucide-react"
+import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink, CheckCircle, Clock, Calendar, Star, Briefcase, GraduationCap, Code, Palette, MessageCircle, Heart } from "lucide-react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { motion } from "framer-motion"
 
 interface StudentData {
   profile: any
@@ -765,11 +768,11 @@ export default function SelfAnalysisPage() {
                     />
 
                     <Button
-                      onClick={generateAIAnalysis}
-                      disabled={generatingAnalysis}
+                      onClick={handleAnalysis}
+                      disabled={isAnalyzing}
                       className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
                     >
-                      {generatingAnalysis ? (
+                      {isAnalyzing ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Analyzing...
@@ -777,16 +780,16 @@ export default function SelfAnalysisPage() {
                       ) : (
                         <>
                           <Send className="mr-2 h-4 w-4" />
-                          Get AI Analysis
+                          Get Analysis
                         </>
                       )}
                     </Button>
 
 
-                    {generatingAnalysis && (
+                    {isAnalyzing && (
                       <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                          🤖 AI is processing your profile data... This usually takes 30-60 seconds for detailed analysis.
+                          🤖 AI is processing your request... This usually takes 30-60 seconds for detailed analysis.
                         </p>
                       </div>
                     )}
@@ -800,44 +803,130 @@ export default function SelfAnalysisPage() {
                       🎯 Your Personalized Analysis
                     </h3>
                     <div className="prose prose-blue max-w-none">
-                      {analysis.split('\n').map((paragraph, index) => (
-                        <p key={index} className="mb-3 text-gray-700">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ children }) => <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-3 mt-6">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 mb-2 mt-4">{children}</h3>,
+                          p: ({ children }) => <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">{children}</p>,
+                          strong: ({ children }) => <strong className="font-semibold text-gray-900 dark:text-white">{children}</strong>,
+                          ul: ({ children }) => <ul className="list-disc list-inside space-y-2 mb-4 text-gray-700 dark:text-gray-300">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside space-y-2 mb-4 text-gray-700 dark:text-gray-300">{children}</ol>,
+                          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-4 border-pathpiper-teal pl-4 py-2 bg-gray-50 dark:bg-gray-800 italic text-gray-700 dark:text-gray-300 mb-4">
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
+                        {analysis}
+                      </ReactMarkdown>
 
-                {suggestedGoals && suggestedGoals.length > 0 && (
-                  <div className="mt-6 p-6 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="text-lg font-semibold text-green-900 mb-4">
-                      🎯 Suggested Goals for You
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {suggestedGoals.map((goal: any, index: number) => (
-                        <div key={index} className="bg-white p-4 rounded-lg border border-green-200 shadow-sm">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-green-900">{goal.title}</h4>
-                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
-                              {goal.category}
-                            </span>
+                      {/* Display Suggested Goals */}
+                      {suggestedGoals && suggestedGoals.length > 0 && (
+                        <div className="mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                          <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                              <Target className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h2 className="text-2xl font-bold text-green-900 dark:text-green-100">Goals Suggested</h2>
+                              <p className="text-green-700 dark:text-green-300 text-sm">Based on your profile analysis, here are personalized goals to help you grow</p>
+                            </div>
                           </div>
-                          <p className="text-gray-600 text-sm mb-2">{goal.description}</p>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <span className="flex items-center">
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              {goal.timeframe}
-                            </span>
+
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {suggestedGoals.map((goal: any, index: number) => {
+                              const getCategoryIcon = (category: string) => {
+                                switch (category?.toLowerCase()) {
+                                  case 'career': return <Briefcase className="w-4 h-4" />
+                                  case 'academic': return <GraduationCap className="w-4 h-4" />
+                                  case 'technical skills': return <Code className="w-4 h-4" />
+                                  case 'leadership': return <Users className="w-4 h-4" />
+                                  case 'personal development': return <User className="w-4 h-4" />
+                                  case 'creative': return <Palette className="w-4 h-4" />
+                                  case 'social': return <MessageCircle className="w-4 h-4" />
+                                  case 'health & fitness': return <Heart className="w-4 h-4" />
+                                  default: return <Target className="w-4 h-4" />
+                                }
+                              }
+
+                              const getCategoryColor = (category: string) => {
+                                switch (category?.toLowerCase()) {
+                                  case 'career': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                  case 'academic': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                                  case 'technical skills': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                                  case 'leadership': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                  case 'personal development': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+                                  case 'creative': return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300'
+                                  case 'social': return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300'
+                                  case 'health & fitness': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                  default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                                }
+                              }
+
+                              const getTimeframeBadge = (timeframe: string) => {
+                                if (timeframe?.includes('Short-term')) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                if (timeframe?.includes('Medium-term')) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                if (timeframe?.includes('Long-term')) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
+                                return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+                              }
+
+                              return (
+                                <motion.div
+                                  key={index}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-green-200 dark:border-green-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300 dark:hover:border-green-600"
+                                >
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      {getCategoryIcon(goal.category)}
+                                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                        {goal.title}
+                                      </h3>
+                                    </div>
+                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(goal.category)}`}>
+                                      {goal.category}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
+                                    {goal.description}
+                                  </p>
+
+                                  <div className="flex items-center justify-between">
+                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTimeframeBadge(goal.timeframe)}`}>
+                                      {goal.timeframe}
+                                    </span>
+                                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                      <Clock className="w-3 h-3 mr-1" />
+                                      Goal #{index + 1}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )
+                            })}
+                          </div>
+
+                          <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-green-200 dark:border-green-700">
+                            <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">
+                              <Lightbulb className="w-4 h-4" />
+                              <span className="font-medium text-sm">Pro Tip</span>
+                            </div>
+                            <p className="text-green-700 dark:text-green-300 text-sm">
+                              These AI-generated goals are personalized based on your interests, skills, and aspirations.
+                              Consider adding them to your profile to track your progress and get better mentor recommendations!
+                            </p>
                           </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
                 )}
-
 
                 {/* AI Generated Analysis Result */}
                 {aiAnalysis && (
@@ -989,9 +1078,14 @@ export default function SelfAnalysisPage() {
                 })}
               </div>
 
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  💡 These goals have been automatically saved and can be referenced later. You can add them to your personal goals from your profile edit page.
+              <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-green-200 dark:border-green-700">
+                <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">
+                  <Lightbulb className="w-4 h-4" />
+                  <span className="font-medium text-sm">Pro Tip</span>
+                </div>
+                <p className="text-green-700 dark:text-green-300 text-sm">
+                  These AI-generated goals are personalized based on your interests, skills, and aspirations.
+                  Consider adding them to your profile to track your progress and get better mentor recommendations!
                 </p>
               </div>
             </div>
