@@ -131,6 +131,7 @@ export const connections = pgTable('connections', {
 
 export const suggestedGoals = pgTable('suggested_goals', {
   id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
   title: text('title').notNull(),
   description: text('description').notNull(),
   category: text('category').notNull(),

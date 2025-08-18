@@ -224,6 +224,7 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
           
           try {
             const goalsToInsert = suggestedGoalsData.map(goal => ({
+              userId: user.id,
               title: goal.title,
               description: goal.description,
               category: goal.category,
