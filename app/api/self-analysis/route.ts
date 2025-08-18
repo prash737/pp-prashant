@@ -211,21 +211,34 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
         console.log('🔍 Extracted JSON string:', jsonString)
 
         const goalsData = JSON.parse(jsonString)
-        if (goalsData.suggested_goals && Array.isArray(goalsData.suggested_goals)) {
-          suggestedGoalsData = goalsData.suggested_goals
+        console.log('🔍 Parsed goals data:', goalsData);
+        
+        // Handle both "goals" and "suggested_goals" structures
+        const goalsArray = goalsData.goals || goalsData.suggested_goals;
+        if (goalsArray && Array.isArray(goalsArray)) {
+          suggestedGoalsData = goalsArray
 
-          // Insert suggested goals into Supabase using Drizzle
+          // Insert suggested goals into database using Drizzle
           console.log('💾 Inserting suggested goals into database...');
-          const goalsToInsert = suggestedGoalsData.map(goal => ({
-            title: goal.title,
-            description: goal.description,
-            category: goal.category,
-            timeframe: goal.timeframe
-          }));
+          console.log('🔍 Goals to insert:', suggestedGoalsData);
+          
+          try {
+            const goalsToInsert = suggestedGoalsData.map(goal => ({
+              title: goal.title,
+              description: goal.description,
+              category: goal.category,
+              timeframe: goal.timeframe
+            }));
 
-          const insertResult = await db.insert(suggestedGoals).values(goalsToInsert);
-
-          console.log('✅ Successfully inserted suggested goals into database');
+            console.log('🔍 Formatted goals for insertion:', goalsToInsert);
+            
+            const insertResult = await db.insert(suggestedGoals).values(goalsToInsert);
+            console.log('🔍 Insert result:', insertResult);
+            console.log('✅ Successfully inserted suggested goals into database');
+          } catch (insertError) {
+            console.error('❌ Error inserting suggested goals:', insertError);
+            // Continue with the response even if insertion fails
+          }
 
           // Remove the JSON section from the analysis text
           const cleanAnalysis = analysisContent.substring(0, startIndex) + analysisContent.substring(endIndex + jsonEndMarker.length)
