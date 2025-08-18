@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch interest categories and interests for the specified age group
+    console.log('🔍 Drizzle Query: Fetching interest categories and interests for age group:', ageGroup)
     const categoriesWithInterests = await db.select({
       categoryId: interestCategories.id,
       categoryName: interestCategories.name,
@@ -75,6 +76,8 @@ export async function GET(request: NextRequest) {
       .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
       .where(eq(interestCategories.ageGroup, ageGroup))
       .orderBy(asc(interestCategories.name), asc(interests.name))
+    
+    console.log('✅ Drizzle Result: Found', categoriesWithInterests.length, 'category-interest combinations')
 
     // Group interests by category
     const categoriesMap = new Map()
