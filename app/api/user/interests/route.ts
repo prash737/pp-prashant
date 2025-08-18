@@ -109,13 +109,11 @@ export async function GET(request: NextRequest) {
         )
     }
 
-    // Format response to match Prisma structure
+    // Format response to match frontend expectations
     const formattedInterests = validInterests.map(userInterest => ({
-      interest: {
-        id: userInterest.interestId,
-        name: userInterest.interestName,
-        categoryId: userInterest.categoryId
-      }
+      id: userInterest.interestId,
+      name: userInterest.interestName,
+      categoryId: userInterest.categoryId
     }))
 
     return NextResponse.json({ interests: formattedInterests })
