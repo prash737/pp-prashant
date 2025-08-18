@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/drizzle/client'
 import { profiles, studentProfiles, interestCategories, interests, userInterests } from '@/lib/drizzle/schema'
@@ -12,7 +11,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 export async function GET(request: NextRequest) {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get('sb-access-token')?.value
 
     if (!accessToken) {
@@ -66,7 +65,7 @@ export async function GET(request: NextRequest) {
       const categoryInterests = await db.select({
         name: interests.name
       }).from(interests).where(eq(interests.categoryId, category.id))
-      
+
       categoryInterests.forEach(interest => {
         availableInterestNames.add(interest.name)
       })
@@ -133,7 +132,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Get the access token from cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get('sb-access-token')?.value
 
     if (!accessToken) {
@@ -206,7 +205,7 @@ export async function POST(request: NextRequest) {
         name: 'Custom',
         ageGroup: ageGroup
       }).returning({ id: interestCategories.id })
-      
+
       customCategory = newCategory
     }
 
@@ -237,7 +236,7 @@ export async function POST(request: NextRequest) {
             name: interestName,
             categoryId: customCategoryId
           }).returning({ id: interests.id })
-          
+
           interestIds.push(newInterest[0].id)
         }
       }

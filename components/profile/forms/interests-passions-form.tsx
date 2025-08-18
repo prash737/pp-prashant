@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -120,7 +119,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -131,7 +130,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
     }
   }, [interestCategories, selectedInterests])
@@ -164,7 +163,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -175,7 +174,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
       return
     }
@@ -190,7 +189,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
-          
+
           return {
             name: category.name,
             interests: userCustomInterests.map(interest => ({
@@ -199,7 +198,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             }))
           }
         }
-        
+
         return {
           name: category.name,
           interests: category.interests.filter((interest) => interest.name.toLowerCase().includes(term)),
@@ -219,7 +218,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }
 
-  
+
 
   const addCustomInterest = () => {
     const trimmedInterest = customInterest.trim()
@@ -337,7 +336,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           </div>
 
           {/* Interest Categories */}
-          <div className="space-y-6 max-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="space-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             {filteredCategories.map((category) => (
               <div key={category.name}>
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
