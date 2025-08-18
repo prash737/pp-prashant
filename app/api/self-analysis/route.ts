@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import OpenAI from 'openai'
+import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
 import { profiles, studentProfiles, userInterests, interests, interestCategories, userSkills, skills, skillCategories, userAchievements, suggestedGoals } from '@/lib/drizzle/schema'
 import { eq } from 'drizzle-orm'
@@ -213,25 +214,18 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
         if (goalsData.suggested_goals && Array.isArray(goalsData.suggested_goals)) {
           suggestedGoalsData = goalsData.suggested_goals
 
-          // Insert suggested goals into Supabase
-          console.log('💾 Inserting suggested goals into Supabase...');
-          const supabaseGoals = suggestedGoals.map(goal => ({
+          // Insert suggested goals into Supabase using Drizzle
+          console.log('💾 Inserting suggested goals into database...');
+          const goalsToInsert = suggestedGoalsData.map(goal => ({
             title: goal.title,
             description: goal.description,
             category: goal.category,
             timeframe: goal.timeframe
           }));
 
-          const { error: dbError } = await supabase
-            .from('suggested_goals')
-            .insert(supabaseGoals);
+          const insertResult = await db.insert(suggestedGoals).values(goalsToInsert);
 
-          if (dbError) {
-            console.error('❌ Error inserting goals into Supabase:', dbError);
-            // Optionally, you might want to return an error or a partial success message
-          } else {
-            console.log('✅ Successfully inserted suggested goals into Supabase');
-          }
+          console.log('✅ Successfully inserted suggested goals into database');
 
           // Remove the JSON section from the analysis text
           const cleanAnalysis = analysisContent.substring(0, startIndex) + analysisContent.substring(endIndex + jsonEndMarker.length)
