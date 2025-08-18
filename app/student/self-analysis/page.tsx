@@ -31,7 +31,7 @@ export default function SelfAnalysisPage() {
   const router = useRouter()
   const [studentData, setStudentData] = useState<StudentData | null>(null)
   const [query, setQuery] = useState("")
-  const [analysis, setAnalysis] = useState("")
+  const [analysis, setAnalysis] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
   // isLoading state variable is missing from original code, defining it here to prevent runtime errors.
@@ -344,14 +344,14 @@ export default function SelfAnalysisPage() {
 
       const result = await response.json()
       console.log('✅ Analysis result received:', result)
-      
+
       // Handle suggested goals
       if (result.suggestedGoals && result.suggestedGoals.length > 0) {
         setSuggestedGoals(result.suggestedGoals)
         setShowGoalsDialog(true)
         console.log('🎯 Suggested goals received:', result.suggestedGoals)
       }
-      
+
       setAnalysis(result.analysis)
       toast.success('Analysis complete!')
     } catch (error) {
@@ -411,7 +411,7 @@ export default function SelfAnalysisPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           query: prompt,
           studentData: studentData
         }),
@@ -795,92 +795,49 @@ export default function SelfAnalysisPage() {
 
                 {/* Analysis Results */}
                 {analysis && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Brain className="h-5 w-5 text-purple-600" />
-                        AI Analysis Results
-                      </CardTitle>
-                      <CardDescription>
-                        Personalized insights based on your complete profile - Click on titles to expand
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {(() => {
-                          // Parse the analysis into sections with content consolidation
-                          const sections = parseAnalysisIntoSections(analysis);
-                          return sections.map((section, index) => (
-                            <div
-                              key={index}
-                              className="border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm hover:shadow-md transition-all duration-200"
-                            >
-                              {/* Collapsible Header */}
-                              <button
-                                onClick={() => toggleSection(index)}
-                                className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg transition-colors"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {getSectionIcon(section.title)}
-                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {section.title}
-                                  </h3>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="h-1 w-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-                                  <svg
-                                    className={`h-5 w-5 text-gray-500 transform transition-transform ${
-                                      expandedSections.has(index) ? 'rotate-180' : ''
-                                    }`}
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </div>
-                              </button>
-
-                              {/* Collapsible Content */}
-                              {expandedSections.has(index) && (
-                                <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700">
-                                  <div className="pt-4 space-y-3">
-                                    <div
-                                      className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
-                                      dangerouslySetInnerHTML={{
-                                        __html: formatAnalysisText(section.content)
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ));
-                        })()}
-
-                        {/* Expand All / Collapse All Controls */}
-                        <div className="flex items-center justify-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                          <button
-                            onClick={() => {
-                              const sections = parseAnalysisIntoSections(analysis);
-                              setExpandedSections(new Set(Array.from({ length: sections.length }, (_, i) => i)));
-                            }}
-                            className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
-                          >
-                            Expand All
-                          </button>
-                          <span className="text-gray-300 dark:text-gray-600">|</span>
-                          <button
-                            onClick={() => setExpandedSections(new Set())}
-                            className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium"
-                          >
-                            Collapse All
-                          </button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-4">
+                      🎯 Your Personalized Analysis
+                    </h3>
+                    <div className="prose prose-blue max-w-none">
+                      {analysis.split('\n').map((paragraph, index) => (
+                        <p key={index} className="mb-3 text-gray-700">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
                 )}
+
+                {suggestedGoals && suggestedGoals.length > 0 && (
+                  <div className="mt-6 p-6 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="text-lg font-semibold text-green-900 mb-4">
+                      🎯 Suggested Goals for You
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {suggestedGoals.map((goal: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-green-900">{goal.title}</h4>
+                            <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                              {goal.category}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-sm mb-2">{goal.description}</p>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <span className="flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {goal.timeframe}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
 
                 {/* AI Generated Analysis Result */}
                 {aiAnalysis && (
@@ -896,7 +853,7 @@ export default function SelfAnalysisPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="prose dark:prose-invert max-w-none">
-                        <div 
+                        <div
                           className="analysis-content text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: formatAnalysisText(aiAnalysis) }}
                           onClick={handleAIButtonClick}
@@ -978,14 +935,14 @@ export default function SelfAnalysisPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Based on your profile analysis, here are some personalized goals to help you grow:
               </p>
-              
+
               <div className="grid gap-4">
                 {suggestedGoals.map((goal, index) => {
                   const categoryInfo = getCategoryInfo(goal.category)
                   const timeframeInfo = getTimeframeInfo(goal.timeframe)
                   const CategoryIcon = categoryInfo.icon
                   const TimeframeIcon = timeframeInfo.icon
-                  
+
                   return (
                     <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:shadow-md transition-all">
                       <div className="flex items-start justify-between mb-3">
@@ -1007,14 +964,14 @@ export default function SelfAnalysisPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                         {goal.description}
                       </p>
-                      
+
                       <div className="mt-3 flex justify-end">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
                             // Navigate to goals section
@@ -1031,7 +988,7 @@ export default function SelfAnalysisPage() {
                   )
                 })}
               </div>
-              
+
               <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
                   💡 These goals have been automatically saved and can be referenced later. You can add them to your personal goals from your profile edit page.

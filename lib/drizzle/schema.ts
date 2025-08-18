@@ -128,3 +128,12 @@ export const connections = pgTable('connections', {
   connectionType: text('connection_type').notNull().default('friend'),
   connectedAt: timestamp('connected_at').defaultNow().notNull(),
 })
+
+export const suggestedGoals = pgTable('suggested_goals', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  category: text('category').notNull(),
+  timeframe: text('timeframe').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
