@@ -974,3 +974,15 @@ model HumanReviewQueue {
   @@map("human_review_queue")
   @@schema("public")
 }
+
+model SuggestedGoal {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String?
+  timeframe   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("suggested_goals")
+  @@schema("public")
+}

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
+// Assume prisma client is imported and initialized correctly elsewhere if 'prisma.suggestedGoal.create' is used.
+// For this example, we'll simulate Supabase interaction for goal insertion as per the original structure.
+// If you are using Prisma, you would import and use your Prisma client here.
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -43,6 +49,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = `You are an expert educational counselor for PathPiper, a student networking and profile platform. Provide concise, actionable insights based on student profiles with ALL recommendations specifically tailored to PathPiper platform features.
 
 FORMATTING: Use **bold** for emphasis, numbered lists for steps. DO NOT use hashtags (#) or markdown headers.
+At the end, list all the goals involved and require to be added if present in a fixed JSON structure having attributes "title", "description" ,"category" and "timeframe". Wrap this JSON in 'SUGGESTED_GOALS_JSON_START' and 'SUGGESTED_GOALS_JSON_END' markers.
 
 PATHPIPER PLATFORM FEATURES TO REFERENCE:
 - Student profile building (skills, interests, education history, goals)
@@ -80,7 +87,7 @@ Remember: Every suggestion must be actionable within PathPiper - if suggesting n
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 1500, // Reduced from 2000
+        max_tokens: 2000, // Increased token limit to accommodate JSON
         temperature: 0.5, // Reduced for faster processing
         stream: false
       }),
@@ -101,10 +108,57 @@ Remember: Every suggestion must be actionable within PathPiper - if suggesting n
     // Remove hashtags from the response
     analysis = analysis.replace(/#+\s*/g, '')
 
+    // Extract suggested goals from the analysis
+    let suggestedGoals = []
+    const jsonStartMarker = 'SUGGESTED_GOALS_JSON_START'
+    const jsonEndMarker = 'SUGGESTED_GOALS_JSON_END'
+
+    try {
+      const startIndex = analysis.indexOf(jsonStartMarker)
+      const endIndex = analysis.indexOf(jsonEndMarker)
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        const jsonString = analysis.substring(startIndex + jsonStartMarker.length, endIndex).trim()
+        console.log('🔍 Extracted JSON string:', jsonString)
+
+        const goalsData = JSON.parse(jsonString)
+        if (goalsData.suggested_goals && Array.isArray(goalsData.suggested_goals)) {
+          suggestedGoals = goalsData.suggested_goals
+
+          // Insert suggested goals into Supabase
+          console.log('💾 Inserting suggested goals into Supabase...')
+          const supabaseGoals = suggestedGoals.map(goal => ({
+            title: goal.title,
+            description: goal.description,
+            category: goal.category,
+            timeframe: goal.timeframe
+          }));
+
+          const { error: dbError } = await supabase
+            .from('suggested_goals')
+            .insert(supabaseGoals);
+
+          if (dbError) {
+            console.error('❌ Error inserting goals into Supabase:', dbError);
+            // Optionally, you might want to return an error or a partial success message
+          } else {
+            console.log('✅ Successfully inserted suggested goals into Supabase');
+          }
+
+          // Remove the JSON section from the analysis text
+          const cleanAnalysis = analysis.substring(0, startIndex) + analysis.substring(endIndex + jsonEndMarker.length)
+          analysis = cleanAnalysis.trim()
+        }
+      }
+    } catch (parseError) {
+      console.error('❌ Error parsing or processing suggested goals:', parseError)
+    }
+
     console.log('✅ Analysis completed successfully')
 
     return NextResponse.json({ 
       analysis,
+      suggestedGoals, // Send suggestedGoals to the client
       timestamp: new Date().toISOString()
     })
 

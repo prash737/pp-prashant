@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink } from "lucide-react"
+import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink, CheckCircle, Clock, Calendar, Star } from "lucide-react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -42,6 +42,8 @@ export default function SelfAnalysisPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [suggestedGoals, setSuggestedGoals] = useState<any[]>([])
+  const [showGoalsDialog, setShowGoalsDialog] = useState(false)
 
 
   useEffect(() => {
@@ -189,6 +191,31 @@ export default function SelfAnalysisPage() {
       .replace(/\n/g, '<br/>')
   }
 
+  // Helper function to get category display info
+  const getCategoryInfo = (category: string) => {
+    const categories = {
+      academic: { label: 'Academic', icon: BookOpen, color: 'bg-blue-500' },
+      career: { label: 'Career', icon: Target, color: 'bg-green-500' },
+      personal_development: { label: 'Personal Development', icon: TrendingUp, color: 'bg-purple-500' },
+      creative: { label: 'Creative', icon: Sparkles, color: 'bg-pink-500' },
+      health_wellness: { label: 'Health & Wellness', icon: Award, color: 'bg-red-500' },
+      social_community: { label: 'Social & Community', icon: Users, color: 'bg-orange-500' },
+      technology: { label: 'Technology', icon: Brain, color: 'bg-indigo-500' },
+      financial: { label: 'Financial', icon: Star, color: 'bg-yellow-500' }
+    }
+    return categories[category] || { label: category, icon: Target, color: 'bg-gray-500' }
+  }
+
+  // Helper function to get timeframe display info
+  const getTimeframeInfo = (timeframe: string) => {
+    const timeframes = {
+      short_term: { label: 'Short Term', icon: Clock, color: 'text-green-600' },
+      medium_term: { label: 'Medium Term', icon: Calendar, color: 'text-orange-600' },
+      long_term: { label: 'Long Term', icon: Target, color: 'text-blue-600' }
+    }
+    return timeframes[timeframe] || { label: timeframe, icon: Clock, color: 'text-gray-600' }
+  }
+
   // Helper function to get cookies, assumed to be available in the context.
   // If getCookie is not defined, it needs to be imported or defined.
   // For this example, assuming getCookie is defined elsewhere and accessible.
@@ -317,6 +344,14 @@ export default function SelfAnalysisPage() {
 
       const result = await response.json()
       console.log('✅ Analysis result received:', result)
+      
+      // Handle suggested goals
+      if (result.suggestedGoals && result.suggestedGoals.length > 0) {
+        setSuggestedGoals(result.suggestedGoals)
+        setShowGoalsDialog(true)
+        console.log('🎯 Suggested goals received:', result.suggestedGoals)
+      }
+      
       setAnalysis(result.analysis)
       toast.success('Analysis complete!')
     } catch (error) {
@@ -926,6 +961,82 @@ export default function SelfAnalysisPage() {
               ) : (
                 <p className="text-center text-gray-500 py-4">No users found.</p>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Suggested Goals Dialog */}
+        <Dialog open={showGoalsDialog} onOpenChange={setShowGoalsDialog}>
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-purple-600" />
+                AI Suggested Goals
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Based on your profile analysis, here are some personalized goals to help you grow:
+              </p>
+              
+              <div className="grid gap-4">
+                {suggestedGoals.map((goal, index) => {
+                  const categoryInfo = getCategoryInfo(goal.category)
+                  const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                  const CategoryIcon = categoryInfo.icon
+                  const TimeframeIcon = timeframeInfo.icon
+                  
+                  return (
+                    <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:shadow-md transition-all">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                            <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-white">{goal.title}</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                {categoryInfo.label}
+                              </span>
+                              <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                <TimeframeIcon className="h-3 w-3" />
+                                {timeframeInfo.label}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {goal.description}
+                      </p>
+                      
+                      <div className="mt-3 flex justify-end">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            // Navigate to goals section
+                            router.push('/student/profile/edit?section=goals')
+                            setShowGoalsDialog(false)
+                          }}
+                          className="text-xs"
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Add to My Goals
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-400">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  💡 These goals have been automatically saved and can be referenced later. You can add them to your personal goals from your profile edit page.
+                </p>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
