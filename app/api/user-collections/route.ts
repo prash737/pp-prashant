@@ -29,7 +29,14 @@ export async function GET(request: NextRequest) {
     }
 
     const collections = await db
-      .select()
+      .select({
+        id: userCollections.id,
+        userId: userCollections.userId,
+        name: userCollections.name,
+        description: userCollections.description,
+        isPrivate: userCollections.isPrivate,
+        createdAt: userCollections.createdAt
+      })
       .from(userCollections)
       .where(eq(userCollections.userId, user.id))
       .orderBy(desc(userCollections.createdAt))
@@ -136,7 +143,10 @@ export async function DELETE(request: NextRequest) {
 
     // Verify ownership
     const collection = await db
-      .select()
+      .select({
+        id: userCollections.id,
+        userId: userCollections.userId
+      })
       .from(userCollections)
       .where(
         and(

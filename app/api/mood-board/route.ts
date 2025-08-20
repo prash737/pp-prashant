@@ -53,16 +53,30 @@ export async function GET(request: NextRequest) {
       reasoning: shouldFilterPrivate ? 'Filtering private collections' : 'Showing all collections including private'
     })
 
-    // Get collections with their mood board items
+    // Get collections with their mood board items - select only existing columns
     let collectionsQuery = db
-      .select()
+      .select({
+        id: userCollections.id,
+        userId: userCollections.userId,
+        name: userCollections.name,
+        description: userCollections.description,
+        isPrivate: userCollections.isPrivate,
+        createdAt: userCollections.createdAt
+      })
       .from(userCollections)
       .where(eq(userCollections.userId, userId))
       .orderBy(desc(userCollections.createdAt))
 
     if (shouldFilterPrivate) {
       collectionsQuery = db
-        .select()
+        .select({
+          id: userCollections.id,
+          userId: userCollections.userId,
+          name: userCollections.name,
+          description: userCollections.description,
+          isPrivate: userCollections.isPrivate,
+          createdAt: userCollections.createdAt
+        })
         .from(userCollections)
         .where(
           and(

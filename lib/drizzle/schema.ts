@@ -147,7 +147,6 @@ export const userCollections = pgTable('user_collections', {
   description: text('description'),
   isPrivate: boolean('is_private').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const moodBoard = pgTable('mood_board', {
@@ -158,5 +157,4 @@ export const moodBoard = pgTable('mood_board', {
   position: integer('position').default(0),
   collectionId: integer('collection_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
