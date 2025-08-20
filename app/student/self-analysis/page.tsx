@@ -874,7 +874,7 @@ export default function SelfAnalysisPage() {
                             </div>
                           </div>
 
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                          <div className="grid gap-4">
                             {suggestedGoals.map((goal, index) => {
                               const categoryInfo = getCategoryInfo(goal.category)
                               const timeframeInfo = getTimeframeInfo(goal.timeframe)
