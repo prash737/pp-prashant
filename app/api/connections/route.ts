@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
+import { db, executeWithRetry } from '@/lib/drizzle/client'
 import { connections, profiles } from '@/lib/drizzle/schema'
 import { eq, or, desc, inArray } from 'drizzle-orm'
 import { createClient } from '@supabase/supabase-js'
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const userIdToQuery = targetUserId || user.id
 
     // Get connections where user is either user1 or user2
-    const userConnections = await db
+    const userConnections = await executeWithRetry(() => db
       .select()
       .from(connections)
       .where(
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
         )
       )
       .orderBy(desc(connections.connectedAt))
+    )
 
     // Get all unique user IDs from connections
     const userIds = new Set<string>()
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Fetch all user profiles in one query
-    const userProfiles = await db
+    const userProfiles = await executeWithRetry(() => db
       .select({
         id: profiles.id,
         firstName: profiles.firstName,
@@ -74,6 +75,7 @@ export async function GET(request: NextRequest) {
       .where(
         or(...Array.from(userIds).map(id => eq(profiles.id, id)))
       )
+    )
 
     // Create a map of user profiles for easy lookup
     const userProfileMap = new Map(userProfiles.map(p => [p.id, p]))

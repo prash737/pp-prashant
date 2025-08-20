@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/drizzle/client'
+import { db, executeWithRetry } from '@/lib/drizzle/client'
 import { userCollections, moodBoard } from '@/lib/drizzle/schema'
 import { eq, and, or, isNull, asc, desc } from 'drizzle-orm'
 
@@ -90,16 +90,17 @@ export async function GET(request: NextRequest) {
         .orderBy(desc(userCollections.createdAt))
     }
 
-    const collections = await collectionsQuery
+    const collections = await executeWithRetry(() => collectionsQuery)
 
     // Get mood board items for each collection
     const collectionsWithItems = await Promise.all(
       collections.map(async (collection) => {
-        const items = await db
+        const items = await executeWithRetry(() => db
           .select()
           .from(moodBoard)
           .where(eq(moodBoard.collectionId, collection.id))
           .orderBy(asc(moodBoard.position))
+        )
 
         return {
           ...collection,
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
     )
 
     // Also get mood board items without collections (legacy support)
-    const uncategorizedItems = await db
+    const uncategorizedItems = await executeWithRetry(() => db
       .select()
       .from(moodBoard)
       .where(
@@ -119,6 +120,7 @@ export async function GET(request: NextRequest) {
         )
       )
       .orderBy(asc(moodBoard.position))
+    )
 
     return NextResponse.json({ 
       collections: collectionsWithItems,
