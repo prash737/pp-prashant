@@ -139,3 +139,24 @@ export const suggestedGoals = pgTable('suggested_goals', {
   isAdded: boolean('is_added').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export const userCollections = pgTable('user_collections', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  isPrivate: boolean('is_private').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const moodBoard = pgTable('mood_board', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid('user_id').notNull(),
+  imageUrl: text('image_url').notNull(),
+  caption: text('caption'),
+  position: integer('position').default(0),
+  collectionId: integer('collection_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})

@@ -1,7 +1,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { userCollections, moodBoard } from '@/lib/drizzle/schema'
+import { eq, and, or, isNull, asc, desc } from 'drizzle-orm'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,51 +46,68 @@ export async function GET(request: NextRequest) {
     }
 
     // Build where clause for collections based on public view
-    let collectionsWhere: any = { userId }
-    
-    // Only filter private collections if it's truly a public view (someone else viewing this profile)
-    // AND the current user is not the profile owner
     const shouldFilterPrivate = isPublicView === true && !isViewingOwnProfile
     
-    if (shouldFilterPrivate) {
-      collectionsWhere = {
-        userId,
-        OR: [
-          { isPrivate: false },
-          { isPrivate: null }
-        ]
-      }
-    }
-    // If it's the user's own profile OR not a public view, show all collections (including private ones)
-
     console.log('🔍 Collections where clause:', {
-      collectionsWhere,
       shouldFilterPrivate,
       reasoning: shouldFilterPrivate ? 'Filtering private collections' : 'Showing all collections including private'
     })
 
     // Get collections with their mood board items
-    const collections = await prisma.userCollection.findMany({
-      where: collectionsWhere,
-      include: {
-        moodBoard: {
-          orderBy: { position: 'asc' }
+    let collectionsQuery = db
+      .select()
+      .from(userCollections)
+      .where(eq(userCollections.userId, userId))
+      .orderBy(desc(userCollections.createdAt))
+
+    if (shouldFilterPrivate) {
+      collectionsQuery = db
+        .select()
+        .from(userCollections)
+        .where(
+          and(
+            eq(userCollections.userId, userId),
+            or(
+              eq(userCollections.isPrivate, false),
+              isNull(userCollections.isPrivate)
+            )
+          )
+        )
+        .orderBy(desc(userCollections.createdAt))
+    }
+
+    const collections = await collectionsQuery
+
+    // Get mood board items for each collection
+    const collectionsWithItems = await Promise.all(
+      collections.map(async (collection) => {
+        const items = await db
+          .select()
+          .from(moodBoard)
+          .where(eq(moodBoard.collectionId, collection.id))
+          .orderBy(asc(moodBoard.position))
+
+        return {
+          ...collection,
+          moodBoard: items
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
+      })
+    )
 
     // Also get mood board items without collections (legacy support)
-    const uncategorizedItems = await prisma.moodBoard.findMany({
-      where: { 
-        userId,
-        collectionId: null
-      },
-      orderBy: { position: 'asc' }
-    })
+    const uncategorizedItems = await db
+      .select()
+      .from(moodBoard)
+      .where(
+        and(
+          eq(moodBoard.userId, userId),
+          isNull(moodBoard.collectionId)
+        )
+      )
+      .orderBy(asc(moodBoard.position))
 
     return NextResponse.json({ 
-      collections,
+      collections: collectionsWithItems,
       uncategorizedItems
     })
   } catch (error) {
@@ -105,15 +124,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID and image URL are required' }, { status: 400 })
     }
 
-    const newItem = await prisma.moodBoard.create({
-      data: {
+    const [newItem] = await db
+      .insert(moodBoard)
+      .values({
         userId,
         imageUrl,
         caption: caption || '',
         position: position || 0,
         collectionId: collectionId || null
-      }
-    })
+      })
+      .returning()
 
     return NextResponse.json({ success: true, item: newItem })
   } catch (error) {
@@ -128,23 +148,24 @@ export async function PUT(request: NextRequest) {
 
     // Handle single item caption update
     if (itemId && caption !== undefined) {
-      await prisma.moodBoard.update({
-        where: { id: itemId },
-        data: { caption }
-      })
+      await db
+        .update(moodBoard)
+        .set({ caption })
+        .where(eq(moodBoard.id, itemId))
+      
       return NextResponse.json({ success: true })
     }
 
     // Handle bulk update (for backward compatibility)
     if (Array.isArray(items)) {
       for (let i = 0; i < items.length; i++) {
-        await prisma.moodBoard.update({
-          where: { id: items[i].id },
-          data: { 
+        await db
+          .update(moodBoard)
+          .set({ 
             position: i,
             caption: items[i].caption || ''
-          }
-        })
+          })
+          .where(eq(moodBoard.id, items[i].id))
       }
       return NextResponse.json({ success: true })
     }
@@ -165,9 +186,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Item ID is required' }, { status: 400 })
     }
 
-    await prisma.moodBoard.delete({
-      where: { id: itemId }
-    })
+    await db
+      .delete(moodBoard)
+      .where(eq(moodBoard.id, itemId))
 
     return NextResponse.json({ success: true })
   } catch (error) {
