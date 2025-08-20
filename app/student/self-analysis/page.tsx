@@ -862,7 +862,7 @@ export default function SelfAnalysisPage() {
                       </ReactMarkdown>
 
                       {/* Display Suggested Goals */}
-                      {suggestedGoals && suggestedGoals.length > 0 && (
+                      {suggestedGoals && suggestedGoals.filter(goal => !goal.isAdded).length > 0 && (
                         <div className="mt-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
                           <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
@@ -875,7 +875,7 @@ export default function SelfAnalysisPage() {
                           </div>
 
                           <div className="grid gap-4">
-                            {suggestedGoals.map((goal, index) => {
+                            {suggestedGoals.filter(goal => !goal.isAdded).map((goal, index) => {
                               const categoryInfo = getCategoryInfo(goal.category)
                               const timeframeInfo = getTimeframeInfo(goal.timeframe)
                               const CategoryIcon = categoryInfo.icon
@@ -1060,7 +1060,7 @@ export default function SelfAnalysisPage() {
               </p>
 
               <div className="grid gap-4">
-                {suggestedGoals.map((goal, index) => {
+                {suggestedGoals.filter(goal => !goal.isAdded).map((goal, index) => {
                   const categoryInfo = getCategoryInfo(goal.category)
                   const timeframeInfo = getTimeframeInfo(goal.timeframe)
                   const CategoryIcon = categoryInfo.icon
