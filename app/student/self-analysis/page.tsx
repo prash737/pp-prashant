@@ -47,6 +47,7 @@ export default function SelfAnalysisPage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [suggestedGoals, setSuggestedGoals] = useState<any[]>([])
   const [showGoalsDialog, setShowGoalsDialog] = useState(false)
+  const [addingGoalId, setAddingGoalId] = useState<number | null>(null)
 
 
   useEffect(() => {
@@ -499,6 +500,42 @@ export default function SelfAnalysisPage() {
     return () => clearTimeout(timeoutId)
   }, [searchQuery])
 
+  // Function to handle adding a goal
+  const handleAddGoal = async (goalId: number) => {
+    setAddingGoalId(goalId)
+    try {
+      const response = await fetch(`/api/suggested-goals/${goalId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+
+        // Update the local state to mark the goal as added
+        setSuggestedGoals(prev => 
+          prev.map(goal => 
+            goal.id === goalId 
+              ? { ...goal, isAdded: true }
+              : goal
+          )
+        )
+
+        toast.success('Goal added to your profile! 🎯')
+      } else {
+        const error = await response.json()
+        toast.error(error.message || 'Failed to add goal')
+      }
+    } catch (error) {
+      console.error('Error adding goal:', error)
+      toast.error('Failed to add goal to profile')
+    } finally {
+      setAddingGoalId(null)
+    }
+  }
+
 
   if (loading || (profileDataLoading && !studentData)) {
     return (
@@ -838,41 +875,11 @@ export default function SelfAnalysisPage() {
                           </div>
 
                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {suggestedGoals.map((goal: any, index: number) => {
-                              const getCategoryIcon = (category: string) => {
-                                switch (category?.toLowerCase()) {
-                                  case 'career': return <Briefcase className="w-4 h-4" />
-                                  case 'academic': return <GraduationCap className="w-4 h-4" />
-                                  case 'technical skills': return <Code className="w-4 h-4" />
-                                  case 'leadership': return <Users className="w-4 h-4" />
-                                  case 'personal development': return <User className="w-4 h-4" />
-                                  case 'creative': return <Palette className="w-4 h-4" />
-                                  case 'social': return <MessageCircle className="w-4 h-4" />
-                                  case 'health & fitness': return <Heart className="w-4 h-4" />
-                                  default: return <Target className="w-4 h-4" />
-                                }
-                              }
-
-                              const getCategoryColor = (category: string) => {
-                                switch (category?.toLowerCase()) {
-                                  case 'career': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                  case 'academic': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                                  case 'technical skills': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
-                                  case 'leadership': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                  case 'personal development': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
-                                  case 'creative': return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300'
-                                  case 'social': return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300'
-                                  case 'health & fitness': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                  default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                                }
-                              }
-
-                              const getTimeframeBadge = (timeframe: string) => {
-                                if (timeframe?.includes('Short-term')) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                if (timeframe?.includes('Medium-term')) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                if (timeframe?.includes('Long-term')) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
-                                return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                              }
+                            {suggestedGoals.map((goal, index) => {
+                              const categoryInfo = getCategoryInfo(goal.category)
+                              const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                              const CategoryIcon = categoryInfo.icon
+                              const TimeframeIcon = timeframeInfo.icon
 
                               return (
                                 <motion.div
@@ -884,28 +891,55 @@ export default function SelfAnalysisPage() {
                                 >
                                   <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                      {getCategoryIcon(goal.category)}
-                                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
-                                        {goal.title}
-                                      </h3>
+                                      {CategoryIcon && (
+                                        <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                                          <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                          {goal.title}
+                                        </h3>
+                                        <div className="flex items-center gap-3 mt-1">
+                                          <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
+                                            {categoryInfo.label}
+                                          </span>
+                                          <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                            <TimeframeIcon className="h-3 w-3" />
+                                            {timeframeInfo.label}
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(goal.category)}`}>
-                                      {goal.category}
-                                    </span>
                                   </div>
 
                                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
                                     {goal.description}
                                   </p>
 
-                                  <div className="flex items-center justify-between">
-                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTimeframeBadge(goal.timeframe)}`}>
-                                      {goal.timeframe}
-                                    </span>
-                                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                                      <Clock className="w-3 h-3 mr-1" />
-                                      Goal #{index + 1}
-                                    </div>
+                                  <div className="mt-3 flex justify-end">
+                                    {!goal.isAdded ? (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleAddGoal(goal.id)}
+                                        disabled={addingGoalId === goal.id}
+                                        className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
+                                      >
+                                        {addingGoalId === goal.id ? (
+                                          <>
+                                            <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                                          </>
+                                        )}
+                                      </Button>
+                                    ) : (
+                                      <div className="flex items-center text-green-600 dark:text-green-400 text-sm">
+                                        <CheckCircle className="h-4 w-4 mr-1" /> Added
+                                      </div>
+                                    )}
                                   </div>
                                 </motion.div>
                               )
@@ -1033,16 +1067,26 @@ export default function SelfAnalysisPage() {
                   const TimeframeIcon = timeframeInfo.icon
 
                   return (
-                    <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:shadow-md transition-all">
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-green-200 dark:border-green-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300 dark:hover:border-green-600"
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
-                            <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
-                          </div>
+                          {CategoryIcon && (
+                            <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                              <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                            </div>
+                          )}
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">{goal.title}</h3>
+                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                              {goal.title}
+                            </h3>
                             <div className="flex items-center gap-3 mt-1">
-                              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
                                 {categoryInfo.label}
                               </span>
                               <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
@@ -1054,26 +1098,35 @@ export default function SelfAnalysisPage() {
                         </div>
                       </div>
 
-                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
                         {goal.description}
                       </p>
 
                       <div className="mt-3 flex justify-end">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            // Navigate to goals section
-                            router.push('/student/profile/edit?section=goals')
-                            setShowGoalsDialog(false)
-                          }}
-                          className="text-xs"
-                        >
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Add to My Goals
-                        </Button>
+                        {!goal.isAdded ? (
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddGoal(goal.id)}
+                            disabled={addingGoalId === goal.id}
+                            className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
+                          >
+                            {addingGoalId === goal.id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <div className="flex items-center text-green-600 dark:text-green-400 text-sm">
+                            <CheckCircle className="h-4 w-4 mr-1" /> Added
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    </motion.div>
                   )
                 })}
               </div>

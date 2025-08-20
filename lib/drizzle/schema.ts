@@ -136,5 +136,6 @@ export const suggestedGoals = pgTable('suggested_goals', {
   description: text('description').notNull(),
   category: text('category').notNull(),
   timeframe: text('timeframe').notNull(),
+  isAdded: boolean('is_added').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

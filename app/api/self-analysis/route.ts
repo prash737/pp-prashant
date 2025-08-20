@@ -228,7 +228,8 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
               title: goal.title,
               description: goal.description,
               category: goal.category,
-              timeframe: goal.timeframe
+              timeframe: goal.timeframe,
+              isAdded: false
             }));
 
             console.log('🔍 Formatted goals for insertion:', goalsToInsert);
@@ -255,9 +256,14 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
     console.log('✅ Analysis completed successfully')
 
+    // Fetch the inserted suggested goals to get their IDs and is_added status
+    const insertedGoals = await db.select().from(suggestedGoals)
+      .where(eq(suggestedGoals.userId, user.id))
+      .orderBy(suggestedGoals.createdAt)
+
     return NextResponse.json({
       analysis,
-      suggestedGoals: suggestedGoalsData, // Send suggestedGoals to the client
+      suggestedGoals: insertedGoals, // Send suggestedGoals with database IDs and is_added status
       timestamp: new Date().toISOString()
     })
 

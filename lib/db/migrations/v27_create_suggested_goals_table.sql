@@ -2,10 +2,12 @@
 -- Create suggested_goals table
 CREATE TABLE suggested_goals (
   id BIGSERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT,
   timeframe TEXT,
+  is_added BOOLEAN DEFAULT FALSE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
