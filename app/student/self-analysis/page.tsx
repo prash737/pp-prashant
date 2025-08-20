@@ -29,6 +29,17 @@ interface StudentData {
   goals: any[]
 }
 
+interface SuggestedGoal {
+  id: number
+  title: string
+  description: string
+  category: string
+  timeframe: string
+  isAdded: boolean
+  isCurrentSuggestion?: boolean
+  createdAt: string
+}
+
 export default function SelfAnalysisPage() {
   const { user, loading, profileData, profileDataLoading } = useAuth()
   const router = useRouter()
@@ -45,9 +56,10 @@ export default function SelfAnalysisPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
-  const [suggestedGoals, setSuggestedGoals] = useState<any[]>([])
+  const [suggestedGoals, setSuggestedGoals] = useState<SuggestedGoal[]>([])
   const [showGoalsDialog, setShowGoalsDialog] = useState(false)
   const [addingGoalId, setAddingGoalId] = useState<number | null>(null)
+  const [currentSessionGoalIds, setCurrentSessionGoalIds] = useState<number[]>([])
 
 
   useEffect(() => {
@@ -352,8 +364,10 @@ export default function SelfAnalysisPage() {
       // Handle suggested goals
       if (result.suggestedGoals && result.suggestedGoals.length > 0) {
         setSuggestedGoals(result.suggestedGoals)
+        setCurrentSessionGoalIds(result.currentSessionGoalIds || [])
         setShowGoalsDialog(true)
         console.log('🎯 Suggested goals received:', result.suggestedGoals)
+        console.log('🎯 Current session goal IDs:', result.currentSessionGoalIds)
       }
 
       setAnalysis(result.analysis)
@@ -874,77 +888,164 @@ export default function SelfAnalysisPage() {
                             </div>
                           </div>
 
-                          <div className="grid gap-4">
-                            {suggestedGoals.filter(goal => !goal.isAdded).map((goal, index) => {
-                              const categoryInfo = getCategoryInfo(goal.category)
-                              const timeframeInfo = getTimeframeInfo(goal.timeframe)
-                              const CategoryIcon = categoryInfo.icon
-                              const TimeframeIcon = timeframeInfo.icon
+                          {/* Current Suggestions */}
+                          {suggestedGoals.filter(goal => !goal.isAdded && goal.isCurrentSuggestion).length > 0 && (
+                            <div className="mb-8">
+                              <div className="flex items-center gap-2 mb-4">
+                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">Current Suggestions</h3>
+                                <span className="px-2 py-1 text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 rounded-full">New</span>
+                              </div>
+                              <div className="grid gap-4">
+                                {suggestedGoals.filter(goal => !goal.isAdded && goal.isCurrentSuggestion).map((goal, index) => {
+                                  const categoryInfo = getCategoryInfo(goal.category)
+                                  const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                                  const CategoryIcon = categoryInfo.icon
+                                  const TimeframeIcon = timeframeInfo.icon
 
-                              return (
-                                <motion.div
-                                  key={index}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                  className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-green-200 dark:border-green-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300 dark:hover:border-green-600"
-                                >
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                      {CategoryIcon && (
-                                        <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
-                                          <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
-                                        </div>
-                                      )}
-                                      <div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
-                                          {goal.title}
-                                        </h3>
-                                        <div className="flex items-center gap-3 mt-1">
-                                          <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
-                                            {categoryInfo.label}
-                                          </span>
-                                          <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
-                                            <TimeframeIcon className="h-3 w-3" />
-                                            {timeframeInfo.label}
+                                  return (
+                                    <motion.div
+                                      key={`current-${goal.id}`}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: index * 0.1 }}
+                                      className="bg-white dark:bg-gray-800 p-5 rounded-lg border-2 border-amber-200 dark:border-amber-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-amber-300 dark:hover:border-amber-600 relative"
+                                    >
+                                      <div className="absolute top-2 right-2">
+                                        <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 rounded-full font-medium">
+                                          Current
+                                        </span>
+                                      </div>
+                                      <div className="flex items-start justify-between mb-3 pr-16">
+                                        <div className="flex items-center gap-2">
+                                          {CategoryIcon && (
+                                            <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                                              <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                                            </div>
+                                          )}
+                                          <div>
+                                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                              {goal.title}
+                                            </h3>
+                                            <div className="flex items-center gap-3 mt-1">
+                                              <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
+                                                {categoryInfo.label}
+                                              </span>
+                                              <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                                <TimeframeIcon className="h-3 w-3" />
+                                                {timeframeInfo.label}
+                                              </div>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </div>
 
-                                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
-                                    {goal.description}
-                                  </p>
+                                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
+                                        {goal.description}
+                                      </p>
 
-                                  <div className="mt-3 flex justify-end">
-                                    {!goal.isAdded ? (
-                                      <Button
-                                        size="sm"
-                                        onClick={() => handleAddGoal(goal.id)}
-                                        disabled={addingGoalId === goal.id}
-                                        className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
-                                      >
-                                        {addingGoalId === goal.id ? (
-                                          <>
-                                            <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
-                                          </>
-                                        )}
-                                      </Button>
-                                    ) : (
-                                      <div className="flex items-center text-green-600 dark:text-green-400 text-sm">
-                                        <CheckCircle className="h-4 w-4 mr-1" /> Added
+                                      <div className="mt-3 flex justify-end">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleAddGoal(goal.id)}
+                                          disabled={addingGoalId === goal.id}
+                                          className="text-xs bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600"
+                                        >
+                                          {addingGoalId === goal.id ? (
+                                            <>
+                                              <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                                            </>
+                                          )}
+                                        </Button>
                                       </div>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              )
-                            })}
-                          </div>
+                                    </motion.div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Previous Suggestions */}
+                          {suggestedGoals.filter(goal => !goal.isAdded && !goal.isCurrentSuggestion).length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-4">
+                                <Clock className="w-4 h-4 text-gray-500" />
+                                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">Previously Suggested</h3>
+                              </div>
+                              <div className="grid gap-4">
+                                {suggestedGoals.filter(goal => !goal.isAdded && !goal.isCurrentSuggestion).map((goal, index) => {
+                                  const categoryInfo = getCategoryInfo(goal.category)
+                                  const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                                  const CategoryIcon = categoryInfo.icon
+                                  const TimeframeIcon = timeframeInfo.icon
+
+                                  return (
+                                    <motion.div
+                                      key={`previous-${goal.id}`}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: index * 0.1 }}
+                                      className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 opacity-90"
+                                    >
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          {CategoryIcon && (
+                                            <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                                              <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                                            </div>
+                                          )}
+                                          <div>
+                                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                              {goal.title}
+                                            </h3>
+                                            <div className="flex items-center gap-3 mt-1">
+                                              <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
+                                                {categoryInfo.label}
+                                              </span>
+                                              <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                                <TimeframeIcon className="h-3 w-3" />
+                                                {timeframeInfo.label}
+                                              </div>
+                                              <span className="text-xs text-gray-500">
+                                                {new Date(goal.createdAt).toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
+                                        {goal.description}
+                                      </p>
+
+                                      <div className="mt-3 flex justify-end">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleAddGoal(goal.id)}
+                                          disabled={addingGoalId === goal.id}
+                                          className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
+                                        >
+                                          {addingGoalId === goal.id ? (
+                                            <>
+                                              <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                                            </>
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </motion.div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
 
                           <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-green-200 dark:border-green-700">
                             <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">
@@ -1059,77 +1160,164 @@ export default function SelfAnalysisPage() {
                 Based on your profile analysis, here are some personalized goals to help you grow:
               </p>
 
-              <div className="grid gap-4">
-                {suggestedGoals.filter(goal => !goal.isAdded).map((goal, index) => {
-                  const categoryInfo = getCategoryInfo(goal.category)
-                  const timeframeInfo = getTimeframeInfo(goal.timeframe)
-                  const CategoryIcon = categoryInfo.icon
-                  const TimeframeIcon = timeframeInfo.icon
+              {/* Current Suggestions in Dialog */}
+              {suggestedGoals.filter(goal => !goal.isAdded && goal.isCurrentSuggestion).length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Current Suggestions</h3>
+                    <span className="px-2 py-1 text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 rounded-full">New</span>
+                  </div>
+                  <div className="grid gap-4">
+                    {suggestedGoals.filter(goal => !goal.isAdded && goal.isCurrentSuggestion).map((goal, index) => {
+                      const categoryInfo = getCategoryInfo(goal.category)
+                      const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                      const CategoryIcon = categoryInfo.icon
+                      const TimeframeIcon = timeframeInfo.icon
 
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-green-200 dark:border-green-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300 dark:hover:border-green-600"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          {CategoryIcon && (
-                            <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
-                              <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
-                            </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
-                              {goal.title}
-                            </h3>
-                            <div className="flex items-center gap-3 mt-1">
-                              <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
-                                {categoryInfo.label}
-                              </span>
-                              <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
-                                <TimeframeIcon className="h-3 w-3" />
-                                {timeframeInfo.label}
+                      return (
+                        <motion.div
+                          key={`dialog-current-${goal.id}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-white dark:bg-gray-800 p-5 rounded-lg border-2 border-amber-200 dark:border-amber-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-amber-300 dark:hover:border-amber-600 relative"
+                        >
+                          <div className="absolute top-2 right-2">
+                            <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 rounded-full font-medium">
+                              Current
+                            </span>
+                          </div>
+                          <div className="flex items-start justify-between mb-3 pr-16">
+                            <div className="flex items-center gap-2">
+                              {CategoryIcon && (
+                                <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                                  <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                  {goal.title}
+                                </h3>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
+                                    {categoryInfo.label}
+                                  </span>
+                                  <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                    <TimeframeIcon className="h-3 w-3" />
+                                    {timeframeInfo.label}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
 
-                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
-                        {goal.description}
-                      </p>
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
+                            {goal.description}
+                          </p>
 
-                      <div className="mt-3 flex justify-end">
-                        {!goal.isAdded ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddGoal(goal.id)}
-                            disabled={addingGoalId === goal.id}
-                            className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
-                          >
-                            {addingGoalId === goal.id ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
-                              </>
-                            )}
-                          </Button>
-                        ) : (
-                          <div className="flex items-center text-green-600 dark:text-green-400 text-sm">
-                            <CheckCircle className="h-4 w-4 mr-1" /> Added
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddGoal(goal.id)}
+                              disabled={addingGoalId === goal.id}
+                              className="text-xs bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600"
+                            >
+                              {addingGoalId === goal.id ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                                </>
+                              )}
+                            </Button>
                           </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Previous Suggestions in Dialog */}
+              {suggestedGoals.filter(goal => !goal.isAdded && !goal.isCurrentSuggestion).length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Previously Suggested</h3>
+                  </div>
+                  <div className="grid gap-4">
+                    {suggestedGoals.filter(goal => !goal.isAdded && !goal.isCurrentSuggestion).map((goal, index) => {
+                      const categoryInfo = getCategoryInfo(goal.category)
+                      const timeframeInfo = getTimeframeInfo(goal.timeframe)
+                      const CategoryIcon = categoryInfo.icon
+                      const TimeframeIcon = timeframeInfo.icon
+
+                      return (
+                        <motion.div
+                          key={`dialog-previous-${goal.id}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-600 opacity-90"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              {CategoryIcon && (
+                                <div className={`p-2 rounded-lg ${categoryInfo.color} bg-opacity-10`}>
+                                  <CategoryIcon className={`h-4 w-4 ${categoryInfo.color.replace('bg-', 'text-')}`} />
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight">
+                                  {goal.title}
+                                </h3>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <span className={`text-xs px-2 py-1 rounded-full ${categoryInfo.color} bg-opacity-10`}>
+                                    {categoryInfo.label}
+                                  </span>
+                                  <div className={`flex items-center gap-1 text-xs ${timeframeInfo.color}`}>
+                                    <TimeframeIcon className="h-3 w-3" />
+                                    {timeframeInfo.label}
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(goal.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-3 leading-relaxed">
+                            {goal.description}
+                          </p>
+
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddGoal(goal.id)}
+                              disabled={addingGoalId === goal.id}
+                              className="text-xs bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
+                            >
+                              {addingGoalId === goal.id ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" /> Adding...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" /> Add to My Goals
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-green-200 dark:border-green-700">
                 <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">

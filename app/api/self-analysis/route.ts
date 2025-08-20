@@ -222,6 +222,8 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
           console.log('💾 Inserting suggested goals into database...');
           console.log('🔍 Goals to insert:', suggestedGoalsData);
           
+          let currentSessionGoalIds: number[] = []
+          
           try {
             const goalsToInsert = suggestedGoalsData.map(goal => ({
               userId: user.id,
@@ -234,8 +236,10 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
             console.log('🔍 Formatted goals for insertion:', goalsToInsert);
             
-            const insertResult = await db.insert(suggestedGoals).values(goalsToInsert);
-            console.log('🔍 Insert result:', insertResult);
+            const insertResult = await db.insert(suggestedGoals).values(goalsToInsert).returning({ id: suggestedGoals.id });
+            currentSessionGoalIds = insertResult.map(goal => goal.id)
+            console.log('🔍 Insert result with IDs:', insertResult);
+            console.log('🔍 Current session goal IDs:', currentSessionGoalIds);
             console.log('✅ Successfully inserted suggested goals into database');
           } catch (insertError) {
             console.error('❌ Error inserting suggested goals:', insertError);
@@ -256,14 +260,21 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
     console.log('✅ Analysis completed successfully')
 
-    // Fetch the inserted suggested goals to get their IDs and is_added status
-    const insertedGoals = await db.select().from(suggestedGoals)
+    // Fetch all suggested goals for the user
+    const allGoals = await db.select().from(suggestedGoals)
       .where(eq(suggestedGoals.userId, user.id))
       .orderBy(suggestedGoals.createdAt)
 
+    // Mark goals from current session
+    const goalsWithSessionInfo = allGoals.map(goal => ({
+      ...goal,
+      isCurrentSuggestion: currentSessionGoalIds.includes(goal.id)
+    }))
+
     return NextResponse.json({
       analysis,
-      suggestedGoals: insertedGoals, // Send suggestedGoals with database IDs and is_added status
+      suggestedGoals: goalsWithSessionInfo, // Send all goals with current session info
+      currentSessionGoalIds, // Also send the current session IDs for reference
       timestamp: new Date().toISOString()
     })
 
