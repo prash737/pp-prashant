@@ -199,6 +199,7 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
     // Extract suggested goals from the response
     let suggestedGoalsData: any[] = []
+    let currentSessionGoalIds: number[] = []
     const jsonStartMarker = 'SUGGESTED_GOALS_JSON_START'
     const jsonEndMarker = 'SUGGESTED_GOALS_JSON_END'
 
@@ -221,8 +222,6 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
           // Insert suggested goals into database using Drizzle
           console.log('💾 Inserting suggested goals into database...');
           console.log('🔍 Goals to insert:', suggestedGoalsData);
-          
-          let currentSessionGoalIds: number[] = []
           
           try {
             const goalsToInsert = suggestedGoalsData.map(goal => ({
