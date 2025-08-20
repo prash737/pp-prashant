@@ -151,19 +151,27 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
       4. Specific action steps they can take to achieve their goals
       5. Potential challenges they might face and how to overcome them
 
+      IMPORTANT FOR GOAL GENERATION:
+      - Generate SPECIFIC, ACTIONABLE goals based on the student's exact interests and skills
+      - Avoid generic goals like "connect to professionals" - instead be specific like "connect to data engineering professionals" or "connect to React.js developers"
+      - If they mention specific technologies, tools, or fields, include those exact terms in the goals
+      - Make goals concrete and measurable, not vague or repetitive
+      - Each goal should be unique and tailored to their specific profile and interests
+      - Include specific platforms, tools, technologies, or career paths mentioned in their profile
+
       At the end, provide 3-5 suggested goals in the following JSON format within a "SUGGESTED_GOALS" section:
       {
         "goals": [
           {
-            "title": "Goal title",
-            "description": "Detailed description of the goal",
+            "title": "Specific goal title with exact technologies/fields mentioned",
+            "description": "Detailed description with specific steps and technologies",
             "category": "Choose from: ${goalCategories.join(', ')}",
             "timeframe": "Short-term (1-3 months), Medium-term (3-6 months), or Long-term (6+ months)"
           }
         ]
       }
 
-      Make the analysis encouraging, actionable, and age-appropriate.
+      Make the analysis encouraging, actionable, and age-appropriate. Ensure all goals are specific to their interests and avoid generic recommendations.
     `
 
     // Call OpenAI API with optimized settings
