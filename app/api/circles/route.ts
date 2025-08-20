@@ -3,29 +3,12 @@ import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
 import { circleBadges, circleMemberships, profiles } from '@/lib/drizzle/schema'
-import { eq, or, and, not, inArray, ne } from 'drizzle-orm'
+import { eq, or, and, not, inArray } from 'drizzle-orm'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-// Helper function to execute Drizzle queries with retry logic
-async function executeWithRetry<T>(queryFn: () => Promise<T>, retries = 3, delay = 500): Promise<T> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await queryFn();
-    } catch (error) {
-      console.error(`Query attempt ${i + 1} failed:`, error);
-      if (i === retries - 1) {
-        throw error; // Rethrow the error if all retries fail
-      }
-      await new Promise(resolve => setTimeout(resolve, delay * (i + 1))); // Exponential backoff
-    }
-  }
-  // This part should ideally not be reached if retries are handled correctly, but TS requires a return
-  throw new Error('Exceeded maximum retry attempts for database query.');
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const [creatorCircles, memberCircles] = await Promise.all([
       // Get circles where user is creator
-      executeWithRetry(() => db
+      db
         .select({
           id: circleBadges.id,
           name: circleBadges.name,
@@ -71,19 +54,17 @@ export async function GET(request: NextRequest) {
           isCreatorDisabled: circleBadges.isCreatorDisabled,
           creatorId: circleBadges.creatorId,
           createdAt: circleBadges.createdAt,
-          creator: {
-            firstName: profiles.firstName,
-            lastName: profiles.lastName,
-            profileImageUrl: profiles.profileImageUrl
-          }
+          // Creator profile info
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
         })
         .from(circleBadges)
         .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
-        .where(eq(circleBadges.creatorId, user.id))
-      ),
+        .where(eq(circleBadges.creatorId, user.id)),
 
       // Get circles where user is a member
-      executeWithRetry(() => db
+      db
         .select({
           id: circleBadges.id,
           name: circleBadges.name,
@@ -95,28 +76,20 @@ export async function GET(request: NextRequest) {
           isCreatorDisabled: circleBadges.isCreatorDisabled,
           creatorId: circleBadges.creatorId,
           createdAt: circleBadges.createdAt,
-          creator: {
-            firstName: profiles.firstName,
-            lastName: profiles.lastName,
-            profileImageUrl: profiles.profileImageUrl
-          },
-          membership: {
-            id: circleMemberships.id,
-            status: circleMemberships.status,
-            joinedAt: circleMemberships.joinedAt,
-            isDisabledMember: circleMemberships.isDisabledMember
-          }
+          // Creator profile info
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
         })
         .from(circleBadges)
         .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
-        .innerJoin(circleMemberships, eq(circleMemberships.circleId, circleBadges.id))
+        .innerJoin(circleMemberships, eq(circleBadges.id, circleMemberships.circleId))
         .where(
           and(
             eq(circleMemberships.userId, user.id),
-            ne(circleBadges.creatorId, user.id) // Exclude circles they created
+            eq(circleMemberships.status, 'active')
           )
         )
-      )
     ])
 
     console.log('✅ Drizzle Result: Creator circles found:', creatorCircles.length)
@@ -138,10 +111,10 @@ export async function GET(request: NextRequest) {
     // Get memberships only for user's circles (more efficient)
     const circleIds = userCircles.map(circle => circle.id)
     let memberships = []
-
+    
     if (circleIds.length > 0) {
       console.log('🔍 Drizzle Query: Fetching memberships for', circleIds.length, 'circles')
-      memberships = await executeWithRetry(() => db
+      memberships = await db
         .select({
           circleId: circleMemberships.circleId,
           userId: circleMemberships.userId,
@@ -164,8 +137,8 @@ export async function GET(request: NextRequest) {
             // Only get memberships for this user's circles
             inArray(circleMemberships.circleId, circleIds)
           )
-        ))
-
+        )
+      
       console.log('✅ Drizzle Result: Total memberships found:', memberships.length)
       console.log('⚡ Query execution time:', Date.now() - startTime, 'ms')
     } else {
@@ -188,9 +161,9 @@ export async function GET(request: NextRequest) {
         createdAt: circle.createdAt,
         creator: {
           id: circle.creatorId,
-          firstName: circle.creator.firstName,
-          lastName: circle.creator.lastName,
-          profileImageUrl: circle.creator.profileImageUrl
+          firstName: circle.creatorFirstName,
+          lastName: circle.creatorLastName,
+          profileImageUrl: circle.creatorProfileImageUrl
         },
         memberships: circleMembers.map(member => ({
           user: {
@@ -243,7 +216,7 @@ export async function POST(request: NextRequest) {
 
     // Create new circle using Drizzle
     console.log('🔍 Drizzle Query: Creating new circle for user:', user.id, 'with name:', name)
-    const newCircle = await executeWithRetry(() => db
+    const newCircle = await db
       .insert(circleBadges)
       .values({
         name: name.trim(),
@@ -256,8 +229,7 @@ export async function POST(request: NextRequest) {
         isCreatorDisabled: false
       })
       .returning()
-    )
-
+    
     console.log('✅ Drizzle Result: New circle created with ID:', newCircle[0]?.id)
 
     return NextResponse.json(newCircle[0])

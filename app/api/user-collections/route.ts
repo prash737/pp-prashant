@@ -1,9 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/drizzle/client'
-import { userCollections, moodBoard } from '@/lib/drizzle/schema'
-import { eq, and, asc, desc } from 'drizzle-orm'
+import { prisma } from '@/lib/prisma'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,36 +26,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const collections = await db
-      .select({
-        id: userCollections.id,
-        userId: userCollections.userId,
-        name: userCollections.name,
-        description: userCollections.description,
-        isPrivate: userCollections.isPrivate,
-        createdAt: userCollections.createdAt
-      })
-      .from(userCollections)
-      .where(eq(userCollections.userId, user.id))
-      .orderBy(desc(userCollections.createdAt))
-
-    // Get mood board items for each collection
-    const collectionsWithItems = await Promise.all(
-      collections.map(async (collection) => {
-        const items = await db
-          .select()
-          .from(moodBoard)
-          .where(eq(moodBoard.collectionId, collection.id))
-          .orderBy(asc(moodBoard.position))
-
-        return {
-          ...collection,
-          moodBoard: items
+    const collections = await prisma.userCollection.findMany({
+      where: { userId: user.id },
+      include: {
+        moodBoard: {
+          orderBy: { position: 'asc' }
         }
-      })
-    )
+      },
+      orderBy: { createdAt: 'desc' }
+    })
 
-    return NextResponse.json({ collections: collectionsWithItems })
+    return NextResponse.json({ collections })
   } catch (error) {
     console.error('Error fetching collections:', error)
     return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 })
@@ -88,28 +67,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Collection name is required' }, { status: 400 })
     }
 
-    const [newCollection] = await db
-      .insert(userCollections)
-      .values({
+    const newCollection = await prisma.userCollection.create({
+      data: {
         userId: user.id,
         name: name.trim(),
         description: description?.trim() || null
-      })
-      .returning()
+      },
+      include: {
+        moodBoard: {
+          orderBy: { position: 'asc' }
+        }
+      }
+    })
 
-    // Get mood board items for the new collection (will be empty)
-    const items = await db
-      .select()
-      .from(moodBoard)
-      .where(eq(moodBoard.collectionId, newCollection.id))
-      .orderBy(asc(moodBoard.position))
-
-    const collectionWithItems = {
-      ...newCollection,
-      moodBoard: items
-    }
-
-    return NextResponse.json({ success: true, collection: collectionWithItems })
+    return NextResponse.json({ success: true, collection: newCollection })
   } catch (error) {
     console.error('Error creating collection:', error)
     return NextResponse.json({ error: 'Failed to create collection' }, { status: 500 })
@@ -142,33 +113,23 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify ownership
-    const collection = await db
-      .select({
-        id: userCollections.id,
-        userId: userCollections.userId
-      })
-      .from(userCollections)
-      .where(
-        and(
-          eq(userCollections.id, parseInt(collectionId)),
-          eq(userCollections.userId, user.id)
-        )
-      )
-      .limit(1)
+    const collection = await prisma.userCollection.findFirst({
+      where: { id: parseInt(collectionId), userId: user.id }
+    })
 
-    if (collection.length === 0) {
+    if (!collection) {
       return NextResponse.json({ error: 'Collection not found' }, { status: 404 })
     }
 
     // First delete all mood board items associated with this collection
-    await db
-      .delete(moodBoard)
-      .where(eq(moodBoard.collectionId, parseInt(collectionId)))
+    await prisma.moodBoard.deleteMany({
+      where: { collectionId: parseInt(collectionId) }
+    })
 
     // Then delete the collection itself
-    await db
-      .delete(userCollections)
-      .where(eq(userCollections.id, parseInt(collectionId)))
+    await prisma.userCollection.delete({
+      where: { id: parseInt(collectionId) }
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -202,16 +163,13 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update collection privacy
-    const [updatedCollection] = await db
-      .update(userCollections)
-      .set({ isPrivate })
-      .where(
-        and(
-          eq(userCollections.id, collectionId),
-          eq(userCollections.userId, user.id)
-        )
-      )
-      .returning()
+    const updatedCollection = await prisma.userCollection.update({
+      where: { 
+        id: collectionId,
+        userId: user.id // Ensure user owns the collection
+      },
+      data: { isPrivate }
+    })
 
     return NextResponse.json({ success: true, collection: updatedCollection })
   } catch (error) {
