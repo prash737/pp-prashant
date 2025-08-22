@@ -38,7 +38,35 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ goals })
+    // Fetch suggested goals that have been added (is_added = true)
+    const suggestedGoals = await prisma.suggestedGoals.findMany({
+      where: {
+        userId: user.id,
+        isAdded: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // Combine both goal types into a single array
+    const allGoals = [
+      ...goals,
+      ...suggestedGoals.map(sg => ({
+        id: sg.id,
+        title: sg.title,
+        description: sg.description,
+        category: sg.category,
+        timeframe: sg.timeframe,
+        userId: sg.userId,
+        completed: false, // suggested goals don't have completed status
+        createdAt: sg.createdAt,
+        updatedAt: sg.createdAt, // use createdAt as updatedAt for suggested goals
+        isSuggested: true // flag to identify suggested goals
+      }))
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return NextResponse.json({ goals: allGoals })
   } catch (error) {
     console.error('Goals API error:', error)
     return NextResponse.json({
