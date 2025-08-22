@@ -45,7 +45,7 @@ export default function SelfAnalysisPage() {
   const router = useRouter()
   const [studentData, setStudentData] = useState<StudentData | null>(null)
   const [query, setQuery] = useState("")
-  const [analysis, setAnalysis] = useState('')
+  const [analysis, setAnalysis] = useState<string>('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set())
   // isLoading state variable is missing from original code, defining it here to prevent runtime errors.
@@ -60,6 +60,8 @@ export default function SelfAnalysisPage() {
   const [showGoalsDialog, setShowGoalsDialog] = useState(false)
   const [addingGoalId, setAddingGoalId] = useState<number | null>(null)
   const [currentSessionGoalIds, setCurrentSessionGoalIds] = useState<number[]>([])
+  const [currentTokenUsage, setCurrentTokenUsage] = useState<any>(null)
+  const [totalTokenUsage, setTotalTokenUsage] = useState<any>(null)
 
 
   useEffect(() => {
@@ -82,6 +84,7 @@ export default function SelfAnalysisPage() {
     } else if (!profileDataLoading) {
       fetchStudentData()
     }
+    fetchTotalTokenUsage()
   }, [user, loading, router, profileData, profileDataLoading])
 
   // Parse analysis into sections and consolidate short content
@@ -361,6 +364,11 @@ export default function SelfAnalysisPage() {
       const result = await response.json()
       console.log('✅ Analysis result received:', result)
 
+      // Handle token usage
+      if (result.tokenUsage) {
+        setCurrentTokenUsage(result.tokenUsage)
+      }
+
       // Handle suggested goals
       if (result.suggestedGoals && result.suggestedGoals.length > 0) {
         setSuggestedGoals(result.suggestedGoals)
@@ -443,6 +451,11 @@ export default function SelfAnalysisPage() {
 
       const result = await response.json();
       console.log('✅ AI Analysis received:', result.analysis)
+
+      // Handle token usage
+      if (result.tokenUsage) {
+        setCurrentTokenUsage(result.tokenUsage)
+      }
 
       // Process the analysis to replace placeholders with interactive elements
       const processedAnalysis = processAIResponse(result.analysis)
@@ -529,9 +542,9 @@ export default function SelfAnalysisPage() {
         const result = await response.json()
 
         // Update the local state to mark the goal as added
-        setSuggestedGoals(prev => 
-          prev.map(goal => 
-            goal.id === goalId 
+        setSuggestedGoals(prev =>
+          prev.map(goal =>
+            goal.id === goalId
               ? { ...goal, isAdded: true }
               : goal
           )
@@ -547,6 +560,20 @@ export default function SelfAnalysisPage() {
       toast.error('Failed to add goal to profile')
     } finally {
       setAddingGoalId(null)
+    }
+  }
+
+  const fetchTotalTokenUsage = async () => {
+    try {
+      if (!user?.id) return
+
+      const response = await fetch(`/api/token-usage?user_id=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTotalTokenUsage(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch total token usage:', error)
     }
   }
 
@@ -1100,6 +1127,71 @@ export default function SelfAnalysisPage() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Token Usage Display */}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <span className="text-blue-600">🔢</span>
+                      Token Usage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Current Session Usage */}
+                    {currentTokenUsage && (
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-blue-800 mb-2">Current Analysis</h4>
+                        <div className="space-y-1 text-xs text-blue-700">
+                          <div className="flex justify-between">
+                            <span>Prompt Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.promptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Response Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.responseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-blue-200 pt-1">
+                            <span>Total:</span>
+                            <span className="font-mono">{currentTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            Model: {currentTokenUsage.modelName}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total Usage */}
+                    {totalTokenUsage && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-gray-800 mb-2">Total Usage</h4>
+                        <div className="space-y-1 text-xs text-gray-700">
+                          <div className="flex justify-between">
+                            <span>Total Prompt Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalPromptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Response Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalResponseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-gray-200 pt-1">
+                            <span>Grand Total:</span>
+                            <span className="font-mono">{totalTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!currentTokenUsage && !totalTokenUsage && (
+                      <p className="text-gray-500 text-xs text-center py-4">
+                        Token usage will appear here after analysis
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
             </div>
           </div>
         </main>

@@ -29,8 +29,10 @@ export default function InstitutionSelfAnalysisPage() {
   const router = useRouter()
   const [institutionData, setInstitutionData] = useState<InstitutionData | null>(null)
   const [query, setQuery] = useState("")
-  const [analysis, setAnalysis] = useState("")
+  const [analysis, setAnalysis] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [currentTokenUsage, setCurrentTokenUsage] = useState<any>(null)
+  const [totalTokenUsage, setTotalTokenUsage] = useState<any>(null)
 
   useEffect(() => {
     if (loading) return
@@ -46,6 +48,7 @@ export default function InstitutionSelfAnalysisPage() {
     }
 
     fetchInstitutionData()
+    fetchTotalTokenUsage()
   }, [user, loading, router])
 
   // Parse analysis into sections for horizontal layout
@@ -220,7 +223,11 @@ export default function InstitutionSelfAnalysisPage() {
 
       const result = await response.json()
       setAnalysis(result.analysis)
+      setCurrentTokenUsage(result.tokenUsage) // Assuming the API returns tokenUsage
       toast.success('Analysis complete!')
+
+      // Refetch total token usage to reflect the latest usage
+      fetchTotalTokenUsage()
     } catch (error) {
       console.error('Analysis error:', error)
       toast.error('Failed to analyze your institution profile. Please try again.')
@@ -228,6 +235,21 @@ export default function InstitutionSelfAnalysisPage() {
       setIsAnalyzing(false)
     }
   }
+
+  const fetchTotalTokenUsage = async () => {
+    try {
+      if (!user?.id) return
+
+      const response = await fetch(`/api/token-usage?user_id=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setTotalTokenUsage(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch total token usage:', error)
+    }
+  }
+
 
   if (loading) {
     return (
@@ -530,16 +552,46 @@ export default function InstitutionSelfAnalysisPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
+                      {/* Token Usage Display */}
+                      <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Token Usage</h3>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Current Prompt Tokens:</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{currentTokenUsage?.prompt_tokens || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Current Response Tokens:</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{currentTokenUsage?.response_tokens || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Model Used:</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{currentTokenUsage?.model_name || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <Separator className="my-4" />
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Total Prompt Tokens (All Time):</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{totalTokenUsage?.total_prompt_tokens || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-gray-400">Total Response Tokens (All Time):</p>
+                            <p className="font-medium text-gray-900 dark:text-white">{totalTokenUsage?.total_response_tokens || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="space-y-4">
                         {(() => {
                           // Parse the analysis into sections and merge small sections
                           const rawSections = parseAnalysisIntoSections(analysis);
                           const mergedSections = [];
-                          
+
                           for (let i = 0; i < rawSections.length; i++) {
                             const section = rawSections[i];
                             const wordCount = section.content.split(/\s+/).length;
-                            
+
                             // If section has less than 10 words, merge with next section
                             if (wordCount < 10 && i < rawSections.length - 1) {
                               const nextSection = rawSections[i + 1];
@@ -556,7 +608,7 @@ export default function InstitutionSelfAnalysisPage() {
                               mergedSections.push(section);
                             }
                           }
-                          
+
                           return mergedSections.map((section, index) => (
                             <div
                               key={index}
@@ -613,7 +665,7 @@ export default function InstitutionSelfAnalysisPage() {
                             </div>
                           ));
                         })()}
-                        
+
                         {/* Expandable hint */}
                         <div className="flex items-center justify-center mt-6 text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-2">

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
-import { profiles, studentProfiles, userInterests, interests, interestCategories, userSkills, skills, skillCategories, userAchievements, suggestedGoals } from '@/lib/drizzle/schema'
+import { profiles, studentProfiles, userInterests, interests, interestCategories, userSkills, skills, skillCategories, userAchievements, suggestedGoals, tokenUsage } from '@/lib/drizzle/schema'
 import { eq } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -201,9 +201,21 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
     const aiResult = await openaiResponse.json()
     let analysisContent = aiResult.choices[0]?.message?.content
 
+    const promptTokens = aiResult.usage.prompt_tokens;
+    const responseTokens = aiResult.usage.completion_tokens;
+    const modelName = aiResult.model;
+
     if (!analysisContent) {
       throw new Error('No analysis received from AI')
     }
+
+    // Insert token usage into the database
+    await db.insert(tokenUsage).values({
+      userId: user.id,
+      promptTokens: promptTokens,
+      responseTokens: responseTokens,
+      modelName: modelName,
+    })
 
     // Extract suggested goals from the response
     let suggestedGoalsData: any[] = []
@@ -221,7 +233,7 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
         const goalsData = JSON.parse(jsonString)
         console.log('🔍 Parsed goals data:', goalsData);
-        
+
         // Handle both "goals" and "suggested_goals" structures
         const goalsArray = goalsData.goals || goalsData.suggested_goals;
         if (goalsArray && Array.isArray(goalsArray)) {
@@ -230,7 +242,7 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
           // Insert suggested goals into database using Drizzle
           console.log('💾 Inserting suggested goals into database...');
           console.log('🔍 Goals to insert:', suggestedGoalsData);
-          
+
           try {
             const goalsToInsert = suggestedGoalsData.map(goal => ({
               userId: user.id,
@@ -242,7 +254,7 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
             }));
 
             console.log('🔍 Formatted goals for insertion:', goalsToInsert);
-            
+
             const insertResult = await db.insert(suggestedGoals).values(goalsToInsert).returning({ id: suggestedGoals.id });
             currentSessionGoalIds = insertResult.map(goal => goal.id)
             console.log('🔍 Insert result with IDs:', insertResult);
@@ -278,11 +290,33 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
       isCurrentSuggestion: currentSessionGoalIds.includes(goal.id)
     }))
 
+    // Fetch total token usage for the user
+    const totalTokenUsageResult = await db.select({
+      promptTokens: sql`SUM(${tokenUsage.promptTokens})`.mapWith(Number),
+      responseTokens: sql`SUM(${tokenUsage.responseTokens})`.mapWith(Number),
+    })
+      .from(tokenUsage)
+      .where(eq(tokenUsage.userId, user.id));
+
+    const totalPromptTokens = totalTokenUsageResult[0]?.promptTokens || 0;
+    const totalResponseTokens = totalTokenUsageResult[0]?.responseTokens || 0;
+
+
     return NextResponse.json({
       analysis,
-      suggestedGoals: goalsWithSessionInfo, // Send all goals with current session info
-      currentSessionGoalIds, // Also send the current session IDs for reference
-      timestamp: new Date().toISOString()
+      suggestedGoals: goalsWithSessionInfo,
+      currentSessionGoalIds,
+      tokenUsage: {
+        promptTokens,
+        responseTokens,
+        totalTokens: promptTokens + responseTokens,
+        modelName
+      },
+      totalTokenUsage: {
+        totalPromptTokens,
+        totalResponseTokens,
+        totalTokens: totalPromptTokens + totalResponseTokens
+      }
     })
 
   } catch (error) {
