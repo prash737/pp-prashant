@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import { db } from '@/lib/drizzle/client'
 import { profiles, studentProfiles, userInterests, interests, interestCategories, userSkills, skills, skillCategories, userAchievements, suggestedGoals, tokenUsage } from '@/lib/drizzle/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
