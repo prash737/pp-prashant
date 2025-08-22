@@ -212,8 +212,8 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
     // Insert token usage into the database
     await db.insert(tokenUsage).values({
       userId: user.id,
-      promptTokens: promptTokens,
-      responseTokens: responseTokens,
+      promptToken: promptTokens,
+      responseToken: responseTokens,
       modelName: modelName,
     })
 
@@ -292,8 +292,8 @@ Guidelines: Be specific, encouraging, and provide clear next steps using PathPip
 
     // Fetch total token usage for the user
     const totalTokenUsageResult = await db.select({
-      promptTokens: sql`SUM(${tokenUsage.promptTokens})`.mapWith(Number),
-      responseTokens: sql`SUM(${tokenUsage.responseTokens})`.mapWith(Number),
+      promptTokens: sql`SUM(${tokenUsage.promptToken})`.mapWith(Number),
+      responseTokens: sql`SUM(${tokenUsage.responseToken})`.mapWith(Number),
     })
       .from(tokenUsage)
       .where(eq(tokenUsage.userId, user.id));
