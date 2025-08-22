@@ -51,7 +51,7 @@ export async function GET(
     })
 
     // Get suggested goals that have been added (is_added = true)
-    const suggestedGoals = await prisma.suggestedGoals.findMany({
+    const suggestedGoals = await prisma.suggestedGoal.findMany({
       where: {
         userId: studentId,
         isAdded: true
