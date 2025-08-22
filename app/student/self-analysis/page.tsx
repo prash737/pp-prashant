@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink, CheckCircle, Clock, Calendar, Star, Briefcase, GraduationCap, Code, Palette, MessageCircle, Heart, BarChart3 } from "lucide-react"
+import { Brain, Send, Loader2, User, Target, BookOpen, Award, Lightbulb, TrendingUp, Users, Sparkles, Search, UserPlus, ExternalLink, CheckCircle, Clock, Calendar, Star, Briefcase, GraduationCap, Code, Palette, MessageCircle, Heart } from "lucide-react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -27,10 +27,6 @@ interface StudentData {
   educationHistory: any[]
   achievements: any[]
   goals: any[]
-  educationLevel?: string
-  ageGroup?: string
-  personalityType?: string
-  learningStyle?: string
 }
 
 interface SuggestedGoal {
@@ -693,139 +689,108 @@ export default function SelfAnalysisPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column - Profile Summary and Token Usage */}
-              <div className="space-y-6">
-                {/* Profile Summary */}
-                <Card>
+              {/* Profile Summary */}
+              <div className="lg:col-span-1">
+                <Card className="h-fit sticky top-8">
                   <CardHeader>
-                    <CardTitle>📝 Cached Profile Data</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Profile Summary
+                    </CardTitle>
                     <CardDescription>
-                      Your profile information used for analysis
+                      Your cached profile data for analysis
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Personal Info</h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {studentData?.profile?.firstName} {studentData?.profile?.lastName}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {studentData?.educationLevel} • {studentData?.ageGroup?.replace('_', ' ')}
-                        </p>
-                        {studentData?.personalityType && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Personality: {studentData.personalityType}
-                          </p>
-                        )}
-                        {studentData?.learningStyle && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Learning Style: {studentData.learningStyle}
-                          </p>
+                  <CardContent className="space-y-6">
+                    {/* Basic Info */}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2">Basic Information</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {studentData?.profile?.firstName} {studentData?.profile?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">{studentData?.profile?.bio || 'No bio available'}</p>
+                    </div>
+
+                    {/* Interests */}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1">
+                        <Lightbulb className="h-4 w-4" />
+                        Interests ({Array.isArray(studentData?.interests) ? studentData.interests.length : 0})
+                      </h4>
+                      <div className="flex flex-wrap gap-1">
+                        {Array.isArray(studentData?.interests) && studentData.interests.slice(0, 6).map((interest, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {interest.name || interest.interest?.name}
+                          </Badge>
+                        ))}
+                        {Array.isArray(studentData?.interests) && studentData.interests.length > 6 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{studentData.interests.length - 6} more
+                          </Badge>
                         )}
                       </div>
-                      <div>
-                        <h4 className="font-medium mb-2">Academic Background</h4>
-                        {studentData?.profile?.userInterests && studentData.profile.userInterests.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {studentData.profile.userInterests.slice(0, 3).map((interest: any) => (
-                              <Badge key={interest.id} variant="secondary" className="text-xs">
-                                {interest.interest.name}
-                              </Badge>
-                            ))}
-                            {studentData.profile.userInterests.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{studentData.profile.userInterests.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 dark:text-gray-400">No interests added</p>
-                        )}
+                    </div>
 
-                        {studentData?.profile?.userSkills && studentData.profile.userSkills.length > 0 && (
-                          <div className="mt-2">
-                            <p className="text-sm font-medium mb-1">Skills:</p>
-                            <div className="flex flex-wrap gap-1">
-                              {studentData.profile.userSkills.slice(0, 3).map((skill: any) => (
-                                <Badge key={skill.id} variant="outline" className="text-xs">
-                                  {skill.skill.name}
-                                </Badge>
-                              ))}
-                              {studentData.profile.userSkills.length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{studentData.profile.userSkills.length - 3} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                    {/* Skills */}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4" />
+                        Skills ({Array.isArray(studentData?.skills) ? studentData.skills.length : 0})
+                      </h4>
+                      <div className="flex flex-wrap gap-1">
+                        {Array.isArray(studentData?.skills) && studentData.skills.slice(0, 4).map((skill, index) => (
+                          <Badge key={index} variant="default" className="text-xs">
+                            {skill.name || skill.skill?.name}
+                          </Badge>
+                        ))}
+                        {Array.isArray(studentData?.skills) && studentData.skills.length > 4 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{studentData.skills.length - 4} more
+                          </Badge>
                         )}
+                      </div>
+                    </div>
+
+                    {/* Education */}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 flex items-center gap-1">
+                        <BookOpen className="h-4 w-4" />
+                        Education ({Array.isArray(studentData?.educationHistory) ? studentData.educationHistory.length : 0})
+                      </h4>
+                      {Array.isArray(studentData?.educationHistory) && studentData.educationHistory.length > 0 ? (
+                        <div className="space-y-2">
+                          {studentData.educationHistory.slice(0, 2).map((edu, index) => (
+                            <div key={index} className="text-xs">
+                              <p className="font-medium">{edu.institutionName}</p>
+                              <p className="text-gray-500">{edu.degreeProgram}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">No education history added</p>
+                      )}
+                    </div>
+
+                    {/* Goals & Achievements */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1 flex items-center gap-1">
+                          <Target className="h-4 w-4" />
+                          Goals
+                        </h4>
+                        <p className="text-xs text-gray-500">{(studentData?.goals || []).length} goals set</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1 flex items-center gap-1">
+                          <Award className="h-4 w-4" />
+                          Achievements
+                        </h4>
+                        <p className="text-xs text-gray-500">{(studentData?.achievements || []).length} achievements</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Token Usage Section - Fixed Position */}
-                {(currentTokenUsage || totalTokenUsage) && (
-                  <Card className="sticky top-4">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4" />
-                        Token Usage
-                      </CardTitle>
-                      <CardDescription>
-                        Track your AI analysis usage and costs
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {currentTokenUsage && (
-                        <div>
-                          <h4 className="font-medium mb-2 text-blue-700 dark:text-blue-300">Current Analysis</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Prompt Tokens:</span>
-                              <p className="font-mono text-blue-600 dark:text-blue-400">{currentTokenUsage.promptTokens?.toLocaleString() || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Response Tokens:</span>
-                              <p className="font-mono text-green-600 dark:text-green-400">{currentTokenUsage.responseTokens?.toLocaleString() || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Total:</span>
-                              <p className="font-mono text-purple-600 dark:text-purple-400">{currentTokenUsage.totalTokens?.toLocaleString() || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Model:</span>
-                              <p className="font-mono text-gray-600 dark:text-gray-400 text-xs">{currentTokenUsage.modelName || 'N/A'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {totalTokenUsage && (
-                        <div className="border-t pt-4">
-                          <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Total Usage (All Time)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Total Prompt Tokens:</span>
-                              <p className="font-mono text-blue-600 dark:text-blue-400">{totalTokenUsage.totalPromptTokens?.toLocaleString() || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Total Response Tokens:</span>
-                              <p className="font-mono text-green-600 dark:text-green-400">{totalTokenUsage.totalResponseTokens?.toLocaleString() || 0}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Total Tokens:</span>
-                              <p className="font-mono text-purple-600 dark:text-purple-400">{totalTokenUsage.totalTokens?.toLocaleString() || 0}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
               </div>
-
 
               {/* Analysis Interface */}
               <div className="lg:col-span-2 space-y-6">
@@ -1159,6 +1124,70 @@ export default function SelfAnalysisPage() {
                       <li>• Complete your profile sections for more accurate insights</li>
                       <li>• Ask follow-up questions to dive deeper into recommendations</li>
                     </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Token Usage Display */}
+              <div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <span className="text-blue-600">🔢</span>
+                      Token Usage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Current Session Usage */}
+                    {currentTokenUsage && (
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-blue-800 mb-2">Current Analysis</h4>
+                        <div className="space-y-1 text-xs text-blue-700">
+                          <div className="flex justify-between">
+                            <span>Prompt Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.promptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Response Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.responseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-blue-200 pt-1">
+                            <span>Total:</span>
+                            <span className="font-mono">{currentTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            Model: {currentTokenUsage.modelName}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total Usage */}
+                    {totalTokenUsage && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-gray-800 mb-2">Total Usage</h4>
+                        <div className="space-y-1 text-xs text-gray-700">
+                          <div className="flex justify-between">
+                            <span>Total Prompt Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalPromptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Response Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalResponseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-gray-200 pt-1">
+                            <span>Grand Total:</span>
+                            <span className="font-mono">{totalTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!currentTokenUsage && !totalTokenUsage && (
+                      <p className="text-gray-500 text-xs text-center py-4">
+                        Token usage will appear here after analysis
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
