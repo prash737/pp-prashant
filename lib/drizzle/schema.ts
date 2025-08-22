@@ -158,3 +158,12 @@ export const moodBoard = pgTable('mood_board', {
   collectionId: integer('collection_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export const tokenUsage = pgTable('token_usage', {
+  id: serial('id').primaryKey(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  promptToken: integer('prompt_token').notNull(),
+  modelName: text('model_name').notNull(),
+  responseToken: integer('response_token').notNull(),
+  userId: uuid('user_id').notNull(),
+})
