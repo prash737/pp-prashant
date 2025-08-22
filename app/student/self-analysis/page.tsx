@@ -690,7 +690,7 @@ export default function SelfAnalysisPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Profile Summary */}
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 space-y-6">
                 <Card className="h-fit sticky top-8">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -788,6 +788,68 @@ export default function SelfAnalysisPage() {
                         <p className="text-xs text-gray-500">{(studentData?.achievements || []).length} achievements</p>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Token Usage Display */}
+                <Card className="h-fit">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <span className="text-blue-600">🔢</span>
+                      Token Usage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Current Session Usage */}
+                    {currentTokenUsage && (
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-blue-800 mb-2">Current Analysis</h4>
+                        <div className="space-y-1 text-xs text-blue-700">
+                          <div className="flex justify-between">
+                            <span>Prompt Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.promptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Response Tokens:</span>
+                            <span className="font-mono">{currentTokenUsage.responseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-blue-200 pt-1">
+                            <span>Total:</span>
+                            <span className="font-mono">{currentTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            Model: {currentTokenUsage.modelName}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total Usage */}
+                    {totalTokenUsage && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-sm text-gray-800 mb-2">Total Usage</h4>
+                        <div className="space-y-1 text-xs text-gray-700">
+                          <div className="flex justify-between">
+                            <span>Total Prompt Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalPromptTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Response Tokens:</span>
+                            <span className="font-mono">{totalTokenUsage.totalResponseTokens?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between font-medium border-t border-gray-200 pt-1">
+                            <span>Grand Total:</span>
+                            <span className="font-mono">{totalTokenUsage.totalTokens?.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!currentTokenUsage && !totalTokenUsage && (
+                      <p className="text-gray-500 text-xs text-center py-4">
+                        Token usage will appear here after analysis
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -1124,70 +1186,6 @@ export default function SelfAnalysisPage() {
                       <li>• Complete your profile sections for more accurate insights</li>
                       <li>• Ask follow-up questions to dive deeper into recommendations</li>
                     </ul>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Token Usage Display */}
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <span className="text-blue-600">🔢</span>
-                      Token Usage
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Current Session Usage */}
-                    {currentTokenUsage && (
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <h4 className="font-medium text-sm text-blue-800 mb-2">Current Analysis</h4>
-                        <div className="space-y-1 text-xs text-blue-700">
-                          <div className="flex justify-between">
-                            <span>Prompt Tokens:</span>
-                            <span className="font-mono">{currentTokenUsage.promptTokens?.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Response Tokens:</span>
-                            <span className="font-mono">{currentTokenUsage.responseTokens?.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between font-medium border-t border-blue-200 pt-1">
-                            <span>Total:</span>
-                            <span className="font-mono">{currentTokenUsage.totalTokens?.toLocaleString()}</span>
-                          </div>
-                          <div className="text-xs text-blue-600 mt-1">
-                            Model: {currentTokenUsage.modelName}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Total Usage */}
-                    {totalTokenUsage && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-sm text-gray-800 mb-2">Total Usage</h4>
-                        <div className="space-y-1 text-xs text-gray-700">
-                          <div className="flex justify-between">
-                            <span>Total Prompt Tokens:</span>
-                            <span className="font-mono">{totalTokenUsage.totalPromptTokens?.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Total Response Tokens:</span>
-                            <span className="font-mono">{totalTokenUsage.totalResponseTokens?.toLocaleString()}</span>
-                          </div>
-                          <div className="flex justify-between font-medium border-t border-gray-200 pt-1">
-                            <span>Grand Total:</span>
-                            <span className="font-mono">{totalTokenUsage.totalTokens?.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {!currentTokenUsage && !totalTokenUsage && (
-                      <p className="text-gray-500 text-xs text-center py-4">
-                        Token usage will appear here after analysis
-                      </p>
-                    )}
                   </CardContent>
                 </Card>
               </div>
