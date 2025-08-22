@@ -1,5 +1,8 @@
+
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { userSkills, skills, skillCategories, studentProfiles } from '@/lib/drizzle/schema'
+import { eq, and } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
@@ -55,35 +58,33 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Fetching skills for user:', user.id)
 
-    // Get user's current skills with skill details using Prisma
-    const userSkills = await prisma.userSkill.findMany({
-      where: { userId: user.id },
-      include: {
-        skill: {
-          include: {
-            category: {
-              select: {
-                name: true,
-                ageGroup: true
-              }
-            }
-          }
-        }
-      }
-    })
+    // Get user's current skills with skill details using Drizzle
+    const userSkillsData = await db
+      .select({
+        skillId: userSkills.skillId,
+        proficiencyLevel: userSkills.proficiencyLevel,
+        skillId2: skills.id,
+        skillName: skills.name,
+        categoryName: skillCategories.name,
+        categoryAgeGroup: skillCategories.ageGroup,
+      })
+      .from(userSkills)
+      .innerJoin(skills, eq(userSkills.skillId, skills.id))
+      .innerJoin(skillCategories, eq(skills.categoryId, skillCategories.id))
+      .where(eq(userSkills.userId, user.id))
 
-    console.log('✅ Found', userSkills.length, 'skills for user')
+    console.log('✅ Found', userSkillsData.length, 'skills for user')
 
     // Transform to match the expected format
-    const transformedSkills = userSkills.map(userSkill => ({
+    const transformedSkills = userSkillsData.map(userSkill => ({
       skill_id: userSkill.skillId,
       proficiency_level: userSkill.proficiencyLevel,
       skills: {
-        id: userSkill.skill.id,
-        name: userSkill.skill.name,
+        id: userSkill.skillId2,
+        name: userSkill.skillName,
         skill_categories: {
-          name: userSkill.skill.category.name,
-          age_group: userSkill.skill.category.ageGroup
+          name: userSkill.categoryName,
+          age_group: userSkill.categoryAgeGroup
         }
       }
     }))
@@ -145,13 +146,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const { skills } = await request.json()
+    const { skills: skillsToSave } = await request.json()
 
-    if (!Array.isArray(skills)) {
+    if (!Array.isArray(skillsToSave)) {
       return NextResponse.json({ error: 'Skills must be an array' }, { status: 400 })
     }
 
-    console.log('💾 Saving skills for user:', user.id, 'Skills count:', skills.length)
+    console.log('💾 Saving skills for user:', user.id, 'Skills count:', skillsToSave.length)
     console.log('🔍 Full user object keys:', Object.keys(user))
     console.log('🔍 User student profile:', user.studentProfile)
 
@@ -161,11 +162,13 @@ export async function POST(request: NextRequest) {
     // If no age group found, try to fetch from database
     if (!ageGroup && user.id) {
       try {
-        const studentProfile = await prisma.studentProfile.findUnique({
-          where: { id: user.id },
-          select: { ageGroup: true }
-        })
-        ageGroup = studentProfile?.ageGroup
+        const studentProfile = await db
+          .select({ ageGroup: studentProfiles.ageGroup })
+          .from(studentProfiles)
+          .where(eq(studentProfiles.id, user.id))
+          .limit(1)
+        
+        ageGroup = studentProfile[0]?.ageGroup
         console.log('🔍 Fetched age group from database:', ageGroup)
       } catch (error) {
         console.log('⚠️ Could not fetch age group from database:', error)
@@ -185,86 +188,91 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Using age group:', ageGroup)
 
     // Get available skills for user's current age group
-    const availableSkills = await prisma.skill.findMany({
-      where: {
-        category: {
-          ageGroup: ageGroup as any
-        }
-      },
-      select: {
-        id: true,
-        name: true
-      }
-    })
+    const availableSkillsData = await db
+      .select({
+        id: skills.id,
+        name: skills.name,
+      })
+      .from(skills)
+      .innerJoin(skillCategories, eq(skills.categoryId, skillCategories.id))
+      .where(eq(skillCategories.ageGroup, ageGroup as any))
 
-    const availableSkillIds = availableSkills.map(skill => skill.id)
-    const availableSkillNamesMap = new Map(availableSkills.map(skill => [skill.name, skill.id]))
+    const availableSkillIds = availableSkillsData.map(skill => skill.id)
+    const availableSkillNamesMap = new Map(availableSkillsData.map(skill => [skill.name, skill.id]))
 
     // Get or create custom skill category for this age group
-    let customSkillCategory = await prisma.skillCategory.findFirst({
-      where: {
-        name: 'Custom',
-        ageGroup: ageGroup as any
-      }
-    })
+    let customSkillCategory = await db
+      .select()
+      .from(skillCategories)
+      .where(and(
+        eq(skillCategories.name, 'Custom'),
+        eq(skillCategories.ageGroup, ageGroup as any)
+      ))
+      .limit(1)
 
-    if (!customSkillCategory) {
-      customSkillCategory = await prisma.skillCategory.create({
-        data: {
+    if (!customSkillCategory.length) {
+      const newCustomCategory = await db
+        .insert(skillCategories)
+        .values({
           name: 'Custom',
           ageGroup: ageGroup as any
-        }
-      })
+        })
+        .returning()
+      
+      customSkillCategory = newCustomCategory
       console.log('✅ Created custom skill category for age group:', ageGroup)
     }
 
     // Process custom skills (those without IDs) and create them in database
-    for (const skill of skills) {
+    for (const skill of skillsToSave) {
       if (!skill.id && !availableSkillNamesMap.has(skill.name)) {
         console.log('🔍 Processing custom skill:', skill.name)
 
         // Check if this custom skill already exists
-        const existingCustomSkill = await prisma.skill.findFirst({
-          where: {
-            name: skill.name,
-            categoryId: customSkillCategory.id
-          }
-        })
+        const existingCustomSkill = await db
+          .select()
+          .from(skills)
+          .where(and(
+            eq(skills.name, skill.name),
+            eq(skills.categoryId, customSkillCategory[0].id)
+          ))
+          .limit(1)
 
-        if (!existingCustomSkill) {
+        if (!existingCustomSkill.length) {
           // Create the custom skill
-          const newCustomSkill = await prisma.skill.create({
-            data: {
+          const newCustomSkill = await db
+            .insert(skills)
+            .values({
               name: skill.name,
-              categoryId: customSkillCategory.id
-            }
-          })
+              categoryId: customSkillCategory[0].id
+            })
+            .returning()
 
           // Add to our maps so it can be processed normally
-          availableSkillIds.push(newCustomSkill.id)
-          availableSkillNamesMap.set(skill.name, newCustomSkill.id)
-          console.log('✅ Created custom skill:', skill.name, 'with ID:', newCustomSkill.id)
+          availableSkillIds.push(newCustomSkill[0].id)
+          availableSkillNamesMap.set(skill.name, newCustomSkill[0].id)
+          console.log('✅ Created custom skill:', skill.name, 'with ID:', newCustomSkill[0].id)
         } else {
           // Add existing custom skill to our maps
-          availableSkillIds.push(existingCustomSkill.id)
-          availableSkillNamesMap.set(skill.name, existingCustomSkill.id)
-          console.log('✅ Found existing custom skill:', skill.name, 'with ID:', existingCustomSkill.id)
+          availableSkillIds.push(existingCustomSkill[0].id)
+          availableSkillNamesMap.set(skill.name, existingCustomSkill[0].id)
+          console.log('✅ Found existing custom skill:', skill.name, 'with ID:', existingCustomSkill[0].id)
         }
       }
     }
 
     // Now all skills (including newly created custom ones) should be valid
-    const validSkills = skills.filter(skill => {
+    const validSkills = skillsToSave.filter(skill => {
       const hasValidId = skill.id && availableSkillIds.includes(skill.id)
       const hasValidName = skill.name && availableSkillNamesMap.has(skill.name)
       const isCustomSkill = !skill.id && skill.name && skill.name.trim().length > 0
       
       return hasValidId || hasValidName || isCustomSkill
     })
-    console.log('🔍 Processing skills for age group', ageGroup, '. Valid:', validSkills.length, 'out of', skills.length)
+    console.log('🔍 Processing skills for age group', ageGroup, '. Valid:', validSkills.length, 'out of', skillsToSave.length)
     
     // Log details about skill validation
-    skills.forEach(skill => {
+    skillsToSave.forEach(skill => {
       const hasValidId = skill.id && availableSkillIds.includes(skill.id)
       const hasValidName = skill.name && availableSkillNamesMap.has(skill.name)
       const isCustomSkill = !skill.id && skill.name && skill.name.trim().length > 0
@@ -272,24 +280,23 @@ export async function POST(request: NextRequest) {
     })
 
     // Get currently saved user skills
-    const currentUserSkills = await prisma.userSkill.findMany({
-      where: { userId: user.id },
-      include: { 
-        skill: { 
-          select: { 
-            name: true, 
-            id: true 
-          } 
-        } 
-      }
-    })
+    const currentUserSkillsData = await db
+      .select({
+        id: userSkills.id,
+        skillId: userSkills.skillId,
+        proficiencyLevel: userSkills.proficiencyLevel,
+        skillName: skills.name,
+      })
+      .from(userSkills)
+      .innerJoin(skills, eq(userSkills.skillId, skills.id))
+      .where(eq(userSkills.userId, user.id))
 
-    const currentSkillsMap = new Map(currentUserSkills.map(us => [
-      us.skill.name, 
-      { id: us.skill.id, level: us.proficiencyLevel }
+    const currentSkillsMap = new Map(currentUserSkillsData.map(us => [
+      us.skillName, 
+      { id: us.skillId, level: us.proficiencyLevel }
     ]))
 
-    console.log('🔍 Current saved skills:', currentUserSkills.length, Array.from(currentSkillsMap.keys()))
+    console.log('🔍 Current saved skills:', currentUserSkillsData.length, Array.from(currentSkillsMap.keys()))
     console.log('🔍 New skills to save:', validSkills.length, validSkills.map(s => s.name))
 
     // Find skills to add (in new list but not in current)
@@ -321,9 +328,7 @@ export async function POST(request: NextRequest) {
         .filter(Boolean) as { userId: string; skillId: number; proficiencyLevel: number }[]
 
       if (userSkillData.length > 0) {
-        await prisma.userSkill.createMany({
-          data: userSkillData
-        })
+        await db.insert(userSkills).values(userSkillData)
         console.log('✅ Added', userSkillData.length, 'new skills')
       }
     }
@@ -333,15 +338,13 @@ export async function POST(request: NextRequest) {
       for (const skill of skillsToUpdate) {
         const skillId = skill.id || availableSkillNamesMap.get(skill.name)
         if (skillId) {
-          await prisma.userSkill.updateMany({
-            where: {
-              userId: user.id,
-              skillId: skillId
-            },
-            data: {
-              proficiencyLevel: skill.level || 1
-            }
-          })
+          await db
+            .update(userSkills)
+            .set({ proficiencyLevel: skill.level || 1 })
+            .where(and(
+              eq(userSkills.userId, user.id),
+              eq(userSkills.skillId, skillId)
+            ))
         }
       }
       console.log('🔄 Updated', skillsToUpdate.length, 'skill proficiency levels')
@@ -350,7 +353,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ All skills processed successfully, including custom skills')
 
     // Log filtered out skills (those not valid for current age group)
-    const filteredOutSkills = skills.filter(skill => !validSkills.includes(skill))
+    const filteredOutSkills = skillsToSave.filter(skill => !validSkills.includes(skill))
     if (filteredOutSkills.length > 0) {
       console.log('❌ Skills filtered out (not valid for age group', ageGroup, '):', filteredOutSkills.map(s => s.name))
     }
