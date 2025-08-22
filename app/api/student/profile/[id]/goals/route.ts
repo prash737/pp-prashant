@@ -63,7 +63,10 @@ export async function GET(
 
     // Combine both goal types into a single array
     const allGoals = [
-      ...goals,
+      ...goals.map(g => ({
+        ...g,
+        isSuggested: false
+      })),
       ...suggestedGoals.map(sg => ({
         id: sg.id,
         title: sg.title,

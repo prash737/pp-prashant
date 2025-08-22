@@ -16,6 +16,7 @@ interface Goal {
   description: string
   category: string
   timeframe: string
+  isSuggested?: boolean
 }
 
 interface GoalsAspirationsFormProps {
@@ -128,11 +129,51 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
   }
 
   const handleRemoveGoal = async (id: number | string) => {
+    const goalToRemove = goals.find(goal => goal.id === id)
     const updatedGoals = goals.filter(goal => goal.id !== id)
     setGoals(updatedGoals)
 
-    // Auto-save to database
-    await saveGoalsToDatabase(updatedGoals)
+    // Handle deletion based on goal type
+    try {
+      if (goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
+        // Delete suggested goal
+        const response = await fetch(`/api/suggested-goals/${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to delete suggested goal:', errorData)
+          throw new Error(errorData.error || 'Failed to delete suggested goal')
+        }
+
+        toast.success('Suggested goal removed successfully!')
+      } else if (!goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
+        // Delete regular goal
+        const response = await fetch(`/api/goals/${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to delete regular goal:', errorData)
+          throw new Error(errorData.error || 'Failed to delete goal')
+        }
+
+        toast.success('Goal removed successfully!')
+      } else {
+        // For client-side only goals (negative IDs), just update the list
+        await saveGoalsToDatabase(updatedGoals)
+      }
+    } catch (error) {
+      console.error('Error removing goal:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to remove goal')
+
+      // Revert the goals state on error
+      await fetchGoalsFromDatabase()
+    }
   }
 
   const handleCancel = () => {
@@ -152,24 +193,54 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
       setIsSaving(true)
       console.log('💾 Auto-saving goals:', goalsToSave)
 
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ goals: goalsToSave }),
-      })
+      // Separate regular goals from suggested goals
+      const regularGoals = goalsToSave.filter(goal => !goal.isSuggested)
+      const suggestedGoals = goalsToSave.filter(goal => goal.isSuggested)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Failed to save goals:', errorData)
-        throw new Error(errorData.error || 'Failed to save goals')
+      // Save regular goals
+      if (regularGoals.length > 0) {
+        const response = await fetch('/api/goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ goals: regularGoals }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to save regular goals:', errorData)
+          throw new Error(errorData.error || 'Failed to save goals')
+        }
       }
 
-      const result = await response.json()
-      console.log('✅ Goals auto-saved successfully:', result)
+      // Update suggested goals individually
+      for (const suggestedGoal of suggestedGoals) {
+        if (typeof suggestedGoal.id === 'number' && suggestedGoal.id > 0) {
+          const response = await fetch(`/api/suggested-goals/${suggestedGoal.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: suggestedGoal.title,
+              description: suggestedGoal.description,
+              category: suggestedGoal.category,
+              timeframe: suggestedGoal.timeframe,
+            }),
+          })
 
+          if (!response.ok) {
+            const errorData = await response.json()
+            console.error('Failed to update suggested goal:', errorData)
+            throw new Error(errorData.error || 'Failed to update suggested goal')
+          }
+        }
+      }
+
+      console.log('✅ Goals auto-saved successfully!')
       toast.success('Goal saved successfully!')
     } catch (error) {
       console.error('Error saving goals:', error)
