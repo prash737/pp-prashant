@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Plus, X, Calendar, Target, Edit, Loader2 } from "lucide-react"
+import { Plus, X, Calendar, Target, Edit, Loader2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { useAuth } from '@/hooks/use-auth'
+import { useToast } from '@/hooks/use-toast'
 
 interface Goal {
   id: number | string
@@ -17,6 +21,8 @@ interface Goal {
   category: string
   timeframe: string
   isSuggested?: boolean
+  createdAt?: string
+  created_at?: string
 }
 
 interface GoalsAspirationsFormProps {
@@ -29,37 +35,69 @@ const TIMEFRAMES = ["1 month", "3 months", "6 months", "1 year", "2+ years", "On
 
 export default function GoalsAspirationsForm({ data, onChange }: GoalsAspirationsFormProps) {
   const [goals, setGoals] = useState<Goal[]>([])
+  const [originalGoals, setOriginalGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
   const [isAddingGoal, setIsAddingGoal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [newGoal, setNewGoal] = useState<Goal>({
+  const [hasChanges, setHasChanges] = useState(false)
+  const { user } = useAuth()
+  const { toast } = useToast()
+
+  const newGoal: Goal = {
     id: "",
     title: "",
     description: "",
     category: "",
     timeframe: "",
-  })
+  }
 
   // Fetch existing goals from database
   useEffect(() => {
     const fetchGoals = async () => {
+      if (!user?.id) return
+
       try {
         setLoading(true)
-        const response = await fetch('/api/goals', {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store'
+
+        // Fetch both regular goals and suggested goals
+        const [goalsResponse, suggestedGoalsResponse] = await Promise.all([
+          fetch('/api/goals'),
+          fetch('/api/suggested-goals')
+        ])
+
+        let allGoals = []
+
+        if (goalsResponse.ok) {
+          const goalsData = await goalsResponse.json()
+          const regularGoals = (goalsData.goals || []).filter(goal => !goal.isSuggested)
+          allGoals = [...allGoals, ...regularGoals]
+        } else {
+          console.error('Failed to fetch regular goals:', await goalsResponse.text())
+        }
+
+        if (suggestedGoalsResponse.ok) {
+          const suggestedData = await suggestedGoalsResponse.json()
+          const suggestedGoals = (suggestedData.suggestedGoals || []).map(goal => ({
+            ...goal,
+            isSuggested: true,
+            id: goal.id || goal.created_at || String(Date.now() + Math.random()), // Ensure a unique ID
+            // suggested goals don't have completed status or timeframe/category set initially
+          }))
+          allGoals = [...allGoals, ...suggestedGoals]
+        } else {
+          console.error('Failed to fetch suggested goals:', await suggestedGoalsResponse.text())
+        }
+
+        // Sort by creation date (newest first)
+        allGoals.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.created_at || 0)
+          const dateB = new Date(b.createdAt || b.created_at || 0)
+          return dateB.getTime() - dateA.getTime()
         })
 
-        if (response.ok) {
-          const data = await response.json()
-          const existingGoals = data.goals || []
-          console.log('📊 Loaded existing goals:', existingGoals)
-          setGoals(existingGoals)
-        } else {
-          console.error('Failed to fetch goals:', await response.text())
-        }
+        setGoals(allGoals)
+        setOriginalGoals([...allGoals])
       } catch (error) {
         console.error('Error fetching goals:', error)
         toast.error('Failed to load goals')
@@ -69,205 +107,165 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
     }
 
     fetchGoals()
-  }, [])
+  }, [user?.id, toast])
 
   // Pass goals data back to parent component whenever goals change
   useEffect(() => {
-    onChange('goals', goals)
-  }, [goals, onChange])
+    if (!loading) {
+      onChange('goals', goals)
+    }
+  }, [goals, onChange, loading])
 
-  const handleInputChange = (field: keyof Goal, value: string) => {
-    if (editingGoal) {
-      setEditingGoal(prev => prev ? { ...prev, [field]: value } : null)
-    } else {
-      setNewGoal(prev => ({ ...prev, [field]: value }))
+  const updateGoal = (index: number, field: keyof Goal, value: string) => {
+    const updatedGoals = [...goals]
+    updatedGoals[index] = { ...updatedGoals[index], [field]: value }
+    setGoals(updatedGoals)
+    setHasChanges(true)
+  }
+
+  const removeGoal = async (index: number) => {
+    const goalToRemove = goals[index]
+    const updatedGoals = goals.filter((_, i) => i !== index)
+    setGoals(updatedGoals)
+    setHasChanges(true)
+
+    // Optimistic UI update, revert if API call fails
+    try {
+      let response
+      if (goalToRemove.isSuggested) {
+        if (typeof goalToRemove.id === 'number' && goalToRemove.id > 0) {
+          response = await fetch(`/api/suggested-goals/${goalToRemove.id}`, { method: 'DELETE', credentials: 'include' })
+        } else {
+          // If it's a locally added suggested goal, just remove it from state
+          toast.success('Suggested goal removed.')
+          return
+        }
+      } else {
+        if (typeof goalToRemove.id === 'number' && goalToRemove.id > 0) {
+          response = await fetch(`/api/goals/${goalToRemove.id}`, { method: 'DELETE', credentials: 'include' })
+        } else {
+          // If it's a locally added regular goal, just remove it from state
+          toast.success('Goal removed.')
+          return
+        }
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `Failed to delete ${goalToRemove.isSuggested ? 'suggested goal' : 'goal'}`)
+      }
+      toast.success(`${goalToRemove.isSuggested ? 'Suggested goal' : 'Goal'} removed successfully!`)
+    } catch (error) {
+      console.error('Error removing goal:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to remove goal')
+      // Revert state if deletion failed
+      setGoals([...goals, goalToRemove])
     }
   }
 
-  const handleAddGoal = async () => {
-    if (!newGoal.title.trim()) return
-
-    const goalToAdd = {
+  const handleAddGoal = () => {
+    const goalToAdd: Goal = {
       ...newGoal,
-      id: -Date.now(), // Use negative number for temporary client-side IDs
+      id: `temp-${Date.now()}`, // Temporary ID for new goals
+      isSuggested: false, // Default to not suggested
     }
-
-    const updatedGoals = [...goals, goalToAdd]
-    setGoals(updatedGoals)
-
-    // Auto-save to database
-    await saveGoalsToDatabase(updatedGoals)
-
-    setNewGoal({
-      id: "",
-      title: "",
-      description: "",
-      category: "",
-      timeframe: "",
-    })
-    setIsAddingGoal(false)
+    setGoals([goalToAdd, ...goals])
+    setEditingGoal(goalToAdd)
+    setIsAddingGoal(true)
+    setHasChanges(true)
   }
 
   const handleEditGoal = (goal: Goal) => {
-    setEditingGoal({ ...goal })
+    setEditingGoal(goal)
     setIsAddingGoal(true)
   }
 
   const handleSaveEdit = async () => {
-    if (!editingGoal?.title.trim()) return
+    if (!editingGoal) return
 
-    const updatedGoals = goals.map(goal => 
+    if (!editingGoal.title.trim()) {
+      toast.error("Goal title cannot be empty.")
+      return
+    }
+
+    const updatedGoals = goals.map(goal =>
       goal.id === editingGoal.id ? editingGoal : goal
     )
     setGoals(updatedGoals)
-
-    // Auto-save to database
-    await saveGoalsToDatabase(updatedGoals)
-
     setEditingGoal(null)
     setIsAddingGoal(false)
-  }
-
-  const handleRemoveGoal = async (id: number | string) => {
-    const goalToRemove = goals.find(goal => goal.id === id)
-    const updatedGoals = goals.filter(goal => goal.id !== id)
-    setGoals(updatedGoals)
-
-    // Handle deletion based on goal type
-    try {
-      if (goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
-        // Delete suggested goal
-        const response = await fetch(`/api/suggested-goals/${id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Failed to delete suggested goal:', errorData)
-          throw new Error(errorData.error || 'Failed to delete suggested goal')
-        }
-
-        toast.success('Suggested goal removed successfully!')
-      } else if (!goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
-        // Delete regular goal
-        const response = await fetch(`/api/goals/${id}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Failed to delete regular goal:', errorData)
-          throw new Error(errorData.error || 'Failed to delete goal')
-        }
-
-        toast.success('Goal removed successfully!')
-      } else {
-        // For client-side only goals (negative IDs), just update the list
-        await saveGoalsToDatabase(updatedGoals)
-      }
-    } catch (error) {
-      console.error('Error removing goal:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to remove goal')
-
-      // Revert the goals state on error
-      await fetchGoalsFromDatabase()
-    }
+    setHasChanges(true)
   }
 
   const handleCancel = () => {
     setIsAddingGoal(false)
     setEditingGoal(null)
-    setNewGoal({
-      id: "",
-      title: "",
-      description: "",
-      category: "",
-      timeframe: "",
-    })
+    // Optionally revert changes if cancel is clicked on an edit
+    // setGoals(originalGoals)
+    // setHasChanges(false)
   }
 
-  const saveGoalsToDatabase = async (goalsToSave: Goal[]) => {
+  const handleSave = async () => {
+    if (!user?.id) return
+
     try {
       setIsSaving(true)
-      console.log('💾 Auto-saving goals:', goalsToSave)
 
-      // Separate regular goals from suggested goals
-      const regularGoals = goalsToSave.filter(goal => !goal.isSuggested)
-      const suggestedGoals = goalsToSave.filter(goal => goal.isSuggested)
+      // Separate regular goals and suggested goals
+      const regularGoals = goals.filter(goal => !goal.isSuggested)
+      const suggestedGoalsList = goals.filter(goal => goal.isSuggested)
 
-      // Save regular goals
+      let regularGoalsResult = null
+      let suggestedGoalsResult = null
+
+      // Save regular goals if any
       if (regularGoals.length > 0) {
-        const response = await fetch('/api/goals', {
+        const regularGoalsResponse = await fetch('/api/goals', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include',
           body: JSON.stringify({ goals: regularGoals }),
         })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          console.error('Failed to save regular goals:', errorData)
-          throw new Error(errorData.error || 'Failed to save goals')
+        if (regularGoalsResponse.ok) {
+          regularGoalsResult = await regularGoalsResponse.json()
+        } else {
+          const error = await regularGoalsResponse.json()
+          throw new Error(error.error || 'Failed to save regular goals')
         }
       }
 
-      // Update suggested goals individually
-      for (const suggestedGoal of suggestedGoals) {
-        if (typeof suggestedGoal.id === 'number' && suggestedGoal.id > 0) {
-          const response = await fetch(`/api/suggested-goals/${suggestedGoal.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              title: suggestedGoal.title,
-              description: suggestedGoal.description,
-              category: suggestedGoal.category,
-              timeframe: suggestedGoal.timeframe,
-            }),
-          })
+      // Save suggested goals if any
+      if (suggestedGoalsList.length > 0) {
+        const suggestedGoalsResponse = await fetch('/api/suggested-goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ suggestedGoals: suggestedGoalsList }),
+        })
 
-          if (!response.ok) {
-            const errorData = await response.json()
-            console.error('Failed to update suggested goal:', errorData)
-            throw new Error(errorData.error || 'Failed to update suggested goal')
-          }
+        if (suggestedGoalsResponse.ok) {
+          suggestedGoalsResult = await suggestedGoalsResponse.json()
+        } else {
+          const error = await suggestedGoalsResponse.json()
+          throw new Error(error.error || 'Failed to save suggested goals')
         }
       }
 
-      console.log('✅ Goals auto-saved successfully!')
-      toast.success('Goal saved successfully!')
+      const totalOperations = (regularGoalsResult?.operations || 0) + (suggestedGoalsResult?.operations || 0)
+
+      toast.success(`Goals updated successfully. ${totalOperations} changes made.`)
+
+      setHasChanges(false)
+      setOriginalGoals([...goals]) // Update original goals after successful save
+
     } catch (error) {
       console.error('Error saving goals:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to save goal')
-
-      // Revert the goals state on error
-      await fetchGoalsFromDatabase()
+      toast.error(error instanceof Error ? error.message : "Failed to save goals")
     } finally {
       setIsSaving(false)
-    }
-  }
-
-  const fetchGoalsFromDatabase = async () => {
-    try {
-      const response = await fetch('/api/goals', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        const existingGoals = data.goals || []
-        setGoals(existingGoals)
-      }
-    } catch (error) {
-      console.error('Error fetching goals:', error)
     }
   }
 
@@ -314,13 +312,26 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                 <Label htmlFor="title" className="text-gray-700 dark:text-gray-300">
                   Goal Title <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="title"
-                  value={currentGoal.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  placeholder="e.g., Learn Python Programming"
-                  className="mt-1"
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="title"
+                    value={currentGoal.title}
+                    onChange={(e) => {
+                      if (editingGoal) {
+                        setEditingGoal({ ...editingGoal, title: e.target.value })
+                      } else {
+                        setNewGoal({ ...newGoal, title: e.target.value })
+                      }
+                    }}
+                    placeholder="e.g., Learn Python Programming"
+                    className="mt-1"
+                  />
+                  {editingGoal && editingGoal.isSuggested && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                      AI Suggested
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -330,7 +341,13 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                 <Textarea
                   id="description"
                   value={currentGoal.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  onChange={(e) => {
+                    if (editingGoal) {
+                      setEditingGoal({ ...editingGoal, description: e.target.value })
+                    } else {
+                      setNewGoal({ ...newGoal, description: e.target.value })
+                    }
+                  }}
                   placeholder="Describe your goal in more detail..."
                   className="mt-1 h-24"
                 />
@@ -341,7 +358,13 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                   <Label className="text-gray-700 dark:text-gray-300">Category</Label>
                   <Select
                     value={currentGoal.category}
-                    onValueChange={(value) => handleInputChange('category', value)}
+                    onValueChange={(value) => {
+                      if (editingGoal) {
+                        setEditingGoal({ ...editingGoal, category: value })
+                      } else {
+                        setNewGoal({ ...newGoal, category: value })
+                      }
+                    }}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select a category" />
@@ -360,7 +383,13 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                   <Label className="text-gray-700 dark:text-gray-300">Timeframe</Label>
                   <Select
                     value={currentGoal.timeframe}
-                    onValueChange={(value) => handleInputChange('timeframe', value)}
+                    onValueChange={(value) => {
+                      if (editingGoal) {
+                        setEditingGoal({ ...editingGoal, timeframe: value })
+                      } else {
+                        setNewGoal({ ...newGoal, timeframe: value })
+                      }
+                    }}
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select a timeframe" />
@@ -387,7 +416,7 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                 <Button
                   type="button"
                   onClick={editingGoal ? handleSaveEdit : handleAddGoal}
-                  disabled={!currentGoal.title.trim()}
+                  disabled={!currentGoal.title.trim() || isSaving}
                   className="bg-pathpiper-teal hover:bg-pathpiper-teal/90"
                 >
                   {editingGoal ? 'Save Changes' : 'Add Goal'}
@@ -404,7 +433,7 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
             {!isAddingGoal && (
               <Button
                 type="button"
-                onClick={() => setIsAddingGoal(true)}
+                onClick={handleAddGoal}
                 className="bg-pathpiper-teal hover:bg-pathpiper-teal/90"
               >
                 <Plus size={16} className="mr-2" />
@@ -422,7 +451,7 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
               </p>
               <Button
                 type="button"
-                onClick={() => setIsAddingGoal(true)}
+                onClick={handleAddGoal}
                 className="bg-pathpiper-teal hover:bg-pathpiper-teal/90"
               >
                 Add Your First Goal
@@ -430,75 +459,90 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
             </div>
           ) : (
             <div className="space-y-4">
-              {goals.map((goal) => (
-                <div key={goal.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-grow">
-                      <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">{goal.title}</h4>
-                      <div className="flex items-center text-sm text-gray-500 space-x-4 mb-2">
-                        {goal.category && (
-                          <span className="flex items-center">
-                            <Target size={14} className="mr-1" />
-                            {goal.category}
-                          </span>
-                        )}
-                        {goal.timeframe && (
-                          <span className="flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            {goal.timeframe}
-                          </span>
-                        )}
+              {goals.map((goal, index) => (
+                <Card key={goal.id || index} className={`p-4 ${goal.isSuggested ? 'border-green-200 bg-green-50 dark:bg-green-900/10' : ''}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="Goal title"
+                            value={goal.title}
+                            onChange={(e) => updateGoal(index, 'title', e.target.value)}
+                            className="font-semibold"
+                          />
+                          {goal.isSuggested && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                              AI Suggested
+                            </Badge>
+                          )}
+                        </div>
+                        <Textarea
+                          placeholder="Describe your goal in detail..."
+                          value={goal.description || ''}
+                          onChange={(e) => updateGoal(index, 'description', e.target.value)}
+                          className="resize-none"
+                          rows={2}
+                        />
                       </div>
-                      {goal.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{goal.description}</p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2 ml-4">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditGoal(goal)}
-                        className="text-gray-400 hover:text-pathpiper-teal"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <X size={16} />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Goal</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{goal.title}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleRemoveGoal(goal.id)}
-                              className="bg-red-500 hover:bg-red-600"
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditGoal(goal)}
+                          className="text-gray-400 hover:text-pathpiper-teal"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-400 hover:text-red-500"
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 size={16} />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Goal</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{goal.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => removeGoal(index)}
+                                className="bg-red-500 hover:bg-red-600"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
         </div>
+
+        {hasChanges && !isSaving && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <Button
+              onClick={handleSave}
+              className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shadow-lg"
+            >
+              Save All Changes
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
