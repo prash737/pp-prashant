@@ -502,6 +502,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   );
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
+  const [circles, setCircles] = useState<Circle[]>(initialCircles);
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
@@ -577,6 +578,11 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
 
     fetchData();
   }, [student?.id, isViewMode]); // Dependencies for re-fetching
+
+  // Update circles state when initialCircles prop changes
+  useEffect(() => {
+    setCircles(initialCircles);
+  }, [initialCircles]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -752,7 +758,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                 currentUserId={student?.id} // Pass student ID if available, otherwise fallback
                 isViewMode={isViewMode}
                 studentId={student?.id}
-                circles={circles || []} // Use circles from props
+                circles={circles} // Use circles from state
                 loading={loading} // Pass loading state
                 onCirclesUpdate={() => {}} // No-op since circles come from main API
               />

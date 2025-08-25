@@ -294,7 +294,7 @@ export default function StudentProfile({
           {activeTab === "circle" && (
             <CircleView 
               student={student} 
-              circles={circles}
+              circles={circles || []}
               isViewMode={isViewMode} 
             />
           )}
