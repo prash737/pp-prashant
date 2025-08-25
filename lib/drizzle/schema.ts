@@ -133,11 +133,12 @@ export const suggestedGoals = pgTable('suggested_goals', {
   id: serial('id').primaryKey(),
   userId: uuid('user_id').notNull(),
   title: text('title').notNull(),
-  description: text('description').notNull(),
-  category: text('category').notNull(),
-  timeframe: text('timeframe').notNull(),
+  description: text('description'),
+  category: text('category'),
+  timeframe: text('timeframe'),
   isAdded: boolean('is_added').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const userCollections = pgTable('user_collections', {
