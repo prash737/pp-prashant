@@ -78,12 +78,14 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
 
         if (suggestedGoalsResponse.ok) {
           const suggestedData = await suggestedGoalsResponse.json()
-          const suggestedGoals = (suggestedData.suggestedGoals || []).map(goal => ({
-            ...goal,
-            isSuggested: true,
-            id: goal.id || goal.created_at || String(Date.now() + Math.random()), // Ensure a unique ID
-            // suggested goals don't have completed status or timeframe/category set initially
-          }))
+          const suggestedGoals = (suggestedData.suggestedGoals || [])
+            .filter(goal => goal.isAdded === true) // Only show suggested goals that are added
+            .map(goal => ({
+              ...goal,
+              isSuggested: true,
+              id: goal.id || goal.created_at || String(Date.now() + Math.random()), // Ensure a unique ID
+              // suggested goals don't have completed status or timeframe/category set initially
+            }))
           allGoals = [...allGoals, ...suggestedGoals]
         } else {
           console.error('Failed to fetch suggested goals:', await suggestedGoalsResponse.text())
