@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { goals, suggestedGoals } from '@/lib/drizzle/schema'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { eq, desc } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -22,40 +24,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Check if Goal model exists
-    if (!prisma.goal) {
-      console.error('Goal model not found in Prisma client')
-      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
-    }
-
-    // Fetch user's goals using Prisma
-    const goals = await prisma.goal.findMany({
-      where: {
-        userId: user.id
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    // Fetch user's goals using Drizzle
+    const userGoals = await db.select().from(goals)
+      .where(eq(goals.userId, user.id))
+      .orderBy(desc(goals.createdAt))
 
     // Fetch suggested goals that have been added (is_added = true)
-    const suggestedGoals = await prisma.suggestedGoal.findMany({
-      where: {
-        userId: user.id,
-        isAdded: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    const userSuggestedGoals = await db.select().from(suggestedGoals)
+      .where(eq(suggestedGoals.userId, user.id) && eq(suggestedGoals.isAdded, true))
+      .orderBy(desc(suggestedGoals.createdAt))
 
     // Combine both goal types into a single array
     const allGoals = [
-      ...goals.map(g => ({
+      ...userGoals.map(g => ({
         ...g,
         isSuggested: false
       })),
-      ...suggestedGoals.map(sg => ({
+      ...userSuggestedGoals.map(sg => ({
         id: sg.id,
         title: sg.title,
         description: sg.description,
@@ -94,28 +79,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    const { goals } = await request.json()
+    const { goals: goalsList } = await request.json()
 
-    if (!Array.isArray(goals)) {
+    if (!Array.isArray(goalsList)) {
       return NextResponse.json({ error: 'Goals must be an array' }, { status: 400 })
     }
 
-    // Check if Goal model exists
-    if (!prisma.goal) {
-      console.error('Goal model not found in Prisma client')
-      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
-    }
-
-    // Get existing goals from database
-    const existingGoals = await prisma.goal.findMany({
-      where: {
-        userId: user.id
-      }
-    })
+    // Get existing goals from database using Drizzle
+    const existingGoals = await db.select().from(goals)
+      .where(eq(goals.userId, user.id))
 
     // Separate new goals (negative IDs) from existing goals (positive IDs)
-    const newGoals = goals.filter(goal => typeof goal.id === 'number' && goal.id < 0)
-    const existingGoalsFromClient = goals.filter(goal => typeof goal.id === 'number' && goal.id > 0)
+    const newGoals = goalsList.filter(goal => typeof goal.id === 'number' && goal.id < 0)
+    const existingGoalsFromClient = goalsList.filter(goal => typeof goal.id === 'number' && goal.id > 0)
 
     // Find goals to delete (exist in DB but not in client)
     const existingGoalIds = existingGoalsFromClient.map(goal => goal.id)
@@ -137,21 +113,17 @@ export async function POST(request: NextRequest) {
 
     let operationsCount = 0
 
-    // Delete removed goals
+    // Delete removed goals using Drizzle
     if (goalsToDelete.length > 0) {
-      const deleteResult = await prisma.goal.deleteMany({
-        where: {
-          userId: user.id,
-          id: {
-            in: goalsToDelete.map(goal => goal.id)
-          }
-        }
-      })
-      operationsCount += deleteResult.count
-      console.log(`🗑️ Deleted ${deleteResult.count} goals`)
+      const deleteResult = await db.delete(goals)
+        .where(eq(goals.userId, user.id) && goals.id.in(goalsToDelete.map(goal => goal.id)))
+        .returning({ count: goals.id })
+
+      operationsCount += deleteResult.length
+      console.log(`🗑️ Deleted ${deleteResult.length} goals`)
     }
 
-    // Insert new goals
+    // Insert new goals using Drizzle
     if (newGoals.length > 0) {
       const goalsToInsert = newGoals.map(goal => ({
         userId: user.id,
@@ -162,27 +134,25 @@ export async function POST(request: NextRequest) {
         completed: false
       }))
 
-      const insertResult = await prisma.goal.createMany({
-        data: goalsToInsert
-      })
-      operationsCount += insertResult.count
-      console.log(`➕ Added ${insertResult.count} new goals`)
+      const insertResult = await db.insert(goals)
+        .values(goalsToInsert)
+        .returning({ id: goals.id })
+
+      operationsCount += insertResult.length
+      console.log(`➕ Added ${insertResult.length} new goals`)
     }
 
-    // Update existing goals that have changes
+    // Update existing goals that have changes using Drizzle
     for (const goalToUpdate of goalsToUpdate) {
-      await prisma.goal.update({
-        where: {
-          id: goalToUpdate.id,
-          userId: user.id
-        },
-        data: {
+      await db.update(goals)
+        .set({
           title: goalToUpdate.title,
           description: goalToUpdate.description || null,
           category: goalToUpdate.category || null,
           timeframe: goalToUpdate.timeframe || null
-        }
-      })
+        })
+        .where(eq(goals.id, goalToUpdate.id) && eq(goals.userId, user.id))
+
       operationsCount++
     }
 

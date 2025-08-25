@@ -1,8 +1,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/drizzle/client'
+import { goals } from '@/lib/drizzle/schema'
 import { cookies } from 'next/headers'
+import { eq, and } from 'drizzle-orm'
 
 export async function DELETE(
   request: NextRequest,
@@ -28,28 +30,21 @@ export async function DELETE(
       return NextResponse.json({ error: 'Goal ID is required' }, { status: 400 })
     }
 
-    // Check if Goal model exists
-    if (!prisma.goal) {
-      console.error('Goal model not found in Prisma client')
-      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
-    }
+    // Verify the goal belongs to the user before deleting using Drizzle
+    const goal = await db.select().from(goals)
+      .where(and(
+        eq(goals.id, parseInt(goalId)),
+        eq(goals.userId, user.id)
+      ))
+      .limit(1)
 
-    // Verify the goal belongs to the user before deleting
-    const goal = await prisma.goal.findFirst({
-      where: { 
-        id: parseInt(goalId),
-        userId: user.id 
-      }
-    })
-
-    if (!goal) {
+    if (goal.length === 0) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
     }
 
-    // Delete the goal
-    await prisma.goal.delete({
-      where: { id: parseInt(goalId) }
-    })
+    // Delete the goal using Drizzle
+    await db.delete(goals)
+      .where(eq(goals.id, parseInt(goalId)))
 
     return NextResponse.json({ message: 'Goal deleted successfully' })
   } catch (error) {
