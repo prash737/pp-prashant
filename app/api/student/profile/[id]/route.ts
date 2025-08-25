@@ -185,14 +185,20 @@ export async function GET(
           }
         },
         // Fetch following institutions
-        institutionFollowConnections: {
+        institutionFollowing: {
           include: {
-            institution: {
+            receiver: {
               select: {
                 id: true,
-                institutionName: true,
+                firstName: true,
+                lastName: true,
                 profileImageUrl: true,
-                verificationStatus: true
+                verificationStatus: true,
+                institution: {
+                  select: {
+                    institutionName: true
+                  }
+                }
               }
             }
           }
@@ -346,7 +352,12 @@ export async function GET(
       userCollections: studentData.userCollections || [],
       connections: allConnections,
       connectionCounts: connectionCounts,
-      followingInstitutions: studentData.institutionFollowConnections?.map(conn => conn.institution) || [],
+      followingInstitutions: studentData.institutionFollowing?.map(conn => ({
+        id: conn.receiver.id,
+        institutionName: conn.receiver.institution?.institutionName || `${conn.receiver.firstName} ${conn.receiver.lastName}`,
+        profileImageUrl: conn.receiver.profileImageUrl,
+        verificationStatus: conn.receiver.verificationStatus
+      })) || [],
       suggestedConnections: suggestedConnections
     }
 
