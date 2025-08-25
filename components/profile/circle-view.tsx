@@ -116,10 +116,10 @@ function CircleBadgesSection({
           // In own profile mode, fetch circles for the current user
           response = await fetch("/api/circles");
         }
-        
+
         if (response.ok) {
           const data = await response.json();
-          
+
           // Filter out disabled circles in view mode
           if (isViewMode && studentId) {
             const enabledCircles = data.filter((circle: any) => {
@@ -540,11 +540,11 @@ function CircleBadgesSection({
 
 interface CircleViewProps {
   student: any;
-  currentUserId?: string;
+  circles?: any[];
   isViewMode?: boolean;
 }
 
-export default function CircleView({ student, currentUserId, isViewMode }: CircleViewProps) {
+export default function CircleView({ student, circles = [], isViewMode = false }: CircleViewProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -588,7 +588,7 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
         setConnections([]);
         return;
       }
-      
+
       const response = await fetch("/api/connections");
       if (response.ok) {
         const data = await response.json();
@@ -603,7 +603,7 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
     try {
       const response = await fetch("/api/connections/requests?type=received");
       if (response.ok) {
-        const data = await response.json();
+        const data = await fetchResponse.json();
         const pending = data.filter(
           (req: any) => req.status === "pending",
         ).length;
@@ -1090,7 +1090,7 @@ export default function CircleView({ student, currentUserId, isViewMode }: Circl
                       })()}
                     </TabsContent>
 
-                    
+
 
                     <TabsContent value="peers" className="mt-0">
                       {(() => {

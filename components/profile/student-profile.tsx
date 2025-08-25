@@ -46,33 +46,21 @@ export default function StudentProfile({
   // Determine if this is the current user's own profile
   const isOwnProfile = currentUser?.id === student?.id
 
-  // Fetch connections data
-  const fetchConnections = async () => {
-    try {
-      const response = await fetch('/api/connections')
-      if (response.ok) {
-        const data = await response.json()
-        setConnections(data)
-
-        // Calculate connection counts by role
-        const counts = {
-          total: data.length,
-          students: data.filter((conn: any) => conn.user.role === 'student').length,
-          mentors: data.filter((conn: any) => conn.user.role === 'mentor').length,
-          institutions: data.filter((conn: any) => conn.user.role === 'institution').length
-        }
-        setConnectionCounts(counts)
-      }
-    } catch (error) {
-      console.error('Error fetching connections:', error)
-    }
-  }
+  
 
   useEffect(() => {
     if (studentData) {
-      fetchConnections()
+      // Use connection counts from API response
+      setConnectionCounts(studentData.connectionCounts || {
+        total: 0,
+        students: 0,
+        mentors: 0,
+        institutions: 0
+      })
 
-      // Transform the real data to match our component's expected structure
+      setConnections(studentData.connections || [])
+
+      // Transform the comprehensive data to match component structure
       const transformedStudent = {
         id: studentData.id,
         ageGroup: studentData.ageGroup || "young_adult",
@@ -125,24 +113,27 @@ export default function StudentProfile({
           institutionVerified: edu.institutionVerified
         })) || [],
         socialLinks: studentData.profile?.socialLinks || [],
-        careerGoals: studentData.profile?.careerGoals || [],
+        careerGoals: studentData.goals || [],
         customBadges: studentData.profile?.customBadges || [],
-
-        // Placeholder data for sections without database tables
-        // These sections will show "Coming Soon" or placeholder content
-        projects: [],
-        achievements: [],
+        
+        // Now using real data from API
+        projects: [], // Still placeholder - add to API if needed
+        achievements: studentData.achievements || [],
+        circles: studentData.circles || [],
+        userCollections: studentData.userCollections || [],
+        followingInstitutions: studentData.followingInstitutions || [],
+        suggestedConnections: studentData.suggestedConnections || [],
         learningPath: {
           currentCourses: [],
           completedCourses: [],
           recommendations: []
         },
         connections: {
-          mentors: [],
-          peers: [],
-          institutions: [],
-          total: connectionCounts.total,
-          students: connectionCounts.students
+          mentors: studentData.connections?.filter((c: any) => c.role === 'mentor') || [],
+          peers: studentData.connections?.filter((c: any) => c.role === 'student') || [],
+          institutions: studentData.connections?.filter((c: any) => c.role === 'institution') || [],
+          total: studentData.connectionCounts?.total || 0,
+          students: studentData.connectionCounts?.students || 0
         }
       }
 
@@ -214,7 +205,7 @@ export default function StudentProfile({
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           {activeTab === "about" && <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "interests" && <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} />}
+          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} suggestedConnections={student?.suggestedConnections || []} />}
           {activeTab === "skills" && <SkillsCanvas userId={student.id} skills={student.skills} isViewMode={isViewMode} />}
           {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
           {activeTab === "achievements" && (
@@ -223,11 +214,12 @@ export default function StudentProfile({
               isOwnProfile={isOwnProfile}
               isViewMode={isViewMode}
               student={student}
+              achievements={student?.achievements || []}
             />
           )}
-          {activeTab === "circle" && <CircleView student={student} isViewMode={isViewMode} />}
-          {activeTab === "goals" && <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "following" && <FollowingInstitutions userId={studentId} />}
+          {activeTab === "circle" && <CircleView student={student} circles={student?.circles || []} isViewMode={isViewMode} />}
+          {activeTab === "goals" && <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />}
+          {activeTab === "following" && <FollowingInstitutions userId={studentId} followingInstitutions={student?.followingInstitutions || []} />}
         </div>
       </div>
 
