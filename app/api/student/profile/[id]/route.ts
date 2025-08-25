@@ -124,8 +124,12 @@ export async function GET(
               orderBy: {
                 startDate: 'desc'
               }
-            },
-            circles: {
+            }
+          }
+        },
+        circleMemberships: {
+          include: {
+            circle: {
               include: {
                 creator: {
                   select: {
@@ -136,14 +140,14 @@ export async function GET(
                 },
                 _count: {
                   select: {
-                    members: true
+                    memberships: true
                   }
                 }
-              },
-              orderBy: {
-                createdAt: 'desc'
               }
             }
+          },
+          orderBy: {
+            createdAt: 'desc'
           }
         },
         socialLinks: true,
@@ -338,7 +342,7 @@ export async function GET(
       })) || [],
       achievements: studentData.achievements || [],
       goals: studentData.goals || [],
-      circles: studentData.student?.circles || [],
+      circles: studentData.circleMemberships?.map(membership => membership.circle) || [],
       userCollections: studentData.userCollections || [],
       connections: allConnections,
       connectionCounts: connectionCounts,
