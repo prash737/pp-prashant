@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/drizzle/client'
-import { goals, suggestedGoals } from '@/lib/drizzle/schema'
+import { goals } from '@/lib/drizzle/schema'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { eq, desc } from 'drizzle-orm'
@@ -29,32 +29,7 @@ export async function GET(request: NextRequest) {
       .where(eq(goals.userId, user.id))
       .orderBy(desc(goals.createdAt))
 
-    // Fetch suggested goals that have been added (is_added = true)
-    const userSuggestedGoals = await db.select().from(suggestedGoals)
-      .where(eq(suggestedGoals.userId, user.id) && eq(suggestedGoals.isAdded, true))
-      .orderBy(desc(suggestedGoals.createdAt))
-
-    // Combine both goal types into a single array
-    const allGoals = [
-      ...userGoals.map(g => ({
-        ...g,
-        isSuggested: false
-      })),
-      ...userSuggestedGoals.map(sg => ({
-        id: sg.id,
-        title: sg.title,
-        description: sg.description,
-        category: sg.category,
-        timeframe: sg.timeframe,
-        userId: sg.userId,
-        completed: false, // suggested goals don't have completed status
-        createdAt: sg.createdAt,
-        updatedAt: sg.createdAt, // use createdAt as updatedAt for suggested goals
-        isSuggested: true // flag to identify suggested goals
-      }))
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-    return NextResponse.json({ goals: allGoals })
+    return NextResponse.json({ goals: userGoals })
   } catch (error) {
     console.error('Goals API error:', error)
     return NextResponse.json({
