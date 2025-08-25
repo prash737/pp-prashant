@@ -13,6 +13,7 @@ import Goals from "./goals"
 import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
+import { TabsContent } from "@/components/ui/tabs" // Assuming TabsContent is imported from here
 
 interface StudentProfileProps {
   studentId?: string
@@ -25,7 +26,7 @@ interface StudentProfileProps {
 
 export default function StudentProfile({ 
   studentId, 
-  currentUser, 
+  currentUser: propCurrentUser, // Renamed prop to avoid conflict with state
   studentData, 
   isViewMode = false,
   isShareMode = false,
@@ -42,12 +43,131 @@ export default function StudentProfile({
     mentors: 0,
     institutions: 0
   })
+  const [circles, setCircles] = useState<any[]>([])
+  const [circlesLoading, setCirclesLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null) // State for current user
 
   // Determine if this is the current user's own profile
   const isOwnProfile = currentUser?.id === student?.id
 
-  
+  // Function to fetch user data
+  const fetchUserData = async () => {
+    try {
+      setLoading(true)
+      // Use propCurrentUser if available, otherwise fetch
+      if (propCurrentUser) {
+        setCurrentUser(propCurrentUser)
+        // If studentData is also provided, use it to set student details
+        if (studentData) {
+          setStudent(studentData)
+          setLoading(false)
+        }
+        return
+      }
 
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data')
+      }
+
+      const userData = await response.json()
+      setCurrentUser(userData)
+      setStudent(userData) // Assuming the user API also returns student data
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+      setError('Failed to load profile data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Function to fetch circles data
+  const fetchCircles = async () => {
+    try {
+      setCirclesLoading(true)
+      const response = await fetch('/api/circles', {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Filter out disabled circles
+        const enabledCircles = data.filter((circle: any) => {
+          if (circle.isDisabled) return false;
+          if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+          const userMembership = circle.memberships?.find(
+            (membership: any) => membership.user?.id === currentUser?.id
+          );
+          if (userMembership && userMembership.isDisabledMember) return false;
+          return true;
+        });
+        setCircles(enabledCircles)
+      } else {
+        // Handle cases where /api/circles might not return data or throw an error
+        console.error("Failed to fetch circles with status:", response.status);
+        setCircles([]); // Reset circles on error
+      }
+    } catch (error) {
+      console.error('Error fetching circles:', error)
+      setCircles([]); // Reset circles on error
+    } finally {
+      setCirclesLoading(false)
+    }
+  }
+
+
+  useEffect(() => {
+    // Fetch user data first
+    fetchUserData()
+  }, [propCurrentUser, studentData]) // Depend on props to re-fetch if they change
+
+  // Fetch circles only after currentUser is set and has an ID
+  useEffect(() => {
+    if (currentUser?.id) {
+      fetchCircles()
+    } else if (!propCurrentUser && !studentData) {
+      // If not logged in and no student data provided, and fetchUserData failed to set currentUser
+      // It implies the user is not logged in or an error occurred, so no circles to fetch.
+      setCirclesLoading(false);
+    }
+  }, [currentUser?.id, propCurrentUser, studentData])
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">
+              <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Transform studentData if it's provided directly
   useEffect(() => {
     if (studentData) {
       // Use connection counts from API response
@@ -115,11 +235,11 @@ export default function StudentProfile({
         socialLinks: studentData.profile?.socialLinks || [],
         careerGoals: studentData.goals || [],
         customBadges: studentData.profile?.customBadges || [],
-        
+
         // Now using real data from API
         projects: [], // Still placeholder - add to API if needed
         achievements: studentData.achievements || [],
-        circles: studentData.circles || [],
+        // circles: studentData.circles || [], // This is now fetched separately
         userCollections: studentData.userCollections || [],
         followingInstitutions: studentData.followingInstitutions || [],
         suggestedConnections: studentData.suggestedConnections || [],
@@ -138,40 +258,23 @@ export default function StudentProfile({
       }
 
       setStudent(transformedStudent)
-      setLoading(false)
+      // If studentData is provided, and it contains circles, set them.
+      // This handles the case where the entire profile data is passed in.
+      if (studentData.circles) {
+        setCircles(studentData.circles.filter((circle: any) => {
+          if (circle.isDisabled) return false;
+          if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+          const userMembership = circle.memberships?.find(
+            (membership: any) => membership.user?.id === currentUser?.id
+          );
+          if (userMembership && userMembership.isDisabledMember) return false;
+          return true;
+        }));
+        setCirclesLoading(false);
+      }
     }
-  }, [studentData])
+  }, [studentData, currentUser]) // Re-run if studentData or currentUser changes
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="text-red-600 mb-4">
-              <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Profile Not Found</h2>
-            <p className="text-gray-600">{error}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   const tabs = [
     { id: "about", label: "About" },
@@ -197,7 +300,10 @@ export default function StudentProfile({
         connectionCounts={connectionCounts} 
         isViewMode={isViewMode} 
         isShareMode={isShareMode}
-        onGoBack={onGoBack} />
+        onGoBack={onGoBack}
+        circles={circles}
+        onCirclesUpdate={fetchCircles}
+      />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
 
@@ -206,7 +312,7 @@ export default function StudentProfile({
           {activeTab === "about" && <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "interests" && <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} suggestedConnections={student?.suggestedConnections || []} />}
-          {activeTab === "skills" && <SkillsCanvas userId={student.id} skills={student.skills} isViewMode={isViewMode} />}
+          {activeTab === "skills" && <SkillsCanvas userId={student?.id} skills={student?.skills} isViewMode={isViewMode} />}
           {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
           {activeTab === "achievements" && (
             <AchievementTimeline 
@@ -217,7 +323,16 @@ export default function StudentProfile({
               achievements={student?.achievements || []}
             />
           )}
-          {activeTab === "circle" && <CircleView student={student} circles={student?.circles || []} isViewMode={isViewMode} />}
+          {/* Pass fetched circles and loading state to CircleView */}
+          {activeTab === "circle" && (
+            <CircleView 
+              student={student} 
+              circles={circles}
+              circlesLoading={circlesLoading}
+              onCirclesUpdate={fetchCircles}
+              isViewMode={isViewMode} 
+            />
+          )}
           {activeTab === "goals" && <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />}
           {activeTab === "following" && <FollowingInstitutions userId={studentId} followingInstitutions={student?.followingInstitutions || []} />}
         </div>

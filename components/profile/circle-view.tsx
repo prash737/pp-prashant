@@ -89,72 +89,25 @@ function CircleBadgesSection({
   onCircleSelect, 
   currentUserId,
   isViewMode = false,
-  studentId
+  studentId,
+  circles = [],
+  loading = false,
+  onCirclesUpdate
 }: { 
   onCircleSelect: (circle: Circle) => void;
   currentUserId?: string;
   isViewMode?: boolean;
   studentId?: string;
+  circles?: Circle[];
+  loading?: boolean;
+  onCirclesUpdate?: () => void;
 }) {
-  const [circles, setCircles] = useState<Circle[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showCreateCircle, setShowCreateCircle] = useState(false);
   const [newCircleName, setNewCircleName] = useState('');
   const [newCircleColor, setNewCircleColor] = useState('#3B82F6');
   const [newCircleDescription, setNewCircleDescription] = useState('');
   const [newCircleImageFile, setNewCircleImageFile] = useState<File | null>(null);
   const [newCircleImageUrl, setNewCircleImageUrl] = useState('');
-
-  useEffect(() => {
-    const fetchCircles = async () => {
-      try {
-        let response;
-        if (isViewMode && studentId) {
-          // In view mode, fetch circles for the student being viewed
-          response = await fetch(`/api/student/profile/${studentId}/circles`);
-        } else {
-          // In own profile mode, fetch circles for the current user
-          response = await fetch("/api/circles");
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Filter out disabled circles in view mode
-          if (isViewMode && studentId) {
-            const enabledCircles = data.filter((circle: any) => {
-              // Check if circle is globally disabled
-              if (circle.isDisabled) return false;
-
-              // Check if creator is disabled and the student being viewed is the creator
-              if (circle.isCreatorDisabled && circle.creator?.id === studentId) {
-                return false;
-              }
-
-              // Check if the student being viewed has disabled membership
-              const studentMembership = circle.memberships?.find(
-                (membership: any) => membership.user?.id === studentId
-              );
-              if (studentMembership && studentMembership.isDisabledMember) {
-                return false;
-              }
-
-              return true;
-            });
-            setCircles(enabledCircles);
-          } else {
-            setCircles(data);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching circles:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCircles();
-  }, [isViewMode, studentId]);
 
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
@@ -246,10 +199,8 @@ function CircleBadgesSection({
         setShowCreateCircle(false)
 
         // Refresh circles
-        const fetchResponse = await fetch("/api/circles");
-        if (fetchResponse.ok) {
-          const data = await fetchResponse.json();
-          setCircles(data);
+        if (onCirclesUpdate) {
+          onCirclesUpdate();
         }
       } else {
         console.error('Failed to create circle')
@@ -424,7 +375,7 @@ function CircleBadgesSection({
                     </div>
 
                     {/* Circle Name */}
-                    <span className={`text-xs text-center font-medium truncate w-16 ${
+                    <span className={`text-xs text-center font-medium w-16 ${
                       isDisabled 
                         ? 'text-gray-400 dark:text-gray-500' 
                         : 'text-gray-700 dark:text-gray-300'
@@ -540,11 +491,11 @@ function CircleBadgesSection({
 
 interface CircleViewProps {
   student: any;
-  circles?: any[];
+  circles?: Circle[]; // Changed from any[] to Circle[] for type safety
   isViewMode?: boolean;
 }
 
-export default function CircleView({ student, circles = [], isViewMode = false }: CircleViewProps) {
+export default function CircleView({ student, circles: initialCircles = [], isViewMode = false }: CircleViewProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -553,8 +504,9 @@ export default function CircleView({ student, circles = [], isViewMode = false }
   );
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
+  const [circles, setCircles] = useState<Circle[]>(initialCircles); // State for circles
 
-    const getIconComponent = (iconName: string) => {
+  const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
         return <Crown className="h-4 w-4" />;
@@ -581,6 +533,19 @@ export default function CircleView({ student, circles = [], isViewMode = false }
     (edu: any) => edu.is_current || edu.isCurrent,
   );
 
+  const fetchCircles = async () => {
+    try {
+      // Fetch circles for the current user or the viewed student
+      const response = await fetch(isViewMode && student?.id ? `/api/student/profile/${student.id}/circles` : "/api/circles");
+      if (response.ok) {
+        const data = await response.json();
+        setCircles(data);
+      }
+    } catch (error) {
+      console.error("Error fetching circles:", error);
+    }
+  };
+
   const fetchConnections = async () => {
     try {
       if (isViewMode) {
@@ -603,7 +568,7 @@ export default function CircleView({ student, circles = [], isViewMode = false }
     try {
       const response = await fetch("/api/connections/requests?type=received");
       if (response.ok) {
-        const data = await fetchResponse.json();
+        const data = await response.json();
         const pending = data.filter(
           (req: any) => req.status === "pending",
         ).length;
@@ -624,11 +589,15 @@ export default function CircleView({ student, circles = [], isViewMode = false }
     const fetchData = async () => {
       setLoading(true);
       await Promise.all([fetchConnections(), fetchPendingRequests()]);
+      // Fetch circles here if not in view mode or if circles prop is empty
+      if (!isViewMode || initialCircles.length === 0) {
+        await fetchCircles();
+      }
       setLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [student?.id, isViewMode, initialCircles.length]); // Dependencies for re-fetching
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -801,9 +770,12 @@ export default function CircleView({ student, circles = [], isViewMode = false }
             <div className="lg:col-span-4">
               <CircleBadgesSection 
                 onCircleSelect={handleCircleSelect} 
-                currentUserId={student?.id || currentUserId}
+                currentUserId={student?.id} // Pass student ID if available, otherwise fallback
                 isViewMode={isViewMode}
                 studentId={student?.id}
+                circles={circles} // Pass fetched circles to the component
+                loading={loading} // Pass loading state
+                onCirclesUpdate={fetchCircles} // Pass fetchCircles function to update circles
               />
             </div>
 

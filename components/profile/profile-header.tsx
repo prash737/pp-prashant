@@ -53,6 +53,8 @@ interface ProfileHeaderProps {
   isViewMode?: boolean
   isShareMode?: boolean
   onGoBack?: () => void
+  circles?: any[]
+  onCirclesUpdate?: () => void
 }
 
 interface Achievement {
@@ -64,11 +66,10 @@ interface Achievement {
   achievementImageIcon?: string
 }
 
-export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack }: ProfileHeaderProps) {
+export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack, circles = [], onCirclesUpdate }: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
-  const [circles, setCircles] = useState<any[]>([])
   const [showCreateCircle, setShowCreateCircle] = useState(false)
   const [newCircleName, setNewCircleName] = useState('')
   const [newCircleColor, setNewCircleColor] = useState('#3B82F6')
@@ -271,55 +272,8 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
   const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([])
   const [achievementLoading, setAchievementLoading] = useState(true)
 
-  // Fetch user's circles, connections, and achievements
+  // Fetch connections and achievements
   useEffect(() => {
-    const fetchCircles = async () => {
-      try {
-        let response;
-        if (isViewMode && student?.id) {
-          // In view mode, fetch circles for the student being viewed
-          response = await fetch(`/api/student/profile/${student.id}/circles`, {
-            credentials: 'include'
-          });
-        } else {
-          // In own profile mode, fetch circles for the current user
-          response = await fetch('/api/circles', {
-            credentials: 'include'
-          });
-        }
-
-        if (response.ok) {
-          const data = await response.json()
-          // Filter out disabled circles
-          const enabledCircles = data.filter((circle: any) => {
-            // Check if circle is globally disabled
-            if (circle.isDisabled) return false;
-
-            // Check if creator is disabled and current user is the creator
-            if (circle.isCreatorDisabled && circle.creator?.id === (isViewMode ? student?.id : currentUser?.id)) {
-              return false;
-            }
-
-            // Check if current user's membership is disabled
-            const userId = isViewMode ? student?.id : currentUser?.id;
-            const userMembership = circle.memberships?.find(
-              (membership: any) => membership.user?.id === userId
-            );
-            if (userMembership && userMembership.isDisabledMember) {
-              return false;
-            }
-
-            return true;
-          });
-
-          setCircles(enabledCircles)
-        } else {
-          console.error('Error fetching circles:', response.status)
-        }
-      } catch (error) {
-        console.error('Error fetching circles:', error)
-      }
-    }
 
     const fetchConnections = async () => {
       try {
@@ -383,9 +337,6 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
       fetchConnections()
     }
 
-    // Always fetch circles (for both own profile and view mode)
-    fetchCircles()
-
     if (student) {
       fetchRecentAchievements()
     }
@@ -444,8 +395,10 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
         setNewCircleImageUrl('')
         setShowCreateCircle(false)
 
-        // Refresh circles
-        await fetchCircles()
+        // Notify parent to refresh circles
+        if (onCirclesUpdate) {
+          onCirclesUpdate()
+        }
       } else {
         console.error('Failed to create circle')
       }
@@ -487,18 +440,10 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
     }
   }
 
-  const handleCircleUpdated = async () => {
-    // Refresh circles after invitations are sent
-    try {
-      const response = await fetch('/api/circles', {
-        credentials: 'include'
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setCircles(data)
-      }
-    } catch (error) {
-      console.error('Error refreshing circles:', error)
+  const handleCircleUpdated = () => {
+    // Notify parent to refresh circles
+    if (onCirclesUpdate) {
+      onCirclesUpdate()
     }
   }
 
@@ -525,21 +470,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
     }
   };
 
-  const fetchCircles = async () => {
-    try {
-      const response = await fetch('/api/circles', {
-        credentials: 'include'
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setCircles(data)
-      } else {
-        console.error('Error fetching circles:', response.status)
-      }
-    } catch (error) {
-      console.error('Error fetching circles:', error)
-    }
-  }
+  
 
   const handleUnfollowInstitution = async (institutionId: string) => {
     try {
