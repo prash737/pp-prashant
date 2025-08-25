@@ -191,7 +191,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
       })
 
       if (receivedRequestsResponse.ok) {
-        const receivedRequests = await requestsResponse.json()
+        const receivedRequests = await responsesResponse.json() // Error here: should be receivedRequestsResponse
         const pendingRequest = receivedRequests.find((req: any) => 
           req.sender?.id === student.id && req.status === 'pending'
         )

@@ -46,6 +46,9 @@ export default function StudentProfile({
   const [circles, setCircles] = useState<any[]>([])
   const [circlesLoading, setCirclesLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null) // State for current user
+  const [formData, setFormData] = useState<any>({}) // State for form data
+  const [suggestedConnections, setSuggestedConnections] = useState<any[]>([])
+  const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
 
   // Determine if this is the current user's own profile
   const isOwnProfile = currentUser?.id === student?.id
@@ -54,17 +57,26 @@ export default function StudentProfile({
   const fetchUserData = async () => {
     try {
       setLoading(true)
-      // Use propCurrentUser if available, otherwise fetch
+      // If propCurrentUser is provided, use it directly
       if (propCurrentUser) {
         setCurrentUser(propCurrentUser)
-        // If studentData is also provided, use it to set student details
+        // If studentData is also provided, use it to set student details and skip fetching from /api/auth/user
         if (studentData) {
           setStudent(studentData)
+          setCircles(studentData.circles || []) // Set circles from studentData
+          setLoading(false)
+        } else {
+          // If only propCurrentUser is provided, we might still need to fetch student specific data if different
+          // For now, assuming propCurrentUser is sufficient for user identification and basic data
+          // If student details are needed, a separate fetch might be required or studentData should be mandatory
+          // Setting student to propCurrentUser for now, but this might need refinement
+          setStudent(propCurrentUser) 
           setLoading(false)
         }
         return
       }
 
+      // Fetch current user data if propCurrentUser is not provided
       const response = await fetch('/api/auth/user', {
         credentials: 'include'
       })
@@ -84,6 +96,61 @@ export default function StudentProfile({
     }
   }
 
+  // Function to fetch student data by ID
+  const fetchStudentData = async () => {
+    // Use studentId from props if provided, otherwise fall back to current user's ID if it's their own profile
+    const id = studentId || (isOwnProfile && currentUser?.id) || (propCurrentUser?.id)
+
+    if (!id) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      console.log('📡 StudentProfile: Fetching data for student ID:', id)
+      const response = await fetch(`/api/student/profile/${id}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('📡 StudentProfile: Received student data:', data)
+      console.log('🔍 StudentProfile: Circles data received:', data.circles)
+      console.log('🔍 StudentProfile: Number of circles:', data.circles?.length || 0)
+
+
+      setStudent(data)
+      setCircles(data.circles || [])
+      setConnections(data.connections || [])
+      setConnectionCounts(data.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
+      setSuggestedConnections(data.suggestedConnections || [])
+      setFollowingInstitutions(data.followingInstitutions || [])
+
+      setFormData({
+        firstName: data.profile?.firstName || '',
+        lastName: data.profile?.lastName || '',
+        bio: data.profile?.bio || '',
+        location: data.profile?.location || '',
+        tagline: data.profile?.tagline || '',
+        profileImageUrl: data.profile?.profileImageUrl || '',
+        coverImageUrl: data.profile?.coverImageUrl || ''
+      })
+      console.log('🔍 StudentProfile: State after setting circles:', circles)
+    } catch (error) {
+      console.error('❌ StudentProfile: Error fetching student data:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch student data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Function to handle circles update (for creating new circles)
   const handleCirclesUpdate = () => {
     // If we need to refresh circles after creation, we can fetch the entire profile again
@@ -92,14 +159,43 @@ export default function StudentProfile({
   }
 
   useEffect(() => {
-    // Fetch user data first
-    fetchUserData()
-  }, [propCurrentUser, studentData]) // Depend on props to re-fetch if they change
+    // Fetch user data first to establish currentUser
+    fetchUserData().then(() => {
+      // After fetching user data, fetch student specific data using the determined ID
+      const idToFetch = studentId || (propCurrentUser ? propCurrentUser.id : null); // Prioritize studentId, then propCurrentUser
+      if (idToFetch) {
+        fetchStudentData();
+      } else if (!propCurrentUser && !studentData) {
+        // If no user data and no studentId, and studentData isn't provided, it means we are likely
+        // on a public page without a logged-in user, or an error occurred in fetchUserData.
+        // If studentData is provided, it should be used.
+        if (studentData) {
+          setStudent(studentData);
+          setCircles(studentData.circles || []);
+          setConnectionCounts(studentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 });
+          setConnections(studentData.connections || []);
+          setSuggestedConnections(studentData.suggestedConnections || []);
+          setFollowingInstitutions(studentData.followingInstitutions || []);
+          setLoading(false);
+        } else {
+           // If it's a public profile and no studentId is passed, we might not be able to fetch.
+           // Handle accordingly, perhaps showing a "profile not found" or similar.
+           // For now, if studentData is not available, we'll assume loading is done.
+           setLoading(false)
+        }
+      } else if (propCurrentUser && !studentId && !studentData) {
+         // If propCurrentUser is set but no studentId and no studentData, use propCurrentUser's data
+         setStudent(propCurrentUser);
+         setCircles(propCurrentUser.circles || []);
+         setLoading(false);
+      }
+    });
+  }, [propCurrentUser, studentData, studentId]) // Depend on props to re-fetch if they change
 
-  // Set circles from studentData when available
+
+  // Set circles from studentData when available (alternative/fallback if fetchStudentData doesn't set it)
   useEffect(() => {
-    if (studentData?.circles) {
-      // Filter out disabled circles
+    if (studentData?.circles && !student) { // Only if student is not yet populated by fetchStudentData
       const enabledCircles = studentData.circles.filter((circle: any) => {
         if (circle.isDisabled) return false;
         if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
@@ -110,14 +206,23 @@ export default function StudentProfile({
         return true;
       });
       setCircles(enabledCircles);
-    } else {
-      setCircles([]);
+    } else if (!studentData && student?.circles) { // If student is populated but studentData was not the source
+       const enabledCircles = student.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
     }
-  }, [studentData?.circles, currentUser?.id])
+  }, [studentData?.circles, student?.circles, currentUser?.id])
 
-  // Transform studentData if it's provided directly
+  // Transform studentData if it's provided directly and not fetched by studentId
   useEffect(() => {
-    if (studentData) {
+    if (studentData && !studentId && !student) { // Only transform if studentData is provided directly and not fetched via ID
       // Use connection counts from API response
       setConnectionCounts(studentData.connectionCounts || {
         total: 0,
@@ -207,8 +312,10 @@ export default function StudentProfile({
       }
 
       setStudent(transformedStudent)
+      setCircles(transformedStudent.circles || [])
+      setLoading(false)
     }
-  }, [studentData, currentUser]) // Re-run if studentData or currentUser changes
+  }, [studentData, studentId, student, propCurrentUser]) // Re-run if studentData, studentId or student changes
 
 
   if (loading) {
@@ -278,7 +385,7 @@ export default function StudentProfile({
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           {activeTab === "about" && <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
           {activeTab === "interests" && <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} suggestedConnections={student?.suggestedConnections || []} />}
+          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />}
           {activeTab === "skills" && <SkillsCanvas userId={student?.id} skills={student?.skills} isViewMode={isViewMode} />}
           {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
           {activeTab === "achievements" && (
@@ -299,7 +406,7 @@ export default function StudentProfile({
             />
           )}
           {activeTab === "goals" && <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />}
-          {activeTab === "following" && <FollowingInstitutions userId={studentId} followingInstitutions={student?.followingInstitutions || []} />}
+          {activeTab === "following" && <FollowingInstitutions userId={studentId} followingInstitutions={followingInstitutions || []} />}
         </div>
       </div>
 

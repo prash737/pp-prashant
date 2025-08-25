@@ -298,6 +298,14 @@ export async function GET(
       institutions: allConnections.filter(conn => conn.role === 'institution').length
     }
 
+    // Log circle membership data for debugging
+    console.log('🔍 DEBUG: Raw circleMemberships data:', JSON.stringify(studentData.circleMemberships, null, 2))
+    
+    // Process circles data
+    const circles = studentData.circleMemberships?.map(membership => membership.circle) || []
+    console.log('🔍 DEBUG: Processed circles data:', JSON.stringify(circles, null, 2))
+    console.log('🔍 DEBUG: Number of circles found:', circles.length)
+
     // Transform and return comprehensive data
     const response = {
       id: studentData.id,
@@ -348,7 +356,7 @@ export async function GET(
       })) || [],
       achievements: studentData.achievements || [],
       goals: studentData.goals || [],
-      circles: studentData.circleMemberships?.map(membership => membership.circle) || [],
+      circles: circles,
       userCollections: studentData.userCollections || [],
       connections: allConnections,
       connectionCounts: connectionCounts,
@@ -360,6 +368,8 @@ export async function GET(
       })) || [],
       suggestedConnections: suggestedConnections
     }
+    
+    console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
 
     return NextResponse.json(response)
 
