@@ -35,7 +35,9 @@ import {
   Send,
   ArrowLeft,
   Brain,
-  Share2
+  Share2,
+  UserX,
+  Building2
 } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
@@ -64,6 +66,7 @@ interface Achievement {
   dateOfAchievement: string
   createdAt: string
   achievementImageIcon?: string
+  achievementTypeId?: number
 }
 
 export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack, circles = [], onCirclesUpdate }: ProfileHeaderProps) {
@@ -188,7 +191,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
       })
 
       if (receivedRequestsResponse.ok) {
-        const receivedRequests = await receivedRequestsResponse.json()
+        const receivedRequests = await requestsResponse.json()
         const pendingRequest = receivedRequests.find((req: any) => 
           req.sender?.id === student.id && req.status === 'pending'
         )
@@ -470,7 +473,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
     }
   };
 
-  
+
 
   const handleUnfollowInstitution = async (institutionId: string) => {
     try {
@@ -733,7 +736,7 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
 
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>

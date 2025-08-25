@@ -198,10 +198,8 @@ function CircleBadgesSection({
         setNewCircleImageUrl('')
         setShowCreateCircle(false)
 
-        // Refresh circles
-        if (onCirclesUpdate) {
-          onCirclesUpdate();
-        }
+        // Show success message and suggest page refresh
+        alert('Circle created successfully! Please refresh the page to see the new circle.')
       } else {
         console.error('Failed to create circle')
       }
@@ -504,8 +502,6 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   );
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
-  const [circles, setCircles] = useState<Circle[]>(initialCircles); // State for circles
-
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
@@ -532,19 +528,6 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   const currentEducation = student?.educationHistory?.find(
     (edu: any) => edu.is_current || edu.isCurrent,
   );
-
-  const fetchCircles = async () => {
-    try {
-      // Fetch circles for the current user or the viewed student
-      const response = await fetch(isViewMode && student?.id ? `/api/student/profile/${student.id}/circles` : "/api/circles");
-      if (response.ok) {
-        const data = await response.json();
-        setCircles(data);
-      }
-    } catch (error) {
-      console.error("Error fetching circles:", error);
-    }
-  };
 
   const fetchConnections = async () => {
     try {
@@ -589,15 +572,11 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
     const fetchData = async () => {
       setLoading(true);
       await Promise.all([fetchConnections(), fetchPendingRequests()]);
-      // Fetch circles here if not in view mode or if circles prop is empty
-      if (!isViewMode || initialCircles.length === 0) {
-        await fetchCircles();
-      }
       setLoading(false);
     };
 
     fetchData();
-  }, [student?.id, isViewMode, initialCircles.length]); // Dependencies for re-fetching
+  }, [student?.id, isViewMode]); // Dependencies for re-fetching
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -773,9 +752,9 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                 currentUserId={student?.id} // Pass student ID if available, otherwise fallback
                 isViewMode={isViewMode}
                 studentId={student?.id}
-                circles={circles} // Pass fetched circles to the component
+                circles={circles || []} // Use circles from props
                 loading={loading} // Pass loading state
-                onCirclesUpdate={fetchCircles} // Pass fetchCircles function to update circles
+                onCirclesUpdate={() => {}} // No-op since circles come from main API
               />
             </div>
 

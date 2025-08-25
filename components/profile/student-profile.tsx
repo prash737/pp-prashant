@@ -44,7 +44,7 @@ export default function StudentProfile({
     institutions: 0
   })
   const [circles, setCircles] = useState<any[]>([])
-  const [circlesLoading, setCirclesLoading] = useState(true)
+  const [circlesLoading, setCirclesLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null) // State for current user
 
   // Determine if this is the current user's own profile
@@ -84,38 +84,11 @@ export default function StudentProfile({
     }
   }
 
-  // Function to fetch circles data
-  const fetchCircles = async () => {
-    try {
-      setCirclesLoading(true)
-      const response = await fetch('/api/circles', {
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Filter out disabled circles
-        const enabledCircles = data.filter((circle: any) => {
-          if (circle.isDisabled) return false;
-          if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
-          const userMembership = circle.memberships?.find(
-            (membership: any) => membership.user?.id === currentUser?.id
-          );
-          if (userMembership && userMembership.isDisabledMember) return false;
-          return true;
-        });
-        setCircles(enabledCircles)
-      } else {
-        // Handle cases where /api/circles might not return data or throw an error
-        console.error("Failed to fetch circles with status:", response.status);
-        setCircles([]); // Reset circles on error
-      }
-    } catch (error) {
-      console.error('Error fetching circles:', error)
-      setCircles([]); // Reset circles on error
-    } finally {
-      setCirclesLoading(false)
-    }
+  // Function to handle circles update (for creating new circles)
+  const handleCirclesUpdate = () => {
+    // If we need to refresh circles after creation, we can fetch the entire profile again
+    // For now, we'll rely on the parent component to handle this
+    console.log('Circle updated - parent should refresh data')
   }
 
 
@@ -124,16 +97,24 @@ export default function StudentProfile({
     fetchUserData()
   }, [propCurrentUser, studentData]) // Depend on props to re-fetch if they change
 
-  // Fetch circles only after currentUser is set and has an ID
+  // Set circles from studentData when available
   useEffect(() => {
-    if (currentUser?.id) {
-      fetchCircles()
-    } else if (!propCurrentUser && !studentData) {
-      // If not logged in and no student data provided, and fetchUserData failed to set currentUser
-      // It implies the user is not logged in or an error occurred, so no circles to fetch.
-      setCirclesLoading(false);
+    if (studentData?.circles) {
+      // Filter out disabled circles
+      const enabledCircles = studentData.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
+    } else {
+      setCircles([]);
     }
-  }, [currentUser?.id, propCurrentUser, studentData])
+  }, [studentData?.circles, currentUser?.id])
 
 
   if (loading) {
@@ -241,6 +222,7 @@ export default function StudentProfile({
         achievements: studentData.achievements || [],
         // circles: studentData.circles || [], // This is now fetched separately
         userCollections: studentData.userCollections || [],
+        circles: studentData.circles || [], // Keep circles in student object
         followingInstitutions: studentData.followingInstitutions || [],
         suggestedConnections: studentData.suggestedConnections || [],
         learningPath: {
@@ -258,20 +240,6 @@ export default function StudentProfile({
       }
 
       setStudent(transformedStudent)
-      // If studentData is provided, and it contains circles, set them.
-      // This handles the case where the entire profile data is passed in.
-      if (studentData.circles) {
-        setCircles(studentData.circles.filter((circle: any) => {
-          if (circle.isDisabled) return false;
-          if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
-          const userMembership = circle.memberships?.find(
-            (membership: any) => membership.user?.id === currentUser?.id
-          );
-          if (userMembership && userMembership.isDisabledMember) return false;
-          return true;
-        }));
-        setCirclesLoading(false);
-      }
     }
   }, [studentData, currentUser]) // Re-run if studentData or currentUser changes
 
@@ -302,7 +270,7 @@ export default function StudentProfile({
         isShareMode={isShareMode}
         onGoBack={onGoBack}
         circles={circles}
-        onCirclesUpdate={fetchCircles}
+        onCirclesUpdate={handleCirclesUpdate}
       />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -323,13 +291,11 @@ export default function StudentProfile({
               achievements={student?.achievements || []}
             />
           )}
-          {/* Pass fetched circles and loading state to CircleView */}
+          {/* Pass circles from main API response to CircleView */}
           {activeTab === "circle" && (
             <CircleView 
               student={student} 
               circles={circles}
-              circlesLoading={circlesLoading}
-              onCirclesUpdate={fetchCircles}
               isViewMode={isViewMode} 
             />
           )}
