@@ -93,6 +93,24 @@ export async function GET(
             }
           }
         },
+        achievements: {
+          include: {
+            achievementType: true
+          },
+          orderBy: {
+            dateOfAchievement: 'desc'
+          }
+        },
+        goals: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+        userCollections: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
         student: {
           include: {
             educationHistory: {
@@ -105,20 +123,6 @@ export async function GET(
               },
               orderBy: {
                 startDate: 'desc'
-              }
-            },
-            achievements: {
-              include: {
-                achievementType: true,
-                achievementCategory: true
-              },
-              orderBy: {
-                dateAchieved: 'desc'
-              }
-            },
-            goals: {
-              orderBy: {
-                createdAt: 'desc'
               }
             },
             circles: {
@@ -136,11 +140,6 @@ export async function GET(
                   }
                 }
               },
-              orderBy: {
-                createdAt: 'desc'
-              }
-            },
-            userCollections: {
               orderBy: {
                 createdAt: 'desc'
               }
@@ -337,10 +336,10 @@ export async function GET(
         description: edu.description,
         institutionVerified: edu.institutionVerified
       })) || [],
-      achievements: studentData.student?.achievements || [],
-      goals: studentData.student?.goals || [],
+      achievements: studentData.achievements || [],
+      goals: studentData.goals || [],
       circles: studentData.student?.circles || [],
-      userCollections: studentData.student?.userCollections || [],
+      userCollections: studentData.userCollections || [],
       connections: allConnections,
       connectionCounts: connectionCounts,
       followingInstitutions: studentData.institutionFollowConnections?.map(conn => conn.institution) || [],
