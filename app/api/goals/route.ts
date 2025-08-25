@@ -43,9 +43,9 @@ export async function GET(request: NextRequest) {
       ...userSuggestedGoals.map(sg => ({
         id: sg.id,
         title: sg.title,
-        description: sg.description,
-        category: sg.category,
-        timeframe: sg.timeframe,
+        description: sg.description || '',
+        category: sg.category || '',
+        timeframe: sg.timeframe || '',
         userId: sg.userId,
         completed: false, // suggested goals don't have completed status
         createdAt: sg.createdAt,

@@ -61,7 +61,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         description: description?.trim() || '',
         category: category?.trim() || '',
         timeframe: timeframe?.trim() || '',
-        updatedAt: new Date(),
       })
       .where(and(
         eq(suggestedGoals.id, goalId),
