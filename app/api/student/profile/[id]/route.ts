@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
+import { db } from '@/lib/drizzle/client'
+import { profiles, studentProfiles, studentEducationHistory, userInterests, interests, userSkills, skills, userAchievements, achievements, userGoals, goals, circleMemberships, circleBadges } from '@/lib/drizzle/schema'
+import { eq, and, desc, asc, isNull, or, inArray, sql } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+// Helper function to execute Drizzle queries with retry logic (assuming it's defined elsewhere)
+// For demonstration purposes, let's define a placeholder here.
+// In a real application, this would likely be imported or defined globally.
+const executeWithRetry = async (queryFn: () => Promise<any>) => {
+  try {
+    return await queryFn()
+  } catch (error) {
+    console.error('Query execution failed:', error)
+    throw error // Re-throw the error if retry logic is not implemented here
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -298,13 +313,163 @@ export async function GET(
       institutions: allConnections.filter(conn => conn.role === 'institution').length
     }
 
-    // Log circle membership data for debugging
-    console.log('🔍 DEBUG: Raw circleMemberships data:', JSON.stringify(studentData.circleMemberships, null, 2))
-    
-    // Process circles data
-    const circles = studentData.circleMemberships?.map(membership => membership.circle) || []
-    console.log('🔍 DEBUG: Processed circles data:', JSON.stringify(circles, null, 2))
-    console.log('🔍 DEBUG: Number of circles found:', circles.length)
+    // Fetch circles for the student using Drizzle
+    console.log('🔍 DEBUG: Fetching circles for student:', studentId)
+    let circles = []
+    try {
+      // First, get circles where the student is a member
+      const circleMembershipsData = await executeWithRetry(() => db
+        .select({
+          circleId: circleMemberships.circleId,
+          status: circleMemberships.status,
+          isDisabledMember: circleMemberships.isDisabledMember,
+          joinedAt: circleMemberships.joinedAt,
+          // Circle details
+          circleName: circleBadges.name,
+          circleDescription: circleBadges.description,
+          circleColor: circleBadges.color,
+          circleIcon: circleBadges.icon,
+          circleIsDefault: circleBadges.isDefault,
+          circleIsDisabled: circleBadges.isDisabled,
+          circleIsCreatorDisabled: circleBadges.isCreatorDisabled,
+          circleCreatedAt: circleBadges.createdAt,
+          circleCreatorId: circleBadges.creatorId,
+          // Creator details
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
+        })
+        .from(circleMemberships)
+        .innerJoin(circleBadges, eq(circleMemberships.circleId, circleBadges.id))
+        .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+        .where(
+          and(
+            eq(circleMemberships.userId, studentId),
+            eq(circleMemberships.status, 'active')
+          )
+        )
+      )
+
+      console.log('🔍 DEBUG: Raw circleMemberships data:', circleMembershipsData)
+
+      // Also get circles where the student is the creator
+      const createdCirclesData = await executeWithRetry(() => db
+        .select({
+          id: circleBadges.id,
+          name: circleBadges.name,
+          description: circleBadges.description,
+          color: circleBadges.color,
+          icon: circleBadges.icon,
+          isDefault: circleBadges.isDefault,
+          isDisabled: circleBadges.isDisabled,
+          isCreatorDisabled: circleBadges.isCreatorDisabled,
+          createdAt: circleBadges.createdAt,
+          creatorId: circleBadges.creatorId,
+          // Creator details (self)
+          creatorFirstName: profiles.firstName,
+          creatorLastName: profiles.lastName,
+          creatorProfileImageUrl: profiles.profileImageUrl
+        })
+        .from(circleBadges)
+        .leftJoin(profiles, eq(circleBadges.creatorId, profiles.id))
+        .where(eq(circleBadges.creatorId, studentId))
+      )
+
+      console.log('🔍 DEBUG: Raw createdCircles data:', createdCirclesData)
+
+      // Get all circle IDs to fetch membership counts
+      const allCircleIds = [
+        ...circleMembershipsData.map(m => m.circleId),
+        ...createdCirclesData.map(c => c.id)
+      ].filter((id, index, self) => self.indexOf(id) === index)
+
+      console.log('🔍 DEBUG: All circle IDs:', allCircleIds)
+
+      // Get membership counts for all circles
+      let membershipCounts = {}
+      if (allCircleIds.length > 0) {
+        const membershipCountsData = await executeWithRetry(() => db
+          .select({
+            circleId: circleMemberships.circleId,
+            count: sql<number>`count(*)`
+          })
+          .from(circleMemberships)
+          .where(
+            and(
+              inArray(circleMemberships.circleId, allCircleIds),
+              eq(circleMemberships.status, 'active')
+            )
+          )
+          .groupBy(circleMemberships.circleId)
+        )
+
+        membershipCounts = membershipCountsData.reduce((acc, item) => {
+          acc[item.circleId] = Number(item.count)
+          return acc
+        }, {} as Record<string, number>)
+      }
+
+      console.log('🔍 DEBUG: Membership counts:', membershipCounts)
+
+      // Process member circles
+      const memberCircles = circleMembershipsData.map(membership => ({
+        id: membership.circleId,
+        name: membership.circleName,
+        description: membership.circleDescription,
+        color: membership.circleColor,
+        icon: membership.circleIcon,
+        isDefault: membership.circleIsDefault,
+        isDisabled: membership.circleIsDisabled,
+        isCreatorDisabled: membership.circleIsCreatorDisabled,
+        createdAt: membership.circleCreatedAt,
+        creator: {
+          id: membership.circleCreatorId,
+          firstName: membership.creatorFirstName,
+          lastName: membership.creatorLastName,
+          profileImageUrl: membership.creatorProfileImageUrl
+        },
+        memberships: [], // Will be populated separately if needed
+        _count: {
+          memberships: membershipCounts[membership.circleId] || 0
+        }
+      }))
+
+      // Process created circles
+      const processedCreatedCircles = createdCirclesData.map(circle => ({
+        id: circle.id,
+        name: circle.name,
+        description: circle.description,
+        color: circle.color,
+        icon: circle.icon,
+        isDefault: circle.isDefault,
+        isDisabled: circle.isDisabled,
+        isCreatorDisabled: circle.isCreatorDisabled,
+        createdAt: circle.createdAt,
+        creator: {
+          id: circle.creatorId,
+          firstName: circle.creatorFirstName,
+          lastName: circle.creatorLastName,
+          profileImageUrl: circle.creatorProfileImageUrl
+        },
+        memberships: [], // Will be populated separately if needed
+        _count: {
+          memberships: membershipCounts[circle.id] || 0
+        }
+      }))
+
+      // Combine and deduplicate circles
+      const allCircles = [...processedCreatedCircles, ...memberCircles]
+      circles = allCircles.filter((circle, index, self) => 
+        index === self.findIndex(c => c.id === circle.id)
+      )
+
+      console.log('🔍 DEBUG: Processed circles data:', circles)
+      console.log('🔍 DEBUG: Number of circles found:', circles.length)
+
+    } catch (error) {
+      console.error('🚨 ERROR: Failed to fetch circles:', error)
+      circles = []
+    }
 
     // Transform and return comprehensive data
     const response = {
@@ -368,7 +533,7 @@ export async function GET(
       })) || [],
       suggestedConnections: suggestedConnections
     }
-    
+
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
 
     return NextResponse.json(response)
