@@ -41,26 +41,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // For suggested goals, we need to update the content fields
-    // First check if this suggested goal exists and belongs to the user
-    const existingGoal = await db.select().from(suggestedGoals)
-      .where(and(
-        eq(suggestedGoals.id, goalId),
-        eq(suggestedGoals.userId, user.id)
-      ))
-      .limit(1)
-
-    if (existingGoal.length === 0) {
-      return NextResponse.json({ error: 'Goal not found or not authorized' }, { status: 404 })
-    }
-
-    // Update the suggested goal content
+    // Update the suggested goal
     const updateResult = await db.update(suggestedGoals)
       .set({
         title: title.trim(),
-        description: description?.trim() || '',
-        category: category?.trim() || '',
-        timeframe: timeframe?.trim() || '',
+        description: description?.trim() || null,
+        category: category?.trim() || null,
+        timeframe: timeframe?.trim() || null,
       })
       .where(and(
         eq(suggestedGoals.id, goalId),
@@ -75,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       })
 
     if (updateResult.length === 0) {
-      return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 })
+      return NextResponse.json({ error: 'Goal not found or not authorized' }, { status: 404 })
     }
 
     console.log('✅ Successfully updated suggested goal:', updateResult[0])
