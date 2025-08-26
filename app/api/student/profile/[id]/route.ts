@@ -199,8 +199,8 @@ export async function GET(
             }
           }
         },
-        // Fetch following institutions
-        institutionFollowing: {
+        // Fetch following institutions using sendConnections for institutionFollowConnection
+        sentInstitutionFollows: {
           include: {
             receiver: {
               select: {
@@ -731,7 +731,7 @@ export async function GET(
       userCollections: studentData.userCollections || [],
       connections: allConnections,
       connectionCounts: connectionCounts,
-      followingInstitutions: studentData.institutionFollowing?.map(conn => ({
+      followingInstitutions: studentData.sentInstitutionFollows?.map(conn => ({
         id: conn.receiver.id,
         institutionName: conn.receiver.institution?.institutionName || `${conn.receiver.firstName} ${conn.receiver.lastName}`,
         institutionType: conn.receiver.institution?.institutionTypeRef?.name || conn.receiver.institution?.institutionType,
@@ -752,7 +752,7 @@ export async function GET(
 
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
     console.log('🔍 DEBUG: Student ID for following check:', resolvedParams.id)
-    console.log('🔍 DEBUG: Raw institutionFollowing data:', JSON.stringify(studentData.institutionFollowing, null, 2))
+    console.log('🔍 DEBUG: Raw sentInstitutionFollows data:', JSON.stringify(studentData.sentInstitutionFollows, null, 2))
     console.log('🔍 DEBUG: Processed followingInstitutions:', JSON.stringify(response.followingInstitutions, null, 2))
     console.log('🔍 DEBUG: Following institutions count:', response.followingInstitutions.length)
 
