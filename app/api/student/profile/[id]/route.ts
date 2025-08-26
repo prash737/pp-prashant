@@ -13,39 +13,50 @@ export async function GET(
     const resolvedParams = await params
     const studentId = resolvedParams.id
 
-    // Get user from session cookie to verify authentication
-    const cookieStore = request.headers.get('cookie') || ''
-    const cookies = Object.fromEntries(
-      cookieStore.split(';').map(cookie => {
-        const [name, ...rest] = cookie.trim().split('=')
-        return [name, decodeURIComponent(rest.join('='))]
-      })
-    )
+    // Check if this is a public view request
+    const isPublicView = request.headers.get('X-Public-View') === 'true'
+    let user = null
+    let currentUserProfile = null
 
-    const accessToken = cookies['sb-access-token']
-    if (!accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify token with Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if the current user has permission to view student profiles
-    const { data: currentUserProfile, error: currentUserError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (currentUserError || !currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
+    if (!isPublicView) {
+      // Get user from session cookie to verify authentication
+      const cookieStore = request.headers.get('cookie') || ''
+      const cookies = Object.fromEntries(
+        cookieStore.split(';').map(cookie => {
+          const [name, ...rest] = cookie.trim().split('=')
+          return [name, decodeURIComponent(rest.join('='))]
+        })
       )
+
+      const accessToken = cookies['sb-access-token']
+      if (!accessToken) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      // Verify token with Supabase
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(accessToken)
+
+      if (authError || !authUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      user = authUser
+
+      // Check if the current user has permission to view student profiles
+      const { data: userProfile, error: currentUserError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (currentUserError || !userProfile || !['student', 'institution', 'mentor'].includes(userProfile.role)) {
+        return NextResponse.json(
+          { error: 'Access denied' },
+          { status: 403 }
+        )
+      }
+
+      currentUserProfile = userProfile
     }
 
     // Check if the target profile exists and is a student
@@ -420,8 +431,8 @@ export async function GET(
 
       transformedData.suggestedConnections = suggestedConnections || []
 
-      // Fetch pending connection requests and circle invitations (only for own profile)
-      if (user.id === studentId) {
+      // Fetch pending connection requests and circle invitations (only for own profile and authenticated users)
+      if (user && user.id === studentId) {
         const [sentRequests, receivedRequests, invitations] = await Promise.all([
           supabase
             .from('connection_requests')
