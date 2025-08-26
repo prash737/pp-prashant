@@ -534,98 +534,101 @@ export async function GET(
       return NextResponse.json(response)
     }
 
-    // If RPC function works, transform and return its data
+    // If RPC function works, transform its data to match expected format
     if (studentData && studentData.length > 0) {
-      const rawData = studentData[0]
+      const data = studentData[0]
       
-      // Transform the RPC result to match expected format
+      // Transform the flat RPC response to match expected nested structure
       const transformedData = {
-        id: rawData.id,
-        first_name: rawData.first_name,
-        last_name: rawData.last_name,
-        bio: rawData.bio,
-        location: rawData.location,
-        profile_image_url: rawData.profile_image_url,
-        cover_image_url: rawData.cover_image_url,
-        verification_status: rawData.verification_status,
-        tagline: rawData.tagline,
-        ageGroup: rawData.age_group,
-        educationLevel: rawData.education_level,
-        birthMonth: rawData.birth_month,
-        birthYear: rawData.birth_year,
-        personalityType: rawData.personality_type,
-        learningStyle: rawData.learning_style,
-        favoriteQuote: rawData.favorite_quote,
+        id: data.id,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        bio: data.bio,
+        location: data.location,
+        profile_image_url: data.profile_image_url,
+        cover_image_url: data.cover_image_url,
+        verification_status: data.verification_status,
+        tagline: data.tagline,
+        ageGroup: data.age_group,
+        educationLevel: data.education_level,
+        birthMonth: data.birth_month,
+        birthYear: data.birth_year,
+        personalityType: data.personality_type,
+        learningStyle: data.learning_style,
+        favoriteQuote: data.favorite_quote,
         profile: {
-          firstName: rawData.first_name,
-          lastName: rawData.last_name,
-          bio: rawData.bio,
-          location: rawData.location,
-          profileImageUrl: rawData.profile_image_url,
-          coverImageUrl: rawData.cover_image_url,
-          verificationStatus: rawData.verification_status,
-          tagline: rawData.tagline,
-          userInterests: rawData.user_interests || [],
-          userSkills: rawData.user_skills || [],
-          skills: (rawData.user_skills || []).map((us: any) => ({
-            id: us.skill?.id,
-            name: us.skill?.name,
-            proficiencyLevel: us.proficiencyLevel || 50,
-            category: us.skill?.category?.name || 'General'
-          })),
-          socialLinks: rawData.social_links || []
+          firstName: data.first_name,
+          lastName: data.last_name,
+          bio: data.bio,
+          location: data.location,
+          profileImageUrl: data.profile_image_url,
+          coverImageUrl: data.cover_image_url,
+          verificationStatus: data.verification_status,
+          tagline: data.tagline,
+          userInterests: data.user_interests || [],
+          userSkills: data.user_skills || [],
+          socialLinks: data.social_links || []
         },
-        educationHistory: (rawData.education_history || []).map((edu: any) => ({
-          id: edu.id,
-          institutionName: edu.institutionName,
-          institutionType: edu.institutionType,
-          gradeLevel: edu.gradeLevel,
-          isCurrent: edu.isCurrent,
-          is_current: edu.isCurrent,
-          startDate: edu.startDate,
-          endDate: edu.endDate,
-          degreeProgram: edu.degreeProgram,
-          fieldOfStudy: edu.fieldOfStudy,
-          subjects: edu.subjects || [],
-          gpa: edu.gpa,
-          achievements: edu.achievements || [],
-          description: edu.description,
-          institutionVerified: edu.institutionVerified
-        })),
-        achievements: rawData.achievements || [],
-        goals: rawData.goals || [],
-        userCollections: rawData.user_collections || [],
+        educationHistory: data.education_history || [],
+        goals: data.goals || [],
+        userCollections: data.user_collections || [],
+        achievements: data.achievements || [],
         connections: [
-          ...(rawData.sent_connections || []),
-          ...(rawData.received_connections || [])
+          ...(data.sent_connections || []),
+          ...(data.received_connections || [])
         ],
         connectionCounts: {
-          total: rawData.sent_connections?.length + rawData.received_connections?.length || 0,
+          total: (data.sent_connections?.length || 0) + (data.received_connections?.length || 0),
           students: 0,
           mentors: 0,
           institutions: 0
         },
-        circles: rawData.circles || [],
-        followingInstitutions: rawData.institution_following || [],
+        followingInstitutions: data.institution_following || [],
+        circles: data.circles || [],
+        createdCircles: data.created_circles || [],
         suggestedConnections: [],
-        connectionRequestsSent: [],
-        connectionRequestsReceived: [],
-        circleInvitations: []
+        connectionRequestsSent: user && user.id === studentId ? [] : undefined,
+        connectionRequestsReceived: user && user.id === studentId ? [] : undefined,
+        circleInvitations: user && user.id === studentId ? [] : undefined
       }
 
-      console.log('🚀 API Response - Public view data being returned:', {
+      // Calculate connection counts by role
+      const allConnections = [
+        ...(data.sent_connections || []),
+        ...(data.received_connections || [])
+      ]
+      
+      transformedData.connectionCounts = {
+        total: allConnections.length,
+        students: allConnections.filter(conn => 
+          conn.sender?.role === 'student' || conn.receiver?.role === 'student' || 
+          conn.accepter?.role === 'student' || conn.requester?.role === 'student'
+        ).length,
+        mentors: allConnections.filter(conn => 
+          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor' || 
+          conn.accepter?.role === 'mentor' || conn.requester?.role === 'mentor'
+        ).length,
+        institutions: allConnections.filter(conn => 
+          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution' || 
+          conn.accepter?.role === 'institution' || conn.requester?.role === 'institution'
+        ).length
+      }
+
+      console.log('🚀 RPC Response transformed:', {
         id: transformedData.id,
-        firstName: transformedData.profile?.firstName,
-        lastName: transformedData.profile?.lastName,
+        hasProfile: !!transformedData.profile,
+        profileName: `${transformedData.profile?.firstName} ${transformedData.profile?.lastName}`,
+        educationCount: transformedData.educationHistory?.length || 0,
         achievementsCount: transformedData.achievements?.length || 0,
-        educationHistoryCount: transformedData.educationHistory?.length || 0,
-        circlesCount: transformedData.circles?.length || 0
+        followingCount: transformedData.followingInstitutions?.length || 0,
+        interestsCount: transformedData.profile?.userInterests?.length || 0,
+        skillsCount: transformedData.profile?.userSkills?.length || 0
       })
 
       return NextResponse.json(transformedData)
     }
-    
-    return NextResponse.json({ error: 'Student data not found' }, { status: 404 })
+
+    return NextResponse.json({ error: 'No data found' }, { status: 404 })
 
   } catch (error) {
     console.error('Error fetching student profile:', error)
