@@ -142,6 +142,14 @@ export default function StudentProfile({
       console.log('  - Following institutions:', data?.followingInstitutions)
       console.log('  - User interests:', data?.profile?.userInterests)
       console.log('  - User skills:', data?.profile?.userSkills)
+      
+      // Log the raw data structure to understand what we're receiving
+      console.log('🔍 Raw API Response Structure:', {
+        hasProfile: !!data?.profile,
+        hasId: !!data?.id,
+        topLevelKeys: Object.keys(data || {}),
+        profileKeys: data?.profile ? Object.keys(data.profile) : 'No profile object'
+      })
 
 
       setStudent(data)

@@ -159,6 +159,15 @@ export default function ProfileHeader({
   const profileImage = student?.profile?.profileImageUrl || "/images/student-profile.png"
   // Fix tagline access - check multiple possible locations
   const tagline = student?.profile?.tagline || student?.tagline || student?.profile?.bio || "Passionate learner exploring new horizons"
+  
+  // Debug logging for ProfileHeader
+  console.log('🔍 ProfileHeader Debug:', {
+    hasStudent: !!student,
+    hasProfile: !!student?.profile,
+    displayName,
+    profileKeys: student?.profile ? Object.keys(student.profile) : 'No profile',
+    studentKeys: student ? Object.keys(student) : 'No student'
+  })
 
   // Check if this is the current user's own profile
   const isOwnProfile = currentUser && currentUser.id === student.id
