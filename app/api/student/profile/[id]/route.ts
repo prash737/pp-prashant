@@ -385,8 +385,9 @@ export async function GET(
 
       console.log('🔍 DEBUG: All circle IDs:', allCircleIds)
 
-      // Get membership counts for all circles
+      // Get membership counts and member details for all circles
       let membershipCounts = {}
+      let circleMembers = {}
       if (allCircleIds.length > 0) {
         const membershipCountsData = await executeWithRetry(() => db
           .select({
@@ -407,9 +408,53 @@ export async function GET(
           acc[item.circleId] = Number(item.count)
           return acc
         }, {} as Record<string, number>)
+
+        // Get detailed member information for each circle
+        const membershipDetails = await executeWithRetry(() => db
+          .select({
+            circleId: circleMemberships.circleId,
+            userId: circleMemberships.userId,
+            joinedAt: circleMemberships.joinedAt,
+            // User details
+            firstName: profiles.firstName,
+            lastName: profiles.lastName,
+            profileImageUrl: profiles.profileImageUrl,
+            role: profiles.role,
+            bio: profiles.bio
+          })
+          .from(circleMemberships)
+          .innerJoin(profiles, eq(circleMemberships.userId, profiles.id))
+          .where(
+            and(
+              inArray(circleMemberships.circleId, allCircleIds),
+              eq(circleMemberships.status, 'active')
+            )
+          )
+        )
+
+        // Group members by circle
+        circleMembers = membershipDetails.reduce((acc, member) => {
+          if (!acc[member.circleId]) {
+            acc[member.circleId] = []
+          }
+          acc[member.circleId].push({
+            user: {
+              id: member.userId,
+              firstName: member.firstName,
+              lastName: member.lastName,
+              profileImageUrl: member.profileImageUrl,
+              role: member.role,
+              bio: member.bio
+            },
+            joinedAt: member.joinedAt,
+            isCreator: false
+          })
+          return acc
+        }, {} as Record<string, any[]>)
       }
 
       console.log('🔍 DEBUG: Membership counts:', membershipCounts)
+      console.log('🔍 DEBUG: Circle members:', circleMembers)
 
       // Process member circles
       const memberCircles = circleMembershipsData.map(membership => ({
@@ -428,7 +473,7 @@ export async function GET(
           lastName: membership.creatorLastName,
           profileImageUrl: membership.creatorProfileImageUrl
         },
-        memberships: [], // Will be populated separately if needed
+        memberships: circleMembers[membership.circleId] || [],
         _count: {
           memberships: membershipCounts[membership.circleId] || 0
         }
@@ -451,7 +496,7 @@ export async function GET(
           lastName: circle.creatorLastName,
           profileImageUrl: circle.creatorProfileImageUrl
         },
-        memberships: [], // Will be populated separately if needed
+        memberships: circleMembers[circle.id] || [],
         _count: {
           memberships: membershipCounts[circle.id] || 0
         }
@@ -637,6 +682,13 @@ export async function GET(
             categoryId: userSkill.skill.categoryId,
             categoryName: userSkill.skill.category?.name || 'Uncategorized'
           }
+        })),
+        // Add top skills for ProfileHeader
+        skills: studentData.userSkills.map(userSkill => ({
+          id: userSkill.skill.id,
+          name: userSkill.skill.name,
+          proficiencyLevel: userSkill.proficiencyLevel || 50,
+          category: userSkill.skill.category?.name || 'General'
         })),
         socialLinks: studentData.socialLinks
       },
