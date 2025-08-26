@@ -468,21 +468,11 @@ export default function ProfileHeader({
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
             {student?.profile?.coverImageUrl ? (
-              <>
-                {/* Blurred placeholder background */}
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue blur-sm"></div>
-                {/* Actual cover image */}
-                <img
-                  src={student.profile.coverImageUrl}
-                  alt="Cover photo"
-                  className="relative z-10 w-full h-full object-cover transition-opacity duration-300"
-                  onLoad={(e) => {
-                    // Remove blur background once image loads
-                    const blurBg = e.currentTarget.previousElementSibling as HTMLElement;
-                    if (blurBg) blurBg.style.display = 'none';
-                  }}
-                />
-              </>
+              <img
+                src={student.profile.coverImageUrl}
+                alt="Cover photo"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
             )}
