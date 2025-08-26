@@ -35,45 +35,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
   useEffect(() => {
     // If institutions are provided via props, use them directly
     if (propInstitutions !== undefined) {
-      // Process propInstitutions to match the expected structure
-      const processedInstitutions = propInstitutions.map(institution => {
-        console.log('🏛️ Processing prop institution:', institution)
-
-        if (institution.institutionProfile) {
-          return {
-            id: institution.institutionProfile.id,
-            institutionName: institution.institutionProfile.institutionName,
-            logoUrl: institution.institutionProfile.logoUrl,
-            institutionType: institution.institutionProfile.institutionType,
-            location: institution.institutionProfile.location,
-            verified: institution.institutionProfile.verified,
-            followedAt: institution.followedAt || institution.created_at
-          }
-        }
-
-        if (institution.institution_profiles) {
-          return {
-            id: institution.institution_profiles.id,
-            institutionName: institution.institution_profiles.institutionName,
-            logoUrl: institution.institution_profiles.logoUrl,
-            institutionType: institution.institution_profiles.institutionType,
-            location: institution.institution_profiles.location,
-            verified: institution.institution_profiles.verified,
-            followedAt: institution.created_at
-          }
-        }
-
-        return {
-          id: institution.id,
-          institutionName: institution.institutionName || institution.name,
-          logoUrl: institution.logoUrl || institution.logo,
-          institutionType: institution.institutionType || institution.type,
-          location: institution.location,
-          verified: institution.verified,
-          followedAt: institution.followedAt || institution.created_at
-        }
-      });
-      setInstitutions(processedInstitutions)
+      setInstitutions(propInstitutions)
       setLoading(false)
       return
     }
@@ -101,44 +63,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
         const data = await response.json()
 
         if (data.success) {
-          const fetchedInstitutions = data.following.map(institution => {
-            console.log('🏛️ Processing fetched institution:', institution)
-
-            if (institution.institutionProfile) {
-              return {
-                id: institution.institutionProfile.id,
-                institutionName: institution.institutionProfile.institutionName,
-                logoUrl: institution.institutionProfile.logoUrl,
-                institutionType: institution.institutionProfile.institutionType,
-                location: institution.institutionProfile.location,
-                verified: institution.institutionProfile.verified,
-                followedAt: institution.followedAt || institution.created_at
-              }
-            }
-
-            if (institution.institution_profiles) {
-              return {
-                id: institution.institution_profiles.id,
-                institutionName: institution.institution_profiles.institutionName,
-                logoUrl: institution.institution_profiles.logoUrl,
-                institutionType: institution.institution_profiles.institutionType,
-                location: institution.institution_profiles.location,
-                verified: institution.institution_profiles.verified,
-                followedAt: institution.created_at
-              }
-            }
-            
-            return {
-              id: institution.id,
-              institutionName: institution.institutionName || institution.name,
-              logoUrl: institution.logoUrl || institution.logo,
-              institutionType: institution.institutionType || institution.type,
-              location: institution.location,
-              verified: institution.verified,
-              followedAt: institution.followedAt || institution.created_at
-            }
-          })
-          setInstitutions(fetchedInstitutions)
+          setInstitutions(data.following)
         } else {
           setError(data.error || 'Failed to load institutions')
         }
@@ -151,7 +76,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
     }
 
     fetchFollowingInstitutions()
-  }, [userId, propInstitutions])
+  }, [userId, propInstitutions]) // Depend on propInstitutions as well
 
   if (loading) {
     return (
@@ -245,37 +170,27 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
             key={institution.id} 
             className="flex-shrink-0 w-64 hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
           >
+            {/* Cover Image */}
             <div className="h-32 bg-gradient-to-r from-pathpiper-teal to-blue-500 rounded-t-lg overflow-hidden">
-              {institution.logoUrl ? (
+              {institution.coverImageUrl ? (
                 <img 
-                  src={institution.logoUrl} 
-                  alt={`${institution.institutionName} logo`}
+                  src={institution.coverImageUrl} 
+                  alt={`${institution.institutionName} cover`}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-blue-500 flex items-center justify-center">
-                  <Users className="h-10 w-10 text-white" />
-                </div>
+                <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-blue-500" />
               )}
             </div>
 
             <CardContent className="p-4">
               <div className="text-center">
+                {/* Institution Name */}
                 <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-2 truncate">
                   {institution.institutionName}
                 </h3>
 
-                {institution.institutionType && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Type: {institution.institutionType}
-                  </p>
-                )}
-                {institution.location && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Location: {institution.location}
-                  </p>
-                )}
-
+                {/* Following Date */}
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Following since {(() => {
                     try {

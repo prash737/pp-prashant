@@ -13,50 +13,39 @@ export async function GET(
     const resolvedParams = await params
     const studentId = resolvedParams.id
 
-    // Check if this is a public view request
-    const isPublicView = request.headers.get('X-Public-View') === 'true'
-    let user = null
-    let currentUserProfile = null
+    // Get user from session cookie to verify authentication
+    const cookieStore = request.headers.get('cookie') || ''
+    const cookies = Object.fromEntries(
+      cookieStore.split(';').map(cookie => {
+        const [name, ...rest] = cookie.trim().split('=')
+        return [name, decodeURIComponent(rest.join('='))]
+      })
+    )
 
-    if (!isPublicView) {
-      // Get user from session cookie to verify authentication
-      const cookieStore = request.headers.get('cookie') || ''
-      const cookies = Object.fromEntries(
-        cookieStore.split(';').map(cookie => {
-          const [name, ...rest] = cookie.trim().split('=')
-          return [name, decodeURIComponent(rest.join('='))]
-        })
+    const accessToken = cookies['sb-access-token']
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Verify token with Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if the current user has permission to view student profiles
+    const { data: currentUserProfile, error: currentUserError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (currentUserError || !currentUserProfile || !['student', 'institution', 'mentor'].includes(currentUserProfile.role)) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
       )
-
-      const accessToken = cookies['sb-access-token']
-      if (!accessToken) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-
-      // Verify token with Supabase
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(accessToken)
-
-      if (authError || !authUser) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-
-      user = authUser
-
-      // Check if the current user has permission to view student profiles
-      const { data: userProfile, error: currentUserError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (currentUserError || !userProfile || !['student', 'institution', 'mentor'].includes(userProfile.role)) {
-        return NextResponse.json(
-          { error: 'Access denied' },
-          { status: 403 }
-        )
-      }
-
-      currentUserProfile = userProfile
     }
 
     // Check if the target profile exists and is a student
@@ -431,8 +420,8 @@ export async function GET(
 
       transformedData.suggestedConnections = suggestedConnections || []
 
-      // Fetch pending connection requests and circle invitations (only for own profile and authenticated users)
-      if (user && user.id === studentId) {
+      // Fetch pending connection requests and circle invitations (only for own profile)
+      if (user.id === studentId) {
         const [sentRequests, receivedRequests, invitations] = await Promise.all([
           supabase
             .from('connection_requests')
@@ -534,101 +523,8 @@ export async function GET(
       return NextResponse.json(response)
     }
 
-    // If RPC function works, transform its data to match expected format
-    if (studentData && studentData.length > 0) {
-      const data = studentData[0]
-      
-      // Transform the flat RPC response to match expected nested structure
-      const transformedData = {
-        id: data.id,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        bio: data.bio,
-        location: data.location,
-        profile_image_url: data.profile_image_url,
-        cover_image_url: data.cover_image_url,
-        verification_status: data.verification_status,
-        tagline: data.tagline,
-        ageGroup: data.age_group,
-        educationLevel: data.education_level,
-        birthMonth: data.birth_month,
-        birthYear: data.birth_year,
-        personalityType: data.personality_type,
-        learningStyle: data.learning_style,
-        favoriteQuote: data.favorite_quote,
-        profile: {
-          firstName: data.first_name,
-          lastName: data.last_name,
-          bio: data.bio,
-          location: data.location,
-          profileImageUrl: data.profile_image_url,
-          coverImageUrl: data.cover_image_url,
-          verificationStatus: data.verification_status,
-          tagline: data.tagline,
-          userInterests: data.user_interests || [],
-          userSkills: data.user_skills || [],
-          socialLinks: data.social_links || []
-        },
-        educationHistory: data.education_history || [],
-        goals: data.goals || [],
-        userCollections: data.user_collections || [],
-        achievements: data.achievements || [],
-        connections: [
-          ...(data.sent_connections || []),
-          ...(data.received_connections || [])
-        ],
-        connectionCounts: {
-          total: (data.sent_connections?.length || 0) + (data.received_connections?.length || 0),
-          students: 0,
-          mentors: 0,
-          institutions: 0
-        },
-        followingInstitutions: data.institution_following || [],
-        circles: data.circles || [],
-        createdCircles: data.created_circles || [],
-        suggestedConnections: [],
-        connectionRequestsSent: user && user.id === studentId ? [] : undefined,
-        connectionRequestsReceived: user && user.id === studentId ? [] : undefined,
-        circleInvitations: user && user.id === studentId ? [] : undefined
-      }
-
-      // Calculate connection counts by role
-      const allConnections = [
-        ...(data.sent_connections || []),
-        ...(data.received_connections || [])
-      ]
-      
-      transformedData.connectionCounts = {
-        total: allConnections.length,
-        students: allConnections.filter(conn => 
-          conn.sender?.role === 'student' || conn.receiver?.role === 'student' || 
-          conn.accepter?.role === 'student' || conn.requester?.role === 'student'
-        ).length,
-        mentors: allConnections.filter(conn => 
-          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor' || 
-          conn.accepter?.role === 'mentor' || conn.requester?.role === 'mentor'
-        ).length,
-        institutions: allConnections.filter(conn => 
-          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution' || 
-          conn.accepter?.role === 'institution' || conn.requester?.role === 'institution'
-        ).length
-      }
-
-      console.log('🚀 RPC Response transformed:', {
-        id: transformedData.id,
-        hasProfile: !!transformedData.profile,
-        profileName: `${transformedData.profile?.firstName} ${transformedData.profile?.lastName}`,
-        educationCount: transformedData.educationHistory?.length || 0,
-        achievementsCount: transformedData.achievements?.length || 0,
-        followingCount: transformedData.followingInstitutions?.length || 0,
-        interestsCount: transformedData.profile?.userInterests?.length || 0,
-        skillsCount: transformedData.profile?.userSkills?.length || 0
-      })
-
-      return NextResponse.json(transformedData)
-    }
-
-    return NextResponse.json({ error: 'No data found' }, { status: 404 })
+    // If RPC function works, return its data
+    return NextResponse.json(studentData)
 
   } catch (error) {
     console.error('Error fetching student profile:', error)
