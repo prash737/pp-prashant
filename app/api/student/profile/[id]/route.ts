@@ -211,7 +211,12 @@ export async function GET(
                 verificationStatus: true,
                 institution: {
                   select: {
-                    institutionName: true
+                    institutionName: true,
+                    institutionType: true,
+                    category: true,
+                    website: true,
+                    logoUrl: true,
+                    verified: true
                   }
                 }
               }
