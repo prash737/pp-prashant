@@ -48,8 +48,6 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
   const [profileDataLoaded, setProfileDataLoaded] = useState(false)
-  const [showPipLoader, setShowPipLoader] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
   const router = useRouter()
   // Resolve params first
   useEffect(() => {
@@ -111,7 +109,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         const data = await response.json()
         setStudentData(data)
         setProfileDataLoaded(true)
-        
+
         // If this is the initial load, keep PipLoader for smooth transition
         // If it's a subsequent load, hide immediately
         if (initialLoad) {
@@ -266,7 +264,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
             </div>
           </main>
           <Footer />
-          
+
           {/* Show PipLoader overlay during loading */}
           {(authLoading || loading || !studentData) && (
             <div className="fixed inset-0 z-50">
@@ -319,7 +317,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
               />
             </div>
           )}
-          
+
           {/* Fallback skeleton if studentData is not ready but not in initial loading */}
           {!studentData && !authLoading && !loading && (
             <div className="container mx-auto px-4 py-8">
@@ -333,7 +331,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
           )}
         </main>
         <Footer />
-        
+
         {/* PipLoader Overlay with enhanced backdrop */}
         {showPipLoader && (
           <div className="fixed inset-0 z-50 bg-black/5 backdrop-blur-[2px]">

@@ -14,7 +14,7 @@ import { invalidateUserCache } from '@/hooks/use-auth'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle, Mail, Shield, GraduationCap, Building, Users } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import PipLoader from "@/components/loading/pip-loader"
+
 
 function LoginPageContent() {
   const [userEmail, setUserEmail] = useState("")
@@ -260,8 +260,7 @@ function LoginPageContent() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      {/* Interactive Pip Loading overlay when redirecting */}
-      <PipLoader isVisible={isRedirecting} />
+      
 
       {/* Header */}
       <header className="w-full py-4 px-6 flex justify-between items-center bg-white border-b border-slate-200">

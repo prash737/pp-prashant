@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import InternalNavbar from '@/components/internal-navbar'
 import Footer from '@/components/footer'
-import PipLoader from '@/components/loading/pip-loader'
+
 
 export default function StudentProfileRedirect() {
   const { user, loading } = useAuth()
