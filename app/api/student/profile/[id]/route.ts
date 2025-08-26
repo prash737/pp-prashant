@@ -213,10 +213,20 @@ export async function GET(
                   select: {
                     institutionName: true,
                     institutionType: true,
-                    category: true,
+                    institutionTypeId: true,
                     website: true,
                     logoUrl: true,
-                    verified: true
+                    verified: true,
+                    institutionTypeRef: {
+                      select: {
+                        name: true,
+                        category: {
+                          select: {
+                            name: true
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -724,7 +734,12 @@ export async function GET(
       followingInstitutions: studentData.institutionFollowing?.map(conn => ({
         id: conn.receiver.id,
         institutionName: conn.receiver.institution?.institutionName || `${conn.receiver.firstName} ${conn.receiver.lastName}`,
+        institutionType: conn.receiver.institution?.institutionTypeRef?.name || conn.receiver.institution?.institutionType,
+        category: conn.receiver.institution?.institutionTypeRef?.category?.name,
         profileImageUrl: conn.receiver.profileImageUrl,
+        logoUrl: conn.receiver.institution?.logoUrl,
+        website: conn.receiver.institution?.website,
+        verified: conn.receiver.institution?.verified,
         verificationStatus: conn.receiver.verificationStatus
       })) || [],
       suggestedConnections: suggestedConnections,
