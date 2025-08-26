@@ -17,8 +17,7 @@ import {
   Save,
   X,
   ArrowLeft,
-  CheckCircle,
-  Award
+  CheckCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -35,7 +34,6 @@ import AchievementsForm from "./forms/achievements-form"
 interface ProfileEditFormProps {
   userId: string
   initialSection?: string
-  cachedData?: any
 }
 
 interface TabConfig {
@@ -52,12 +50,12 @@ interface PersonalInfoFormProps {
   onSave?: (data: any) => Promise<void>
 }
 
-export default function ProfileEditForm({ userId, initialSection, cachedData }: ProfileEditFormProps) {
+export default function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState(initialSection || "personal")
-  const [profileData, setProfileData] = useState<any>(cachedData || null) // Use cachedData initially
-  const [loading, setLoading] = useState(!cachedData) // Only set loading if no cachedData
+  const [profileData, setProfileData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [completionData, setCompletionData] = useState<Record<string, boolean>>({})
   const [formDirtyStates, setFormDirtyStates] = useState<{[key: string]: boolean}>({})
@@ -128,8 +126,8 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
 
   // Watch for form changes in any section
   useEffect(() => {
-    console.log('📝 Form change detected in', activeTab + ':', formData[activeTab], 'isDirty:', formDirtyStates[activeTab])
-  }, [formData, activeTab, formDirtyStates])
+    console.log('📝 Form change detected in', activeSection + ':', formData[activeSection], 'isDirty:', formDirtyStates[activeSection])
+  }, [formData, activeSection, formDirtyStates])
 
   // Debug user data
   useEffect(() => {
@@ -166,6 +164,7 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
       id: "goals",
       label: "Goals & Aspirations",
       icon: <Target className="h-4 w-4" />,
+      // component: <GoalsAspirationsForm data={profileData} onChange={handleFormChange} />
       component: <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
     },
     {
@@ -209,19 +208,18 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
         {
       id: "achievements",
       label: "Achievements",
-      icon: <Award className="h-4 w-4" />, // Changed icon for clarity
+      icon: <ImageIcon className="h-4 w-4" />,
       component: <AchievementsForm data={profileData} onChange={handleFormChange} />
     }
   ]
 
-  // Load profile data only once, if not already cached
+  // Load profile data only once
   useEffect(() => {
     const loadProfileData = async () => {
-      if (profileData) return // Already loaded or cached
-
       try {
         setLoading(true)
 
+        // Fetch from the new personal info endpoint for more complete data
         const response = await fetch('/api/profile/personal-info')
         if (!response.ok) throw new Error('Failed to load profile')
 
@@ -243,8 +241,11 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
       }
     }
 
-    loadProfileData()
-  }, [userId, tabs, profileData])
+    // Only load if we don't have profile data yet
+    if (!profileData) {
+      loadProfileData()
+    }
+  }, [userId, tabs, profileData]) // Remove tabs dependency to prevent unnecessary reloads
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
@@ -267,8 +268,8 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
         return !!(data.moodBoard && data.moodBoard.length > 0)
       case "privacy":
         return true // Always considered complete
-      case "achievements":
-        return !!(data.achievements && data.achievements.length > 0) // Assume achievements need content
+          case "achievements":
+        return true // Always considered complete
       default:
         return false
     }
@@ -276,113 +277,47 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
 
   // Calculate overall completion percentage
   const completionPercentage = Math.round(
-    (Object.values(completionData).filter(Boolean).length / tabs.filter(tab => tab.id !== 'privacy').length) * 100 // Exclude privacy from percentage
+    (Object.values(completionData).filter(Boolean).length / tabs.length) * 100
   )
-
 
   // Handle save for specific sections
   const handleSectionSave = async (sectionId: string, data: any) => {
     try {
       setSaving(true)
 
-      let response;
-      let successMessage = `Successfully saved ${sectionId}.`
-      let errorMessage = `Failed to save ${sectionId}.`
+      if (sectionId === 'personal') {
+        console.log('💾 Saving personal info section:', data)
 
-      switch(sectionId) {
-        case 'personal':
-          response = await fetch('/api/profile/personal-info', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          successMessage = 'Personal information updated successfully!'
-          errorMessage = 'Failed to save personal info'
-          break;
-        case 'interests':
-          response = await fetch('/api/profile/interests', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'skills':
-          response = await fetch('/api/profile/skills', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'goals':
-          response = await fetch('/api/profile/goals', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'social':
-          response = await fetch('/api/profile/social', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'education':
-          response = await fetch('/api/profile/education', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'media':
-          response = await fetch('/api/profile/media', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'privacy':
-          response = await fetch('/api/profile/privacy', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        case 'achievements':
-          response = await fetch('/api/profile/achievements', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          break;
-        default:
-          throw new Error('Unknown section ID');
+        const response = await fetch('/api/profile/personal-info', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to save personal info')
+        }
+
+        const result = await response.json()
+        console.log('✅ Personal info saved successfully:', result)
+
+        // Update the profile data with the saved data
+        setProfileData((prev: any) => ({
+          ...prev,
+          ...data
+        }))
+
+        toast.success('Personal information updated successfully!')
       }
+      // Add other section save logic here as needed
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || errorMessage)
-      }
-
-      const result = await response.json()
-      console.log(`✅ ${sectionId} saved successfully:`, result)
-
-      // Update the profile data with the saved data
-      setProfileData((prev: any) => ({
-        ...prev,
-        ...data
-      }))
-      // Update completion status for the saved section
-      setCompletionData(prev => ({
-        ...prev,
-        [sectionId]: calculateSectionCompletion(sectionId, { ...profileData, ...data })
-      }))
-
-      toast.success(successMessage)
-      setFormDirtyStates(prev => ({ ...prev, [sectionId]: false })) // Mark as not dirty after saving
+      setHasUnsavedChanges(false)
 
     } catch (error) {
-      console.error(`Error saving ${sectionId}:`, error)
+      console.error('Error saving section:', error)
       toast.error(`Failed to save ${sectionId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
       throw error // Re-throw to let the form component handle it
     } finally {
@@ -392,8 +327,20 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
 
   // Handle save - general save for all sections
   const handleSave = async () => {
-    // For now, prompt user to save each section individually
-    toast.info('Please save each section individually using the "Save" button within each form.')
+    try {
+      setSaving(true)
+
+      // For now, just show a message that individual sections should be saved
+      toast.info('Please save each section individually using the forms')
+
+      setHasUnsavedChanges(false)
+
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      toast.error('Failed to save profile changes')
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Handle navigation with unsaved changes warning
@@ -404,15 +351,7 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
     if (actuallyHasDirtyForms) {
       const confirmed = window.confirm('You have unsaved changes. Do you want to save before switching sections?')
       if (confirmed) {
-        // This is a placeholder, ideally you'd save all dirty forms here or prompt user which ones
-        toast.info('Saving unsaved changes. Please wait...')
-        // In a real scenario, you would iterate through dirty forms and call their respective save methods.
-        // For now, we'll just proceed after a small delay.
-        setTimeout(() => {
-          setActiveTab(tabId)
-          setFormDirtyStates({}) // Clear dirty states after assumed save
-          setHasUnsavedChanges(false)
-        }, 1000)
+        handleSave().then(() => setActiveTab(tabId))
         return
       }
     }
@@ -460,9 +399,11 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
             </div>
           </div>
         </div>
+
+        {/* Progress Bar */}
       </div>
 
-      <div className="flex flex-col lg:flex-row">
+      <div className="flex">
         {/* Vertical Navigation - Desktop */}
         <div className="hidden lg:block w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="p-4">
@@ -493,9 +434,6 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
                         )}
                       </div>
                     </div>
-                    {isComplete && !isActive && (
-                      <CheckCircle className="h-4 w-4 text-green-400" />
-                    )}
                   </button>
                 )
               })}
@@ -504,29 +442,31 @@ export default function ProfileEditForm({ userId, initialSection, cachedData }: 
         </div>
 
         {/* Mobile Navigation */}
-        <div className="lg:hidden w-full border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-          <select
-            value={activeTab}
-            onChange={(e) => handleNavigation(e.target.value)}
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
-          >
-            {tabs.map((tab) => (
-              <option key={tab.id} value={tab.id}>
-                {tab.label} {tab.required ? '*' : ''} {completionData[tab.id] ? '✓' : ''}
-              </option>
-            ))}
-          </select>
+        <div className="lg:hidden w-full border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div className="p-4">
+            <select
+              value={activeTab}
+              onChange={(e) => handleNavigation(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+            >
+              {tabs.map((tab) => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.label} {tab.required ? '*' : ''} {completionData[tab.id] ? '✓' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 min-h-[600px] bg-white dark:bg-gray-800">
+        <div className="flex-1 min-h-[600px]">
           <div className="p-6 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
                 {tabs.find(tab => tab.id === activeTab)?.component}

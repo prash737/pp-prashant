@@ -12,27 +12,8 @@ function StudentProfileEditContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
-  const [loading, setLoading] = useState(false) // Start with false for instant rendering
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [cachedData, setCachedData] = useState<any>(null)
-
-  // Check for cached data immediately
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const cached = window.sessionStorage.getItem('profileEditCache')
-      if (cached) {
-        try {
-          const parsedCache = JSON.parse(cached)
-          // Use cache if it's less than 5 minutes old
-          if (Date.now() - parsedCache.timestamp < 5 * 60 * 1000) {
-            setCachedData(parsedCache.student)
-          }
-        } catch (error) {
-          console.error('Error parsing cached data:', error)
-        }
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (!authLoading) {
@@ -52,11 +33,26 @@ function StudentProfileEditContent() {
         return
       }
 
-      // No need to set loading to false since we start with false
+      setLoading(false)
     }
   }, [user, authLoading, router])
 
-  // Remove loading spinner - show content immediately
+  if (authLoading || loading) {
+    return (
+      <ProtectedLayout>
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+          <InternalNavbar />
+          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </ProtectedLayout>
+    )
+  }
 
   if (error) {
     return (
@@ -84,11 +80,18 @@ function StudentProfileEditContent() {
       <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          <ProfileEditForm 
-            userId={user?.id || ''} 
-            initialSection={searchParams.get('section') || undefined}
-            cachedData={cachedData}
-          />
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Update your profile information to help others get to know you better
+              </p>
+            </div>
+            <ProfileEditForm 
+              userId={user.id} 
+              initialSection={searchParams.get('section') || undefined}
+            />
+          </div>
         </main>
         <Footer />
       </div>
