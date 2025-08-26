@@ -540,7 +540,12 @@ export default function ProfileHeader({
                             <Button 
                               size="sm" 
                               className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
-                              onClick={() => router.push('/student/profile/edit')}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                // Use direct window navigation for faster redirect
+                                window.location.href = '/student/profile/edit';
+                              }}
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Profile
