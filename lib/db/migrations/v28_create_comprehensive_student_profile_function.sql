@@ -132,7 +132,9 @@ BEGIN
           'id', g.id,
           'title', g.title,
           'description', g.description,
-          'status', g.status,
+          'category', g.category,
+          'timeframe', g.timeframe,
+          'completed', g.completed,
           'createdAt', g.created_at
         ) ORDER BY g.created_at DESC
       ) as goals
