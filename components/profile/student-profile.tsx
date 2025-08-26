@@ -22,15 +22,17 @@ interface StudentProfileProps {
   isViewMode?: boolean // New prop to indicate if this is a view-only mode
   isShareMode?: boolean
   onGoBack?: () => void // New prop for back button handler
+  showStaticStructure?: boolean
 }
 
 export default function StudentProfile({ 
   studentId, 
   currentUser: propCurrentUser, // Renamed prop to avoid conflict with state
-  studentData, 
+  studentData: propStudentData, 
   isViewMode = false,
   isShareMode = false,
-  onGoBack 
+  onGoBack,
+  showStaticStructure = false 
 }: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -61,9 +63,9 @@ export default function StudentProfile({
       if (propCurrentUser) {
         setCurrentUser(propCurrentUser)
         // If studentData is also provided, use it to set student details and skip fetching from /api/auth/user
-        if (studentData) {
-          setStudent(studentData)
-          setCircles(studentData.circles || []) // Set circles from studentData
+        if (propStudentData) {
+          setStudent(propStudentData)
+          setCircles(propStudentData.circles || []) // Set circles from studentData
           setLoading(false)
         } else {
           // If only propCurrentUser is provided, we might still need to fetch student specific data if different
@@ -165,17 +167,17 @@ export default function StudentProfile({
       const idToFetch = studentId || (propCurrentUser ? propCurrentUser.id : null); // Prioritize studentId, then propCurrentUser
       if (idToFetch) {
         fetchStudentData();
-      } else if (!propCurrentUser && !studentData) {
+      } else if (!propCurrentUser && !propStudentData) {
         // If no user data and no studentId, and studentData isn't provided, it means we are likely
         // on a public page without a logged-in user, or an error occurred in fetchUserData.
         // If studentData is provided, it should be used.
-        if (studentData) {
-          setStudent(studentData);
-          setCircles(studentData.circles || []);
-          setConnectionCounts(studentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 });
-          setConnections(studentData.connections || []);
-          setSuggestedConnections(studentData.suggestedConnections || []);
-          setFollowingInstitutions(studentData.followingInstitutions || []);
+        if (propStudentData) {
+          setStudent(propStudentData);
+          setCircles(propStudentData.circles || []);
+          setConnectionCounts(propStudentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 });
+          setConnections(propStudentData.connections || []);
+          setSuggestedConnections(propStudentData.suggestedConnections || []);
+          setFollowingInstitutions(propStudentData.followingInstitutions || []);
           setLoading(false);
         } else {
            // If it's a public profile and no studentId is passed, we might not be able to fetch.
@@ -183,20 +185,20 @@ export default function StudentProfile({
            // For now, if studentData is not available, we'll assume loading is done.
            setLoading(false)
         }
-      } else if (propCurrentUser && !studentId && !studentData) {
+      } else if (propCurrentUser && !studentId && !propStudentData) {
          // If propCurrentUser is set but no studentId and no studentData, use propCurrentUser's data
          setStudent(propCurrentUser);
          setCircles(propCurrentUser.circles || []);
          setLoading(false);
       }
     });
-  }, [propCurrentUser, studentData, studentId]) // Depend on props to re-fetch if they change
+  }, [propCurrentUser, propStudentData, studentId]) // Depend on props to re-fetch if they change
 
 
   // Set circles from studentData when available (alternative/fallback if fetchStudentData doesn't set it)
   useEffect(() => {
-    if (studentData?.circles && !student) { // Only if student is not yet populated by fetchStudentData
-      const enabledCircles = studentData.circles.filter((circle: any) => {
+    if (propStudentData?.circles && !student) { // Only if student is not yet populated by fetchStudentData
+      const enabledCircles = propStudentData.circles.filter((circle: any) => {
         if (circle.isDisabled) return false;
         if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
         const userMembership = circle.memberships?.find(
@@ -206,7 +208,7 @@ export default function StudentProfile({
         return true;
       });
       setCircles(enabledCircles);
-    } else if (!studentData && student?.circles) { // If student is populated but studentData was not the source
+    } else if (!propStudentData && student?.circles) { // If student is populated but propStudentData was not the source
        const enabledCircles = student.circles.filter((circle: any) => {
         if (circle.isDisabled) return false;
         if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
@@ -218,54 +220,54 @@ export default function StudentProfile({
       });
       setCircles(enabledCircles);
     }
-  }, [studentData?.circles, student?.circles, currentUser?.id])
+  }, [propStudentData?.circles, student?.circles, currentUser?.id])
 
   // Transform studentData if it's provided directly and not fetched by studentId
   useEffect(() => {
-    if (studentData && !studentId && !student) { // Only transform if studentData is provided directly and not fetched via ID
+    if (propStudentData && !studentId && !student) { // Only transform if propStudentData is provided directly and not fetched via ID
       // Use connection counts from API response
-      setConnectionCounts(studentData.connectionCounts || {
+      setConnectionCounts(propStudentData.connectionCounts || {
         total: 0,
         students: 0,
         mentors: 0,
         institutions: 0
       })
 
-      setConnections(studentData.connections || [])
+      setConnections(propStudentData.connections || [])
 
       // Transform the comprehensive data to match component structure
       const transformedStudent = {
-        id: studentData.id,
-        ageGroup: studentData.ageGroup || "young_adult",
-        educationLevel: studentData.educationLevel || "undergraduate",
-        birthMonth: studentData.birthMonth,
-        birthYear: studentData.birthYear,
-        personalityType: studentData.personalityType,
-        learningStyle: studentData.learningStyle,
-        favoriteQuote: studentData.favoriteQuote,
+        id: propStudentData.id,
+        ageGroup: propStudentData.ageGroup || "young_adult",
+        educationLevel: propStudentData.educationLevel || "undergraduate",
+        birthMonth: propStudentData.birthMonth,
+        birthYear: propStudentData.birthYear,
+        personalityType: propStudentData.personalityType,
+        learningStyle: propStudentData.learningStyle,
+        favoriteQuote: propStudentData.favoriteQuote,
         profile: {
-          firstName: studentData.profile?.firstName || "Student",
-          lastName: studentData.profile?.lastName || "",
-          bio: studentData.profile?.bio || "No bio available",
-          location: studentData.profile?.location || "Location not specified",
-          profileImageUrl: studentData.profile?.profileImageUrl || "/images/student-profile.png",
-          coverImageUrl: studentData.profile?.coverImageUrl,
-          verificationStatus: studentData.profile?.verificationStatus || false,
+          firstName: propStudentData.profile?.firstName || "Student",
+          lastName: propStudentData.profile?.lastName || "",
+          bio: propStudentData.profile?.bio || "No bio available",
+          location: propStudentData.profile?.location || "Location not specified",
+          profileImageUrl: propStudentData.profile?.profileImageUrl || "/images/student-profile.png",
+          coverImageUrl: propStudentData.profile?.coverImageUrl,
+          verificationStatus: propStudentData.profile?.verificationStatus || false,
           role: "student",
-          tagline: studentData.profile?.tagline
+          tagline: propStudentData.profile?.tagline
         },
-        interests: studentData.profile?.userInterests?.map((ui: any) => ({
+        interests: propStudentData.profile?.userInterests?.map((ui: any) => ({
           id: ui.interest.id,
           name: ui.interest.name,
           category: ui.interest.category?.name || "General"
         })) || [],
-        skills: studentData.profile?.userSkills?.map((us: any) => ({
+        skills: propStudentData.profile?.userSkills?.map((us: any) => ({
           id: us.skill.id,
           name: us.skill.name,
           proficiencyLevel: us.proficiencyLevel || 50,
           category: us.skill.category?.name || "General"
         })) || [],
-        educationHistory: studentData.educationHistory?.map((edu: any) => ({
+        educationHistory: propStudentData.educationHistory?.map((edu: any) => ({
           id: edu.id,
           institutionName: edu.institutionName,
           institutionType: edu.institutionType || {
@@ -285,29 +287,29 @@ export default function StudentProfile({
           description: edu.description,
           institutionVerified: edu.institutionVerified
         })) || [],
-        socialLinks: studentData.profile?.socialLinks || [],
-        careerGoals: studentData.goals || [],
-        customBadges: studentData.profile?.customBadges || [],
+        socialLinks: propStudentData.profile?.socialLinks || [],
+        careerGoals: propStudentData.goals || [],
+        customBadges: propStudentData.profile?.customBadges || [],
 
         // Now using real data from API
         projects: [], // Still placeholder - add to API if needed
-        achievements: studentData.achievements || [],
-        // circles: studentData.circles || [], // This is now fetched separately
-        userCollections: studentData.userCollections || [],
-        circles: studentData.circles || [], // Keep circles in student object
-        followingInstitutions: studentData.followingInstitutions || [],
-        suggestedConnections: studentData.suggestedConnections || [],
+        achievements: propStudentData.achievements || [],
+        // circles: propStudentData.circles || [], // This is now fetched separately
+        userCollections: propStudentData.userCollections || [],
+        circles: propStudentData.circles || [], // Keep circles in student object
+        followingInstitutions: propStudentData.followingInstitutions || [],
+        suggestedConnections: propStudentData.suggestedConnections || [],
         learningPath: {
           currentCourses: [],
           completedCourses: [],
           recommendations: []
         },
         connections: {
-          mentors: studentData.connections?.filter((c: any) => c.role === 'mentor') || [],
-          peers: studentData.connections?.filter((c: any) => c.role === 'student') || [],
-          institutions: studentData.connections?.filter((c: any) => c.role === 'institution') || [],
-          total: studentData.connectionCounts?.total || 0,
-          students: studentData.connectionCounts?.students || 0
+          mentors: propStudentData.connections?.filter((c: any) => c.role === 'mentor') || [],
+          peers: propStudentData.connections?.filter((c: any) => c.role === 'student') || [],
+          institutions: propStudentData.connections?.filter((c: any) => c.role === 'institution') || [],
+          total: propStudentData.connectionCounts?.total || 0,
+          students: propStudentData.connectionCounts?.students || 0
         }
       }
 
@@ -315,10 +317,48 @@ export default function StudentProfile({
       setCircles(transformedStudent.circles || [])
       setLoading(false)
     }
-  }, [studentData, studentId, student, propCurrentUser]) // Re-run if studentData, studentId or student changes
+  }, [propStudentData, studentId, student, propCurrentUser]) // Re-run if propStudentData, studentId or student changes
 
 
-  if (loading) {
+  // Create static structure for immediate display
+  const staticStudentStructure = showStaticStructure ? {
+    id: studentId || currentUser?.id || "",
+    profile: {
+      firstName: "Student", 
+      lastName: "", 
+      profileImageUrl: "/images/student-profile.png",
+      bio: "Loading profile information...",
+      tagline: "Passionate learner exploring new horizons",
+      userInterests: [],
+      userSkills: [],
+      skills: [],
+      socialLinks: []
+    },
+    educationHistory: [{
+      id: "temp",
+      institutionName: "School",
+      gradeLevel: "Student",
+      isCurrent: true,
+      is_current: true
+    }],
+    connections: [],
+    achievements: [],
+    connectionCounts: {
+      total: 0,
+      students: 0,
+      mentors: 0,
+      institutions: 0
+    },
+    circles: [],
+    connectionRequestsSent: [],
+    connectionRequestsReceived: [],
+    circleInvitations: []
+  } : null
+
+  // Use passed student data, fetched data, or static structure
+  const finalStudentData = propStudentData || studentData || staticStudentStructure
+
+  if (loading && !showStaticStructure) { // Only show loading state if not showing static structure
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
@@ -366,57 +406,99 @@ export default function StudentProfile({
     ...((!isViewMode || (student?.careerGoals && student.careerGoals.length > 0)) ? [{ id: "goals", label: "Goals" }] : []),
   ]
 
+  // Placeholder for content rendering, which will be updated when data is fully loaded
+  const renderContent = () => {
+    if (showStaticStructure && !student) {
+      return (
+        <div className="mt-6 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile sections...</p>
+        </div>
+      )
+    }
+
+    switch (activeTab) {
+      case "about":
+        return <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
+      case "interests":
+        return <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
+      case "suggested":
+        return !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />
+      case "skills":
+        return <SkillsCanvas userId={student?.id} skills={student?.skills} isViewMode={isViewMode} />
+      case "projects":
+        return <ProjectsShowcase student={student} isViewMode={isViewMode} />
+      case "achievements":
+        return (
+          <AchievementTimeline 
+            userId={student?.id} 
+            isOwnProfile={isOwnProfile}
+            isViewMode={isViewMode}
+            student={student}
+            achievements={student?.achievements || []}
+          />
+        )
+      case "circle":
+        return (
+          <CircleView 
+            student={student} 
+            circles={circles || []}
+            isViewMode={isViewMode} 
+          />
+        )
+      case "goals":
+        return <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />
+      case "following":
+        return <FollowingInstitutions userId={studentId} followingInstitutions={followingInstitutions || []} />
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader 
-        student={student} 
+      {/* Always show ProfileHeader immediately with available data */}
+      <ProfileHeader
+        student={finalStudentData || staticStudentStructure}
         currentUser={currentUser}
-        connectionCounts={student?.connectionCounts}
+        connectionCounts={finalStudentData?.connectionCounts}
         isViewMode={isViewMode}
-        isShareMode={isShareMode}
-        onGoBack={onGoBack}
-        circles={student?.circles || []}
+        circles={finalStudentData?.circles || []}
         onCirclesUpdate={handleCirclesUpdate}
-        achievements={student?.achievements || []}
-        connectionRequestsSent={student?.connectionRequestsSent || []}
-        connectionRequestsReceived={student?.connectionRequestsReceived || []}
-        circleInvitations={student?.circleInvitations || []}
+        achievements={finalStudentData?.achievements || []}
+        connectionRequestsSent={finalStudentData?.connectionRequestsSent || []}
+        connectionRequestsReceived={finalStudentData?.connectionRequestsReceived || []}
+        circleInvitations={finalStudentData?.circleInvitations || []}
       />
 
-      <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Show navigation and content only when we have real data and not in static mode */}
+      {finalStudentData && !showStaticStructure && (
+        <>
+          <HorizontalNavigation 
+            tabs={tabs} 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+            isViewMode={isViewMode}
+          />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          {activeTab === "about" && <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "interests" && <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />}
-          {activeTab === "skills" && <SkillsCanvas userId={student?.id} skills={student?.skills} isViewMode={isViewMode} />}
-          {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
-          {activeTab === "achievements" && (
-            <AchievementTimeline 
-              userId={student?.id} 
-              isOwnProfile={isOwnProfile}
-              isViewMode={isViewMode}
-              student={student}
-              achievements={student?.achievements || []}
-            />
-          )}
-          {/* Pass circles from main API response to CircleView */}
-          {activeTab === "circle" && (
-            <CircleView 
-              student={student} 
-              circles={circles || []}
-              isViewMode={isViewMode} 
-            />
-          )}
-          {activeTab === "goals" && <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />}
-          {activeTab === "following" && <FollowingInstitutions userId={studentId} followingInstitutions={followingInstitutions || []} />}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              {renderContent()}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Show loading indicator for content sections when using static structure and data is not yet loaded */}
+      {showStaticStructure && !finalStudentData && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden text-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile sections...</p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {!isViewMode && <ActionBar student={student} currentUser={currentUser} />}
-
-      {/* Self Analysis Floating Button - Only show for own profile and not in view mode */}
       {!isViewMode && isOwnProfile && (
         <div className="fixed bottom-6 right-6 z-50">
           <a

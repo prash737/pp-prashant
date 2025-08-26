@@ -152,13 +152,13 @@ export default function ProfileHeader({
     skills: []
   }
 
-  const displayName = student.profile ? `${student.profile.firstName} ${student.profile.lastName}` : "Student"
-  const currentEducation = student.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
+  const displayName = student?.profile ? `${student.profile.firstName || "Student"} ${student.profile.lastName || ""}`.trim() : "Student"
+  const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
-  const profileImage = student.profile?.profileImageUrl || "/images/student-profile.png"
+  const profileImage = student?.profile?.profileImageUrl || "/images/student-profile.png"
   // Fix tagline access - check multiple possible locations
-  const tagline = student.profile?.tagline || student.tagline || student.profile?.bio || "Passionate learner exploring new horizons"
+  const tagline = student?.profile?.tagline || student?.tagline || student?.profile?.bio || "Passionate learner exploring new horizons"
 
   // Check if this is the current user's own profile
   const isOwnProfile = currentUser && currentUser.id === student.id
@@ -1044,6 +1044,13 @@ export default function ProfileHeader({
                             {userSkill.skill?.name || userSkill.name}
                           </div>
                         ))
+                      ) : displayName === "Student" ? (
+                        // Show placeholder when in static loading state
+                        <div className="flex gap-2">
+                          <div className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse">
+                            Loading skills...
+                          </div>
+                        </div>
                       ) : (
                         <span className="text-xs text-gray-500 dark:text-gray-400">No skills added yet</span>
                       )}
@@ -1152,6 +1159,17 @@ export default function ProfileHeader({
                             </div>
                           </div>
                         ))}
+                      </div>
+                    ) : displayName === "Student" ? (
+                      // Show placeholder when in static loading state
+                      <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex items-center gap-3 h-16">
+                        <div className="bg-gray-100 dark:bg-gray-700 h-8 w-8 rounded flex items-center justify-center animate-pulse">
+                          <Award className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading achievements...</h4>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">Fetching accomplishments</p>
+                        </div>
                       </div>
                     ) : (
                       <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex items-center gap-3 h-16">

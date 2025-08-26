@@ -164,11 +164,12 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          {/* Always show StudentProfile immediately - it will handle ProfileHeader rendering */}
+          {/* Always show StudentProfile immediately with static structure */}
           <StudentProfile
             studentId={currentUser?.id}
             currentUser={currentUser}
             studentData={studentData}
+            showStaticStructure={true}
           />
         </main>
         <Footer />
