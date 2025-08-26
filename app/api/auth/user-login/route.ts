@@ -137,6 +137,15 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // Store user ID globally for immediate access
+      response.cookies.set('current_user_id', authData.user.id, {
+        httpOnly: false, // Make it accessible to client-side JS
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+      });
+
       // For students, redirect based on onboarding status
       // Since we know this is a student (we're in the studentProfile block)
       const redirectPath = onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
