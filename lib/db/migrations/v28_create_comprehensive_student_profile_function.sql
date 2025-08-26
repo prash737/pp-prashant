@@ -8,7 +8,7 @@ RETURNS TABLE (
   location TEXT,
   profile_image_url TEXT,
   cover_image_url TEXT,
-  verification_status TEXT,
+  verification_status BOOLEAN,
   tagline TEXT,
   age_group TEXT,
   education_level TEXT,
