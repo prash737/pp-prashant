@@ -57,6 +57,11 @@ interface ProfileHeaderProps {
   onGoBack?: () => void
   circles?: any[]
   onCirclesUpdate?: () => void
+  // New consolidated data props
+  achievements?: any[]
+  connectionRequestsSent?: any[]
+  connectionRequestsReceived?: any[]
+  circleInvitations?: any[]
 }
 
 interface Achievement {
@@ -69,7 +74,20 @@ interface Achievement {
   achievementTypeId?: number
 }
 
-export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack, circles = [], onCirclesUpdate }: ProfileHeaderProps) {
+export default function ProfileHeader({ 
+  student: studentProp, 
+  currentUser, 
+  connectionCounts, 
+  isViewMode = false, 
+  isShareMode = false, 
+  onGoBack, 
+  circles = [], 
+  onCirclesUpdate,
+  achievements = [],
+  connectionRequestsSent = [],
+  connectionRequestsReceived = [],
+  circleInvitations = []
+}: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
@@ -145,69 +163,38 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
   // Check if this is the current user's own profile
   const isOwnProfile = currentUser && currentUser.id === student.id
 
-  // Function to check connection status
-  const checkConnectionStatus = async () => {
-    if (!currentUser || isOwnProfile) return
-
-    setConnectionStatus('loading')
-    try {
-      // Check if they are already connected
-      const connectionsResponse = await fetch('/api/connections', {
-        credentials: 'include'
-      })
-
-      if (connectionsResponse.ok) {
-        const connections = await connectionsResponse.json()
-        const isConnected = connections.some((conn: any) => 
-          conn.user.id === student.id
-        )
-
-        if (isConnected) {
-          setConnectionStatus('connected')
-          return
-        }
-      }
-
-      // Check if there's a pending request
-      const requestsResponse = await fetch('/api/connections/requests?type=sent', {
-        credentials: 'include'
-      })
-
-      if (requestsResponse.ok) {
-        const sentRequests = await requestsResponse.json()
-        const pendingRequest = sentRequests.find((req: any) => 
-          req.receiverId === student.id && req.status === 'pending'
-        )
-
-        if (pendingRequest) {
-          setConnectionStatus('pending')
-          return
-        }
-      }
-
-      // Check if there's a pending request from the other user
-      const receivedRequestsResponse = await fetch('/api/connections/requests?type=received', {
-        credentials: 'include'
-      })
-
-      if (receivedRequestsResponse.ok) {
-        const receivedRequests = await responsesResponse.json() // Error here: should be receivedRequestsResponse
-        const pendingRequest = receivedRequests.find((req: any) => 
-          req.sender?.id === student.id && req.status === 'pending'
-        )
-
-        if (pendingRequest) {
-          setConnectionStatus('pending')
-          return
-        }
-      }
-
+  // Set connection status based on provided data
+  React.useEffect(() => {
+    if (isOwnProfile) {
       setConnectionStatus('none')
-    } catch (error) {
-      console.error('Error checking connection status:', error)
+      return
+    }
+
+    // Check if already connected by looking at the student's connections
+    const isConnected = student?.connections?.some((conn: any) => 
+      conn.id === currentUser?.id
+    )
+
+    if (isConnected) {
+      setConnectionStatus('connected')
+      return
+    }
+
+    // Check for pending requests
+    const hasPendingSent = connectionRequestsSent.some((req: any) => 
+      req.receiverId === student.id || req.receiver?.id === student.id
+    )
+
+    const hasPendingReceived = connectionRequestsReceived.some((req: any) => 
+      req.senderId === student.id || req.sender?.id === student.id
+    )
+
+    if (hasPendingSent || hasPendingReceived) {
+      setConnectionStatus('pending')
+    } else {
       setConnectionStatus('none')
     }
-  }
+  }, [isOwnProfile, student?.connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
 
   // Initialize and fetch connection counts
   React.useEffect(() => {
@@ -271,85 +258,27 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
     }
   }, [isOwnProfile, student.id, connectionCounts])
 
-  // State for recent achievements
-  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([])
-  const [achievementLoading, setAchievementLoading] = useState(true)
+  // Set initial data from props
+  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>(achievements || [])
+  const [achievementLoading, setAchievementLoading] = useState(false)
 
-  // Fetch connections and achievements
+  // Update state when achievements prop changes
   useEffect(() => {
+    setRecentAchievements(achievements || [])
+  }, [achievements])
 
-    const fetchConnections = async () => {
-      try {
-        const response = await fetch('/api/connections', {
-          credentials: 'include'
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setConnections(data)
-        }
-      } catch (error) {
-        console.error('Error fetching connections:', error)
-      }
+  // Set connections and following data from student prop
+  useEffect(() => {
+    if (isOwnProfile && student?.connections) {
+      setConnections(student.connections)
     }
-
-    const fetchRecentAchievements = async () => {
-    try {
-      setAchievementLoading(true)
-      let response;
-      if (isViewMode && student?.id) {
-        // In view mode, fetch achievements for the student being viewed
-        response = await fetch(`/api/student/profile/${student.id}/achievements`, {
-          credentials: 'include'
-        });
-      } else {
-        // In own profile mode, fetch achievements for the current user
-        response = await fetch('/api/achievements', {
-          credentials: 'include'
-        });
-      }
-      if (response.ok) {
-        const data = await response.json()
-        // Get the recent achievements (they're already sorted by date desc in the API)
-        if (data.achievements && data.achievements.length > 0) {
-          setRecentAchievements(data.achievements)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching achievements:', error)
-    } finally {
-      setAchievementLoading(false)
+    
+    // Set following institutions from student data
+    if (student?.followingInstitutions) {
+      setFollowingInstitutions(student.followingInstitutions)
+      setFollowingCount(student.followingInstitutions.length)
     }
-  }
-
-    const fetchFollowingInstitutions = async () => {
-      try {
-        const response = await fetch('/api/student/following', {
-          credentials: 'include'
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setFollowingInstitutions(data.following || [])
-          setFollowingCount(data.count || 0)
-        }
-      } catch (error) {
-        console.error('Error fetching following institutions:', error)
-      }
-    }
-
-    if (isOwnProfile) {
-      fetchConnections()
-    }
-
-    if (student) {
-      fetchRecentAchievements()
-    }
-    fetchFollowingInstitutions()
-
-    // Check connection status for non-own profiles
-    if (!isOwnProfile && currentUser && student.id) {
-      checkConnectionStatus()
-    }
-  }, [isOwnProfile, student, isViewMode, student?.id, currentUser])
+  }, [student, isOwnProfile])
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) return
@@ -1062,7 +991,10 @@ export default function ProfileHeader({ student: studentProp, currentUser, conne
                   {/* Circle Invitations Section - Only show for own profile */}
                   {isOwnProfile && (
                     <div className="mb-6">
-                      <CircleInvitationsSection onInvitationHandled={handleCircleUpdated} />
+                      <CircleInvitationsSection 
+                        onInvitationHandled={handleCircleUpdated} 
+                        invitations={circleInvitations}
+                      />
                     </div>
                   )}
 
@@ -1316,29 +1248,13 @@ interface CircleInvitationsSectionProps {
   onInvitationHandled: () => void
 }
 
-function CircleInvitationsSection({ onInvitationHandled }: CircleInvitationsSectionProps) {
-  const [invitations, setInvitations] = useState<any[]>([])
+function CircleInvitationsSection({ onInvitationHandled, invitations: initialInvitations = [] }: CircleInvitationsSectionProps & { invitations?: any[] }) {
+  const [invitations, setInvitations] = useState<any[]>(initialInvitations.filter((inv: any) => inv.status === 'pending'))
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchInvitations()
-  }, [])
-
-  const fetchInvitations = async () => {
-    try {
-      const response = await fetch('/api/circles/invitations?type=received', {
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Only show pending invitations
-        setInvitations(data.filter((inv: any) => inv.status === 'pending'))
-      }
-    } catch (error) {
-      console.error('Error fetching invitations:', error)
-    }
-  }
+    setInvitations(initialInvitations.filter((inv: any) => inv.status === 'pending'))
+  }, [initialInvitations])
 
   const handleInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
     setLoading(true)

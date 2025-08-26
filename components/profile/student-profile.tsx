@@ -370,13 +370,17 @@ export default function StudentProfile({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       <ProfileHeader 
         student={student} 
-        currentUser={currentUser} 
-        connectionCounts={connectionCounts} 
-        isViewMode={isViewMode} 
+        currentUser={currentUser}
+        connectionCounts={student?.connectionCounts}
+        isViewMode={isViewMode}
         isShareMode={isShareMode}
         onGoBack={onGoBack}
-        circles={circles}
+        circles={student?.circles || []}
         onCirclesUpdate={handleCirclesUpdate}
+        achievements={student?.achievements || []}
+        connectionRequestsSent={student?.connectionRequestsSent || []}
+        connectionRequestsReceived={student?.connectionRequestsReceived || []}
+        circleInvitations={student?.circleInvitations || []}
       />
 
       <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />

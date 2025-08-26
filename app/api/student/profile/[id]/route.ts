@@ -471,6 +471,145 @@ export async function GET(
       circles = []
     }
 
+    // Fetch additional data for comprehensive profile
+    let connectionRequestsSent = []
+    let connectionRequestsReceived = []
+    let circleInvitations = []
+    let achievements = []
+
+    try {
+      // Always fetch achievements for the profile being viewed
+      const userAchievements = await prisma.userAchievement.findMany({
+        where: {
+          userId: resolvedParams.id
+        },
+        include: {
+          achievementType: true
+        },
+        orderBy: {
+          dateOfAchievement: 'desc'
+        }
+      })
+
+      achievements = userAchievements.map(achievement => ({
+        id: achievement.id,
+        name: achievement.name,
+        description: achievement.description,
+        dateOfAchievement: achievement.dateOfAchievement,
+        createdAt: achievement.createdAt,
+        achievementImageIcon: achievement.achievementImageIcon,
+        achievementTypeId: achievement.achievementTypeId
+      }))
+
+      // Check for pending connection requests and circle invitations (only if viewing own profile)
+      if (user.id === resolvedParams.id) {
+        // Fetch sent connection requests
+        const sentRequests = await prisma.connection.findMany({
+          where: {
+            senderId: user.id,
+            status: 'pending'
+          },
+          include: {
+            receiver: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profileImageUrl: true,
+                role: true
+              }
+            }
+          }
+        })
+
+        // Fetch received connection requests
+        const receivedRequests = await prisma.connection.findMany({
+          where: {
+            receiverId: user.id,
+            status: 'pending'
+          },
+          include: {
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profileImageUrl: true,
+                role: true
+              }
+            }
+          }
+        })
+
+        // Fetch circle invitations
+        const invitations = await prisma.circleInvitation.findMany({
+          where: {
+            inviteeId: user.id,
+            status: 'pending'
+          },
+          include: {
+            circle: {
+              include: {
+                creator: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    profileImageUrl: true
+                  }
+                },
+                _count: {
+                  select: {
+                    memberships: {
+                      where: {
+                        status: 'active'
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            inviter: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profileImageUrl: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        })
+
+        connectionRequestsSent = sentRequests
+        connectionRequestsReceived = receivedRequests
+        circleInvitations = invitations
+      } else {
+        // For viewing other users, still check connection status between current user and target user
+        const existingConnection = await prisma.connection.findFirst({
+          where: {
+            OR: [
+              { senderId: user.id, receiverId: resolvedParams.id },
+              { senderId: resolvedParams.id, receiverId: user.id }
+            ]
+          }
+        })
+
+        if (existingConnection) {
+          if (existingConnection.senderId === user.id && existingConnection.status === 'pending') {
+            connectionRequestsSent = [existingConnection]
+          } else if (existingConnection.receiverId === user.id && existingConnection.status === 'pending') {
+            connectionRequestsReceived = [existingConnection]
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching additional profile data:', error)
+      // Continue with empty arrays if there's an error
+    }
+
     // Transform and return comprehensive data
     const response = {
       id: studentData.id,
@@ -519,7 +658,7 @@ export async function GET(
         description: edu.description,
         institutionVerified: edu.institutionVerified
       })) || [],
-      achievements: studentData.achievements || [],
+      // achievements: studentData.achievements || [], // This line is now redundant as achievements are fetched separately
       goals: studentData.goals || [],
       circles: circles,
       userCollections: studentData.userCollections || [],
@@ -531,7 +670,12 @@ export async function GET(
         profileImageUrl: conn.receiver.profileImageUrl,
         verificationStatus: conn.receiver.verificationStatus
       })) || [],
-      suggestedConnections: suggestedConnections
+      suggestedConnections: suggestedConnections,
+      // Additional data for ProfileHeader - all consolidated here
+      achievements: achievements,
+      connectionRequestsSent: connectionRequestsSent,
+      connectionRequestsReceived: connectionRequestsReceived,
+      circleInvitations: circleInvitations
     }
 
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
