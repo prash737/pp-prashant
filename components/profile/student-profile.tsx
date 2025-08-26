@@ -123,56 +123,252 @@ export default function StudentProfile({
       }
 
       const data = await response.json()
-      console.log('📡 StudentProfile: Received student data:', data)
       
-      // Handle both array and object responses
-      const studentData = Array.isArray(data) ? data[0] : data
-      
+
       // Detailed logging of all data fields
       console.log('🧪 DETAILED DATA INSPECTION:')
-      console.log('  - ID:', studentData?.id)
-      console.log('  - Profile object:', studentData?.profile)
-      console.log('  - Profile firstName:', studentData?.profile?.firstName)
-      console.log('  - Profile lastName:', studentData?.profile?.lastName)
-      console.log('  - Profile bio:', studentData?.profile?.bio)
-      console.log('  - Profile location:', studentData?.profile?.location)
-      console.log('  - Profile image:', studentData?.profile?.profileImageUrl)
-      console.log('  - Profile tagline:', studentData?.profile?.tagline)
-      console.log('  - Connection counts:', studentData?.connectionCounts)
-      console.log('  - Circles:', studentData?.circles)
-      console.log('  - Achievements:', studentData?.achievements)
-      console.log('  - Education history:', studentData?.educationHistory)
-      console.log('  - Following institutions:', studentData?.followingInstitutions)
-      console.log('  - User interests:', studentData?.profile?.userInterests)
-      console.log('  - User skills:', studentData?.profile?.userSkills)
-      
-      // Log the raw data structure to understand what we're receiving
-      console.log('🔍 Raw API Response Structure:', {
-        isArray: Array.isArray(data),
-        hasProfile: !!studentData?.profile,
-        hasId: !!studentData?.id,
-        topLevelKeys: Object.keys(studentData || {}),
-        profileKeys: studentData?.profile ? Object.keys(studentData.profile) : 'No profile object'
-      })
+      console.log('  - ID:', data?.id)
+      console.log('  - Profile object:', data?.profile)
+      console.log('  - Profile firstName:', data?.profile?.firstName)
+      console.log('  - Profile lastName:', data?.profile?.lastName)
+      console.log('  - Profile bio:', data?.profile?.bio)
+      console.log('  - Profile location:', data?.profile?.location)
+      console.log('  - Profile image:', data?.profile?.profileImageUrl)
+      console.log('  - Profile tagline:', data?.profile?.tagline)
+      console.log('  - Connection counts:', data?.connectionCounts)
+      console.log('  - Circles:', data?.circles)
+      console.log('  - Achievements:', data?.achievements)
+      console.log('  - Education history:', data?.educationHistory)
+      console.log('  - Following institutions:', data?.followingInstitutions)
+      console.log('  - User interests:', data?.profile?.userInterests)
+      console.log('  - User skills:', data?.profile?.userSkills)
 
+      // If studentData is an array, take the first item
+    if (Array.isArray(data)) {
+      console.log('📡 StudentProfile: Received student data:', data)
 
-      setStudent(studentData)
-      setCircles(data?.circles || [])
-      setConnections(data.connections || [])
-      setConnectionCounts(data.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
-      setSuggestedConnections(data.suggestedConnections || [])
-      setFollowingInstitutions(data.followingInstitutions || [])
+      if (data.length > 0) {
+        const rawStudentData = data[0]
+        console.log('🔍 StudentProfile: Processed student data:', rawStudentData)
 
-      setFormData({
-        firstName: studentData.profile?.firstName || studentData.first_name || '',
-        lastName: studentData.profile?.lastName || studentData.last_name || '',
-        bio: studentData.profile?.bio || studentData.bio || '',
-        location: studentData.profile?.location || studentData.location || '',
-        tagline: studentData.profile?.tagline || studentData.tagline || '',
-        profileImageUrl: studentData.profile?.profileImageUrl || studentData.profile_image_url || '',
-        coverImageUrl: studentData.profile?.coverImageUrl || studentData.cover_image_url || ''
-      })
-      console.log('🔍 StudentProfile: State after setting circles:', circles)
+        // Log raw API response structure for debugging
+        console.log('🔍 Raw API Response Structure:', {
+          isArray: Array.isArray(data),
+          hasProfile: !!rawStudentData?.profile,
+          hasId: !!rawStudentData?.id,
+          topLevelKeys: Object.keys(rawStudentData || {}),
+          profileKeys: rawStudentData?.profile ? Object.keys(rawStudentData.profile) : 'No profile object'
+        })
+
+        // Transform the flat API response into the nested structure expected by ProfileHeader
+        const transformedStudentData = {
+          id: rawStudentData.id,
+          first_name: rawStudentData.first_name,
+          last_name: rawStudentData.last_name,
+          bio: rawStudentData.bio,
+          location: rawStudentData.location,
+          profile_image_url: rawStudentData.profile_image_url,
+          cover_image_url: rawStudentData.cover_image_url,
+          tagline: rawStudentData.tagline,
+          verification_status: rawStudentData.verification_status,
+          // Create nested profile structure that ProfileHeader expects
+          profile: {
+            firstName: rawStudentData.first_name,
+            lastName: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profileImageUrl: rawStudentData.profile_image_url,
+            coverImageUrl: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verificationStatus: rawStudentData.verification_status,
+            userInterests: rawStudentData.user_interests || [],
+            userSkills: rawStudentData.user_skills || [],
+            skills: (rawStudentData.user_skills || []).map((us: any) => ({
+              id: us.skills?.id || us.skill?.id,
+              name: us.skills?.name || us.skill?.name,
+              proficiencyLevel: us.proficiency_level || 50,
+              category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+            })),
+            socialLinks: rawStudentData.social_links || []
+          },
+          // Map education history
+          educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
+            id: edu.id,
+            institutionName: edu.institution_name,
+            institutionType: edu.institution_type,
+            gradeLevel: edu.grade_level,
+            isCurrent: edu.is_current,
+            is_current: edu.is_current,
+            startDate: edu.start_date,
+            endDate: edu.end_date,
+            degreeProgram: edu.degree_program,
+            fieldOfStudy: edu.field_of_study,
+            subjects: edu.subjects || [],
+            gpa: edu.gpa,
+            achievements: edu.achievements || [],
+            description: edu.description,
+            institutionVerified: edu.institution_verified
+          })),
+          // Map other fields
+          achievements: rawStudentData.achievements || [],
+          goals: rawStudentData.goals || [],
+          userCollections: rawStudentData.user_collections || [],
+          connections: rawStudentData.connections || [],
+          connectionCounts: rawStudentData.connectionCounts || {
+            total: 0,
+            students: 0,
+            mentors: 0,
+            institutions: 0
+          },
+          circles: rawStudentData.circles || [],
+          followingInstitutions: rawStudentData.institution_following || rawStudentData.followingInstitutions || [],
+          suggestedConnections: rawStudentData.suggestedConnections || [],
+          connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+          connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+          circleInvitations: rawStudentData.circleInvitations || [],
+          // Map additional student-specific fields
+          ageGroup: rawStudentData.age_group,
+          educationLevel: rawStudentData.education_level,
+          birthMonth: rawStudentData.birth_month,
+          birthYear: rawStudentData.birth_year,
+          personalityType: rawStudentData.personality_type,
+          learningStyle: rawStudentData.learning_style,
+          favoriteQuote: rawStudentData.favorite_quote,
+          userInterests: rawStudentData.user_interests || [],
+          userSkills: rawStudentData.user_skills || []
+        }
+
+        console.log('🔍 StudentProfile: Circles data received:', transformedStudentData.circles)
+        console.log('🔍 StudentProfile: Number of circles:', transformedStudentData.circles?.length || 0)
+
+        setStudent(transformedStudentData)
+        setCircles(transformedStudentData.circles || [])
+        console.log('🔍 StudentProfile: State after setting circles:', transformedStudentData.circles || [])
+
+        setConnectionCounts(transformedStudentData.connectionCounts)
+        setConnections(transformedStudentData.connections)
+        setSuggestedConnections(transformedStudentData.suggestedConnections)
+        setFollowingInstitutions(transformedStudentData.followingInstitutions)
+        setLoading(false)
+        return
+      }
+    }
+
+    // Handle cases where data might not be an array or is empty
+    if (!Array.isArray(data) && data) {
+       // Assuming the response is a single object if not an array
+       const rawStudentData = data;
+       console.log('📡 StudentProfile: Received student data (single object):', rawStudentData)
+
+       // Log raw API response structure for debugging
+       console.log('🔍 Raw API Response Structure:', {
+         isArray: Array.isArray(data),
+         hasProfile: !!rawStudentData?.profile,
+         hasId: !!rawStudentData?.id,
+         topLevelKeys: Object.keys(rawStudentData || {}),
+         profileKeys: rawStudentData?.profile ? Object.keys(rawStudentData.profile) : 'No profile object'
+       })
+
+       // Transform the flat API response into the nested structure expected by ProfileHeader
+        const transformedStudentData = {
+          id: rawStudentData.id,
+          first_name: rawStudentData.first_name,
+          last_name: rawStudentData.last_name,
+          bio: rawStudentData.bio,
+          location: rawStudentData.location,
+          profile_image_url: rawStudentData.profile_image_url,
+          cover_image_url: rawStudentData.cover_image_url,
+          tagline: rawStudentData.tagline,
+          verification_status: rawStudentData.verification_status,
+          // Create nested profile structure that ProfileHeader expects
+          profile: {
+            firstName: rawStudentData.first_name,
+            lastName: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profileImageUrl: rawStudentData.profile_image_url,
+            coverImageUrl: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verificationStatus: rawStudentData.verification_status,
+            userInterests: rawStudentData.user_interests || [],
+            userSkills: rawStudentData.user_skills || [],
+            skills: (rawStudentData.user_skills || []).map((us: any) => ({
+              id: us.skills?.id || us.skill?.id,
+              name: us.skills?.name || us.skill?.name,
+              proficiencyLevel: us.proficiency_level || 50,
+              category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+            })),
+            socialLinks: rawStudentData.social_links || []
+          },
+          // Map education history
+          educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
+            id: edu.id,
+            institutionName: edu.institution_name,
+            institutionType: edu.institution_type,
+            gradeLevel: edu.grade_level,
+            isCurrent: edu.is_current,
+            is_current: edu.is_current,
+            startDate: edu.start_date,
+            endDate: edu.end_date,
+            degreeProgram: edu.degree_program,
+            fieldOfStudy: edu.field_of_study,
+            subjects: edu.subjects || [],
+            gpa: edu.gpa,
+            achievements: edu.achievements || [],
+            description: edu.description,
+            institutionVerified: edu.institution_verified
+          })),
+          // Map other fields
+          achievements: rawStudentData.achievements || [],
+          goals: rawStudentData.goals || [],
+          userCollections: rawStudentData.user_collections || [],
+          connections: rawStudentData.connections || [],
+          connectionCounts: rawStudentData.connectionCounts || {
+            total: 0,
+            students: 0,
+            mentors: 0,
+            institutions: 0
+          },
+          circles: rawStudentData.circles || [],
+          followingInstitutions: rawStudentData.institution_following || rawStudentData.followingInstitutions || [],
+          suggestedConnections: rawStudentData.suggestedConnections || [],
+          connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+          connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+          circleInvitations: rawStudentData.circleInvitations || [],
+          // Map additional student-specific fields
+          ageGroup: rawStudentData.age_group,
+          educationLevel: rawStudentData.education_level,
+          birthMonth: rawStudentData.birth_month,
+          birthYear: rawStudentData.birth_year,
+          personalityType: rawStudentData.personality_type,
+          learningStyle: rawStudentData.learning_style,
+          favoriteQuote: rawStudentData.favorite_quote,
+          userInterests: rawStudentData.user_interests || [],
+          userSkills: rawStudentData.user_skills || []
+        }
+
+        console.log('🔍 StudentProfile: Circles data received:', transformedStudentData.circles)
+        console.log('🔍 StudentProfile: Number of circles:', transformedStudentData.circles?.length || 0)
+
+        setStudent(transformedStudentData)
+        setCircles(transformedStudentData.circles || [])
+        console.log('🔍 StudentProfile: State after setting circles:', transformedStudentData.circles || [])
+
+        setConnectionCounts(transformedStudentData.connectionCounts)
+        setConnections(transformedStudentData.connections)
+        setSuggestedConnections(transformedStudentData.suggestedConnections)
+        setFollowingInstitutions(transformedStudentData.followingInstitutions)
+        setLoading(false)
+        return
+    }
+
+    // If no student data is found or the response is unexpected
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      setError('No student data found.')
+      setLoading(false)
+      return
+    }
+
     } catch (error) {
       console.error('❌ StudentProfile: Error fetching student data:', error)
       setError(error instanceof Error ? error.message : 'Failed to fetch student data')

@@ -154,25 +154,25 @@ export default function ProfileHeader({
     skills: []
   }
 
-  // Get display name - prioritize direct fields from API response
-  const displayName = student?.first_name && student?.last_name ? 
-    `${student.first_name} ${student.last_name}`.trim() : 
-    student?.profile ? 
-      `${student.profile.firstName || "Student"} ${student.profile.lastName || ""}`.trim() : 
+  // Get display name - prioritize nested profile structure, then direct fields
+  const displayName = student?.profile?.firstName && student?.profile?.lastName ? 
+    `${student.profile.firstName} ${student.profile.lastName}`.trim() : 
+    student?.first_name && student?.last_name ? 
+      `${student.first_name} ${student.last_name}`.trim() : 
       "Student"
   
   const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
   
-  // Get profile image - prioritize direct field from API response
-  const profileImage = student?.profile_image_url || student?.profile?.profileImageUrl || "/images/student-profile.png"
+  // Get profile image - prioritize nested profile structure, then direct field
+  const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
   
-  // Get tagline - prioritize direct fields from API response
-  const tagline = student?.tagline || student?.bio || student?.profile?.tagline || student?.profile?.bio || "Passionate learner exploring new horizons"
+  // Get tagline - prioritize nested profile structure, then direct fields
+  const tagline = student?.profile?.tagline || student?.profile?.bio || student?.tagline || student?.bio || "Passionate learner exploring new horizons"
   
-  // Get cover image - prioritize direct field from API response
-  const coverImage = student?.cover_image_url || student?.profile?.coverImageUrl
+  // Get cover image - prioritize nested profile structure, then direct field
+  const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
 
   // Debug logging for ProfileHeader
   console.log('🔍 ProfileHeader Debug:', {
@@ -704,7 +704,7 @@ export default function ProfileHeader({
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || 0}
+                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || student?.userSkills?.length || 0}
                       </span>
                     </div>
                     <div 
@@ -1037,27 +1037,7 @@ export default function ProfileHeader({
                   <div className="mt-4">
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Skills</h3>
                     <div className="flex flex-wrap gap-2">
-                      {student?.userSkills && student.userSkills.length > 0 ? (
-                        student.userSkills
-                          .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
-                          .slice(0, 5)
-                          .map((userSkill: any, i: number) => (
-                          <div
-                            key={userSkill.id || i}
-                            className={`px-3 py-1 rounded-full text-xs ${
-                              i % 4 === 0
-                                ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
-                                : i % 4 === 1
-                                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
-                                  : i % 4 === 2
-                                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
-                                    : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
-                            }`}
-                          >
-                            {userSkill.skills?.name || userSkill.skill?.name || userSkill.name}
-                          </div>
-                        ))
-                      ) : student?.profile?.skills && student.profile.skills.length > 0 ? (
+                      {student?.profile?.skills && student.profile.skills.length > 0 ? (
                         student.profile.skills
                           .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
                           .slice(0, 5)
@@ -1079,6 +1059,26 @@ export default function ProfileHeader({
                         ))
                       ) : student?.profile?.userSkills && student.profile.userSkills.length > 0 ? (
                         student.profile.userSkills
+                          .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
+                          .slice(0, 5)
+                          .map((userSkill: any, i: number) => (
+                          <div
+                            key={userSkill.id || i}
+                            className={`px-3 py-1 rounded-full text-xs ${
+                              i % 4 === 0
+                                ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
+                                : i % 4 === 1
+                                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
+                                  : i % 4 === 2
+                                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+                                    : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                            }`}
+                          >
+                            {userSkill.skills?.name || userSkill.skill?.name || userSkill.name}
+                          </div>
+                        ))
+                      ) : student?.userSkills && student.userSkills.length > 0 ? (
+                        student.userSkills
                           .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
                           .slice(0, 5)
                           .map((userSkill: any, i: number) => (
