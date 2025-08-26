@@ -35,14 +35,19 @@ export default function EducationCards({ educationHistory: realEducationHistory,
         });
 
       return {
-        school: edu.institutionName,
-        type: edu.institutionTypeName || "Institution",
-        grade: edu.gradeLevel || edu.grade || "Student", 
-        period: `${new Date(edu.startDate).getFullYear()} - ${edu.isCurrent ? 'Present' : new Date(edu.endDate || Date.now()).getFullYear()}`,
-        gpa: edu.gpa && edu.gpa.trim() ? `GPA: ${edu.gpa}` : null,
-        subjects: edu.subjects || [],
-        achievements: edu.achievements || [],
+        school: edu.institutionName || "Institution",
+        type: edu.institutionType?.name || edu.institutionTypeName || "Institution",
+        grade: edu.gradeLevel || edu.grade_level || "Student", 
+        period: edu.startDate && edu.endDate ? 
+          `${new Date(edu.startDate).getFullYear()} - ${(edu.isCurrent || edu.is_current) ? 'Present' : new Date(edu.endDate).getFullYear()}` :
+          'Date not specified',
+        gpa: edu.gpa && String(edu.gpa).trim() ? `GPA: ${edu.gpa}` : null,
+        subjects: Array.isArray(edu.subjects) ? edu.subjects : [],
+        achievements: Array.isArray(edu.achievements) ? edu.achievements : [],
         institutionVerified: edu.institutionVerified,
+        degreeProgram: edu.degreeProgram,
+        fieldOfStudy: edu.fieldOfStudy,
+        description: edu.description
       };
     }) : []
 
@@ -125,6 +130,19 @@ export default function EducationCards({ educationHistory: realEducationHistory,
                     )}
                   </div>
 
+                  {education.degreeProgram && (
+                    <div className="mb-2">
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                        {education.degreeProgram}
+                      </span>
+                      {education.fieldOfStudy && (
+                        <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                          in {education.fieldOfStudy}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   {education.subjects && education.subjects.length > 0 && (
                     <div className="mb-3">
                       <h5 className="text-sm font-medium mb-1">Subjects</h5>
@@ -135,6 +153,13 @@ export default function EducationCards({ educationHistory: realEducationHistory,
                           </span>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {education.description && (
+                    <div className="mb-3">
+                      <h5 className="text-sm font-medium mb-1">Description</h5>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{education.description}</p>
                     </div>
                   )}
 

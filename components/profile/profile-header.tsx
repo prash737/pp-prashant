@@ -160,17 +160,17 @@ export default function ProfileHeader({
     student?.first_name && student?.last_name ? 
       `${student.first_name} ${student.last_name}`.trim() : 
       "Student"
-  
+
   const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
-  
+
   // Get profile image - prioritize nested profile structure, then direct field
   const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
-  
+
   // Get tagline - prioritize nested profile structure, then direct fields
   const tagline = student?.profile?.tagline || student?.profile?.bio || student?.tagline || student?.bio || "Passionate learner exploring new horizons"
-  
+
   // Get cover image - prioritize nested profile structure, then direct field
   const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
 
@@ -1288,28 +1288,34 @@ export default function ProfileHeader({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {followingInstitutions.length > 0 ? (
+            {followingInstitutions && followingInstitutions.length > 0 ? (
               followingInstitutions.map((institution) => (
-                <div key={institution.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                      {institution.logoUrl ? (
-                        <img
-                          src={institution.logoUrl}
-                          alt={institution.institutionName || 'Institution'}
-                          className="w-full h-full object-cover"
+                <div key={institution.institutionId || institution.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold overflow-hidden">
+                      {institution.institutionProfile?.logoUrl ? (
+                        <img 
+                          src={institution.institutionProfile.logoUrl} 
+                          alt={institution.institutionProfile.institutionName}
+                          className="w-full h-full object-cover rounded-full"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Building2 className="h-6 w-6 text-gray-400" />
-                        </div>
+                        institution.institutionProfile?.institutionName?.charAt(0) || 'I'
                       )}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{institution.institutionName || 'Institution'}</h4>
-                      <p className="text-xs text-gray-500">{institution.institutionType || 'Educational Institution'}</p>
-                      {institution.location && (
-                        <p className="text-xs text-gray-400">{institution.location}</p>
+                      <h4 className="font-semibold text-sm">{institution.institutionProfile?.institutionName || 'Institution'}</h4>
+                      <p className="text-xs text-gray-500">{institution.institutionProfile?.institutionType || 'Educational Institution'}</p>
+                      {institution.institutionProfile?.location && (
+                        <p className="text-xs text-gray-400">{institution.institutionProfile.location}</p>
+                      )}
+                      {institution.institutionProfile?.verified && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 mt-1">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Verified
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1317,7 +1323,7 @@ export default function ProfileHeader({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleUnfollowInstitution(institution.id)}
+                      onClick={() => handleUnfollowInstitution(institution.institutionId || institution.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       Unfollow
