@@ -122,12 +122,8 @@ export default function StudentProfile({
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const rawData = await response.json()
-      console.log('📡 StudentProfile: Received student data:', rawData)
-      
-      // Handle case where API returns an array instead of direct object
-      const data = Array.isArray(rawData) ? rawData[0] : rawData
-      console.log('🔍 StudentProfile: Processed student data:', data)
+      const data = await response.json()
+      console.log('📡 StudentProfile: Received student data:', data)
       
       // Detailed logging of all data fields
       console.log('🧪 DETAILED DATA INSPECTION:')

@@ -290,6 +290,14 @@ export async function GET(
       // Transform data to match expected format
       const transformedData = {
         id: profile.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        bio: profile.bio,
+        location: profile.location,
+        profile_image_url: profile.profile_image_url,
+        cover_image_url: profile.cover_image_url,
+        verification_status: profile.verification_status,
+        tagline: profile.tagline,
         ageGroup: studentProfile?.age_group,
         educationLevel: studentProfile?.education_level,
         birthMonth: studentProfile?.birth_month,
@@ -477,7 +485,7 @@ export async function GET(
       console.log('⚡ User skills count:', response.profile?.userSkills?.length || 0)
       console.log('📚 Education history count:', response.educationHistory?.length || 0)
 
-      return NextResponse.json([response])
+      return NextResponse.json(response)
     }
 
     // If RPC function works, return its data
