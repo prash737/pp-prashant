@@ -25,45 +25,15 @@ interface CachedProfileData {
 
 // Global cache to prevent duplicate API calls across component instances
 let globalUserCache: { user: User | null; timestamp: number } | null = null
-// Global caches for profile data with timestamps
-let globalProfileDataCache: { profileData: any; timestamp: number } | null = null
+let globalProfileDataCache: { profileData: CachedProfileData | null; timestamp: number } | null = null
 let globalUserPromise: Promise<User | null> | null = null
-let globalProfileDataPromise: Promise<any> | null = null
+let globalProfileDataPromise: Promise<CachedProfileData | null> | null = null
 
-// Profile header data cache (lighter weight for immediate display)
-const globalProfileHeaderCache = new Map<string, { data: any; timestamp: number }>()
-const globalProfileHeaderPromises = new Map<string, Promise<any>>()
+// Global cache for profile header data by user ID
+let globalProfileHeaderCache: Map<string, { data: any; timestamp: number }> = new Map()
+let globalProfileHeaderPromises: Map<string, Promise<any>> = new Map()
 
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-const STORAGE_KEY_PREFIX = 'pathpiper_profile_'
-const STORAGE_HEADER_KEY_PREFIX = 'pathpiper_header_'
-
-// Helper functions for localStorage persistence
-const saveToStorage = (key: string, data: any) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data))
-  } catch (error) {
-    console.warn('Failed to save to localStorage:', error)
-  }
-}
-
-const getFromStorage = (key: string) => {
-  try {
-    const stored = localStorage.getItem(key)
-    return stored ? JSON.parse(stored) : null
-  } catch (error) {
-    console.warn('Failed to read from localStorage:', error)
-    return null
-  }
-}
-
-const removeFromStorage = (key: string) => {
-  try {
-    localStorage.removeItem(key)
-  } catch (error) {
-    console.warn('Failed to remove from localStorage:', error)
-  }
-}
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -162,16 +132,15 @@ export function useAuth() {
     const fetchProfileData = async (userId: string) => {
       try {
         // Check if we have valid cached profile data
-        const cachedData = getCachedCompleteProfileData(userId)
-        if (cachedData) {
-          setProfileData(cachedData)
+        if (globalProfileDataCache && (Date.now() - globalProfileDataCache.timestamp) < CACHE_DURATION) {
+          setProfileData(globalProfileDataCache.profileData)
           return
         }
 
         // If there's already a request in progress, wait for it
         if (globalProfileDataPromise) {
-          const data = await globalProfileDataPromise
-          setProfileData(data)
+          const cachedData = await globalProfileDataPromise
+          setProfileData(cachedData)
           return
         }
 
@@ -186,25 +155,46 @@ export function useAuth() {
           if (response.ok) {
             const data = await response.json()
 
-            // Cache the complete profile data in both memory and localStorage
-            setCachedCompleteProfileData(userId, data)
+            const profileData: CachedProfileData = {
+              profile: {
+                ...data.profile,
+                ageGroup: data.ageGroup || 'young_adult',
+                educationLevel: data.educationLevel || 'undergraduate'
+              },
+              interests: data.profile?.userInterests || [],
+              skills: data.profile?.userSkills || [],
+              educationHistory: data.educationHistory || [],
+              achievements: data.profile?.customBadges || [],
+              goals: data.profile?.careerGoals || []
+            }
 
-            console.log('✅ Complete profile data cached')
-            return data
+            // Cache the result
+            globalProfileDataCache = {
+              profileData,
+              timestamp: Date.now()
+            }
+
+            console.log('✅ Profile data cached successfully:', {
+              interests: profileData.interests.length,
+              skills: profileData.skills.length,
+              education: profileData.educationHistory.length,
+              goals: profileData.goals.length,
+              achievements: profileData.achievements.length
+            })
+
+            return profileData
           }
-          throw new Error('Failed to fetch complete profile data')
+          return null
         }).catch((error) => {
-          console.error('Error fetching complete profile data:', error)
+          console.error('Error fetching profile data:', error)
           return null
         }).finally(() => {
           globalProfileDataPromise = null
           setProfileDataLoading(false)
         })
 
-        const profileData = await globalProfileDataPromise
-        if (profileData) {
-          setProfileData(profileData)
-        }
+        const data = await globalProfileDataPromise
+        setProfileData(data)
       } catch (error) {
         console.error('Error in fetchProfileData:', error)
         setProfileDataLoading(false)
@@ -214,7 +204,7 @@ export function useAuth() {
     fetchUser()
   }, [])
 
-  return { user, loading, profileData, profileDataLoading, getCachedCompleteProfileData, setCachedCompleteProfileData }
+  return { user, loading, profileData, profileDataLoading }
 }
 
 // Function to invalidate cache and clear all storage (useful after login/logout)
@@ -225,19 +215,13 @@ export function invalidateUserCache() {
   globalProfileDataPromise = null
   globalProfileHeaderCache.clear()
   globalProfileHeaderPromises.clear()
-  // Clear localStorage associated with profiles
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('pathpiper_')) {
-      removeFromStorage(key)
-    }
-  })
 }
 
 // Function to completely clear all user data and storage
 export function clearAllUserData() {
   // Clear global caches
   invalidateUserCache()
-
+  
   // Clear profile header cache
   globalProfileHeaderCache.clear()
   globalProfileHeaderPromises.clear()
@@ -284,74 +268,28 @@ export function clearAllUserData() {
   }
 }
 
-// Function to get cached complete profile data
-export function getCachedCompleteProfileData(userId: string): CachedProfileData | null {
-  // First check memory cache
-  const memoryCache = globalProfileDataCache
-  if (memoryCache && (Date.now() - memoryCache.timestamp) < CACHE_DURATION) {
-    return memoryCache.profileData
+// Function to get cached profile data without triggering a fetch
+export function getCachedProfileData(): CachedProfileData | null {
+  if (globalProfileDataCache && (Date.now() - globalProfileDataCache.timestamp) < CACHE_DURATION) {
+    return globalProfileDataCache.profileData
   }
-
-  // Then check localStorage
-  const storageKey = `${STORAGE_KEY_PREFIX}${userId}`
-  const storedCache = getFromStorage(storageKey)
-  if (storedCache && (Date.now() - storedCache.timestamp) < CACHE_DURATION) {
-    // Restore to memory cache
-    globalProfileDataCache = storedCache
-    return storedCache.profileData
-  }
-
   return null
 }
 
-// Function to set cached complete profile data
-export function setCachedCompleteProfileData(userId: string, data: any) {
-  const cacheObject = {
-    profileData: data,
-    timestamp: Date.now()
+// Profile Header Cache Functions
+export function getCachedProfileHeaderData(userId: string): any | null {
+  const cached = globalProfileHeaderCache.get(userId)
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    return cached.data
   }
-
-  // Save to memory cache
-  globalProfileDataCache = cacheObject
-
-  // Save to localStorage
-  const storageKey = `${STORAGE_KEY_PREFIX}${userId}`
-  saveToStorage(storageKey, cacheObject)
-}
-
-// Get cached profile header data
-export const getCachedProfileHeaderData = (userId: string) => {
-  // First check memory cache
-  const memoryCache = globalProfileHeaderCache.get(userId)
-  if (memoryCache && (Date.now() - memoryCache.timestamp) < CACHE_DURATION) {
-    return memoryCache.data
-  }
-
-  // Then check localStorage
-  const storageKey = `${STORAGE_HEADER_KEY_PREFIX}${userId}`
-  const storedCache = getFromStorage(storageKey)
-  if (storedCache && (Date.now() - storedCache.timestamp) < CACHE_DURATION) {
-    // Restore to memory cache
-    globalProfileHeaderCache.set(userId, storedCache)
-    return storedCache.data
-  }
-
   return null
 }
 
-// Set cached profile header data
-export const setCachedProfileHeaderData = (userId: string, data: any) => {
-  const cacheObject = {
+export function setCachedProfileHeaderData(userId: string, data: any): void {
+  globalProfileHeaderCache.set(userId, {
     data,
     timestamp: Date.now()
-  }
-
-  // Save to memory cache
-  globalProfileHeaderCache.set(userId, cacheObject)
-
-  // Save to localStorage
-  const storageKey = `${STORAGE_HEADER_KEY_PREFIX}${userId}`
-  saveToStorage(storageKey, cacheObject)
+  })
 }
 
 export function fetchAndCacheProfileHeaderData(userId: string): Promise<any> {
@@ -374,10 +312,10 @@ export function fetchAndCacheProfileHeaderData(userId: string): Promise<any> {
   }).then(async (response) => {
     if (response.ok) {
       const data = await response.json()
-
+      
       // Cache the result
       setCachedProfileHeaderData(userId, data)
-
+      
       console.log('✅ Profile header data cached for user:', userId)
       return data
     }

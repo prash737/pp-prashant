@@ -14,6 +14,9 @@ import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
 import { TabsContent } from "@/components/ui/tabs" // Assuming TabsContent is imported from here
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PerformanceReportButton, PerformanceAnalysisButton } from '@/components/profile/performance-report-button'
 
 interface StudentProfileProps {
   studentId?: string
@@ -25,14 +28,14 @@ interface StudentProfileProps {
   showStaticStructure?: boolean
 }
 
-export default function StudentProfile({ 
-  studentId, 
+export default function StudentProfile({
+  studentId,
   currentUser: propCurrentUser, // Renamed prop to avoid conflict with state
-  studentData: propStudentData, 
+  studentData: propStudentData,
   isViewMode = false,
   isShareMode = false,
   onGoBack,
-  showStaticStructure = false 
+  showStaticStructure = false
 }: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -72,7 +75,7 @@ export default function StudentProfile({
           // For now, assuming propCurrentUser is sufficient for user identification and basic data
           // If student details are needed, a separate fetch might be required or studentData should be mandatory
           // Setting student to propCurrentUser for now, but this might need refinement
-          setStudent(propCurrentUser) 
+          setStudent(propCurrentUser)
           setLoading(false)
         }
         return
@@ -180,16 +183,16 @@ export default function StudentProfile({
           setFollowingInstitutions(propStudentData.followingInstitutions || []);
           setLoading(false);
         } else {
-           // If it's a public profile and no studentId is passed, we might not be able to fetch.
-           // Handle accordingly, perhaps showing a "profile not found" or similar.
-           // For now, if studentData is not available, we'll assume loading is done.
-           setLoading(false)
+          // If it's a public profile and no studentId is passed, we might not be able to fetch.
+          // Handle accordingly, perhaps showing a "profile not found" or similar.
+          // For now, if studentData is not available, we'll assume loading is done.
+          setLoading(false)
         }
       } else if (propCurrentUser && !studentId && !propStudentData) {
-         // If propCurrentUser is set but no studentId and no studentData, use propCurrentUser's data
-         setStudent(propCurrentUser);
-         setCircles(propCurrentUser.circles || []);
-         setLoading(false);
+        // If propCurrentUser is set but no studentId and no studentData, use propCurrentUser's data
+        setStudent(propCurrentUser);
+        setCircles(propCurrentUser.circles || []);
+        setLoading(false);
       }
     });
   }, [propCurrentUser, propStudentData, studentId]) // Depend on props to re-fetch if they change
@@ -209,7 +212,7 @@ export default function StudentProfile({
       });
       setCircles(enabledCircles);
     } else if (!propStudentData && student?.circles) { // If student is populated but propStudentData was not the source
-       const enabledCircles = student.circles.filter((circle: any) => {
+      const enabledCircles = student.circles.filter((circle: any) => {
         if (circle.isDisabled) return false;
         if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
         const userMembership = circle.memberships?.find(
@@ -324,8 +327,8 @@ export default function StudentProfile({
   const staticStudentStructure = showStaticStructure ? {
     id: studentId || currentUser?.id || "",
     profile: {
-      firstName: "Student", 
-      lastName: "", 
+      firstName: "Student",
+      lastName: "",
       profileImageUrl: "/images/student-profile.png",
       bio: "Loading profile information...",
       tagline: "Passionate learner exploring new horizons",
@@ -432,8 +435,8 @@ export default function StudentProfile({
         return <ProjectsShowcase student={student} isViewMode={isViewMode} />
       case "achievements":
         return (
-          <AchievementTimeline 
-            userId={student?.id} 
+          <AchievementTimeline
+            userId={student?.id}
             isOwnProfile={isOwnProfile}
             isViewMode={isViewMode}
             student={student}
@@ -442,10 +445,10 @@ export default function StudentProfile({
         )
       case "circle":
         return (
-          <CircleView 
-            student={student} 
+          <CircleView
+            student={student}
             circles={circles || []}
-            isViewMode={isViewMode} 
+            isViewMode={isViewMode}
           />
         )
       case "goals":
@@ -476,9 +479,9 @@ export default function StudentProfile({
       {/* Show navigation and content when we have real data */}
       {finalStudentData && finalStudentData !== staticStudentStructure && (
         <>
-          <HorizontalNavigation 
-            tabs={tabs} 
-            activeTab={activeTab} 
+          <HorizontalNavigation
+            tabs={tabs}
+            activeTab={activeTab}
             setActiveTab={setActiveTab}
             isViewMode={isViewMode}
           />
@@ -512,6 +515,22 @@ export default function StudentProfile({
             </svg>
             <span className="font-semibold">Self Analysis</span>
           </a>
+        </div>
+      )}
+
+      {/* Performance Analysis Tools - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-8 p-4 border-2 border-dashed border-muted rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 text-muted-foreground">
+            🔧 Developer Tools
+          </h3>
+          <div className="flex gap-2 flex-wrap">
+            <PerformanceReportButton studentId={finalStudentData?.id} />
+            <PerformanceAnalysisButton studentId={finalStudentData?.id} />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Performance analysis tools are only visible in development mode
+          </p>
         </div>
       )}
     </div>
