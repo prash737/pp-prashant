@@ -466,7 +466,7 @@ export default function ProfileHeader({
       <div className="relative">
         {/* Customizable banner - Use cover photo if available, otherwise show blue gradient */}
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="h-80 w-full relative overflow-hidden rounded-t-xl">
+          <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
             {student?.profile?.coverImageUrl ? (
               <img
                 src={student.profile.coverImageUrl}
