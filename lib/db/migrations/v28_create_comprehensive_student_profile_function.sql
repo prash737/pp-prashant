@@ -1,3 +1,4 @@
+
 -- Create a function to get comprehensive student profile data
 CREATE OR REPLACE FUNCTION get_comprehensive_student_profile(student_id_param UUID)
 RETURNS TABLE (
@@ -60,7 +61,6 @@ BEGIN
       jsonb_agg(
         jsonb_build_object(
           'id', ui.id,
-          'proficiencyLevel', ui.proficiency_level,
           'interest', jsonb_build_object(
             'id', i.id,
             'name', i.name,
