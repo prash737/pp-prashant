@@ -181,15 +181,15 @@ BEGIN
             'id', it.id,
             'name', it.name,
             'category', jsonb_build_object(
-              'id', itc.id,
-              'name', itc.name
+              'id', ic.id,
+              'name', ic.name
             )
           )
         ) ORDER BY seh.start_date DESC
       ) as education
     FROM student_education_history seh
     LEFT JOIN institution_types it ON seh.institution_type_id = it.id
-    LEFT JOIN institution_type_categories itc ON it.category_id = itc.id
+    LEFT JOIN institution_categories ic ON it.category_id = ic.id
     WHERE seh.student_id = student_id_param
     GROUP BY seh.student_id
   ),
