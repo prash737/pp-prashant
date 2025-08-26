@@ -87,12 +87,16 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         setLoading(true)
         setError(null)
 
+        console.log('🔍 PublicView: Making API call to fetch student data for:', profileId)
+        
         const response = await fetch(`/api/student/profile/${profileId}`, {
           credentials: 'include',
           headers: {
             'X-Public-View': 'true'
           }
         })
+
+        console.log('📡 PublicView: API response status:', response.status)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -106,6 +110,13 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         }
 
         const data = await response.json()
+        console.log('📊 PublicView: API data received:', {
+          hasData: !!data,
+          hasProfile: !!data?.profile,
+          firstName: data?.profile?.firstName || data?.first_name,
+          lastName: data?.profile?.lastName || data?.last_name,
+          achievementsCount: data?.achievements?.length || 0
+        })
         setStudentData(data)
       } catch (err) {
         console.error('Error fetching student data:', err)

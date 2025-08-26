@@ -534,8 +534,98 @@ export async function GET(
       return NextResponse.json(response)
     }
 
-    // If RPC function works, return its data
-    return NextResponse.json(studentData)
+    // If RPC function works, transform and return its data
+    if (studentData && studentData.length > 0) {
+      const rawData = studentData[0]
+      
+      // Transform the RPC result to match expected format
+      const transformedData = {
+        id: rawData.id,
+        first_name: rawData.first_name,
+        last_name: rawData.last_name,
+        bio: rawData.bio,
+        location: rawData.location,
+        profile_image_url: rawData.profile_image_url,
+        cover_image_url: rawData.cover_image_url,
+        verification_status: rawData.verification_status,
+        tagline: rawData.tagline,
+        ageGroup: rawData.age_group,
+        educationLevel: rawData.education_level,
+        birthMonth: rawData.birth_month,
+        birthYear: rawData.birth_year,
+        personalityType: rawData.personality_type,
+        learningStyle: rawData.learning_style,
+        favoriteQuote: rawData.favorite_quote,
+        profile: {
+          firstName: rawData.first_name,
+          lastName: rawData.last_name,
+          bio: rawData.bio,
+          location: rawData.location,
+          profileImageUrl: rawData.profile_image_url,
+          coverImageUrl: rawData.cover_image_url,
+          verificationStatus: rawData.verification_status,
+          tagline: rawData.tagline,
+          userInterests: rawData.user_interests || [],
+          userSkills: rawData.user_skills || [],
+          skills: (rawData.user_skills || []).map((us: any) => ({
+            id: us.skill?.id,
+            name: us.skill?.name,
+            proficiencyLevel: us.proficiencyLevel || 50,
+            category: us.skill?.category?.name || 'General'
+          })),
+          socialLinks: rawData.social_links || []
+        },
+        educationHistory: (rawData.education_history || []).map((edu: any) => ({
+          id: edu.id,
+          institutionName: edu.institutionName,
+          institutionType: edu.institutionType,
+          gradeLevel: edu.gradeLevel,
+          isCurrent: edu.isCurrent,
+          is_current: edu.isCurrent,
+          startDate: edu.startDate,
+          endDate: edu.endDate,
+          degreeProgram: edu.degreeProgram,
+          fieldOfStudy: edu.fieldOfStudy,
+          subjects: edu.subjects || [],
+          gpa: edu.gpa,
+          achievements: edu.achievements || [],
+          description: edu.description,
+          institutionVerified: edu.institutionVerified
+        })),
+        achievements: rawData.achievements || [],
+        goals: rawData.goals || [],
+        userCollections: rawData.user_collections || [],
+        connections: [
+          ...(rawData.sent_connections || []),
+          ...(rawData.received_connections || [])
+        ],
+        connectionCounts: {
+          total: rawData.sent_connections?.length + rawData.received_connections?.length || 0,
+          students: 0,
+          mentors: 0,
+          institutions: 0
+        },
+        circles: rawData.circles || [],
+        followingInstitutions: rawData.institution_following || [],
+        suggestedConnections: [],
+        connectionRequestsSent: [],
+        connectionRequestsReceived: [],
+        circleInvitations: []
+      }
+
+      console.log('🚀 API Response - Public view data being returned:', {
+        id: transformedData.id,
+        firstName: transformedData.profile?.firstName,
+        lastName: transformedData.profile?.lastName,
+        achievementsCount: transformedData.achievements?.length || 0,
+        educationHistoryCount: transformedData.educationHistory?.length || 0,
+        circlesCount: transformedData.circles?.length || 0
+      })
+
+      return NextResponse.json(transformedData)
+    }
+    
+    return NextResponse.json({ error: 'Student data not found' }, { status: 404 })
 
   } catch (error) {
     console.error('Error fetching student profile:', error)
