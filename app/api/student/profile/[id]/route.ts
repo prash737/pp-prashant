@@ -463,10 +463,8 @@ export async function GET(
       return NextResponse.json(response)
     }
 
-    return NextResponse.json(
-      { error: 'Student profile not found' },
-      { status: 404 }
-    )
+    // If RPC function works, return its data
+    return NextResponse.json(studentData)
 
   } catch (error) {
     console.error('Error fetching student profile:', error)
