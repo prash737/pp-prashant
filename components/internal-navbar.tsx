@@ -546,18 +546,16 @@ export function InternalNavbar() {
                       key={link.name}
                       onClick={(e) => {
                         e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Get user ID from cookie - immediate redirect with no delays
-                        const cookies = document.cookie.split('; ');
-                        const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
-                        const userId = userIdCookie?.split('=')[1];
+                        // Get user ID from cookie - immediate redirect
+                        const userId = document.cookie
+                          .split('; ')
+                          .find(row => row.startsWith('current_user_id='))
+                          ?.split('=')[1];
                         
                         if (userId) {
-                          // Use replace instead of push for faster navigation
-                          window.location.href = `/student/profile/${userId}`;
+                          router.push(`/student/profile/${userId}`);
                         } else {
-                          window.location.href = '/login';
+                          router.push('/login');
                         }
                       }}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
@@ -702,18 +700,16 @@ export function InternalNavbar() {
                   key={item.name}
                   onClick={(e) => {
                     e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Get user ID from cookie - immediate redirect with no delays
-                    const cookies = document.cookie.split('; ');
-                    const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
-                    const userId = userIdCookie?.split('=')[1];
+                    // Get user ID from cookie - immediate redirect
+                    const userId = document.cookie
+                      .split('; ')
+                      .find(row => row.startsWith('current_user_id='))
+                      ?.split('=')[1];
                     
                     if (userId) {
-                      // Use direct window.location for fastest redirect
-                      window.location.href = `/student/profile/${userId}`;
+                      router.push(`/student/profile/${userId}`);
                     } else {
-                      window.location.href = '/login';
+                      router.push('/login');
                     }
                   }}
                   className={`flex flex-col items-center p-2 ${
