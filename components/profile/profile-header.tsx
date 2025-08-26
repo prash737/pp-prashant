@@ -309,6 +309,7 @@ export default function ProfileHeader({
 
     // Set following institutions from student data
     if (student?.followingInstitutions) {
+      console.log('🏛️ ProfileHeader: Setting following institutions:', student.followingInstitutions)
       setFollowingInstitutions(student.followingInstitutions)
       setFollowingCount(student.followingInstitutions.length)
     }
@@ -1295,7 +1296,7 @@ export default function ProfileHeader({
                       {institution.logoUrl ? (
                         <img
                           src={institution.logoUrl}
-                          alt={institution.institutionName}
+                          alt={institution.institutionName || 'Institution'}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -1305,21 +1306,23 @@ export default function ProfileHeader({
                       )}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{institution.institutionName}</h4>
-                      <p className="text-xs text-gray-500">{institution.institutionType}</p>
+                      <h4 className="font-semibold text-sm">{institution.institutionName || 'Institution'}</h4>
+                      <p className="text-xs text-gray-500">{institution.institutionType || 'Educational Institution'}</p>
                       {institution.location && (
                         <p className="text-xs text-gray-400">{institution.location}</p>
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUnfollowInstitution(institution.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    Unfollow
-                  </Button>
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUnfollowInstitution(institution.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      Unfollow
+                    </Button>
+                  )}
                 </div>
               ))
             ) : (

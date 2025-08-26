@@ -79,32 +79,45 @@ export async function GET(
 
       // Fallback to individual queries if the RPC doesn't exist
       const queries = await Promise.all([
-        // Basic profile data
+        // Main profile query with all related data
         supabase
           .from('profiles')
           .select(`
-            *,
-            student_profiles (*),
+            id,
+            first_name,
+            last_name,
+            bio,
+            location,
+            profile_image_url,
+            cover_image_url,
+            verification_status,
+            tagline,
+            social_links,
+            student_profiles!inner (
+              age_group,
+              education_level,
+              birth_month,
+              birth_year,
+              personality_type,
+              learning_style,
+              favorite_quote,
+              onboarding_completed
+            ),
             user_interests (
-              id,
-              created_at,
-              interests (
+              interest:interests (
                 id,
                 name,
-                interest_categories (
+                skill_categories (
                   id,
                   name
                 )
               )
             ),
             user_skills (
-              id,
               proficiency_level,
-              created_at,
               skills (
                 id,
                 name,
-                category_id,
                 skill_categories (
                   id,
                   name
@@ -116,26 +129,24 @@ export async function GET(
               name,
               description,
               date_of_achievement,
-              created_at,
               achievement_image_icon,
               achievement_type_id,
-              achievement_types (
-                id,
-                name
-              )
+              created_at
             ),
             goals (
               id,
               title,
               description,
+              target_date,
+              priority,
               status,
-              created_at,
-              updated_at
+              created_at
             ),
             user_collections (
               id,
               name,
               description,
+              is_private,
               created_at
             ),
             student_education_history (
@@ -153,21 +164,12 @@ export async function GET(
               achievements,
               description,
               institution_verified,
-              institution_types (
-                id,
-                name,
-                institution_type_categories (
-                  id,
-                  name
-                )
-              )
+              created_at
             ),
-            social_links (*),
-            sent_connections:connection_requests (
+            sent_connections:connections!connections_requester_id_fkey (
               id,
-              created_at,
               status,
-              receiver:profiles!connection_requests_receiver_id_fkey (
+              accepter:profiles!connections_accepter_id_fkey (
                 id,
                 first_name,
                 last_name,
@@ -175,11 +177,10 @@ export async function GET(
                 role
               )
             ),
-            received_connections:connection_requests (
+            received_connections:connections!connections_accepter_id_fkey (
               id,
-              created_at,
               status,
-              sender:profiles!connection_requests_sender_id_fkey (
+              requester:profiles!connections_requester_id_fkey (
                 id,
                 first_name,
                 last_name,
@@ -187,34 +188,18 @@ export async function GET(
                 role
               )
             ),
-            institution_following:institution_follow_connections (
-              id,
-              connected_at,
-              receiver:profiles!institution_follow_connections_receiver_id_fkey (
+            institution_following (
+              institution_profiles (
                 id,
-                first_name,
-                last_name,
-                profile_image_url,
-                verification_status,
-                institution_profiles (
-                  institution_name,
-                  institution_type,
-                  institution_type_id,
-                  website,
-                  logo_url,
-                  verified,
-                  institution_types (
-                    name,
-                    institution_type_categories (
-                      name
-                    )
-                  )
-                )
+                institution_name,
+                institution_type,
+                location,
+                logo_url,
+                created_at
               )
             )
           `)
           .eq('id', studentId)
-          .eq('role', 'student')
           .single(),
 
         // Circle memberships (student is a member)
@@ -245,7 +230,8 @@ export async function GET(
             )
           `)
           .eq('user_id', studentId)
-          .eq('status', 'active'),
+          .eq('status', 'active')
+          .not('is_disabled_member', 'eq', true),
 
         // Circles created by the student
         supabase
@@ -269,12 +255,35 @@ export async function GET(
             )
           `)
           .eq('creator_id', studentId)
+          .not('is_disabled', 'eq', true)
+          .not('is_creator_disabled', 'eq', true),
+
+        // Get all circle memberships for the circles (to get member counts)
+        supabase
+          .from('circle_memberships')
+          .select(`
+            circle_id,
+            user_id,
+            status,
+            is_disabled_member,
+            profiles (
+              id,
+              first_name,
+              last_name,
+              profile_image_url,
+              role,
+              bio
+            )
+          `)
+          .eq('status', 'active')
+          .not('is_disabled_member', 'eq', true)
       ])
 
       const [
         profileResult,
         circlesMemberResult,
-        createdCirclesResult
+        createdCirclesResult,
+        allCircleMembershipsResult
       ] = queries
 
       if (profileResult.error || !profileResult.data) {
@@ -293,6 +302,14 @@ export async function GET(
       const connectionRequestsSent = [] // Placeholder, fetched below if applicable
       const connectionRequestsReceived = [] // Placeholder, fetched below if applicable
       const circleInvitations = [] // Placeholder, fetched below if applicable
+
+      // Count members for each circle
+      const circleMemberCounts: { [circleId: string]: number } = {}
+      allCircleMembershipsResult.data?.forEach(membership => {
+        if (membership.circle_id) {
+          circleMemberCounts[membership.circle_id] = (circleMemberCounts[membership.circle_id] || 0) + 1
+        }
+      })
 
       // Transform data to match expected format
       const transformedData = {
@@ -340,28 +357,31 @@ export async function GET(
           ...(profile.received_connections || [])
         ],
         connectionCounts: {
-          total: (profile.sent_connections?.length || 0) + (profile.received_connections?.length || 0),
+          total: 0,
           students: 0,
           mentors: 0,
           institutions: 0
         },
-        followingInstitutions: profile.institution_following || [],
-        circles: circlesMemberResult.data?.map(membership => ({
-          id: membership.circle_badges.id,
-          name: membership.circle_badges.name,
-          description: membership.circle_badges.description,
-          color: membership.circle_badges.color,
-          icon: membership.circle_badges.icon,
-          isDefault: membership.circle_badges.is_default,
-          isDisabled: membership.circle_badges.is_disabled,
-          isCreatorDisabled: membership.circle_badges.is_creator_disabled,
-          createdAt: membership.circle_badges.created_at,
-          creator: membership.circle_badges.creator,
-          memberships: [], // To be populated if needed
-          _count: {
-            memberships: 0 // To be calculated if needed
+        followingInstitutions: profile.institution_following?.map(f => f.institution_profiles) || [],
+        circles: circlesMemberResult.data?.map(membership => {
+          const memberCount = circleMemberCounts[membership.circle_id] || 0;
+          return {
+            id: membership.circle_badges.id,
+            name: membership.circle_badges.name,
+            description: membership.circle_badges.description,
+            color: membership.circle_badges.color,
+            icon: membership.circle_badges.icon,
+            isDefault: membership.circle_badges.is_default,
+            isDisabled: membership.circle_badges.is_disabled,
+            isCreatorDisabled: membership.circle_badges.is_creator_disabled,
+            createdAt: membership.circle_badges.created_at,
+            creator: membership.circle_badges.creator,
+            memberships: [], // To be populated if needed
+            _count: {
+              memberships: memberCount
+            }
           }
-        })) || [],
+        }) || [],
         suggestedConnections: [], // This needs a separate query if not in RPC
         connectionRequestsSent: [], // This needs a separate query if not in RPC
         connectionRequestsReceived: [], // This needs a separate query if not in RPC
