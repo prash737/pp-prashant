@@ -540,7 +540,16 @@ export default function ProfileHeader({
                             <Button 
                               size="sm" 
                               className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
-                              onClick={() => router.push('/student/profile/edit')}
+                              onClick={() => {
+                                // Cache current profile data for instant loading on edit page
+                                if (typeof window !== 'undefined') {
+                                  window.sessionStorage.setItem('profileEditCache', JSON.stringify({
+                                    student,
+                                    timestamp: Date.now()
+                                  }))
+                                }
+                                router.push('/student/profile/edit')
+                              }}
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Profile

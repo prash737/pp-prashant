@@ -35,7 +35,7 @@ export type AgeGroup = "early_childhood" | "elementary" | "middle_school" | "hig
 
 interface PersonalInfoFormProps {
   data: any
-  onChange: (sectionId: string, data: PersonalInfoData) => void
+  onChange: (sectionId: string, data: PersonalInfoData, isDirty?: boolean) => void
   onSave?: (data: PersonalInfoData) => Promise<void>
 }
 
