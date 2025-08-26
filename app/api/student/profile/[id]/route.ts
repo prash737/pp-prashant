@@ -286,10 +286,25 @@ export async function GET(
 
       const profile = profileResult.data
       const studentProfile = profile.student_profiles?.[0]
+      const userInterests = profile.user_interests || []
+      const userSkills = profile.user_skills || []
+      const achievements = profile.user_achievements || []
+      const followingInstitutions = profile.institution_following || []
+      const connectionRequestsSent = [] // Placeholder, fetched below if applicable
+      const connectionRequestsReceived = [] // Placeholder, fetched below if applicable
+      const circleInvitations = [] // Placeholder, fetched below if applicable
 
-      // Transform data to match expected format with proper profile nesting
+      // Transform data to match expected format
       const transformedData = {
         id: profile.id,
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        bio: profile.bio,
+        location: profile.location,
+        profile_image_url: profile.profile_image_url,
+        cover_image_url: profile.cover_image_url,
+        verification_status: profile.verification_status,
+        tagline: profile.tagline,
         ageGroup: studentProfile?.age_group,
         educationLevel: studentProfile?.education_level,
         birthMonth: studentProfile?.birth_month,
@@ -458,6 +473,14 @@ export async function GET(
 
       const response = {
         ...transformedData,
+        userInterests: userInterests,
+        userSkills: userSkills,
+        achievements: achievements,
+        followingInstitutions: followingInstitutions,
+        connectionRequestsSent: connectionRequestsSent,
+        connectionRequestsReceived: connectionRequestsReceived,
+        circleInvitations: circleInvitations,
+        circles: [] // This will be fetched separately by the circles API
       }
 
       console.log('🚀 API Response - Full transformed data being returned:')
