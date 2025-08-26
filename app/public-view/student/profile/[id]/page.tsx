@@ -167,20 +167,19 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <NavbarComponent />
-      {/* Back button - Sticky header */}
-
-
       {/* Profile content */}
       <main className="flex-grow">
-      <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleGoBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+        <div className="container mx-auto px-4 max-w-7xl pt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleGoBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
         {studentData && (
           <StudentProfile
             studentId={profileId!}
