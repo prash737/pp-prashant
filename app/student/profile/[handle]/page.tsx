@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getCachedProfileHeaderData, setCachedProfileHeaderData } from "@/hooks/use-auth"
 import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
@@ -86,6 +86,12 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
     // Fetch student data - now we know it's the current user's profile
     const fetchStudentData = async () => {
+      // Try to get cached data first
+      const cachedData = getCachedProfileHeaderData(currentUser.id)
+      if (cachedData) {
+        setStudentData(cachedData)
+      }
+
       try {
         setLoading(true)
         setError(null)
@@ -107,6 +113,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
         const data = await response.json()
         setStudentData(data)
+        // Cache the fetched data for future use
+        if (data && currentUser.id) {
+          setCachedProfileHeaderData(currentUser.id, data)
+        }
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')

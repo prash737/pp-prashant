@@ -1,9 +1,8 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth, getCachedProfileHeaderData, fetchAndCacheProfileHeaderData } from "@/hooks/use-auth"
 import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
@@ -83,6 +82,16 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     resolveParams()
   }, [params])
 
+  // Get cached data immediately
+  useEffect(() => {
+    if (!profileId) return
+
+    const cachedData = getCachedProfileHeaderData(profileId)
+    if (cachedData) {
+      setProfileHeaderData(cachedData)
+    }
+  }, [profileId])
+
   // Priority fetch for profile header data - fetch immediately when profileId is available
   useEffect(() => {
     if (authLoading || !profileId || !currentUser) return
@@ -105,36 +114,36 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       return
     }
 
-    // Immediate fetch for profile data
-    const fetchProfileData = async () => {
-      try {
-        const response = await fetch(`/api/student/profile/${profileId}`, {
-          credentials: 'include'
-        })
+    const cachedData = getCachedProfileHeaderData(profileId)
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Profile not found')
-          } else if (response.status === 403) {
-            setError('Access denied')
-          } else {
-            setError('Failed to load profile')
-          }
-          return
+    console.log('🔥 Starting priority fetch for profile header...')
+
+    // Always fetch fresh data in background (whether we had cached data or not)
+    const fetchFreshData = async () => {
+      try {
+        setLoading(!cachedData) // Only show loading if we don't have cached data
+
+        const freshData = await fetchAndCacheProfileHeaderData(profileId)
+
+        if (freshData) {
+          console.log('✅ Fresh profile header data fetched and cached')
+          setProfileHeaderData(freshData)
+        } else {
+          throw new Error('Failed to fetch fresh data')
         }
 
-        const data = await response.json()
-        
-        // Set both profile header data and full student data immediately
-        setProfileHeaderData(data)
-        setStudentData(data)
-      } catch (err) {
-        console.error('Error fetching profile data:', err)
-        setError('Failed to load profile')
+      } catch (error) {
+        console.error('❌ Error fetching fresh profile header data:', error)
+        // Only set error if we don't have cached data to fall back on
+        if (!cachedData) {
+          setError('Failed to load profile data')
+        }
+      } finally {
+        setLoading(false)
       }
     }
 
-    fetchProfileData()
+    fetchFreshData()
   }, [profileId, currentUser, authLoading, router])
 
   const handleGoBack = () => {
@@ -143,7 +152,14 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
 
   const handleCirclesUpdate = () => {
     setCirclesUpdateKey(prev => prev + 1)
-    // Optionally refetch data here if needed
+    // Also refresh the cached data when circles are updated
+    if (profileId) {
+      fetchAndCacheProfileHeaderData(profileId).then(freshData => {
+        if (freshData) {
+          setProfileHeaderData(freshData)
+        }
+      })
+    }
   }
 
   // Show error state
@@ -156,13 +172,13 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
             <div className="text-center">
               <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
               <p className="text-gray-600 mb-4">{error}</p>
-              <button 
+              <button
                 onClick={() => router.back()}
                 className="bg-pathpiper-teal text-white px-4 py-2 rounded hover:bg-pathpiper-teal/90 mr-2"
               >
                 Go Back
               </button>
-              <button 
+              <button
                 onClick={() => router.push('/student/profile')}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
@@ -201,11 +217,11 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
         <main className="flex-grow pt-16 sm:pt-24">
           {/* Always show profile header immediately with static content or fetched data */}
           <ProfileHeader
-            student={profileHeaderData || { 
-              id: profileId!, 
-              profile: { 
-                firstName: "Loading...", 
-                lastName: "", 
+            student={profileHeaderData || {
+              id: profileId!,
+              profile: {
+                firstName: "Loading...",
+                lastName: "",
                 userInterests: [],
                 userSkills: []
               },
@@ -222,7 +238,7 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
             connectionRequestsReceived={profileHeaderData?.connectionRequestsReceived || []}
             circleInvitations={profileHeaderData?.circleInvitations || []}
           />
-          
+
           {/* Show full student profile once data is available */}
           {studentData && (
             <StudentProfile
