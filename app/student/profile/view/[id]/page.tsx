@@ -83,7 +83,7 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     resolveParams()
   }, [params])
 
-  // Priority fetch for profile header data
+  // Priority fetch for profile header data - fetch immediately when profileId is available
   useEffect(() => {
     if (authLoading || !profileId || !currentUser) return
 
@@ -105,8 +105,8 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       return
     }
 
-    // Immediate fetch for profile header data
-    const fetchProfileHeaderData = async () => {
+    // Immediate fetch for profile data
+    const fetchProfileData = async () => {
       try {
         const response = await fetch(`/api/student/profile/${profileId}`, {
           credentials: 'include'
@@ -134,7 +134,7 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       }
     }
 
-    fetchProfileHeaderData()
+    fetchProfileData()
   }, [profileId, currentUser, authLoading, router])
 
   const handleGoBack = () => {
@@ -176,8 +176,8 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     )
   }
 
-  // Show loading only if we don't have any data yet and auth is still loading
-  if (authLoading && !profileHeaderData) {
+  // Show loading only if auth is still loading and we don't have profileId
+  if (authLoading && !profileId) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col">
@@ -199,31 +199,29 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          {/* Always show profile header immediately, even with minimal data */}
-          {(profileHeaderData || profileId) && (
-            <ProfileHeader
-              student={profileHeaderData || { 
-                id: profileId!, 
-                profile: { 
-                  firstName: "Loading...", 
-                  lastName: "", 
-                  userInterests: [],
-                  userSkills: []
-                },
-                educationHistory: []
-              }}
-              currentUser={currentUser}
-              connectionCounts={profileHeaderData?.connectionCounts}
-              isViewMode={true}
-              onGoBack={handleGoBack}
-              circles={profileHeaderData?.circles || []}
-              onCirclesUpdate={handleCirclesUpdate}
-              achievements={profileHeaderData?.achievements || []}
-              connectionRequestsSent={profileHeaderData?.connectionRequestsSent || []}
-              connectionRequestsReceived={profileHeaderData?.connectionRequestsReceived || []}
-              circleInvitations={profileHeaderData?.circleInvitations || []}
-            />
-          )}
+          {/* Always show profile header immediately with static content or fetched data */}
+          <ProfileHeader
+            student={profileHeaderData || { 
+              id: profileId!, 
+              profile: { 
+                firstName: "Loading...", 
+                lastName: "", 
+                userInterests: [],
+                userSkills: []
+              },
+              educationHistory: []
+            }}
+            currentUser={currentUser}
+            connectionCounts={profileHeaderData?.connectionCounts}
+            isViewMode={true}
+            onGoBack={handleGoBack}
+            circles={profileHeaderData?.circles || []}
+            onCirclesUpdate={handleCirclesUpdate}
+            achievements={profileHeaderData?.achievements || []}
+            connectionRequestsSent={profileHeaderData?.connectionRequestsSent || []}
+            connectionRequestsReceived={profileHeaderData?.connectionRequestsReceived || []}
+            circleInvitations={profileHeaderData?.circleInvitations || []}
+          />
           
           {/* Show full student profile once data is available */}
           {studentData && (
