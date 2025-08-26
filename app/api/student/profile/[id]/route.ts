@@ -731,6 +731,9 @@ export async function GET(
     }
 
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
+    console.log('🔍 DEBUG: Raw institutionFollowing data:', JSON.stringify(studentData.institutionFollowing, null, 2))
+    console.log('🔍 DEBUG: Processed followingInstitutions:', JSON.stringify(response.followingInstitutions, null, 2))
+    console.log('🔍 DEBUG: Following institutions count:', response.followingInstitutions.length)
 
     return NextResponse.json(response)
 

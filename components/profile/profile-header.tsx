@@ -272,7 +272,7 @@ export default function ProfileHeader({
     if (isOwnProfile && student?.connections) {
       setConnections(student.connections)
     }
-    
+
     // Set following institutions from student data
     if (student?.followingInstitutions) {
       setFollowingInstitutions(student.followingInstitutions)
@@ -1097,16 +1097,15 @@ export default function ProfileHeader({
                                               : "bg-green-100 dark:bg-green-900/40"
                                       }`}
                                     >
-                                      <Award 
-                                        className={`h-4 w-4 ${
-                                          index % 4 === 0
-                                            ? "text-yellow-600 dark:text-yellow-400"
-                                            : index % 4 === 1
-                                              ? "text-blue-600 dark:text-blue-400"
-                                              : index % 4 === 2
-                                                ? "text-purple-600 dark:text-purple-400"
-                                                : "text-green-600 dark:text-green-400"
-                                        }`}
+                                      <Award className={`h-4 w-4 ${
+                                        index % 4 === 0
+                                          ? "text-yellow-600 dark:text-yellow-400"
+                                          : index % 4 === 1
+                                            ? "text-blue-600 dark:text-blue-400"
+                                            : index % 4 === 2
+                                              ? "text-purple-600 dark:text-purple-400"
+                                              : "text-green-600 dark:text-green-400"
+                                      }`}
                                       />
                                     </div>
                                   )}
