@@ -1,4 +1,3 @@
-
 -- Create a function to get comprehensive student profile data
 CREATE OR REPLACE FUNCTION get_comprehensive_student_profile(student_id_param UUID)
 RETURNS TABLE (
