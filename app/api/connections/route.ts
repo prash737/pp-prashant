@@ -36,7 +36,12 @@ export async function GET(request: NextRequest) {
     const targetUserId = searchParams.get('userId')
 
     // If no specific user is requested, default to current user
-    const userIdToQuery = targetUserId || user.id
+    const userIdToQuery = targetUserId && targetUserId !== 'undefined' ? targetUserId : user.id
+
+    // Validate userIdToQuery
+    if (!userIdToQuery || userIdToQuery === 'undefined') {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+    }
 
     // Get connections where user is either user1 or user2
     const userConnections = await executeWithRetry(() => db
