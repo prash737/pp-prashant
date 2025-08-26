@@ -132,7 +132,6 @@ BEGIN
           'id', g.id,
           'title', g.title,
           'description', g.description,
-          'targetDate', g.target_date,
           'status', g.status,
           'createdAt', g.created_at
         ) ORDER BY g.created_at DESC
