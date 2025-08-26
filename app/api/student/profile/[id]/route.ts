@@ -29,6 +29,14 @@ export async function GET(
     const resolvedParams = await params
     const studentId = resolvedParams.id
 
+    // ⏱️ Start Total API Timer
+    const totalStartTime = Date.now()
+    console.log(`🚀 Starting student profile API for ID: ${studentId}`)
+
+    // ⏱️ Phase 1: Authentication & Validation
+    const authStartTime = Date.now()
+    console.log('🔐 Phase 1: Starting authentication & validation')
+
     // Get user from session cookie to verify authentication
     const cookieStore = request.headers.get('cookie') || ''
     const cookies = Object.fromEntries(
@@ -82,6 +90,14 @@ export async function GET(
         { status: 403 }
       )
     }
+
+    const authEndTime = Date.now()
+    const authDuration = authEndTime - authStartTime
+    console.log(`✅ Phase 1 Complete: Authentication & validation took ${authDuration}ms`)
+
+    // ⏱️ Phase 2: Main Student Data Fetch
+    const mainDataStartTime = Date.now()
+    console.log('📊 Phase 2: Starting main student data fetch (comprehensive Prisma query)')
 
     // Fetch comprehensive student data with all relationships
     const studentData = await prisma.profile.findUnique({
@@ -243,6 +259,14 @@ export async function GET(
       )
     }
 
+    const mainDataEndTime = Date.now()
+    const mainDataDuration = mainDataEndTime - mainDataStartTime
+    console.log(`✅ Phase 2 Complete: Main student data fetch took ${mainDataDuration}ms`)
+
+    // ⏱️ Phase 3: Suggested Connections Query
+    const suggestedConnectionsStartTime = Date.now()
+    console.log('🔗 Phase 3: Starting suggested connections algorithm')
+
     // Fetch suggested connections separately (algorithm-based)
     const suggestedConnections = await prisma.profile.findMany({
       where: {
@@ -315,6 +339,14 @@ export async function GET(
       take: 6
     })
 
+    const suggestedConnectionsEndTime = Date.now()
+    const suggestedConnectionsDuration = suggestedConnectionsEndTime - suggestedConnectionsStartTime
+    console.log(`✅ Phase 3 Complete: Suggested connections query took ${suggestedConnectionsDuration}ms`)
+
+    // ⏱️ Phase 4: Connections Processing
+    const connectionsProcessingStartTime = Date.now()
+    console.log('👥 Phase 4: Starting connections data processing')
+
     // Process connections data
     const allConnections = [
       ...(studentData?.sentConnections?.map(conn => conn.receiver) || []),
@@ -327,6 +359,10 @@ export async function GET(
       mentors: allConnections.filter(conn => conn.role === 'mentor').length,
       institutions: allConnections.filter(conn => conn.role === 'institution').length
     }
+
+    const connectionsProcessingEndTime = Date.now()
+    const connectionsProcessingDuration = connectionsProcessingEndTime - connectionsProcessingStartTime
+    console.log(`✅ Phase 4 Complete: Connections processing took ${connectionsProcessingDuration}ms`)
 
     // Fetch circles for the student using Drizzle
     console.log('🔍 DEBUG: Fetching circles for student:', studentId)
@@ -764,6 +800,10 @@ export async function GET(
     const additionalDataDuration = additionalDataEndTime - additionalDataStartTime
     console.log(`✅ Phase 6 Complete: Additional data fetch took ${additionalDataDuration}ms`)
 
+    // ⏱️ Phase 7: Response Transformation
+    const responseTransformStartTime = Date.now()
+    console.log('📦 Phase 7: Starting response transformation')
+
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
     console.log('🔍 DEBUG: Student ID for following check:', resolvedParams.id)
     console.log('🔍 DEBUG: Raw institutionFollowing data:', JSON.stringify(studentData.institutionFollowing, null, 2))
@@ -779,7 +819,140 @@ export async function GET(
     })
     console.log('🔍 DEBUG: Direct query for follow connections:', JSON.stringify(allFollowConnections, null, 2))
 
-    return NextResponse.json(response)
+    const responseTransformEndTime = Date.now()
+    const responseTransformDuration = responseTransformEndTime - responseTransformStartTime
+    console.log(`✅ Phase 7 Complete: Response transformation took ${responseTransformDuration}ms`)
+
+    // ⏱️ Total API Completion
+    const totalEndTime = Date.now()
+    const totalDuration = totalEndTime - totalStartTime
+
+    // 📊 Performance Summary
+    const performanceReport = {
+      apiCall: {
+        endpoint: `/api/student/profile/${studentId}`,
+        timestamp: new Date().toISOString(),
+        totalDuration: totalDuration,
+        status: 'success'
+      },
+      phases: {
+        phase1_auth_validation: {
+          name: 'Authentication & Validation',
+          duration: authDuration,
+          percentage: Math.round((authDuration / totalDuration) * 100)
+        },
+        phase2_main_data_fetch: {
+          name: 'Main Student Data Fetch (Prisma)',
+          duration: mainDataDuration,
+          percentage: Math.round((mainDataDuration / totalDuration) * 100)
+        },
+        phase3_suggested_connections: {
+          name: 'Suggested Connections Query',
+          duration: suggestedConnectionsDuration,
+          percentage: Math.round((suggestedConnectionsDuration / totalDuration) * 100)
+        },
+        phase4_connections_processing: {
+          name: 'Connections Data Processing',
+          duration: connectionsProcessingDuration,
+          percentage: Math.round((connectionsProcessingDuration / totalDuration) * 100)
+        },
+        phase5_circles_data: {
+          name: 'Circles Data Fetch (Drizzle)',
+          duration: circlesDuration,
+          percentage: Math.round((circlesDuration / totalDuration) * 100)
+        },
+        phase6_additional_data: {
+          name: 'Additional Data Fetch',
+          duration: additionalDataDuration,
+          percentage: Math.round((additionalDataDuration / totalDuration) * 100)
+        },
+        phase7_response_transform: {
+          name: 'Response Transformation',
+          duration: responseTransformDuration,
+          percentage: Math.round((responseTransformDuration / totalDuration) * 100)
+        }
+      },
+      summary: {
+        slowestPhase: Object.entries({
+          'Auth & Validation': authDuration,
+          'Main Data Fetch': mainDataDuration,
+          'Suggested Connections': suggestedConnectionsDuration,
+          'Connections Processing': connectionsProcessingDuration,
+          'Circles Data': circlesDuration,
+          'Additional Data': additionalDataDuration,
+          'Response Transform': responseTransformDuration
+        }).reduce((max, [name, duration]) => duration > max.duration ? { name, duration } : max, { name: '', duration: 0 }),
+        
+        performance_analysis: {
+          excellent: totalDuration < 1000,
+          good: totalDuration < 2000,
+          acceptable: totalDuration < 3000,
+          needs_optimization: totalDuration >= 3000
+        },
+        
+        optimization_suggestions: totalDuration > 2000 ? [
+          mainDataDuration > 1000 ? 'Consider optimizing the main Prisma query with better indexing' : null,
+          circlesDuration > 500 ? 'Circles data fetch could benefit from query optimization' : null,
+          suggestedConnectionsDuration > 500 ? 'Suggested connections algorithm needs optimization' : null,
+          additionalDataDuration > 500 ? 'Additional data queries could be parallelized' : null
+        ].filter(Boolean) : ['Performance is acceptable - no immediate optimizations needed']
+      },
+      metadata: {
+        studentId: studentId,
+        dataPoints: {
+          interests: response.profile?.userInterests?.length || 0,
+          skills: response.profile?.userSkills?.length || 0,
+          educationHistory: response.educationHistory?.length || 0,
+          achievements: response.achievements?.length || 0,
+          connections: response.connectionCounts?.total || 0,
+          circles: response.circles?.length || 0,
+          goals: response.goals?.length || 0
+        }
+      }
+    }
+
+    console.log(`🏁 API COMPLETE: Total time ${totalDuration}ms`)
+    console.log('📊 PERFORMANCE BREAKDOWN:')
+    Object.entries(performanceReport.phases).forEach(([key, phase]) => {
+      console.log(`   ${phase.name}: ${phase.duration}ms (${phase.percentage}%)`)
+    })
+    console.log(`🐌 Slowest Phase: ${performanceReport.summary.slowestPhase.name} (${performanceReport.summary.slowestPhase.duration}ms)`)
+
+    // Check if client wants performance report
+    const url = new URL(request.url)
+    const downloadReport = url.searchParams.get('download-report') === 'true'
+
+    if (downloadReport) {
+      // Return performance report as downloadable JSON
+      const reportResponse = new NextResponse(JSON.stringify(performanceReport, null, 2), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="student-profile-performance-${studentId}-${Date.now()}.json"`
+        }
+      })
+      return reportResponse
+    }
+
+    // Add performance report to response headers for debugging
+    const responseWithTiming = new NextResponse(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Performance-Total': totalDuration.toString(),
+        'X-Performance-Breakdown': JSON.stringify({
+          auth: authDuration,
+          mainData: mainDataDuration,
+          suggestions: suggestedConnectionsDuration,
+          connections: connectionsProcessingDuration,
+          circles: circlesDuration,
+          additional: additionalDataDuration,
+          transform: responseTransformDuration
+        })
+      }
+    })
+
+    return responseWithTiming
 
   } catch (error) {
     console.error('Error fetching student profile:', error)

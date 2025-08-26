@@ -82,18 +82,13 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     resolveParams()
   }, [params])
 
-  // Get cached data immediately - including from localStorage
+  // Get cached data immediately
   useEffect(() => {
     if (!profileId) return
 
-    console.log('🔥 View page: Checking for cached data...')
     const cachedData = getCachedProfileHeaderData(profileId)
     if (cachedData) {
-      console.log('💾 View page: Using cached data immediately from:', 
-        globalProfileHeaderCache?.has(profileId) ? 'memory' : 'localStorage')
       setProfileHeaderData(cachedData)
-    } else {
-      console.log('❌ View page: No cached data found')
     }
   }, [profileId])
 

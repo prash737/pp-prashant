@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth, getCachedProfileHeaderData, setCachedProfileHeaderData } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import StudentProfile from "@/components/profile/student-profile"
 import InternalNavbar from "@/components/internal-navbar"
 import InstitutionNavbar from "@/components/institution-navbar"
@@ -58,18 +58,6 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     resolveParams()
   }, [params])
 
-  // Check for cached data immediately
-  useEffect(() => {
-    if (!profileId) return
-
-    console.log('🔥 Public view: Checking for cached data...')
-    const cachedData = getCachedProfileHeaderData(profileId)
-    if (cachedData) {
-      console.log('💾 Public view: Using cached data immediately')
-      setStudentData(cachedData)
-    }
-  }, [profileId])
-
   useEffect(() => {
     if (authLoading || !profileId) return
 
@@ -99,14 +87,6 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         setLoading(true)
         setError(null)
 
-        // Check if we already have cached data
-        const existingCache = getCachedProfileHeaderData(profileId)
-        if (existingCache && !studentData) {
-          setStudentData(existingCache)
-          setLoading(false)
-          return
-        }
-
         const response = await fetch(`/api/student/profile/${profileId}`, {
           credentials: 'include'
         })
@@ -123,9 +103,6 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         }
 
         const data = await response.json()
-        
-        // Cache the data for future use
-        setCachedProfileHeaderData(profileId, data)
         setStudentData(data)
       } catch (err) {
         console.error('Error fetching student data:', err)
@@ -136,7 +113,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     }
 
     fetchStudentData()
-  }, [profileId, currentUser, authLoading, router, studentData])
+  }, [profileId, currentUser, authLoading, router])
 
   const handleGoBack = () => {
     router.back()
