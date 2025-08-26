@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth, getCachedProfileHeaderData, setCachedProfileHeaderData } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
@@ -16,6 +17,9 @@ interface StudentData {
     bio?: string
     location?: string
     profileImageUrl?: string
+    coverImageUrl?: string
+    tagline?: string
+    verificationStatus?: boolean
     userInterests: Array<{
       interest: {
         name: string
@@ -38,6 +42,14 @@ interface StudentData {
     endDate?: string
     current: boolean
   }>
+  achievements: any[]
+  connectionCounts: {
+    total: number
+    students: number
+    mentors: number
+    institutions: number
+  }
+  circles: any[]
 }
 
 export default function StudentProfilePage({ params }: { params: Promise<{ handle: string }> }) {
@@ -46,7 +58,6 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
-  const [hasCachedData, setHasCachedData] = useState(false)
   const router = useRouter()
 
   // Resolve params first
@@ -57,25 +68,6 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
     resolveParams()
   }, [params])
-
-  // Immediately load cached data when currentUser and handle are available
-  useEffect(() => {
-    if (!currentUser?.id || !handle) return
-    
-    // Security check: Users can only view their own profile via handle
-    if (handle !== currentUser.id) {
-      router.push(`/student/profile/${currentUser.id}`)
-      return
-    }
-
-    // Immediately try to get cached data for instant rendering
-    const cachedData = getCachedProfileHeaderData(currentUser.id)
-    if (cachedData) {
-      console.log('🚀 Immediate render with cached data for user:', currentUser.id)
-      setStudentData(cachedData)
-      setHasCachedData(true)
-    }
-  }, [currentUser?.id, handle, router])
 
   useEffect(() => {
     if (authLoading || !handle) return
@@ -98,23 +90,26 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
 
     // Security check: Users can only view their own profile via handle
-    // If the handle doesn't match their user ID, redirect to their own profile
     if (handle !== currentUser.id) {
       router.push(`/student/profile/${currentUser.id}`)
       return
     }
 
-    // Fetch student data - now we know it's the current user's profile
+    // Fetch student data - SINGLE API CALL ONLY
     const fetchStudentData = async () => {
       try {
-        // Only show loading state if we don't have cached data
-        if (!hasCachedData) {
-          setLoading(true)
-        }
+        setLoading(true)
         setError(null)
 
+        console.log('📡 StudentProfilePage: Making single API call for user:', currentUser.id)
+        
         const response = await fetch(`/api/student/profile/${currentUser.id}`, {
-          credentials: 'include'
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         })
 
         if (!response.ok) {
@@ -129,14 +124,84 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         }
 
         const data = await response.json()
-        setStudentData(data)
-        // Cache the fetched data for future use
-        if (data && currentUser.id) {
-          setCachedProfileHeaderData(currentUser.id, data)
+        console.log('✅ StudentProfilePage: Data received:', data)
+
+        // Transform the API response to match component expectations
+        if (Array.isArray(data) && data.length > 0) {
+          const rawStudentData = data[0]
+          
+          const transformedData = {
+            id: rawStudentData.id,
+            first_name: rawStudentData.first_name,
+            last_name: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profile_image_url: rawStudentData.profile_image_url,
+            cover_image_url: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verification_status: rawStudentData.verification_status,
+            profile: {
+              firstName: rawStudentData.first_name,
+              lastName: rawStudentData.last_name,
+              bio: rawStudentData.bio,
+              location: rawStudentData.location,
+              profileImageUrl: rawStudentData.profile_image_url,
+              coverImageUrl: rawStudentData.cover_image_url,
+              tagline: rawStudentData.tagline,
+              verificationStatus: rawStudentData.verification_status,
+              userInterests: rawStudentData.user_interests || [],
+              userSkills: rawStudentData.user_skills || [],
+              skills: (rawStudentData.user_skills || []).map((us: any) => ({
+                id: us.skills?.id || us.skill?.id,
+                name: us.skills?.name || us.skill?.name,
+                proficiencyLevel: us.proficiency_level || 50,
+                category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+              })),
+              socialLinks: rawStudentData.social_links || []
+            },
+            educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
+              id: edu.id,
+              institutionName: edu.institution_name,
+              institutionType: edu.institution_type,
+              gradeLevel: edu.grade_level,
+              isCurrent: edu.is_current,
+              is_current: edu.is_current,
+              startDate: edu.start_date,
+              endDate: edu.end_date,
+              degreeProgram: edu.degree_program,
+              fieldOfStudy: edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institution_verified
+            })),
+            achievements: rawStudentData.achievements || [],
+            goals: rawStudentData.goals || [],
+            userCollections: rawStudentData.user_collections || [],
+            connections: rawStudentData.connections || [],
+            connectionCounts: rawStudentData.connectionCounts || {
+              total: 0,
+              students: 0,
+              mentors: 0,
+              institutions: 0
+            },
+            circles: rawStudentData.circles || [],
+            followingInstitutions: rawStudentData.institution_following || [],
+            suggestedConnections: rawStudentData.suggestedConnections || [],
+            connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+            connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+            circleInvitations: rawStudentData.circleInvitations || []
+          }
+
+          console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
+          setStudentData(transformedData)
+        } else {
+          console.error('❌ StudentProfilePage: Unexpected data format:', data)
+          setError('Invalid profile data format')
         }
-        console.log('✅ Fresh data loaded and cached for user:', currentUser.id)
       } catch (err) {
-        console.error('Error fetching student data:', err)
+        console.error('❌ StudentProfilePage: Error fetching student data:', err)
         setError('Failed to load profile')
       } finally {
         setLoading(false)
@@ -144,10 +209,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
 
     fetchStudentData()
-  }, [handle, currentUser, authLoading, router, hasCachedData])
+  }, [handle, currentUser, authLoading, router])
 
-  // Only show loading screen if auth is loading AND we don't have cached data AND we don't have handle
-  if (authLoading && !handle && !studentData) {
+  // Show loading only if auth is loading AND we don't have studentData
+  if (authLoading && !studentData) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col">
@@ -192,12 +257,13 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          {/* Always show StudentProfile immediately with static structure */}
+          {/* Pass the studentData directly to StudentProfile with minimal props */}
           <StudentProfile
             studentId={currentUser?.id}
             currentUser={currentUser}
             studentData={studentData}
-            showStaticStructure={true}
+            isViewMode={false}
+            showStaticStructure={!studentData && loading}
           />
         </main>
         <Footer />

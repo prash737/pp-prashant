@@ -385,38 +385,30 @@ export default function StudentProfile({
   }
 
   useEffect(() => {
-    // Fetch user data first to establish currentUser
+    // If studentData is provided directly, use it and skip all API calls
+    if (propStudentData) {
+      console.log('🎯 StudentProfile: Using provided studentData, skipping API calls')
+      setStudent(propStudentData)
+      setCircles(propStudentData.circles || [])
+      setConnectionCounts(propStudentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
+      setConnections(propStudentData.connections || [])
+      setSuggestedConnections(propStudentData.suggestedConnections || [])
+      setFollowingInstitutions(propStudentData.followingInstitutions || [])
+      setCurrentUser(propCurrentUser || null)
+      setLoading(false)
+      return
+    }
+
+    // Only fetch if no studentData is provided
     fetchUserData().then(() => {
-      // After fetching user data, fetch student specific data using the determined ID
-      const idToFetch = studentId || (propCurrentUser ? propCurrentUser.id : null); // Prioritize studentId, then propCurrentUser
+      const idToFetch = studentId || (propCurrentUser ? propCurrentUser.id : null)
       if (idToFetch) {
-        fetchStudentData();
-      } else if (!propCurrentUser && !propStudentData) {
-        // If no user data and no studentId, and studentData isn't provided, it means we are likely
-        // on a public page without a logged-in user, or an error occurred in fetchUserData.
-        // If studentData is provided, it should be used.
-        if (propStudentData) {
-          setStudent(propStudentData);
-          setCircles(propStudentData.circles || []);
-          setConnectionCounts(propStudentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 });
-          setConnections(propStudentData.connections || []);
-          setSuggestedConnections(propStudentData.suggestedConnections || []);
-          setFollowingInstitutions(propStudentData.followingInstitutions || []);
-          setLoading(false);
-        } else {
-           // If it's a public profile and no studentId is passed, we might not be able to fetch.
-           // Handle accordingly, perhaps showing a "profile not found" or similar.
-           // For now, if studentData is not available, we'll assume loading is done.
-           setLoading(false)
-        }
-      } else if (propCurrentUser && !studentId && !propStudentData) {
-         // If propCurrentUser is set but no studentId and no studentData, use propCurrentUser's data
-         setStudent(propCurrentUser);
-         setCircles(propCurrentUser.circles || []);
-         setLoading(false);
+        fetchStudentData()
+      } else {
+        setLoading(false)
       }
-    });
-  }, [propCurrentUser, propStudentData, studentId]) // Depend on props to re-fetch if they change
+    })
+  }, [propCurrentUser, propStudentData, studentId])
 
 
   // Set circles from studentData when available (alternative/fallback if fetchStudentData doesn't set it)
