@@ -125,34 +125,45 @@ export default function StudentProfile({
       const data = await response.json()
       console.log('📡 StudentProfile: Received student data:', data)
       
+      // Handle both array and object responses
+      const studentData = Array.isArray(data) ? data[0] : data
+      
       // Detailed logging of all data fields
       console.log('🧪 DETAILED DATA INSPECTION:')
-      console.log('  - ID:', data?.id)
-      console.log('  - Profile object:', data?.profile)
-      console.log('  - Profile firstName:', data?.profile?.firstName)
-      console.log('  - Profile lastName:', data?.profile?.lastName)
-      console.log('  - Profile bio:', data?.profile?.bio)
-      console.log('  - Profile location:', data?.profile?.location)
-      console.log('  - Profile image:', data?.profile?.profileImageUrl)
-      console.log('  - Profile tagline:', data?.profile?.tagline)
-      console.log('  - Connection counts:', data?.connectionCounts)
-      console.log('  - Circles:', data?.circles)
-      console.log('  - Achievements:', data?.achievements)
-      console.log('  - Education history:', data?.educationHistory)
-      console.log('  - Following institutions:', data?.followingInstitutions)
-      console.log('  - User interests:', data?.profile?.userInterests)
-      console.log('  - User skills:', data?.profile?.userSkills)
+      console.log('  - ID:', studentData?.id)
+      console.log('  - first_name:', studentData?.first_name)
+      console.log('  - last_name:', studentData?.last_name)
+      console.log('  - bio:', studentData?.bio)
+      console.log('  - location:', studentData?.location)
+      console.log('  - profile_image_url:', studentData?.profile_image_url)
+      console.log('  - cover_image_url:', studentData?.cover_image_url)
+      console.log('  - tagline:', studentData?.tagline)
+      console.log('  - Profile object:', studentData?.profile)
+      console.log('  - Profile firstName:', studentData?.profile?.firstName)
+      console.log('  - Profile lastName:', studentData?.profile?.lastName)
+      console.log('  - Profile bio:', studentData?.profile?.bio)
+      console.log('  - Profile location:', studentData?.profile?.location)
+      console.log('  - Profile image:', studentData?.profile?.profileImageUrl)
+      console.log('  - Profile tagline:', studentData?.profile?.tagline)
+      console.log('  - Connection counts:', studentData?.connectionCounts)
+      console.log('  - Circles:', studentData?.circles)
+      console.log('  - Achievements:', studentData?.achievements)
+      console.log('  - Education history:', studentData?.educationHistory)
+      console.log('  - Following institutions:', studentData?.followingInstitutions)
+      console.log('  - User interests:', studentData?.profile?.userInterests)
+      console.log('  - User skills:', studentData?.profile?.userSkills)
       
       // Log the raw data structure to understand what we're receiving
       console.log('🔍 Raw API Response Structure:', {
-        hasProfile: !!data?.profile,
-        hasId: !!data?.id,
-        topLevelKeys: Object.keys(data || {}),
-        profileKeys: data?.profile ? Object.keys(data.profile) : 'No profile object'
+        isArray: Array.isArray(data),
+        hasProfile: !!studentData?.profile,
+        hasId: !!studentData?.id,
+        topLevelKeys: Object.keys(studentData || {}),
+        profileKeys: studentData?.profile ? Object.keys(studentData.profile) : 'No profile object'
       })
 
 
-      setStudent(data)
+      setStudent(studentData)
       setCircles(data?.circles || [])
       setConnections(data.connections || [])
       setConnectionCounts(data.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
@@ -160,13 +171,13 @@ export default function StudentProfile({
       setFollowingInstitutions(data.followingInstitutions || [])
 
       setFormData({
-        firstName: data.profile?.firstName || '',
-        lastName: data.profile?.lastName || '',
-        bio: data.profile?.bio || '',
-        location: data.profile?.location || '',
-        tagline: data.profile?.tagline || '',
-        profileImageUrl: data.profile?.profileImageUrl || '',
-        coverImageUrl: data.profile?.coverImageUrl || ''
+        firstName: studentData.profile?.firstName || studentData.first_name || '',
+        lastName: studentData.profile?.lastName || studentData.last_name || '',
+        bio: studentData.profile?.bio || studentData.bio || '',
+        location: studentData.profile?.location || studentData.location || '',
+        tagline: studentData.profile?.tagline || studentData.tagline || '',
+        profileImageUrl: studentData.profile?.profileImageUrl || studentData.profile_image_url || '',
+        coverImageUrl: studentData.profile?.coverImageUrl || studentData.cover_image_url || ''
       })
       console.log('🔍 StudentProfile: State after setting circles:', circles)
     } catch (error) {

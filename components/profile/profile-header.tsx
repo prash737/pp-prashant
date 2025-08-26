@@ -138,7 +138,9 @@ export default function ProfileHeader({
     profile: {
       firstName: "Alex",
       lastName: "Johnson", 
-      profileImageUrl: "/images/student-profile.png",
+      profileImageUrl: "/images/student-student-profile.png",
+      coverImageUrl: "/images/student-cover.png", // Added a mock cover image
+      bio: "A student exploring new opportunities.", // Added a mock bio
     },
     educationHistory: [
       {
@@ -159,7 +161,8 @@ export default function ProfileHeader({
   const profileImage = student?.profile?.profileImageUrl || "/images/student-profile.png"
   // Fix tagline access - check multiple possible locations
   const tagline = student?.profile?.tagline || student?.tagline || student?.profile?.bio || "Passionate learner exploring new horizons"
-  
+  const coverImage = student?.profile?.coverImageUrl // Mapped cover image from the student profile
+
   // Debug logging for ProfileHeader
   console.log('🔍 ProfileHeader Debug:', {
     hasStudent: !!student,
@@ -476,16 +479,15 @@ export default function ProfileHeader({
         {/* Customizable banner - Use cover photo if available, otherwise show blue gradient */}
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
-            {student?.profile?.coverImageUrl ? (
+            {coverImage ? (
               <img
-                src={student.profile.coverImageUrl}
+                src={coverImage}
                 alt="Cover photo"
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
-            )}
-          </div>
+            )}</div>
         </div>
 
         <div className="container mx-auto px-4 max-w-7xl">
