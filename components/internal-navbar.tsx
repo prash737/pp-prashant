@@ -318,8 +318,8 @@ export function InternalNavbar() {
     { name: "Feed", href: "/feed", icon: <Home size={20} /> },
     { name: "Explore", href: "/explore", icon: <Search size={20} /> },
     { name: "Messages", href: "/messages", icon: <MessageCircle size={20} /> },
-    { 
-      name: "Profile", 
+    {
+      name: "Profile",
       href: "/student/profile", // Simple href - actual navigation handled by onClick
       icon: <User size={20} />
     },
@@ -396,7 +396,7 @@ export function InternalNavbar() {
                             setShowSearchResults(false);
                             setSearchQuery("");
                             if (searchUser.id === user?.id) {
-                              router.push(`/student/profile/${user.id}`);
+                              router.push(`/student/profile/${searchUser.id}`);
                             } else {
                               if (searchUser.role === 'student') {
                                 router.push(`/public-view/student/profile/${searchUser.id}`);
@@ -546,17 +546,16 @@ export function InternalNavbar() {
                       key={link.name}
                       onClick={(e) => {
                         e.preventDefault();
-                        // Get user ID from cookie - immediate redirect
+                        e.stopPropagation();
+
+                        // Pure redirection - no data checks whatsoever
                         const userId = document.cookie
                           .split('; ')
                           .find(row => row.startsWith('current_user_id='))
                           ?.split('=')[1];
-                        
-                        if (userId) {
-                          router.push(`/student/profile/${userId}`);
-                        } else {
-                          router.push('/login');
-                        }
+
+                        // Immediate redirect without any conditions or data validation
+                        window.location.href = userId ? `/student/profile/${userId}` : '/login';
                       }}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
                         pathname.startsWith('/student/profile/') ? "text-teal-500" : ""
@@ -643,8 +642,8 @@ export function InternalNavbar() {
                     <div>
                       <p className="font-medium">
                         {user ? (
-                          user.firstName || user.lastName ? 
-                            `${user.firstName || ''} ${user.lastName || ''}`.trim() : 
+                          user.firstName || user.lastName ?
+                            `${user.firstName || ''} ${user.lastName || ''}`.trim() :
                             'User'
                         ) : 'Loading...'}
                       </p>
@@ -700,17 +699,16 @@ export function InternalNavbar() {
                   key={item.name}
                   onClick={(e) => {
                     e.preventDefault();
-                    // Get user ID from cookie - immediate redirect
+                    e.stopPropagation();
+
+                    // Pure redirection - no data checks whatsoever
                     const userId = document.cookie
                       .split('; ')
                       .find(row => row.startsWith('current_user_id='))
                       ?.split('=')[1];
-                    
-                    if (userId) {
-                      router.push(`/student/profile/${userId}`);
-                    } else {
-                      router.push('/login');
-                    }
+
+                    // Immediate redirect without any conditions or data validation
+                    window.location.href = userId ? `/student/profile/${userId}` : '/login';
                   }}
                   className={`flex flex-col items-center p-2 ${
                     pathname.startsWith('/student/profile/')
