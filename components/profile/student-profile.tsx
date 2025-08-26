@@ -358,6 +358,8 @@ export default function StudentProfile({
   // Use passed student data, fetched data, or static structure
   const finalStudentData = propStudentData || student || staticStudentStructure
 
+  // Always render the component structure - we'll show loading states for missing sections
+  // This ensures immediate rendering when cached data is available
   if (loading && !showStaticStructure) { // Only show loading state if not showing static structure
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

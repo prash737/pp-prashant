@@ -46,6 +46,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
+  const [hasCachedData, setHasCachedData] = useState(false)
   const router = useRouter()
 
   // Resolve params first
@@ -56,6 +57,25 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
     resolveParams()
   }, [params])
+
+  // Immediately load cached data when currentUser and handle are available
+  useEffect(() => {
+    if (!currentUser?.id || !handle) return
+    
+    // Security check: Users can only view their own profile via handle
+    if (handle !== currentUser.id) {
+      router.push(`/student/profile/${currentUser.id}`)
+      return
+    }
+
+    // Immediately try to get cached data for instant rendering
+    const cachedData = getCachedProfileHeaderData(currentUser.id)
+    if (cachedData) {
+      console.log('🚀 Immediate render with cached data for user:', currentUser.id)
+      setStudentData(cachedData)
+      setHasCachedData(true)
+    }
+  }, [currentUser?.id, handle, router])
 
   useEffect(() => {
     if (authLoading || !handle) return
@@ -86,14 +106,11 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
 
     // Fetch student data - now we know it's the current user's profile
     const fetchStudentData = async () => {
-      // Try to get cached data first
-      const cachedData = getCachedProfileHeaderData(currentUser.id)
-      if (cachedData) {
-        setStudentData(cachedData)
-      }
-
       try {
-        setLoading(true)
+        // Only show loading state if we don't have cached data
+        if (!hasCachedData) {
+          setLoading(true)
+        }
         setError(null)
 
         const response = await fetch(`/api/student/profile/${currentUser.id}`, {
@@ -117,6 +134,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         if (data && currentUser.id) {
           setCachedProfileHeaderData(currentUser.id, data)
         }
+        console.log('✅ Fresh data loaded and cached for user:', currentUser.id)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
@@ -126,10 +144,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
 
     fetchStudentData()
-  }, [handle, currentUser, authLoading, router])
+  }, [handle, currentUser, authLoading, router, hasCachedData])
 
-  // Show loading only if auth is still loading and we don't have handle
-  if (authLoading && !handle) {
+  // Only show loading screen if auth is loading AND we don't have cached data AND we don't have handle
+  if (authLoading && !handle && !studentData) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col">
