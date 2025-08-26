@@ -471,8 +471,8 @@ export default function StudentProfile({
         circleInvitations={finalStudentData?.circleInvitations || []}
       />
 
-      {/* Show navigation and content only when we have real data and not in static mode */}
-      {finalStudentData && !showStaticStructure && (
+      {/* Show navigation and content when we have real data */}
+      {finalStudentData && finalStudentData !== staticStudentStructure && (
         <>
           <HorizontalNavigation 
             tabs={tabs} 
@@ -489,8 +489,8 @@ export default function StudentProfile({
         </>
       )}
 
-      {/* Show loading indicator for content sections when using static structure and data is not yet loaded */}
-      {showStaticStructure && !finalStudentData && (
+      {/* Show loading indicator for content sections when using static structure and real data is not yet loaded */}
+      {showStaticStructure && finalStudentData === staticStudentStructure && (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden text-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
