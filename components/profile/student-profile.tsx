@@ -122,14 +122,18 @@ export default function StudentProfile({
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
-      console.log('📡 StudentProfile: Received student data:', data)
-      console.log('🔍 StudentProfile: Circles data received:', data.circles)
-      console.log('🔍 StudentProfile: Number of circles:', data.circles?.length || 0)
+      const rawData = await response.json()
+      console.log('📡 StudentProfile: Received student data:', rawData)
+      
+      // Handle case where API returns an array instead of direct object
+      const data = Array.isArray(rawData) ? rawData[0] : rawData
+      console.log('🔍 StudentProfile: Processed student data:', data)
+      console.log('🔍 StudentProfile: Circles data received:', data?.circles)
+      console.log('🔍 StudentProfile: Number of circles:', data?.circles?.length || 0)
 
 
       setStudent(data)
-      setCircles(data.circles || [])
+      setCircles(data?.circles || [])
       setConnections(data.connections || [])
       setConnectionCounts(data.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
       setSuggestedConnections(data.suggestedConnections || [])
