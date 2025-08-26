@@ -356,7 +356,7 @@ export default function StudentProfile({
   } : null
 
   // Use passed student data, fetched data, or static structure
-  const finalStudentData = propStudentData || studentData || staticStudentStructure
+  const finalStudentData = propStudentData || student || staticStudentStructure
 
   if (loading && !showStaticStructure) { // Only show loading state if not showing static structure
     return (
