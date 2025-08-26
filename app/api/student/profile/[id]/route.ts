@@ -87,7 +87,6 @@ export async function GET(
             student_profiles (*),
             user_interests (
               id,
-              proficiency_level,
               created_at,
               interests (
                 id,
