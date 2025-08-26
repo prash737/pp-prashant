@@ -1002,8 +1002,8 @@ export default function ProfileHeader({
                   <div className="mt-4">
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Skills</h3>
                     <div className="flex flex-wrap gap-2">
-                      {student?.skills && student.skills.length > 0 ? (
-                        student.skills
+                      {student?.profile?.skills && student.profile.skills.length > 0 ? (
+                        student.profile.skills
                           .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
                           .slice(0, 5)
                           .map((skill: any, i: number) => (
