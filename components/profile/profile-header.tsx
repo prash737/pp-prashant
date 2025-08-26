@@ -669,7 +669,7 @@ export default function ProfileHeader({
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {student?.skills?.length || 0}
+                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || 0}
                       </span>
                     </div>
                     <div 
@@ -1020,6 +1020,26 @@ export default function ProfileHeader({
                             }`}
                           >
                             {skill.name}
+                          </div>
+                        ))
+                      ) : student?.profile?.userSkills && student.profile.userSkills.length > 0 ? (
+                        student.profile.userSkills
+                          .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
+                          .slice(0, 5)
+                          .map((userSkill: any, i: number) => (
+                          <div
+                            key={userSkill.id || i}
+                            className={`px-3 py-1 rounded-full text-xs ${
+                              i % 4 === 0
+                                ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
+                                : i % 4 === 1
+                                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
+                                  : i % 4 === 2
+                                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+                                    : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                            }`}
+                          >
+                            {userSkill.skill?.name || userSkill.name}
                           </div>
                         ))
                       ) : (
