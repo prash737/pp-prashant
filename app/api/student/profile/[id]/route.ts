@@ -290,14 +290,6 @@ export async function GET(
       // Transform data to match expected format with proper profile nesting
       const transformedData = {
         id: profile.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        bio: profile.bio,
-        location: profile.location,
-        profile_image_url: profile.profile_image_url,
-        cover_image_url: profile.cover_image_url,
-        tagline: profile.tagline,
-        verification_status: profile.verification_status,
         ageGroup: studentProfile?.age_group,
         educationLevel: studentProfile?.education_level,
         birthMonth: studentProfile?.birth_month,

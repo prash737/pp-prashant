@@ -154,14 +154,23 @@ export default function ProfileHeader({
     skills: []
   }
 
-  const displayName = student?.profile ? `${student.profile.firstName || "Student"} ${student.profile.lastName || ""}`.trim() : "Student"
+  // Get display name from profile object or fallback to direct fields
+  const displayName = student?.profile ? 
+    `${student.profile.firstName || "Student"} ${student.profile.lastName || ""}`.trim() : 
+    `${student?.first_name || "Student"} ${student?.last_name || ""}`.trim()
+  
   const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
-  const profileImage = student?.profile?.profileImageUrl || "/images/student-profile.png"
-  // Fix tagline access - check multiple possible locations
-  const tagline = student?.profile?.tagline || student?.tagline || student?.profile?.bio || "Passionate learner exploring new horizons"
-  const coverImage = student?.profile?.coverImageUrl // Mapped cover image from the student profile
+  
+  // Get profile image from profile object or fallback to direct field
+  const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
+  
+  // Get tagline from multiple possible locations
+  const tagline = student?.profile?.tagline || student?.tagline || student?.profile?.bio || student?.bio || "Passionate learner exploring new horizons"
+  
+  // Get cover image from profile object or fallback to direct field
+  const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
 
   // Debug logging for ProfileHeader
   console.log('🔍 ProfileHeader Debug:', {
@@ -1052,11 +1061,11 @@ export default function ProfileHeader({
                                     : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
                             }`}
                           >
-                            {userSkill.skill?.name || userSkill.name}
+                            {userSkill.skills?.name || userSkill.skill?.name || userSkill.name}
                           </div>
                         ))
-                      ) : displayName === "Student" ? (
-                        // Show placeholder when in static loading state
+                      ) : (student?.first_name === "Prashant" || displayName === "Student") ? (
+                        // Show placeholder when in loading state
                         <div className="flex gap-2">
                           <div className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse">
                             Loading skills...

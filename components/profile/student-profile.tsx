@@ -131,13 +131,6 @@ export default function StudentProfile({
       // Detailed logging of all data fields
       console.log('🧪 DETAILED DATA INSPECTION:')
       console.log('  - ID:', studentData?.id)
-      console.log('  - first_name:', studentData?.first_name)
-      console.log('  - last_name:', studentData?.last_name)
-      console.log('  - bio:', studentData?.bio)
-      console.log('  - location:', studentData?.location)
-      console.log('  - profile_image_url:', studentData?.profile_image_url)
-      console.log('  - cover_image_url:', studentData?.cover_image_url)
-      console.log('  - tagline:', studentData?.tagline)
       console.log('  - Profile object:', studentData?.profile)
       console.log('  - Profile firstName:', studentData?.profile?.firstName)
       console.log('  - Profile lastName:', studentData?.profile?.lastName)
