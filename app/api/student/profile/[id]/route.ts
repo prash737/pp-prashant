@@ -331,6 +331,8 @@ export async function GET(
     // Fetch circles for the student using Drizzle
     console.log('🔍 DEBUG: Fetching circles for student:', studentId)
     let circles = []
+    const circlesStartTime = Date.now()
+    console.log('⏱️ Phase 5: Starting circles data fetch')
     try {
       // First, get circles where the student is a member
       const circleMembershipsData = await executeWithRetry(() => db
@@ -530,6 +532,14 @@ export async function GET(
       console.error('🚨 ERROR: Failed to fetch circles:', error)
       circles = []
     }
+
+    const circlesEndTime = Date.now()
+    const circlesDuration = circlesEndTime - circlesStartTime
+    console.log(`✅ Phase 5 Complete: Circles data fetch took ${circlesDuration}ms`)
+
+    // ⏱️ Phase 6: Additional Data Fetch
+    const additionalDataStartTime = Date.now()
+    console.log('📋 Phase 6: Starting additional data fetch (achievements, requests, invitations)')
 
     // Fetch additional data for comprehensive profile
     let connectionRequestsSent = []
@@ -749,6 +759,10 @@ export async function GET(
       connectionRequestsReceived: connectionRequestsReceived,
       circleInvitations: circleInvitations
     }
+
+    const additionalDataEndTime = Date.now()
+    const additionalDataDuration = additionalDataEndTime - additionalDataStartTime
+    console.log(`✅ Phase 6 Complete: Additional data fetch took ${additionalDataDuration}ms`)
 
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
     console.log('🔍 DEBUG: Student ID for following check:', resolvedParams.id)
