@@ -735,7 +735,7 @@ export async function GET(
     console.log('🔍 DEBUG: Raw institutionFollowing data:', JSON.stringify(studentData.institutionFollowing, null, 2))
     console.log('🔍 DEBUG: Processed followingInstitutions:', JSON.stringify(response.followingInstitutions, null, 2))
     console.log('🔍 DEBUG: Following institutions count:', response.followingInstitutions.length)
-    
+
     // Additional query to check if any institution follow connections exist at all
     const allFollowConnections = await prisma.institutionFollowConnection.findMany({
       where: {
