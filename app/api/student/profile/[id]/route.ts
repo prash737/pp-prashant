@@ -460,7 +460,24 @@ export async function GET(
         ...transformedData,
       }
 
-      return NextResponse.json(response)
+      console.log('🚀 API Response - Full transformed data being returned:')
+      console.log('📋 Basic profile info:', {
+        id: response.id,
+        firstName: response.profile?.firstName,
+        lastName: response.profile?.lastName,
+        bio: response.profile?.bio,
+        location: response.profile?.location,
+        profileImageUrl: response.profile?.profileImageUrl,
+        tagline: response.profile?.tagline
+      })
+      console.log('📊 Connection counts:', response.connectionCounts)
+      console.log('🎯 Circles count:', response.circles?.length || 0)
+      console.log('🎖️ Achievements count:', response.achievements?.length || 0)
+      console.log('🎨 User interests count:', response.profile?.userInterests?.length || 0)
+      console.log('⚡ User skills count:', response.profile?.userSkills?.length || 0)
+      console.log('📚 Education history count:', response.educationHistory?.length || 0)
+
+      return NextResponse.json([response])
     }
 
     // If RPC function works, return its data

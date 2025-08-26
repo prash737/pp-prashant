@@ -128,8 +128,24 @@ export default function StudentProfile({
       // Handle case where API returns an array instead of direct object
       const data = Array.isArray(rawData) ? rawData[0] : rawData
       console.log('🔍 StudentProfile: Processed student data:', data)
-      console.log('🔍 StudentProfile: Circles data received:', data?.circles)
-      console.log('🔍 StudentProfile: Number of circles:', data?.circles?.length || 0)
+      
+      // Detailed logging of all data fields
+      console.log('🧪 DETAILED DATA INSPECTION:')
+      console.log('  - ID:', data?.id)
+      console.log('  - Profile object:', data?.profile)
+      console.log('  - Profile firstName:', data?.profile?.firstName)
+      console.log('  - Profile lastName:', data?.profile?.lastName)
+      console.log('  - Profile bio:', data?.profile?.bio)
+      console.log('  - Profile location:', data?.profile?.location)
+      console.log('  - Profile image:', data?.profile?.profileImageUrl)
+      console.log('  - Profile tagline:', data?.profile?.tagline)
+      console.log('  - Connection counts:', data?.connectionCounts)
+      console.log('  - Circles:', data?.circles)
+      console.log('  - Achievements:', data?.achievements)
+      console.log('  - Education history:', data?.educationHistory)
+      console.log('  - Following institutions:', data?.followingInstitutions)
+      console.log('  - User interests:', data?.profile?.userInterests)
+      console.log('  - User skills:', data?.profile?.userSkills)
 
 
       setStudent(data)
