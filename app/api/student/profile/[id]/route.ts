@@ -549,7 +549,7 @@ export async function GET(
       // Check for pending connection requests and circle invitations (only if viewing own profile)
       if (user.id === resolvedParams.id) {
         // Fetch sent connection requests
-        const sentRequests = await prisma.connection.findMany({
+        const sentRequests = await prisma.connectionRequest.findMany({
           where: {
             senderId: user.id,
             status: 'pending'
@@ -568,7 +568,7 @@ export async function GET(
         })
 
         // Fetch received connection requests
-        const receivedRequests = await prisma.connection.findMany({
+        const receivedRequests = await prisma.connectionRequest.findMany({
           where: {
             receiverId: user.id,
             status: 'pending'
@@ -633,7 +633,7 @@ export async function GET(
         circleInvitations = invitations
       } else {
         // For viewing other users, still check connection status between current user and target user
-        const existingConnection = await prisma.connection.findFirst({
+        const existingConnectionRequest = await prisma.connectionRequest.findFirst({
           where: {
             OR: [
               { senderId: user.id, receiverId: resolvedParams.id },
@@ -642,11 +642,11 @@ export async function GET(
           }
         })
 
-        if (existingConnection) {
-          if (existingConnection.senderId === user.id && existingConnection.status === 'pending') {
-            connectionRequestsSent = [existingConnection]
-          } else if (existingConnection.receiverId === user.id && existingConnection.status === 'pending') {
-            connectionRequestsReceived = [existingConnection]
+        if (existingConnectionRequest) {
+          if (existingConnectionRequest.senderId === user.id && existingConnectionRequest.status === 'pending') {
+            connectionRequestsSent = [existingConnectionRequest]
+          } else if (existingConnectionRequest.receiverId === user.id && existingConnectionRequest.status === 'pending') {
+            connectionRequestsReceived = [existingConnectionRequest]
           }
         }
       }
@@ -731,9 +731,19 @@ export async function GET(
     }
 
     console.log('🔍 DEBUG: Final response circles:', JSON.stringify(response.circles, null, 2))
+    console.log('🔍 DEBUG: Student ID for following check:', resolvedParams.id)
     console.log('🔍 DEBUG: Raw institutionFollowing data:', JSON.stringify(studentData.institutionFollowing, null, 2))
     console.log('🔍 DEBUG: Processed followingInstitutions:', JSON.stringify(response.followingInstitutions, null, 2))
     console.log('🔍 DEBUG: Following institutions count:', response.followingInstitutions.length)
+    
+    // Additional query to check if any institution follow connections exist at all
+    const allFollowConnections = await prisma.institutionFollowConnection.findMany({
+      where: {
+        senderId: resolvedParams.id
+      },
+      take: 5
+    })
+    console.log('🔍 DEBUG: Direct query for follow connections:', JSON.stringify(allFollowConnections, null, 2))
 
     return NextResponse.json(response)
 
