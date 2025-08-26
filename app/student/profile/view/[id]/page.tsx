@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth"
 import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
+import ProfileHeader from "@/components/profile/profile-header"
 import StudentProfile from "@/components/profile/student-profile"
 
 interface StudentData {
@@ -17,6 +18,10 @@ interface StudentData {
     bio?: string
     location?: string
     profileImageUrl?: string
+    coverImageUrl?: string
+    tagline?: string
+    verificationStatus?: string
+    skills?: any[]
     userInterests: Array<{
       interest: {
         name: string
@@ -29,6 +34,7 @@ interface StudentData {
         category: { name: string }
       }
     }>
+    socialLinks?: any[]
   }
   educationHistory: Array<{
     id: string
@@ -38,15 +44,34 @@ interface StudentData {
     startDate: string
     endDate?: string
     current: boolean
+    gradeLevel?: string
+    grade_level?: string
+    institution_name?: string
+    is_current?: boolean
   }>
+  circles?: any[]
+  connections?: any[]
+  connectionCounts?: {
+    total: number
+    students: number
+    mentors: number
+    institutions: number
+  }
+  followingInstitutions?: any[]
+  achievements?: any[]
+  connectionRequestsSent?: any[]
+  connectionRequestsReceived?: any[]
+  circleInvitations?: any[]
 }
 
 export default function ViewProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { user: currentUser, loading: authLoading } = useAuth()
   const [studentData, setStudentData] = useState<StudentData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [profileHeaderData, setProfileHeaderData] = useState<StudentData | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [profileId, setProfileId] = useState<string | null>(null)
+  const [circlesUpdateKey, setCirclesUpdateKey] = useState(0)
   const router = useRouter()
 
   // Resolve params first
@@ -58,11 +83,13 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     resolveParams()
   }, [params])
 
+  // Priority fetch for profile header data
   useEffect(() => {
-    if (authLoading || !profileId) return
+    if (authLoading || !profileId || !currentUser) return
 
-    if (!currentUser) {
-      router.push('/login')
+    // If trying to view their own profile, redirect to their own profile page
+    if (profileId === currentUser.id) {
+      router.push(`/student/profile/${currentUser.id}`)
       return
     }
 
@@ -78,18 +105,9 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       return
     }
 
-    // If trying to view their own profile, redirect to their own profile page
-    if (profileId === currentUser.id) {
-      router.push(`/student/profile/${currentUser.id}`)
-      return
-    }
-
-    // Fetch the profile data for the user they want to view
-    const fetchProfileData = async () => {
+    // Immediate fetch for profile header data
+    const fetchProfileHeaderData = async () => {
       try {
-        setLoading(true)
-        setError(null)
-
         const response = await fetch(`/api/student/profile/${profileId}`, {
           credentials: 'include'
         })
@@ -106,35 +124,29 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
         }
 
         const data = await response.json()
+        
+        // Set both profile header data and full student data immediately
+        setProfileHeaderData(data)
         setStudentData(data)
       } catch (err) {
         console.error('Error fetching profile data:', err)
         setError('Failed to load profile')
-      } finally {
-        setLoading(false)
       }
     }
 
-    fetchProfileData()
+    fetchProfileHeaderData()
   }, [profileId, currentUser, authLoading, router])
 
-  if (authLoading || loading) {
-    return (
-      <ProtectedLayout>
-        <div className="min-h-screen flex flex-col">
-          <InternalNavbar />
-          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
-              <p className="mt-4 text-gray-600">Loading profile...</p>
-            </div>
-          </main>
-          <Footer />
-        </div>
-      </ProtectedLayout>
-    )
+  const handleGoBack = () => {
+    router.back()
   }
 
+  const handleCirclesUpdate = () => {
+    setCirclesUpdateKey(prev => prev + 1)
+    // Optionally refetch data here if needed
+  }
+
+  // Show error state
   if (error) {
     return (
       <ProtectedLayout>
@@ -164,17 +176,62 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     )
   }
 
+  // Show loading only if we don't have any data yet and auth is still loading
+  if (authLoading && !profileHeaderData) {
+    return (
+      <ProtectedLayout>
+        <div className="min-h-screen flex flex-col">
+          <InternalNavbar />
+          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+              <p className="mt-4 text-gray-600">Loading profile...</p>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </ProtectedLayout>
+    )
+  }
+
   return (
     <ProtectedLayout>
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
+          {/* Always show profile header immediately, even with minimal data */}
+          {(profileHeaderData || profileId) && (
+            <ProfileHeader
+              student={profileHeaderData || { 
+                id: profileId!, 
+                profile: { 
+                  firstName: "Loading...", 
+                  lastName: "", 
+                  userInterests: [],
+                  userSkills: []
+                },
+                educationHistory: []
+              }}
+              currentUser={currentUser}
+              connectionCounts={profileHeaderData?.connectionCounts}
+              isViewMode={true}
+              onGoBack={handleGoBack}
+              circles={profileHeaderData?.circles || []}
+              onCirclesUpdate={handleCirclesUpdate}
+              achievements={profileHeaderData?.achievements || []}
+              connectionRequestsSent={profileHeaderData?.connectionRequestsSent || []}
+              connectionRequestsReceived={profileHeaderData?.connectionRequestsReceived || []}
+              circleInvitations={profileHeaderData?.circleInvitations || []}
+            />
+          )}
+          
+          {/* Show full student profile once data is available */}
           {studentData && (
             <StudentProfile
               studentId={profileId!}
               currentUser={currentUser}
               studentData={studentData}
-              isViewMode={true} // This prop will indicate it's a view-only mode
+              isViewMode={true}
             />
           )}
         </main>
