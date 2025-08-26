@@ -33,10 +33,6 @@ let globalProfileDataPromise: Promise<CachedProfileData | null> | null = null
 let globalProfileHeaderCache: Map<string, { data: any; timestamp: number }> = new Map()
 let globalProfileHeaderPromises: Map<string, Promise<any>> = new Map()
 
-// Global cache for public profile data (separate from user's own profile cache)
-const globalPublicProfileCache = new Map<string, { data: any; timestamp: number }>()
-const globalPublicProfilePromises = new Map<string, Promise<any>>()
-
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export function useAuth() {
@@ -219,15 +215,13 @@ export function invalidateUserCache() {
   globalProfileDataPromise = null
   globalProfileHeaderCache.clear()
   globalProfileHeaderPromises.clear()
-  globalPublicProfileCache.clear()
-  globalPublicProfilePromises.clear()
 }
 
 // Function to completely clear all user data and storage
 export function clearAllUserData() {
   // Clear global caches
   invalidateUserCache()
-
+  
   // Clear profile header cache
   globalProfileHeaderCache.clear()
   globalProfileHeaderPromises.clear()
@@ -298,10 +292,11 @@ export function setCachedProfileHeaderData(userId: string, data: any): void {
   })
 }
 
-export const fetchAndCacheProfileHeaderData = async (userId: string): Promise<any | null> => {
-  // If there's already a request in progress, wait for it
-  if (globalProfileHeaderPromises.has(userId)) {
-    return globalProfileHeaderPromises.get(userId)!
+export function fetchAndCacheProfileHeaderData(userId: string): Promise<any> {
+  // Check if there's already a request in progress
+  const existingPromise = globalProfileHeaderPromises.get(userId)
+  if (existingPromise) {
+    return existingPromise
   }
 
   // Check if we have valid cached data
@@ -317,10 +312,10 @@ export const fetchAndCacheProfileHeaderData = async (userId: string): Promise<an
   }).then(async (response) => {
     if (response.ok) {
       const data = await response.json()
-
+      
       // Cache the result
       setCachedProfileHeaderData(userId, data)
-
+      
       console.log('✅ Profile header data cached for user:', userId)
       return data
     }
@@ -333,65 +328,5 @@ export const fetchAndCacheProfileHeaderData = async (userId: string): Promise<an
   })
 
   globalProfileHeaderPromises.set(userId, promise)
-  return promise
-}
-
-// Public profile cache functions
-export const getCachedPublicProfileData = (userId: string): any | null => {
-  const cached = globalPublicProfileCache.get(userId)
-  if (!cached) return null
-
-  // Check if cache is expired
-  if (Date.now() - cached.timestamp > CACHE_DURATION) {
-    globalPublicProfileCache.delete(userId)
-    return null
-  }
-
-  return cached.data
-}
-
-export const setCachedPublicProfileData = (userId: string, data: any) => {
-  globalPublicProfileCache.set(userId, {
-    data,
-    timestamp: Date.now()
-  })
-}
-
-// Public profile fetch and cache function
-export const fetchAndCachePublicProfileData = async (userId: string): Promise<any | null> => {
-  // If there's already a request in progress, wait for it
-  if (globalPublicProfilePromises.has(userId)) {
-    return globalPublicProfilePromises.get(userId)!
-  }
-
-  // Check if we have valid cached data
-  const cachedData = getCachedPublicProfileData(userId)
-  if (cachedData) {
-    return Promise.resolve(cachedData)
-  }
-
-  // Make the API call for public profile
-  const promise = fetch(`/api/student/profile/${userId}`, {
-    credentials: 'include',
-    cache: 'no-store'
-  }).then(async (response) => {
-    if (response.ok) {
-      const data = await response.json()
-
-      // Cache the result in public profile cache
-      setCachedPublicProfileData(userId, data)
-
-      console.log('✅ Public profile data cached for user:', userId)
-      return data
-    }
-    throw new Error('Failed to fetch public profile data')
-  }).catch((error) => {
-    console.error('Error fetching public profile data:', error)
-    return null
-  }).finally(() => {
-    globalPublicProfilePromises.delete(userId)
-  })
-
-  globalPublicProfilePromises.set(userId, promise)
   return promise
 }

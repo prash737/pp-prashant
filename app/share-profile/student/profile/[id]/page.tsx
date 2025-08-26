@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getCachedPublicProfileData, fetchAndCachePublicProfileData } from "@/hooks/use-auth";
 import StudentProfile from "@/components/profile/student-profile";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 
 interface StudentData {
   id: string;
@@ -31,8 +27,6 @@ interface StudentData {
       platform: string;
       url: string;
     }>;
-    userInterests?: Array<{ interest: { name: string } }>;
-    userSkills?: Array<{ skill: { name: string } }>;
   };
   student?: {
     age_group?: string;
@@ -55,10 +49,9 @@ export default function ShareStudentProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
-  const router = useRouter();
 
   // Resolve params first
   useEffect(() => {
@@ -69,125 +62,149 @@ export default function ShareStudentProfilePage({
     resolveParams();
   }, [params]);
 
-  // Get cached data immediately
   useEffect(() => {
     if (!profileId) return;
 
-    const cachedData = getCachedPublicProfileData(profileId);
-    if (cachedData) {
-      console.log('🚀 Immediate render with cached share profile data for user:', profileId);
-      setStudentData(cachedData);
-    }
-  }, [profileId]);
-
-  useEffect(() => {
-    if (!profileId) return;
-
-    const cachedData = getCachedPublicProfileData(profileId);
-
-    console.log('🔥 Starting priority fetch for share profile...');
-
-    // Always fetch fresh data in background
-    const fetchFreshData = async () => {
+    const fetchStudentData = async () => {
       try {
-        setLoading(!cachedData); // Only show loading if we don't have cached data
+        setLoading(true);
+        setError(null);
 
-        const freshData = await fetchAndCachePublicProfileData(profileId);
+        console.log("🎓 Fetching student data for share profile:", profileId);
 
-        if (freshData) {
-          console.log('✅ Fresh share profile data fetched and cached');
-          setStudentData(freshData);
-        } else {
-          throw new Error('Failed to fetch fresh share profile data');
-        }
+        // Fetch all data in parallel (without authentication)
+        const [
+          profileResponse,
+          achievementsResponse,
+          goalsResponse,
+          circlesResponse,
+        ] = await Promise.all([
+          fetch(`/api/student/profile/${profileId}`),
+          fetch(`/api/student/profile/${profileId}/achievements`),
+          fetch(`/api/student/profile/${profileId}/goals`),
+          fetch(`/api/student/profile/${profileId}/circles`),
+        ]);
 
-      } catch (err) {
-        console.error('❌ Error fetching fresh share profile data:', err);
-        // Only set error if we don't have cached data to fall back on
-        if (!cachedData) {
-          if (err instanceof Response) {
-            if (err.status === 404) {
-              setError('Profile not found');
-            } else if (err.status === 403) {
-              setError('Access denied');
-            } else {
-              setError('Failed to load profile');
-            }
+        if (!profileResponse.ok) {
+          if (profileResponse.status === 404) {
+            setError("Student profile not found");
           } else {
-            setError('Failed to load profile');
+            setError("Failed to load student profile");
           }
+          return;
         }
+
+        // Parse all responses
+        const [
+          profileData,
+          achievementsData,
+          goalsData,
+          circlesData,
+        ] = await Promise.all([
+          profileResponse.json(),
+          achievementsResponse.ok ? achievementsResponse.json() : { achievements: [] },
+          goalsResponse.ok ? goalsResponse.json() : { goals: [] },
+          circlesResponse.ok ? circlesResponse.json() : { circles: [] },
+        ]);
+
+        // Combine all data into comprehensive student object
+        const comprehensiveStudentData: StudentData = {
+          id: profileData.id,
+          firstName: profileData.profile?.firstName || "Student",
+          lastName: profileData.profile?.lastName || "",
+          profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+          bio: profileData.profile?.bio || "No bio available",
+          location: profileData.profile?.location || "Location not specified",
+          role: "student",
+          socialLinks: profileData.profile?.socialLinks || [],
+          // Include the profile object that ProfileHeader expects
+          profile: {
+            firstName: profileData.profile?.firstName || "Student",
+            lastName: profileData.profile?.lastName || "",
+            profileImageUrl: profileData.profile?.profileImageUrl || "/images/student-profile.png",
+            bio: profileData.profile?.bio || "No bio available",
+            tagline: profileData.profile?.tagline || profileData.profile?.bio || "Passionate learner exploring new horizons",
+            socialLinks: profileData.profile?.socialLinks || [],
+          },
+          student: {
+            age_group: profileData.ageGroup || "young_adult",
+            birthYear: profileData.birthYear,
+            birthMonth: profileData.birthMonth,
+            gradeLevel: profileData.educationHistory?.[0]?.gradeLevel,
+            gpa: profileData.educationHistory?.[0]?.gpa,
+            interests: profileData.profile?.userInterests?.map((ui: any) => ui.interest.name) || [],
+            skills: profileData.profile?.userSkills?.map((us: any) => us.skill.name) || [],
+          },
+          educationHistory: profileData.educationHistory || [],
+          achievements: achievementsData.achievements || [],
+          goals: goalsData.goals || [],
+          circles: circlesData.circles || [],
+        };
+
+        console.log("✅ Student data loaded for share profile:", {
+          name: `${comprehensiveStudentData.firstName} ${comprehensiveStudentData.lastName}`,
+          achievements: comprehensiveStudentData.achievements?.length || 0,
+          goals: comprehensiveStudentData.goals?.length || 0,
+          circles: comprehensiveStudentData.circles?.length || 0,
+        });
+
+        setStudentData(comprehensiveStudentData);
+      } catch (err) {
+        console.error("Error fetching student data for share profile:", err);
+        setError("Failed to load student profile");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFreshData();
+    fetchStudentData();
   }, [profileId]);
 
-  const handleGoBack = () => {
-    router.back();
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <main className="flex-grow flex items-center justify-center pt-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+            <p className="mt-4 text-gray-600">Loading student profile...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-  // Create static structure for immediate display
-  const staticStudentStructure = {
-    id: profileId || "",
-    profile: {
-      firstName: "Loading...",
-      lastName: "",
-      profileImageUrl: "/images/student-profile.png",
-      bio: "Loading profile information...",
-      tagline: "Loading...",
-      userInterests: [],
-      userSkills: [],
-      skills: [],
-      socialLinks: []
-    },
-    educationHistory: [{
-      id: "temp",
-      institutionName: "Loading...",
-      gradeLevel: "Student",
-      isCurrent: true,
-      is_current: true
-    }],
-    connections: [],
-    achievements: [],
-    connectionCounts: {
-      total: 0,
-      students: 0,
-      mentors: 0,
-      institutions: 0
-    },
-    circles: [],
-    connectionRequestsSent: [],
-    connectionRequestsReceived: [],
-    circleInvitations: []
-  };
-
-  // Use cached data, fetched data, or static structure for immediate rendering
-  const displayData = studentData || staticStudentStructure;
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <main className="flex-grow flex items-center justify-center pt-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+            <p className="text-gray-600 mb-4">{error}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <main className="flex-grow">
-        <div className="container mx-auto px-4 max-w-7xl pt-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        <StudentProfile
-          studentId={profileId!}
-          studentData={displayData}
-          isShareMode={true}
-          showStaticStructure={!studentData} // Show static structure if no real data yet
-          onGoBack={handleGoBack}
-        />
+        {studentData && (
+          <StudentProfile
+            studentData={studentData}
+            studentId={profileId!}
+            isViewMode={true}
+            isShareMode={true}
+            onClick={() => {
+                const profileUrl = `https://pathpiper.com/share-profile/student/profile/${profileId}`;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                  alert('Profile link copied to clipboard!');
+                }).catch(() => {
+                  alert('Failed to copy link');
+                });
+              }}
+          />
+        )}
       </main>
     </div>
   );
