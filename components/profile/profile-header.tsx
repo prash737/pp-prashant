@@ -62,7 +62,6 @@ interface ProfileHeaderProps {
   connectionRequestsSent?: any[]
   connectionRequestsReceived?: any[]
   circleInvitations?: any[]
-  connections?: any[] // Add connections prop
 }
 
 interface Achievement {
@@ -87,8 +86,7 @@ export default function ProfileHeader({
   achievements = [],
   connectionRequestsSent = [],
   connectionRequestsReceived = [],
-  circleInvitations = [],
-  connections = []
+  circleInvitations = []
 }: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
@@ -101,11 +99,12 @@ export default function ProfileHeader({
   const [newCircleImageUrl, setNewCircleImageUrl] = useState('')
   const [selectedCircle, setSelectedCircle] = useState<any>(null)
   const [showCircleManagement, setShowCircleManagement] = useState(false)
+  const [connections, setConnections] = useState<any[]>([])
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false)
   const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
   const [followingCount, setFollowingCount] = useState(0)
   const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
   const [sendingRequest, setSendingRequest] = useState(false)
-  const [showFollowingDialog, setShowFollowingDialog] = useState(false)
 
   const handleShareProfile = async () => {
     const profileUrl = `https://pathpiper.com/public-view/student/profile/${student.id}`
@@ -208,10 +207,7 @@ export default function ProfileHeader({
     // Check if already connected by looking at the student's connections
     const isConnected = student?.connections?.some((conn: any) => 
       conn.id === currentUser?.id
-    ) || connections?.some((conn: any) => 
-      conn.id === currentUser?.id || conn.sender?.id === currentUser?.id || conn.receiver?.id === currentUser?.id
     )
-
 
     if (isConnected) {
       setConnectionStatus('connected')
@@ -232,7 +228,7 @@ export default function ProfileHeader({
     } else {
       setConnectionStatus('none')
     }
-  }, [isOwnProfile, student?.connections, connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
+  }, [isOwnProfile, student?.connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
 
   // Initialize connection counts from props or comprehensive profile data
   React.useEffect(() => {
@@ -242,9 +238,7 @@ export default function ProfileHeader({
       hasConnectionCounts: !!connectionCounts,
       connectionCounts,
       hasSentConnections: !!(student?.sent_connections),
-      hasReceivedConnections: !!(student?.received_connections),
-      hasPassedConnections: !!connections,
-      passedConnectionsLength: connections?.length
+      hasReceivedConnections: !!(student?.received_connections)
     })
 
     // Always prioritize passed connectionCounts first
@@ -260,7 +254,7 @@ export default function ProfileHeader({
       const sentConnections = student.sent_connections || []
       const receivedConnections = student.received_connections || []
       const allConnections = [...sentConnections, ...receivedConnections]
-
+      
       const counts = {
         total: allConnections.length,
         students: allConnections.filter((conn: any) => 
@@ -273,33 +267,15 @@ export default function ProfileHeader({
           conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
         ).length
       }
-
+      
       console.log('📊 Connection counts from comprehensive data:', counts)
       setActualConnectionCounts(counts)
-    } else if (connections && connections.length > 0) {
-      // Use passed connections data if connectionCounts is not provided
-      console.log('🔄 Using passed connections prop for counts')
-      const counts = {
-        total: connections.length,
-        students: connections.filter((conn: any) => 
-          conn.sender?.role === 'student' || conn.receiver?.role === 'student' || conn.user?.role === 'student'
-        ).length,
-        mentors: connections.filter((conn: any) => 
-          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor' || conn.user?.role === 'mentor'
-        ).length,
-        institutions: connections.filter((conn: any) => 
-          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution' || conn.user?.role === 'institution'
-        ).length
-      }
-      console.log('📊 Connection counts from passed connections prop:', counts)
-      setActualConnectionCounts(counts)
-    }
-    else {
+    } else {
       // Default to zero counts if no data available
       console.log('📊 No connection data available, using default counts')
       setActualConnectionCounts({ total: 0, students: 0, mentors: 0, institutions: 0 })
     }
-  }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections, connections])
+  }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections])
 
   // Set initial data from props
   const [recentAchievements, setRecentAchievements] = useState<Achievement[]>(achievements || [])
@@ -327,7 +303,7 @@ export default function ProfileHeader({
     if ((!circles || circles.length === 0) && student) {
       const createdCircles = student.created_circles || student.profile?.created_circles || []
       const memberCircles = student.circles || student.profile?.circles || []
-
+      
       if (createdCircles.length > 0 || memberCircles.length > 0) {
         const combinedCircles = [...createdCircles, ...memberCircles]
         console.log('🔍 ProfileHeader - Extracting circles from student data:', {
@@ -336,7 +312,7 @@ export default function ProfileHeader({
           totalCount: combinedCircles.length,
           combinedCircles
         })
-
+        
         setLocalCircles(combinedCircles)
       }
     } else if (circles && circles.length > 0) {
@@ -349,7 +325,9 @@ export default function ProfileHeader({
 
   // Set connections and following data from student prop
   useEffect(() => {
-    // Removed the logic to set connections state here, as it's now passed as a prop
+    if (isOwnProfile && student?.connections) {
+      setConnections(student.connections)
+    }
 
     // Set following institutions from student data
     if (student?.followingInstitutions) {

@@ -143,7 +143,7 @@ export default function StudentProfile({
       console.log('  - User interests:', data?.profile?.userInterests)
       console.log('  - User skills:', data?.profile?.userSkills)
 
-      // If student data is an array, take the first item
+      // If studentData is an array, take the first item
     if (Array.isArray(data)) {
       console.log('📡 StudentProfile: Received student data:', data)
 
@@ -411,43 +411,32 @@ export default function StudentProfile({
   }, [propCurrentUser, propStudentData, studentId])
 
 
-  // Update circles state when student data changes
+  // Set circles from studentData when available (alternative/fallback if fetchStudentData doesn't set it)
   useEffect(() => {
-    console.log('🔍 StudentProfile: Circles data received:', student?.circles || [])
-    console.log('🔍 StudentProfile: Number of circles:', (student?.circles || []).length)
-
-    if (student?.circles) {
-      setCircles(student.circles)
-      console.log('🔍 StudentProfile: State after setting circles:', student.circles)
+    if (propStudentData?.circles && !student) { // Only if student is not yet populated by fetchStudentData
+      const enabledCircles = propStudentData.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
+    } else if (!propStudentData && student?.circles) { // If student is populated but propStudentData was not the source
+       const enabledCircles = student.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
     }
-  }, [student?.circles])
-
-  // Set up global callback for connections data
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).onConnectionsDataUpdate = (connectionsData: any[]) => {
-        console.log('🔄 StudentProfile: Received connections data:', connectionsData.length)
-        setConnections(connectionsData)
-
-        // Calculate connection counts
-        const counts = {
-          total: connectionsData.length,
-          students: connectionsData.filter((conn: any) => conn.user.role === 'student').length,
-          mentors: connectionsData.filter((conn: any) => conn.user.role === 'mentor').length,
-          institutions: connectionsData.filter((conn: any) => conn.user.role === 'institution').length
-        }
-
-        console.log('📊 StudentProfile: Calculated connection counts:', counts)
-        setConnectionCounts(counts)
-      }
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        delete (window as any).onConnectionsDataUpdate
-      }
-    }
-  }, [])
+  }, [propStudentData?.circles, student?.circles, currentUser?.id])
 
   // Transform studentData if it's provided directly and not fetched by studentId
   useEffect(() => {
@@ -690,8 +679,8 @@ export default function StudentProfile({
       <ProfileHeader
         student={finalStudentData || staticStudentStructure}
         currentUser={currentUser}
-        connectionCounts={connectionCounts}
-        connections={connections}
+        connectionCounts={finalStudentData?.connectionCounts}
+        isViewMode={isViewMode}
         circles={finalStudentData?.circles || []}
         onCirclesUpdate={handleCirclesUpdate}
         achievements={finalStudentData?.achievements || []}
