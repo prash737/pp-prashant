@@ -299,7 +299,7 @@ BEGIN
             'id', cm.id,
             'status', cm.status,
             'joinedAt', cm.joined_at,
-            'isDisabledMember', cm.is_disabled_member
+            'isDisabledMember', COALESCE(cm.is_disabled_member, false)
           ),
           'memberCount', COALESCE(member_counts.count, 0)
         ) ORDER BY cm.joined_at DESC
@@ -313,13 +313,13 @@ BEGIN
         COUNT(*) as count
       FROM circle_memberships 
       WHERE status = 'active' 
-        AND COALESCE(is_disabled_member, false) = false
+        AND (is_disabled_member IS NULL OR is_disabled_member = false)
       GROUP BY circle_id
     ) member_counts ON cb.id = member_counts.circle_id
     WHERE cm.user_id = student_id_param 
       AND cm.status = 'active'
-      AND COALESCE(cm.is_disabled_member, false) = false
-      AND COALESCE(cb.is_disabled, false) = false
+      AND (cm.is_disabled_member IS NULL OR cm.is_disabled_member = false)
+      AND (cb.is_disabled IS NULL OR cb.is_disabled = false)
     GROUP BY cm.user_id
   ),
   circles_created_data AS (
@@ -333,8 +333,8 @@ BEGIN
           'color', cb.color,
           'icon', cb.icon,
           'isDefault', cb.is_default,
-          'isDisabled', cb.is_disabled,
-          'isCreatorDisabled', cb.is_creator_disabled,
+          'isDisabled', COALESCE(cb.is_disabled, false),
+          'isCreatorDisabled', COALESCE(cb.is_creator_disabled, false),
           'createdAt', cb.created_at,
           'creator', jsonb_build_object(
             'id', cp.id,
@@ -353,12 +353,12 @@ BEGIN
         COUNT(*) as count
       FROM circle_memberships 
       WHERE status = 'active' 
-        AND COALESCE(is_disabled_member, false) = false
+        AND (is_disabled_member IS NULL OR is_disabled_member = false)
       GROUP BY circle_id
     ) member_counts ON cb.id = member_counts.circle_id
     WHERE cb.creator_id = student_id_param
-      AND COALESCE(cb.is_disabled, false) = false
-      AND COALESCE(cb.is_creator_disabled, false) = false
+      AND (cb.is_disabled IS NULL OR cb.is_disabled = false)
+      AND (cb.is_creator_disabled IS NULL OR cb.is_creator_disabled = false)
     GROUP BY cb.creator_id
   ),
   circle_invitations_data AS (
@@ -397,7 +397,7 @@ BEGIN
     JOIN profiles cp ON cb.creator_id = cp.id
     JOIN profiles ip ON ci.inviter_id = ip.id
     WHERE ci.invitee_id = student_id_param
-      AND ci.status = 'pending'
+      AND ci.status IN ('pending', 'accepted')
     GROUP BY ci.invitee_id
   )
   SELECT 
