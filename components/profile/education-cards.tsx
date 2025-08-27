@@ -2,7 +2,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { BookOpenIcon, AwardIcon, CalendarIcon, MapPinIcon, GraduationCapIcon } from "@heroicons/react/24/outline"
+import { BookOpenIcon, TrophyIcon, CalendarIcon, MapPinIcon, AcademicCapIcon } from "@heroicons/react/24/outline"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 
@@ -104,7 +104,7 @@ export default function EducationCards({ isViewMode = false }: EducationCardsPro
             size="sm"
             onClick={() => window.location.href = '/student/profile/edit?section=education'}
           >
-            <AwardIcon className="h-4 w-4 mr-2" />
+            <TrophyIcon className="h-4 w-4 mr-2" />
             Add Education
           </Button>
         )}
@@ -155,7 +155,7 @@ export default function EducationCards({ isViewMode = false }: EducationCardsPro
                   <div className="space-y-2">
                     {(education.degreeProgram || education.degree) && (
                       <div className="flex items-center text-sm">
-                        <GraduationCapIcon className="h-4 w-4 mr-2 text-gray-400" />
+                        <AcademicCapIcon className="h-4 w-4 mr-2 text-gray-400" />
                         <span>{education.degreeProgram || education.degree}</span>
                       </div>
                     )}
@@ -169,7 +169,7 @@ export default function EducationCards({ isViewMode = false }: EducationCardsPro
 
                     {(education.gradeLevel || education.grade) && (
                       <div className="flex items-center text-sm">
-                        <AwardIcon className="h-4 w-4 mr-2 text-gray-400" />
+                        <TrophyIcon className="h-4 w-4 mr-2 text-gray-400" />
                         <span>Grade: {education.gradeLevel || education.grade}</span>
                       </div>
                     )}
