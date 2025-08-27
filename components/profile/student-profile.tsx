@@ -192,24 +192,29 @@ export default function StudentProfile({
             })),
             socialLinks: rawStudentData.social_links || []
           },
-          // Map education history
-          educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
-            id: edu.id,
-            institutionName: edu.institution_name,
-            institutionType: edu.institution_type,
-            gradeLevel: edu.grade_level,
-            isCurrent: edu.is_current,
-            is_current: edu.is_current,
-            startDate: edu.start_date,
-            endDate: edu.end_date,
-            degreeProgram: edu.degree_program,
-            fieldOfStudy: edu.field_of_study,
-            subjects: edu.subjects || [],
-            gpa: edu.gpa,
-            achievements: edu.achievements || [],
-            description: edu.description,
-            institutionVerified: edu.institution_verified
-          })),
+          // Map education history - preserve all fields from comprehensive profile
+          educationHistory: (rawStudentData.education_history || []).map((edu: any) => {
+            console.log('🔍 Mapping education entry:', JSON.stringify(edu, null, 2));
+            return {
+              id: edu.id,
+              institutionName: edu.institutionName || edu.institution_name,
+              institutionType: edu.institutionType || edu.institution_type,
+              institutionTypeName: edu.institutionType?.name || edu.institution_type?.name,
+              institutionTypeId: edu.institutionTypeId || edu.institution_type_id,
+              gradeLevel: edu.gradeLevel || edu.grade_level,
+              isCurrent: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              is_current: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              startDate: edu.startDate || edu.start_date,
+              endDate: edu.endDate || edu.end_date,
+              degreeProgram: edu.degreeProgram || edu.degree_program,
+              fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : edu.institution_verified
+            };
+          }),
           // Map other fields
           achievements: rawStudentData.achievements || [],
           goals: rawStudentData.goals || [],
@@ -301,24 +306,29 @@ export default function StudentProfile({
             })),
             socialLinks: rawStudentData.social_links || []
           },
-          // Map education history
-          educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
-            id: edu.id,
-            institutionName: edu.institution_name,
-            institutionType: edu.institution_type,
-            gradeLevel: edu.grade_level,
-            isCurrent: edu.is_current,
-            is_current: edu.is_current,
-            startDate: edu.start_date,
-            endDate: edu.end_date,
-            degreeProgram: edu.degree_program,
-            fieldOfStudy: edu.field_of_study,
-            subjects: edu.subjects || [],
-            gpa: edu.gpa,
-            achievements: edu.achievements || [],
-            description: edu.description,
-            institutionVerified: edu.institution_verified
-          })),
+          // Map education history - preserve all fields from comprehensive profile  
+          educationHistory: (rawStudentData.education_history || []).map((edu: any) => {
+            console.log('🔍 Mapping education entry (second block):', JSON.stringify(edu, null, 2));
+            return {
+              id: edu.id,
+              institutionName: edu.institutionName || edu.institution_name,
+              institutionType: edu.institutionType || edu.institution_type,
+              institutionTypeName: edu.institutionType?.name || edu.institution_type?.name,
+              institutionTypeId: edu.institutionTypeId || edu.institution_type_id,
+              gradeLevel: edu.gradeLevel || edu.grade_level,
+              isCurrent: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              is_current: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              startDate: edu.startDate || edu.start_date,
+              endDate: edu.endDate || edu.end_date,
+              degreeProgram: edu.degreeProgram || edu.degree_program,
+              fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : edu.institution_verified
+            };
+          }),
           // Map other fields
           achievements: rawStudentData.achievements || [],
           goals: rawStudentData.goals || [],

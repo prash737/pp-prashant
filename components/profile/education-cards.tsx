@@ -33,6 +33,15 @@ export default function EducationCards({ educationHistory: realEducationHistory,
           hasProperty: Object.prototype.hasOwnProperty.call(edu, 'institutionVerified'),
           allKeys: Object.keys(edu)
         });
+      console.log('🔍 Education field mapping check:', {
+          hasInstitutionName: !!edu.institutionName,
+          hasInstitutionType: !!edu.institutionType,
+          hasDegreeProgram: !!edu.degreeProgram,
+          hasFieldOfStudy: !!edu.fieldOfStudy,
+          hasStartDate: !!edu.startDate,
+          hasEndDate: !!edu.endDate,
+          institutionTypeName: edu.institutionType?.name || 'No institution type name'
+        });
 
       return {
         school: edu.institutionName || "Institution",
