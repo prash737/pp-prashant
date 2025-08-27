@@ -301,6 +301,9 @@ export default function ProfileHeader({
     setRecentAchievements(achievements || [])
   }, [achievements])
 
+  // Extract circles from student data and create local state
+  const [localCircles, setLocalCircles] = useState<any[]>([])
+
   // Debug log for circles and handle student data circles
   useEffect(() => {
     console.log('🔍 ProfileHeader - Circles prop received:', {
@@ -311,7 +314,7 @@ export default function ProfileHeader({
       sampleCircle: circles?.[0]
     })
 
-    // If no circles passed as prop but student has circle data, extract and combine them
+    // Extract circles from student data if circles prop is empty
     if ((!circles || circles.length === 0) && student) {
       const createdCircles = student.created_circles || student.profile?.created_circles || []
       const memberCircles = student.circles || student.profile?.circles || []
@@ -325,11 +328,15 @@ export default function ProfileHeader({
           combinedCircles
         })
         
-        // Don't set state here to avoid infinite loops, just log for debugging
-        // The parent component should handle passing the correct circles
+        setLocalCircles(combinedCircles)
       }
+    } else if (circles && circles.length > 0) {
+      setLocalCircles(circles)
     }
   }, [circles, student])
+
+  // Use localCircles for display
+  const displayCircles = localCircles.length > 0 ? localCircles : circles || []
 
   // Set connections and following data from student prop
   useEffect(() => {
@@ -767,7 +774,7 @@ export default function ProfileHeader({
                     <div className="relative flex items-center">
                       {/* Check if scrolling is needed */}
                       {(() => {
-                        const totalCircles = (isOwnProfile ? 1 : 0) + circles.length; // Friends circle + custom circles
+                        const totalCircles = (isOwnProfile ? 1 : 0) + displayCircles.length; // Friends circle + custom circles
                         const needsScrolling = totalCircles > 4; // Adjust threshold as needed
 
                         return (
@@ -810,7 +817,7 @@ export default function ProfileHeader({
                                 )}
 
                                 {/* Dynamic Circles from Database */}
-                                {circles.map((circle) => {
+                                {displayCircles.map((circle) => {
                                   const isDisabled = isCircleDisabled(circle, student.id);
 
                                   return (
