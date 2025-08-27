@@ -286,8 +286,8 @@ BEGIN
           'color', cb.color,
           'icon', cb.icon,
           'isDefault', cb.is_default,
-          'isDisabled', cb.is_disabled,
-          'isCreatorDisabled', cb.is_creator_disabled,
+          'isDisabled', COALESCE(cb.is_disabled, false),
+          'isCreatorDisabled', COALESCE(cb.is_creator_disabled, false),
           'createdAt', cb.created_at,
           'creator', jsonb_build_object(
             'id', cp.id,
@@ -301,7 +301,10 @@ BEGIN
             'joinedAt', cm.joined_at,
             'isDisabledMember', COALESCE(cm.is_disabled_member, false)
           ),
-          'memberCount', COALESCE(member_counts.count, 0)
+          'memberCount', COALESCE(member_counts.count, 0),
+          '_count', jsonb_build_object(
+            'memberships', COALESCE(member_counts.count, 0)
+          )
         ) ORDER BY cm.joined_at DESC
       ) as member_circles
     FROM circle_memberships cm
@@ -313,13 +316,13 @@ BEGIN
         COUNT(*) as count
       FROM circle_memberships 
       WHERE status = 'active' 
-        AND (is_disabled_member IS NULL OR is_disabled_member = false)
+        AND COALESCE(is_disabled_member, false) = false
       GROUP BY circle_id
     ) member_counts ON cb.id = member_counts.circle_id
     WHERE cm.user_id = student_id_param 
       AND cm.status = 'active'
-      AND (cm.is_disabled_member IS NULL OR cm.is_disabled_member = false)
-      AND (cb.is_disabled IS NULL OR cb.is_disabled = false)
+      AND COALESCE(cm.is_disabled_member, false) = false
+      AND COALESCE(cb.is_disabled, false) = false
     GROUP BY cm.user_id
   ),
   circles_created_data AS (
@@ -342,7 +345,10 @@ BEGIN
             'lastName', cp.last_name,
             'profileImageUrl', cp.profile_image_url
           ),
-          'memberCount', COALESCE(member_counts.count, 0)
+          'memberCount', COALESCE(member_counts.count, 0),
+          '_count', jsonb_build_object(
+            'memberships', COALESCE(member_counts.count, 0)
+          )
         ) ORDER BY cb.created_at DESC
       ) as created_circles
     FROM circle_badges cb
@@ -353,12 +359,12 @@ BEGIN
         COUNT(*) as count
       FROM circle_memberships 
       WHERE status = 'active' 
-        AND (is_disabled_member IS NULL OR is_disabled_member = false)
+        AND COALESCE(is_disabled_member, false) = false
       GROUP BY circle_id
     ) member_counts ON cb.id = member_counts.circle_id
     WHERE cb.creator_id = student_id_param
-      AND (cb.is_disabled IS NULL OR cb.is_disabled = false)
-      AND (cb.is_creator_disabled IS NULL OR cb.is_creator_disabled = false)
+      AND COALESCE(cb.is_disabled, false) = false
+      AND COALESCE(cb.is_creator_disabled, false) = false
     GROUP BY cb.creator_id
   ),
   circle_invitations_data AS (
