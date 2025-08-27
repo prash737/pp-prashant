@@ -275,9 +275,10 @@ BEGIN
     WHERE ifc.sender_id = student_id_param
     GROUP BY ifc.sender_id
   ),
-  circles_member_data AS (
+  -- FIXED: Simplified circles query to get all circles user is involved with
+  all_circles_data AS (
     SELECT 
-      cm.user_id,
+      student_id_param as user_id,
       jsonb_agg(
         jsonb_build_object(
           'id', cb.id,
@@ -295,21 +296,29 @@ BEGIN
             'lastName', cp.last_name,
             'profileImageUrl', cp.profile_image_url
           ),
-          'membership', jsonb_build_object(
-            'id', cm.id,
-            'status', cm.status,
-            'joinedAt', cm.joined_at,
-            'isDisabledMember', COALESCE(cm.is_disabled_member, false)
-          ),
+          'membership', CASE 
+            WHEN cb.creator_id = student_id_param THEN jsonb_build_object(
+              'id', null,
+              'status', 'creator',
+              'joinedAt', cb.created_at,
+              'isDisabledMember', false
+            )
+            ELSE jsonb_build_object(
+              'id', cm.id,
+              'status', cm.status,
+              'joinedAt', cm.joined_at,
+              'isDisabledMember', COALESCE(cm.is_disabled_member, false)
+            )
+          END,
           'memberCount', COALESCE(member_counts.count, 0),
           '_count', jsonb_build_object(
             'memberships', COALESCE(member_counts.count, 0)
           )
-        ) ORDER BY cm.joined_at DESC
-      ) as member_circles
-    FROM circle_memberships cm
-    JOIN circle_badges cb ON cm.circle_id = cb.id
+        ) ORDER BY cb.created_at DESC
+      ) as circles
+    FROM circle_badges cb
     JOIN profiles cp ON cb.creator_id = cp.id
+    LEFT JOIN circle_memberships cm ON cb.id = cm.circle_id AND cm.user_id = student_id_param
     LEFT JOIN (
       SELECT 
         circle_id, 
@@ -319,12 +328,17 @@ BEGIN
         AND COALESCE(is_disabled_member, false) = false
       GROUP BY circle_id
     ) member_counts ON cb.id = member_counts.circle_id
-    WHERE cm.user_id = student_id_param 
-      AND cm.status = 'active'
-      AND COALESCE(cm.is_disabled_member, false) = false
-      AND COALESCE(cb.is_disabled, false) = false
-    GROUP BY cm.user_id
+    WHERE (
+      -- User is creator
+      cb.creator_id = student_id_param
+      OR 
+      -- User is active member
+      (cm.user_id = student_id_param AND cm.status = 'active' AND COALESCE(cm.is_disabled_member, false) = false)
+    )
+    AND COALESCE(cb.is_disabled, false) = false
+    AND COALESCE(cb.is_creator_disabled, false) = false
   ),
+  -- Separate created circles for backward compatibility
   circles_created_data AS (
     SELECT 
       cb.creator_id,
@@ -433,7 +447,7 @@ BEGIN
     COALESCE(sc.sent_connections, '[]'::jsonb) as sent_connections,
     COALESCE(rc.received_connections, '[]'::jsonb) as received_connections,
     COALESCE(if_data.institution_following, '[]'::jsonb) as institution_following,
-    COALESCE(cmd.member_circles, '[]'::jsonb) as circles,
+    COALESCE(acd.circles, '[]'::jsonb) as circles,
     COALESCE(ccd.created_circles, '[]'::jsonb) as created_circles,
     COALESCE(cid.circle_invitations, '[]'::jsonb) as circle_invitations
   FROM student_data sd
@@ -447,7 +461,7 @@ BEGIN
   LEFT JOIN sent_connections_data sc ON sd.id = sc.user_id
   LEFT JOIN received_connections_data rc ON sd.id = rc.user_id
   LEFT JOIN institution_following_data if_data ON sd.id = if_data.sender_id
-  LEFT JOIN circles_member_data cmd ON sd.id = cmd.user_id
+  LEFT JOIN all_circles_data acd ON sd.id = acd.user_id
   LEFT JOIN circles_created_data ccd ON sd.id = ccd.creator_id
   LEFT JOIN circle_invitations_data cid ON sd.id = cid.user_id;
 END;
