@@ -90,7 +90,7 @@ export default function CircleManagementDialog({
         const data = await response.json()
 
         // For Friends circle, show all connections and no invite functionality
-        if (circle?.id === 'friends') {
+        if (circle?.id === 'friends' || circle?.name === 'Friends') {
           setConnections(data)
           setExistingInvitations([])
           return
@@ -239,9 +239,9 @@ export default function CircleManagementDialog({
                 <div className="w-2 h-2 bg-white rounded-full" />
               )}
             </div>
-            {circle.id === 'friends' ? 'All Connections' : `Invite to ${circle.name}`}
+            {(circle.id === 'friends' || circle.name === 'Friends') ? 'All Connections' : `Invite to ${circle.name}`}
           </DialogTitle>
-          {circle.description && circle.id !== 'friends' && (
+          {circle.description && (circle.id !== 'friends' && circle.name !== 'Friends') && (
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               {circle.description}
             </p>
@@ -302,7 +302,7 @@ export default function CircleManagementDialog({
           <Separator />
 
           {/* Search Bar - Only for custom circles when not in view mode */}
-          {circle.id !== 'friends' && !isViewMode && (
+          {(circle.id !== 'friends' && circle.name !== 'Friends') && !isViewMode && (
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
@@ -317,7 +317,7 @@ export default function CircleManagementDialog({
           )}
 
           {/* Connections list - Only for custom circles when not in view mode */}
-          {circle.id !== 'friends' && !isViewMode && (
+          {(circle.id !== 'friends' && circle.name !== 'Friends') && !isViewMode && (
             <div>
               <h4 className="text-sm font-medium mb-3">
                 Invite Connections ({filteredConnections.length})
@@ -384,7 +384,7 @@ export default function CircleManagementDialog({
           )}
 
           {/* Invitation message - Only for custom circles */}
-          {circle.id !== 'friends' && selectedConnections.length > 0 && !isViewMode && (
+          {(circle.id !== 'friends' && circle.name !== 'Friends') && selectedConnections.length > 0 && !isViewMode && (
             <div>
               <label className="text-sm font-medium mb-2 block">Invitation Message</label>
               <Input
@@ -401,7 +401,7 @@ export default function CircleManagementDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Close
             </Button>
-            {circle.id !== 'friends' && !isViewMode && (
+            {(circle.id !== 'friends' && circle.name !== 'Friends') && !isViewMode && (
               <Button 
                 onClick={handleSendInvitations}
                 disabled={selectedConnections.length === 0 || loading}

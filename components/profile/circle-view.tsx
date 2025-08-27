@@ -503,6 +503,13 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
   const [circles, setCircles] = useState<Circle[]>(initialCircles);
+  
+  // Callback to pass connections data to parent
+  const onConnectionsUpdate = React.useCallback((connectionsData: Connection[]) => {
+    if (typeof window !== 'undefined' && (window as any).onConnectionsDataUpdate) {
+      (window as any).onConnectionsDataUpdate(connectionsData);
+    }
+  }, []);
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
@@ -542,6 +549,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
       if (response.ok) {
         const data = await response.json();
         setConnections(data);
+        // Notify parent component about connections data
+        onConnectionsUpdate(data);
       }
     } catch (error) {
       console.error("Error fetching connections:", error);
