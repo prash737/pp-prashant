@@ -1,3 +1,4 @@
+
 -- Create a function to get comprehensive student profile data
 CREATE OR REPLACE FUNCTION get_comprehensive_student_profile(student_id_param UUID)
 RETURNS TABLE (
@@ -28,7 +29,8 @@ RETURNS TABLE (
   received_connections JSONB,
   institution_following JSONB,
   circles JSONB,
-  created_circles JSONB
+  created_circles JSONB,
+  circle_invitations JSONB
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -293,14 +295,27 @@ BEGIN
             'lastName', cp.last_name,
             'profileImageUrl', cp.profile_image_url
           ),
-          'membershipStatus', cm.status,
-          'joinedAt', cm.joined_at,
-          'isDisabledMember', cm.is_disabled_member
+          'membership', jsonb_build_object(
+            'id', cm.id,
+            'status', cm.status,
+            'joinedAt', cm.joined_at,
+            'isDisabledMember', cm.is_disabled_member
+          ),
+          'memberCount', COALESCE(member_counts.count, 0)
         ) ORDER BY cm.joined_at DESC
       ) as member_circles
     FROM circle_memberships cm
     JOIN circle_badges cb ON cm.circle_id = cb.id
     JOIN profiles cp ON cb.creator_id = cp.id
+    LEFT JOIN (
+      SELECT 
+        circle_id, 
+        COUNT(*) as count
+      FROM circle_memberships 
+      WHERE status = 'active' 
+        AND COALESCE(is_disabled_member, false) = false
+      GROUP BY circle_id
+    ) member_counts ON cb.id = member_counts.circle_id
     WHERE cm.user_id = student_id_param 
       AND cm.status = 'active'
       AND COALESCE(cm.is_disabled_member, false) = false
@@ -345,6 +360,45 @@ BEGIN
       AND COALESCE(cb.is_disabled, false) = false
       AND COALESCE(cb.is_creator_disabled, false) = false
     GROUP BY cb.creator_id
+  ),
+  circle_invitations_data AS (
+    SELECT 
+      ci.invitee_id as user_id,
+      jsonb_agg(
+        jsonb_build_object(
+          'id', ci.id,
+          'status', ci.status,
+          'message', ci.message,
+          'createdAt', ci.created_at,
+          'updatedAt', ci.updated_at,
+          'circle', jsonb_build_object(
+            'id', cb.id,
+            'name', cb.name,
+            'description', cb.description,
+            'color', cb.color,
+            'icon', cb.icon,
+            'creator', jsonb_build_object(
+              'id', cp.id,
+              'firstName', cp.first_name,
+              'lastName', cp.last_name,
+              'profileImageUrl', cp.profile_image_url
+            )
+          ),
+          'inviter', jsonb_build_object(
+            'id', ip.id,
+            'firstName', ip.first_name,
+            'lastName', ip.last_name,
+            'profileImageUrl', ip.profile_image_url
+          )
+        ) ORDER BY ci.created_at DESC
+      ) as circle_invitations
+    FROM circle_invitations ci
+    JOIN circle_badges cb ON ci.circle_id = cb.id
+    JOIN profiles cp ON cb.creator_id = cp.id
+    JOIN profiles ip ON ci.inviter_id = ip.id
+    WHERE ci.invitee_id = student_id_param
+      AND ci.status = 'pending'
+    GROUP BY ci.invitee_id
   )
   SELECT 
     sd.id,
@@ -374,7 +428,8 @@ BEGIN
     COALESCE(rc.received_connections, '[]'::jsonb) as received_connections,
     COALESCE(if_data.institution_following, '[]'::jsonb) as institution_following,
     COALESCE(cmd.member_circles, '[]'::jsonb) as circles,
-    COALESCE(ccd.created_circles, '[]'::jsonb) as created_circles
+    COALESCE(ccd.created_circles, '[]'::jsonb) as created_circles,
+    COALESCE(cid.circle_invitations, '[]'::jsonb) as circle_invitations
   FROM student_data sd
   LEFT JOIN user_interests_data ui ON sd.id = ui.user_id
   LEFT JOIN user_skills_data us ON sd.id = us.user_id
@@ -387,6 +442,7 @@ BEGIN
   LEFT JOIN received_connections_data rc ON sd.id = rc.user_id
   LEFT JOIN institution_following_data if_data ON sd.id = if_data.sender_id
   LEFT JOIN circles_member_data cmd ON sd.id = cmd.user_id
-  LEFT JOIN circles_created_data ccd ON sd.id = ccd.creator_id;
+  LEFT JOIN circles_created_data ccd ON sd.id = ccd.creator_id
+  LEFT JOIN circle_invitations_data cid ON sd.id = cid.user_id;
 END;
 $$ LANGUAGE plpgsql;

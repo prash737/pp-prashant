@@ -276,14 +276,46 @@ export async function GET(
             )
           `)
           .eq('status', 'active')
-          .not('is_disabled_member', 'eq', true)
+          .not('is_disabled_member', 'eq', true),
+
+        // Get circle invitations for the student
+        supabase
+          .from('circle_invitations')
+          .select(`
+            id,
+            created_at,
+            status,
+            circle_badges (
+              id,
+              name,
+              description,
+              color,
+              icon,
+              creator:profiles!circle_badges_creator_id_fkey (
+                id,
+                first_name,
+                last_name,
+                profile_image_url
+              )
+            ),
+            inviter:profiles!circle_invitations_inviter_id_fkey (
+              id,
+              first_name,
+              last_name,
+              profile_image_url
+            )
+          `)
+          .eq('invitee_id', studentId)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
       ])
 
       const [
         profileResult,
         circlesMemberResult,
         createdCirclesResult,
-        allCircleMembershipsResult
+        allCircleMembershipsResult,
+        circleInvitationsResult
       ] = queries
 
       if (profileResult.error || !profileResult.data) {
@@ -301,7 +333,6 @@ export async function GET(
       const followingInstitutions = profile.institution_following || []
       const connectionRequestsSent = [] // Placeholder, fetched below if applicable
       const connectionRequestsReceived = [] // Placeholder, fetched below if applicable
-      const circleInvitations = [] // Placeholder, fetched below if applicable
 
       // Count members for each circle
       const circleMemberCounts: { [circleId: string]: number } = {}
@@ -363,38 +394,51 @@ export async function GET(
           institutions: 0
         },
         followingInstitutions: profile.institution_following?.map(f => f.institution_profiles) || [],
-        circles: circlesMemberResult.data?.map(membership => {
-          const memberCount = circleMemberCounts[membership.circle_id] || 0;
-          return {
-            id: membership.circle_badges.id,
-            name: membership.circle_badges.name,
-            description: membership.circle_badges.description,
-            color: membership.circle_badges.color,
-            icon: membership.circle_badges.icon,
-            isDefault: membership.circle_badges.is_default,
-            isDisabled: membership.circle_badges.is_disabled,
-            isCreatorDisabled: membership.circle_badges.is_creator_disabled,
-            createdAt: membership.circle_badges.created_at,
-            creator: membership.circle_badges.creator,
-            memberships: [], // To be populated if needed
-            _count: {
-              memberships: memberCount
+        circles: [
+          ...(circlesMemberResult.data?.map(membership => {
+            const memberCount = circleMemberCounts[membership.circle_id] || 0;
+            return {
+              id: membership.circle_badges.id,
+              name: membership.circle_badges.name,
+              description: membership.circle_badges.description,
+              color: membership.circle_badges.color,
+              icon: membership.circle_badges.icon,
+              isDefault: membership.circle_badges.is_default,
+              isDisabled: membership.circle_badges.is_disabled,
+              isCreatorDisabled: membership.circle_badges.is_creator_disabled,
+              createdAt: membership.circle_badges.created_at,
+              creator: membership.circle_badges.creator,
+              membership: {
+                status: membership.status,
+                joinedAt: membership.joined_at
+              },
+              _count: {
+                memberships: memberCount
+              }
             }
-          }
-        }) || [],
+          }) || []),
+          ...(createdCirclesResult.data?.map((circle: any) => ({
+            ...circle,
+            isCreated: true,
+            membership: {
+              status: 'creator',
+              joinedAt: circle.created_at
+            }
+          })) || [])
+        ],
         suggestedConnections: [], // This needs a separate query if not in RPC
         connectionRequestsSent: [], // This needs a separate query if not in RPC
         connectionRequestsReceived: [], // This needs a separate query if not in RPC
-        circleInvitations: [] // This needs a separate query if not in RPC
+        circleInvitations: circleInvitationsResult.data || []
       }
 
       // Calculate connection counts
       const allConnections = transformedData.connections
       transformedData.connectionCounts = {
         total: allConnections.length,
-        students: allConnections.filter(conn => conn.role === 'student').length,
-        mentors: allConnections.filter(conn => conn.role === 'mentor').length,
-        institutions: allConnections.filter(conn => conn.role === 'institution').length
+        students: allConnections.filter(conn => conn.accepter?.role === 'student' || conn.requester?.role === 'student').length,
+        mentors: allConnections.filter(conn => conn.accepter?.role === 'mentor' || conn.requester?.role === 'mentor').length,
+        institutions: allConnections.filter(conn => conn.accepter?.role === 'institution' || conn.requester?.role === 'institution').length
       }
 
       // Fetch suggested connections
@@ -497,10 +541,9 @@ export async function GET(
         userSkills: userSkills,
         achievements: achievements,
         followingInstitutions: followingInstitutions,
-        connectionRequestsSent: connectionRequestsSent,
-        connectionRequestsReceived: connectionRequestsReceived,
-        circleInvitations: circleInvitations,
-        circles: [] // This will be fetched separately by the circles API
+        connectionRequestsSent: transformedData.connectionRequestsSent,
+        connectionRequestsReceived: transformedData.connectionRequestsReceived,
+        circleInvitations: transformedData.circleInvitations,
       }
 
       console.log('🚀 API Response - Full transformed data being returned:')
