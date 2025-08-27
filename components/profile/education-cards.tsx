@@ -23,52 +23,61 @@ interface EducationEntry {
 export default function EducationCards({ educationHistory: realEducationHistory, isViewMode = false }: EducationCardsProps) {
   // Use real education data only - no fallback to mock data
   const educationHistory = realEducationHistory && realEducationHistory.length > 0 ? 
-    realEducationHistory.map((edu: any) => {
+    realEducationHistory.map((edu: any, index: number) => {
       // Debug log for complete raw education data with timestamp
       const timestamp = new Date().toISOString();
-      console.log(`🔍 [${timestamp}] RAW Education data received:`, JSON.stringify(edu, null, 2));
-      console.log(`🔍 [${timestamp}] Education verification status:`, {
-          institution: edu.institutionName || 'No institution name',
-          institutionVerified: edu.institutionVerified,
-          type: typeof edu.institutionVerified,
-          hasProperty: Object.prototype.hasOwnProperty.call(edu, 'institutionVerified'),
-          allKeys: Object.keys(edu),
-          dataCompleteness: edu.institutionName ? 'COMPLETE' : 'INCOMPLETE'
-        });
-      console.log('🔍 Education field mapping check:', {
+      console.log(`🔍 [${timestamp}] RAW Education data received (Entry ${index + 1}):`, JSON.stringify(edu, null, 2));
+      
+      // Check if this is complete data (has institutionName) or incomplete data (missing institutionName)
+      const hasCompleteData = edu.institutionName && edu.institutionName !== undefined;
+      const isIncompleteData = !hasCompleteData && edu.subjects;
+      
+      console.log(`🔍 [${timestamp}] Education data completeness analysis:`, {
+          index: index + 1,
+          hasCompleteData,
+          isIncompleteData,
           hasInstitutionName: !!edu.institutionName,
-          hasInstitutionType: !!edu.institutionType,
-          hasDegreeProgram: !!edu.degreeProgram,
-          hasFieldOfStudy: !!edu.fieldOfStudy,
-          hasStartDate: !!edu.startDate,
-          hasEndDate: !!edu.endDate,
-          institutionTypeName: edu.institutionType?.name || 'No institution type name'
+          hasSubjects: !!edu.subjects,
+          allKeys: Object.keys(edu),
+          dataQuality: hasCompleteData ? 'COMPLETE' : (isIncompleteData ? 'INCOMPLETE' : 'UNKNOWN')
         });
 
-      // Handle both complete and partial education data structures
-      // If we get partial data, try to reconstruct from minimal fields
-      const hasCompleteData = edu.institutionName || edu.institutionType || edu.startDate || edu.degreeProgram;
-      
-      if (!hasCompleteData) {
-        console.warn('⚠️ Received incomplete education data, using fallback values');
+      // If we receive incomplete data, skip it or try to find complete data from a different source
+      if (isIncompleteData) {
+        console.warn(`⚠️ [${timestamp}] Skipping incomplete education entry ${index + 1} - missing institution details`);
+        // Return a placeholder that won't be rendered or try to use cached complete data
+        return null;
       }
 
+      // Only process complete data
+      if (!hasCompleteData) {
+        console.warn(`⚠️ [${timestamp}] Education entry ${index + 1} has no institution name, treating as invalid`);
+        return null;
+      }
+
+      console.log(`✅ [${timestamp}] Processing complete education entry ${index + 1}:`, {
+          institution: edu.institutionName,
+          type: edu.institutionType?.name || edu.institutionTypeName,
+          degree: edu.degreeProgram,
+          verified: edu.institutionVerified
+        });
+
       return {
-        school: edu.institutionName || edu.school || "Institution Name Not Available",
-        type: edu.institutionType?.name || edu.institutionTypeName || edu.type || "Institution Type Not Available",
-        grade: edu.gradeLevel || edu.grade_level || edu.grade || "Grade Not Specified", 
+        school: edu.institutionName,
+        type: edu.institutionType?.name || edu.institutionTypeName || "Institution Type Not Available",
+        grade: edu.gradeLevel || edu.grade_level || "Grade Not Specified", 
         period: edu.startDate ? 
           `${new Date(edu.startDate).getFullYear()} - ${(edu.isCurrent || edu.is_current) ? 'Present' : (edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present')}` :
-          (edu.period || 'Date not specified'),
+          'Date not specified',
         gpa: edu.gpa && String(edu.gpa).trim() ? `GPA: ${edu.gpa}` : null,
         subjects: Array.isArray(edu.subjects) ? edu.subjects : [],
         achievements: Array.isArray(edu.achievements) ? edu.achievements : [],
         institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : false,
-        degreeProgram: edu.degreeProgram || edu.degree_program || "Degree Program Not Specified",
+        degreeProgram: edu.degreeProgram || "Degree Program Not Specified",
         fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
         description: edu.description
       };
-    }) : []
+    }).filter(Boolean) : [] // Remove null entries
 
   return (
     <div className="mb-8">
