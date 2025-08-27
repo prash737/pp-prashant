@@ -296,38 +296,8 @@ export default function ProfileHeader({
         console.log('📊 Connection counts from comprehensive data:', counts)
         setActualConnectionCounts(counts)
       } else {
-        // Fallback to API call if comprehensive data not available
-        const fetchViewedUserConnectionCounts = async () => {
-          try {
-            console.log('📡 Fetching connection counts for viewed user:', student.id)
-            const response = await fetch(`/api/connections?userId=${student.id}`, {
-              credentials: 'include'
-            })
-            if (response.ok) {
-              const connections = await response.json()
-              console.log('📊 Viewed user connections fetched:', connections.length)
-
-              // Count connections by role
-              const counts = {
-                total: connections.length,
-                students: connections.filter((conn: any) => conn.user.role === 'student').length,
-                mentors: connections.filter((conn: any) => conn.user.role === 'mentor').length,
-                institutions: connections.filter((conn: any) => conn.user.role === 'institution').length
-              }
-
-              console.log('📊 Viewed user connection counts calculated:', counts)
-              setActualConnectionCounts(counts)
-            } else {
-              console.error('Failed to fetch connection counts, status:', response.status)
-            }
-          } catch (error) {
-            console.error('Error fetching connection counts for viewed user:', error)
-          }
-        }
-
-        if (student.id) {
-          fetchViewedUserConnectionCounts()
-        }
+        console.log('📊 No comprehensive connection data available, keeping existing counts')
+        // Don't make API call as it may overwrite correct data from comprehensive profile
       }
     }
   }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections])
