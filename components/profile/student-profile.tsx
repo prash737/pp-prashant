@@ -193,9 +193,18 @@ export default function StudentProfile({
             socialLinks: rawStudentData.social_links || []
           },
           // Map education history - preserve all fields from comprehensive profile
-          educationHistory: (rawStudentData.education_history || []).map((edu: any) => {
+          educationHistory: (rawStudentData.education_history || []).map((edu: any, index: number) => {
             console.log('🔍 Mapping education entry:', JSON.stringify(edu, null, 2));
-            return {
+            console.log(`📚 Education entry ${index + 1} field analysis:`, {
+              hasInstitutionName: !!edu.institutionName,
+              hasInstitutionType: !!edu.institutionType,
+              hasDegreeProgram: !!edu.degreeProgram,
+              hasStartDate: !!edu.startDate,
+              hasInstitutionVerified: edu.institutionVerified !== undefined,
+              allFields: Object.keys(edu)
+            });
+
+            const mappedEducation = {
               id: edu.id,
               institutionName: edu.institutionName || edu.institution_name,
               institutionType: edu.institutionType || edu.institution_type,
@@ -214,6 +223,9 @@ export default function StudentProfile({
               description: edu.description,
               institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : edu.institution_verified
             };
+
+            console.log(`✅ Mapped education entry ${index + 1}:`, JSON.stringify(mappedEducation, null, 2));
+            return mappedEducation;
           }),
           // Map other fields
           achievements: rawStudentData.achievements || [],
