@@ -567,6 +567,12 @@ export async function GET(
     }
 
     // If RPC function works, return its data
+    console.log('🔍 RPC studentData structure:', {
+      hasEducationHistory: !!studentData?.[0]?.education_history,
+      educationCount: studentData?.[0]?.education_history?.length || 0,
+      sampleEducation: studentData?.[0]?.education_history?.[0]
+    })
+    
     return NextResponse.json(studentData)
 
   } catch (error) {

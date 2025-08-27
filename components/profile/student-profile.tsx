@@ -14,6 +14,7 @@ import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
 import { TabsContent } from "@/components/ui/tabs" // Assuming TabsContent is imported from here
+import EducationCards from "./education-cards" // Assuming EducationCards is imported from here
 
 interface StudentProfileProps {
   studentId?: string
