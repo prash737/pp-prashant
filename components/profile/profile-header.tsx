@@ -105,6 +105,7 @@ export default function ProfileHeader({
   const [followingCount, setFollowingCount] = useState(0)
   const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
   const [sendingRequest, setSendingRequest] = useState(false)
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false)
 
   const handleShareProfile = async () => {
     const profileUrl = `https://pathpiper.com/public-view/student/profile/${student.id}`
