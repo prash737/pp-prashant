@@ -581,7 +581,13 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
 
   // Update circles state when initialCircles prop changes
   useEffect(() => {
-    setCircles(initialCircles);
+    console.log('🔍 CircleView - Initial circles received:', {
+      circlesLength: initialCircles?.length || 0,
+      circles: initialCircles,
+      circlesType: typeof initialCircles,
+      isArray: Array.isArray(initialCircles)
+    })
+    setCircles(initialCircles || []);
   }, [initialCircles]);
 
   const getStatusColor = (status: string) => {

@@ -301,6 +301,17 @@ export default function ProfileHeader({
     setRecentAchievements(achievements || [])
   }, [achievements])
 
+  // Debug log for circles
+  useEffect(() => {
+    console.log('🔍 ProfileHeader - Circles prop received:', {
+      circlesLength: circles?.length || 0,
+      circles: circles,
+      circlesType: typeof circles,
+      isArray: Array.isArray(circles),
+      sampleCircle: circles?.[0]
+    })
+  }, [circles])
+
   // Set connections and following data from student prop
   useEffect(() => {
     if (isOwnProfile && student?.connections) {

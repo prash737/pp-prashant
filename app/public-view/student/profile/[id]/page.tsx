@@ -39,6 +39,12 @@ interface StudentData {
     endDate?: string
     current: boolean
   }>
+  circles?: Array<{
+    id: string
+    name: string
+    description?: string
+    profileImageUrl?: string
+  }>
 }
 
 export default function PublicViewStudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -103,6 +109,16 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         }
 
         const data = await response.json()
+        console.log('📊 PublicView: API data received:', {
+          hasData: !!data,
+          hasProfile: !!data?.profile,
+          firstName: data?.profile?.firstName || data?.first_name,
+          lastName: data?.profile?.lastName || data?.last_name,
+          achievementsCount: data?.achievements?.length || 0,
+          circlesCount: data?.circles?.length || 0,
+          circles: data?.circles,
+          hasCircles: !!data?.circles
+        })
         setStudentData(data)
       } catch (err) {
         console.error('Error fetching student data:', err)
@@ -164,6 +180,10 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     )
   }
 
+  // Extract circles data for components
+  const circles = studentData?.circles || [];
+  const profileHeaderData = studentData; // Alias for clarity if needed, though studentData is directly used
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <NavbarComponent />
@@ -185,6 +205,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
             studentId={profileId!}
             currentUser={currentUser}
             studentData={studentData}
+            circles={studentData?.circles || []} // Pass circles directly from studentData
             isViewMode={true} // This prop indicates it's a view-only mode
             shareProfile={() => {
                 const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
