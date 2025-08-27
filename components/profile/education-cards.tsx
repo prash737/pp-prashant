@@ -1,3 +1,4 @@
+
 "use client"
 
 import { motion } from "framer-motion"
@@ -9,75 +10,25 @@ interface EducationCardsProps {
   isViewMode?: boolean
 }
 
-interface EducationEntry {
-  school: string
-  type: string
-  grade: string
-  period: string
-  gpa: string | null
-  subjects: string[]
-  achievements: string[]
-  institutionVerified: boolean | null
-}
+export default function EducationCards({ educationHistory, isViewMode = false }: EducationCardsProps) {
+  console.log("🔍 Education Cards - Raw data received:", educationHistory);
 
-export default function EducationCards({ educationHistory: realEducationHistory, isViewMode = false }: EducationCardsProps) {
-  // Use real education data only - no fallback to mock data
-  const educationHistory = realEducationHistory && realEducationHistory.length > 0 ? 
-    realEducationHistory.map((edu: any, index: number) => {
-      // Debug log for complete raw education data with timestamp
-      const timestamp = new Date().toISOString();
-      console.log(`🔍 [${timestamp}] RAW Education data received (Entry ${index + 1}):`, JSON.stringify(edu, null, 2));
-      
-      // Check if this is complete data (has institutionName) or incomplete data (missing institutionName)
-      const hasCompleteData = edu.institutionName && edu.institutionName !== undefined;
-      const isIncompleteData = !hasCompleteData && edu.subjects;
-      
-      console.log(`🔍 [${timestamp}] Education data completeness analysis:`, {
-          index: index + 1,
-          hasCompleteData,
-          isIncompleteData,
-          hasInstitutionName: !!edu.institutionName,
-          hasSubjects: !!edu.subjects,
-          allKeys: Object.keys(edu),
-          dataQuality: hasCompleteData ? 'COMPLETE' : (isIncompleteData ? 'INCOMPLETE' : 'UNKNOWN')
-        });
-
-      // If we receive incomplete data, skip it or try to find complete data from a different source
-      if (isIncompleteData) {
-        console.warn(`⚠️ [${timestamp}] Skipping incomplete education entry ${index + 1} - missing institution details`);
-        // Return a placeholder that won't be rendered or try to use cached complete data
-        return null;
-      }
-
-      // Only process complete data
-      if (!hasCompleteData) {
-        console.warn(`⚠️ [${timestamp}] Education entry ${index + 1} has no institution name, treating as invalid`);
-        return null;
-      }
-
-      console.log(`✅ [${timestamp}] Processing complete education entry ${index + 1}:`, {
-          institution: edu.institutionName,
-          type: edu.institutionType?.name || edu.institutionTypeName,
-          degree: edu.degreeProgram,
-          verified: edu.institutionVerified
-        });
-
-      return {
-        school: edu.institutionName,
-        type: edu.institutionType?.name || edu.institutionTypeName || "Institution Type Not Available",
-        grade: edu.gradeLevel || edu.grade_level || "Grade Not Specified", 
-        period: edu.startDate ? 
-          `${new Date(edu.startDate).getFullYear()} - ${(edu.isCurrent || edu.is_current) ? 'Present' : (edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present')}` :
-          'Date not specified',
-        gpa: edu.gpa && String(edu.gpa).trim() ? `GPA: ${edu.gpa}` : null,
-        subjects: Array.isArray(edu.subjects) ? edu.subjects : [],
-        achievements: Array.isArray(edu.achievements) ? edu.achievements : [],
-        institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : false,
-        degreeProgram: edu.degreeProgram || "Degree Program Not Specified",
-        fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
-        description: edu.description
-      };
-    }).filter(Boolean) : [] // Remove null entries
+  // Simple mapping - use the data as it comes from the comprehensive function
+  const educationEntries = educationHistory?.map((edu: any) => ({
+    school: edu.institutionName || "Institution Name Not Available",
+    type: edu.institutionType?.name || edu.institutionTypeName || "Institution Type Not Available", 
+    grade: edu.gradeLevel || "Grade Not Specified",
+    period: edu.startDate ? 
+      `${new Date(edu.startDate).getFullYear()} - ${(edu.isCurrent || edu.is_current) ? 'Present' : (edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present')}` :
+      'Date not specified',
+    gpa: edu.gpa ? `GPA: ${edu.gpa}` : null,
+    subjects: edu.subjects || [],
+    achievements: edu.achievements || [],
+    institutionVerified: edu.institutionVerified,
+    degreeProgram: edu.degreeProgram || "Degree Program Not Specified",
+    fieldOfStudy: edu.fieldOfStudy,
+    description: edu.description
+  })) || []
 
   return (
     <div className="mb-8">
@@ -99,7 +50,7 @@ export default function EducationCards({ educationHistory: realEducationHistory,
       </div>
 
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-        {educationHistory.length === 0 ? (
+        {educationEntries.length === 0 ? (
           <div className="text-center py-12">
             <BookOpenIcon className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Education History</h3>
@@ -110,7 +61,7 @@ export default function EducationCards({ educationHistory: realEducationHistory,
         ) : (
           <div className="overflow-x-auto hide-scrollbar pb-4">
             <div className="flex space-x-4" style={{ minWidth: "min-content" }}>
-              {educationHistory.map((education, index) => (
+              {educationEntries.map((education, index) => (
                 <motion.div
                   key={index}
                   className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm"
