@@ -123,7 +123,7 @@ export default function StudentProfile({
       }
 
       const data = await response.json()
-      
+
 
       // Detailed logging of all data fields
       console.log('🧪 DETAILED DATA INSPECTION:')

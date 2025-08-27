@@ -301,7 +301,7 @@ export default function ProfileHeader({
     setRecentAchievements(achievements || [])
   }, [achievements])
 
-  // Debug log for circles
+  // Debug log for circles and handle student data circles
   useEffect(() => {
     console.log('🔍 ProfileHeader - Circles prop received:', {
       circlesLength: circles?.length || 0,
@@ -310,7 +310,26 @@ export default function ProfileHeader({
       isArray: Array.isArray(circles),
       sampleCircle: circles?.[0]
     })
-  }, [circles])
+
+    // If no circles passed as prop but student has circle data, extract and combine them
+    if ((!circles || circles.length === 0) && student) {
+      const createdCircles = student.created_circles || student.profile?.created_circles || []
+      const memberCircles = student.circles || student.profile?.circles || []
+      
+      if (createdCircles.length > 0 || memberCircles.length > 0) {
+        const combinedCircles = [...createdCircles, ...memberCircles]
+        console.log('🔍 ProfileHeader - Extracting circles from student data:', {
+          createdCount: createdCircles.length,
+          memberCount: memberCircles.length,
+          totalCount: combinedCircles.length,
+          combinedCircles
+        })
+        
+        // Don't set state here to avoid infinite loops, just log for debugging
+        // The parent component should handle passing the correct circles
+      }
+    }
+  }, [circles, student])
 
   // Set connections and following data from student prop
   useEffect(() => {
