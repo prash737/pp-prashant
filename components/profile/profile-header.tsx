@@ -230,75 +230,50 @@ export default function ProfileHeader({
     }
   }, [isOwnProfile, student?.connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
 
-  // Initialize and fetch connection counts
+  // Initialize connection counts from props or comprehensive profile data
   React.useEffect(() => {
     console.log('🔍 Connection counts effect triggered:', {
       isOwnProfile,
       studentId: student.id,
       hasConnectionCounts: !!connectionCounts,
-      connectionCounts
+      connectionCounts,
+      hasSentConnections: !!(student?.sent_connections),
+      hasReceivedConnections: !!(student?.received_connections)
     })
 
-    if (isOwnProfile) {
-      // For own profile, use the passed connectionCounts if available
-      if (connectionCounts) {
-        console.log('✅ Using passed connectionCounts for own profile:', connectionCounts)
-        setActualConnectionCounts(connectionCounts)
-      } else {
-        // If no connectionCounts passed, fetch for current user
-        const fetchOwnConnectionCounts = async () => {
-          try {
-            console.log('📡 Fetching own connection counts...')
-            const response = await fetch(`/api/connections`, {
-              credentials: 'include'
-            })
-            if (response.ok) {
-              const connections = await response.json()
-              console.log('📊 Own connections fetched:', connections.length)
+    // Always prioritize passed connectionCounts first
+    if (connectionCounts) {
+      console.log('✅ Using passed connectionCounts:', connectionCounts)
+      setActualConnectionCounts(connectionCounts)
+      return
+    }
 
-              const counts = {
-                total: connections.length,
-                students: connections.filter((conn: any) => conn.user.role === 'student').length,
-                mentors: connections.filter((conn: any) => conn.user.role === 'mentor').length,
-                institutions: connections.filter((conn: any) => conn.user.role === 'institution').length
-              }
-
-              console.log('📊 Own connection counts calculated:', counts)
-              setActualConnectionCounts(counts)
-            }
-          } catch (error) {
-            console.error('Error fetching own connection counts:', error)
-          }
-        }
-        fetchOwnConnectionCounts()
+    // Then check comprehensive profile data
+    if (student?.sent_connections || student?.received_connections) {
+      console.log('🔄 Using comprehensive profile connection data')
+      const sentConnections = student.sent_connections || []
+      const receivedConnections = student.received_connections || []
+      const allConnections = [...sentConnections, ...receivedConnections]
+      
+      const counts = {
+        total: allConnections.length,
+        students: allConnections.filter((conn: any) => 
+          conn.sender?.role === 'student' || conn.receiver?.role === 'student'
+        ).length,
+        mentors: allConnections.filter((conn: any) => 
+          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor'  
+        ).length,
+        institutions: allConnections.filter((conn: any) => 
+          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
+        ).length
       }
+      
+      console.log('📊 Connection counts from comprehensive data:', counts)
+      setActualConnectionCounts(counts)
     } else {
-      // For viewing someone else's profile, check if we have data from comprehensive profile first
-      if (student?.sent_connections || student?.received_connections) {
-        console.log('🔄 Using comprehensive profile connection data')
-        const sentConnections = student.sent_connections || []
-        const receivedConnections = student.received_connections || []
-        const allConnections = [...sentConnections, ...receivedConnections]
-        
-        const counts = {
-          total: allConnections.length,
-          students: allConnections.filter((conn: any) => 
-            conn.sender?.role === 'student' || conn.receiver?.role === 'student'
-          ).length,
-          mentors: allConnections.filter((conn: any) => 
-            conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor'  
-          ).length,
-          institutions: allConnections.filter((conn: any) => 
-            conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
-          ).length
-        }
-        
-        console.log('📊 Connection counts from comprehensive data:', counts)
-        setActualConnectionCounts(counts)
-      } else {
-        console.log('📊 No comprehensive connection data available, keeping existing counts')
-        // Don't make API call as it may overwrite correct data from comprehensive profile
-      }
+      // Default to zero counts if no data available
+      console.log('📊 No connection data available, using default counts')
+      setActualConnectionCounts({ total: 0, students: 0, mentors: 0, institutions: 0 })
     }
   }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections])
 
