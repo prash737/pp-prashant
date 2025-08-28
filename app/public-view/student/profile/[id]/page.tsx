@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth"
 import StudentProfile from "@/components/profile/student-profile"
 import InternalNavbar from "@/components/internal-navbar"
 import InstitutionNavbar from "@/components/institution-navbar"
+import EducationCards from "@/components/profile/education-cards"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -265,21 +266,27 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
           </Button>
         </div>
         {studentData && (
-          <StudentProfile
-            studentId={profileId!}
-            currentUser={currentUser}
-            studentData={studentData}
-            circles={studentData?.circles || []} // Pass circles directly from studentData
-            isViewMode={true} // This prop indicates it's a view-only mode
-            shareProfile={() => {
-                const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
-                navigator.clipboard.writeText(profileUrl).then(() => {
-                  alert('Profile link copied to clipboard!');
-                }).catch(() => {
-                  alert('Failed to copy link');
-                });
-              }}
-          />
+          <>
+            <StudentProfile
+              studentId={profileId!}
+              currentUser={currentUser}
+              studentData={studentData}
+              circles={studentData?.circles || []} // Pass circles directly from studentData
+              isViewMode={true} // This prop indicates it's a view-only mode
+              shareProfile={() => {
+                  const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
+                  navigator.clipboard.writeText(profileUrl).then(() => {
+                    alert('Profile link copied to clipboard!');
+                  }).catch(() => {
+                    alert('Failed to copy link');
+                  });
+                }}
+            />
+            {/* Education Cards section for public view */}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+              <EducationCards isViewMode={true} studentData={studentData} />
+            </div>
+          </>
         )}
       </main>
     </div>
