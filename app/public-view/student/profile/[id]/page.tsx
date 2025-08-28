@@ -93,7 +93,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/student/profile/${profileId}`, {
+        const response = await fetch(`/api/public/student/profile/${profileId}`, {
           credentials: 'include'
         })
 
