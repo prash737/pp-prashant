@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import InternalNavbar from '@/components/internal-navbar'
 import Footer from '@/components/footer'
 import ProfileHeader from '@/components/profile/profile-header'
-import CircleView from '@/components/circle-view'
+import CircleView from '@/components/profile/circle-view'
 import { fetchStudentProfile } from '@/utils/api'
 
 export default function StudentProfilePage() {
