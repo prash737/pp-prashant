@@ -25,7 +25,11 @@ export async function GET(
         },
         memberships: {
           where: {
-            status: 'accepted'
+            status: 'active',
+            OR: [
+              { isDisabledMember: false },
+              { isDisabledMember: null }
+            ]
           },
           include: {
             user: {
