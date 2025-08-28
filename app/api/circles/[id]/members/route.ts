@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const circleId = params.id
+    const { id: circleId } = await params
 
     // Fetch circle with all members
     const circle = await prisma.circleBadge.findUnique({
