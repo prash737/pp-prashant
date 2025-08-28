@@ -522,7 +522,7 @@ export default function ProfileHeader({
   return (
     <>
       <div className="relative">
-        {/* Customizable banner - Use cover photo if available, otherwise show blue gradient */}
+        {/* Customizable banner - Use cover photo if available, otherwise show pathpiper-teal background */}
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
             {coverImage ? (
@@ -530,10 +530,18 @@ export default function ProfileHeader({
                 src={coverImage}
                 alt="Cover photo"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // If image fails to load, hide it and show default background
+                  e.currentTarget.style.display = 'none';
+                }}
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
-            )}</div>
+            ) : null}
+            {/* Default background - always present, only visible when no cover image or image fails */}
+            <div 
+              className={`w-full h-full bg-pathpiper-teal ${coverImage ? 'absolute inset-0 -z-10' : ''}`}
+              style={{ minHeight: '400px' }}
+            ></div>
+          </div>
         </div>
 
         <div className="container mx-auto px-4 max-w-7xl">
