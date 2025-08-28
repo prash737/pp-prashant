@@ -727,7 +727,7 @@ export default function StudentProfile({
               {renderContent()}
             </div>
             {/* Render EducationCards here, passing the studentData */}
-            <EducationCards isViewMode={isViewMode} studentData={studentData} />
+            <EducationCards isViewMode={isViewMode} studentData={finalStudentData} />
           </div>
         </>
       )}
