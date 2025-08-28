@@ -27,8 +27,8 @@ export async function GET(
           where: {
             status: 'active',
             OR: [
-              { is_disabled_member: false },
-              { is_disabled_member: null }
+              { isDisabledMember: false },
+              { isDisabledMember: null }
             ]
           },
           include: {
