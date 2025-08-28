@@ -74,7 +74,7 @@ export async function GET(
       })
     })
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       circle: {
         id: circle.id,
@@ -84,7 +84,11 @@ export async function GET(
         icon: circle.icon
       },
       members
-    })
+    };
+
+    console.log('🎯 Circle Members API Response:', JSON.stringify(responseData, null, 2));
+    
+    return NextResponse.json(responseData)
 
   } catch (error) {
     console.error('Error fetching circle members:', error)
