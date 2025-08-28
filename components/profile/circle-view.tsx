@@ -503,6 +503,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
   const [circles, setCircles] = useState<Circle[]>(initialCircles);
+  const [circleMembers, setCircleMembers] = useState<any[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
@@ -635,15 +637,53 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
     }
   };
 
-  const handleCircleSelect = (circle: Circle) => {
+  const handleCircleSelect = async (circle: Circle) => {
     setSelectedCircle(circle);
     setShowCircleMembers(true);
     setActiveView("connections");
+    setLoadingMembers(true);
+    setCircleMembers([]);
+
+    try {
+      const response = await fetch(`/api/circles/${circle.id}/members`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🎯 Circle members fetched:', data);
+        
+        // Transform the API response to match the expected format
+        const transformedMembers = data.members.map((member: any) => ({
+          user: {
+            id: member.user.id,
+            firstName: member.user.firstName,
+            lastName: member.user.lastName,
+            profileImageUrl: member.user.profileImageUrl,
+            role: member.isCreator ? 'creator' : member.user.role,
+            bio: member.user.bio || '',
+            status: 'online', // Default status
+            name: `${member.user.firstName} ${member.user.lastName}`,
+            lastInteraction: member.isCreator ? 'Circle Creator' : 'Circle Member'
+          },
+          isCreator: member.isCreator
+        }));
+        
+        setCircleMembers(transformedMembers);
+      } else {
+        console.error('Failed to fetch circle members');
+        setCircleMembers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching circle members:', error);
+      setCircleMembers([]);
+    } finally {
+      setLoadingMembers(false);
+    }
   };
 
   const handleCloseCircleMembers = () => {
     setSelectedCircle(null);
     setShowCircleMembers(false);
+    setCircleMembers([]);
+    setLoadingMembers(false);
   };
 
   if (loading) {
@@ -821,8 +861,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       <TabsTrigger value="all">
                         All ({(() => {
                           if (showCircleMembers && selectedCircle) {
-                            // Count all members in the selected circle (including creator)
-                            return selectedCircle.memberships?.length || 0 + 1;
+                            // Count all members from fetched data
+                            return loadingMembers ? '...' : circleMembers.length;
                           }
                           return totalConnections;
                         })()})
@@ -830,9 +870,9 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       <TabsTrigger value="peers">
                         Peers ({(() => {
                           if (showCircleMembers && selectedCircle) {
-                            // Count only students in the selected circle
-                            return (selectedCircle.memberships || []).filter(
-                              (membership: any) => membership.user.role === "student"
+                            // Count only students from fetched data
+                            return loadingMembers ? '...' : circleMembers.filter(
+                              member => member.user.role === "student"
                             ).length;
                           }
                           return peerConnections;
@@ -843,31 +883,18 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                     <TabsContent value="all" className="mt-0">
                       {(() => {
                         if (showCircleMembers && selectedCircle) {
-                          // Show circle members
-                          const allMembers = [
-                            // Add creator as first member
-                            {
-                              user: {
-                                id: selectedCircle.creator.id,
-                                firstName: selectedCircle.creator.firstName,
-                                lastName: selectedCircle.creator.lastName,
-                                profileImageUrl: selectedCircle.creator.profileImageUrl,
-                                role: "creator",
-                                status: "online",
-                                name: `${selectedCircle.creator.firstName} ${selectedCircle.creator.lastName}`,
-                                bio: "",
-                                lastInteraction: "Circle Creator"
-                              }
-                            },
-                            // Add other members
-                            ...(selectedCircle.memberships || []).map(membership => ({
-                              user: {
-                                ...membership.user,
-                                name: `${membership.user.firstName} ${membership.user.lastName}`,
-                                lastInteraction: "Circle Member"
-                              }
-                            }))
-                          ];
+                          // Show loading state
+                          if (loadingMembers) {
+                            return (
+                              <div className="text-center py-8 text-gray-500">
+                                <Users className="h-12 w-12 mx-auto mb-2 text-gray-300 animate-pulse" />
+                                <p>Loading members...</p>
+                              </div>
+                            );
+                          }
+
+                          // Show circle members from API
+                          const allMembers = circleMembers;
 
                           if (allMembers.length === 0) {
                             return (
@@ -1058,16 +1085,20 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                     <TabsContent value="peers" className="mt-0">
                       {(() => {
                         if (showCircleMembers && selectedCircle) {
-                          // Show only students from circle
-                          const peerMembers = (selectedCircle.memberships || []).filter(
-                            membership => membership.user.role === "student"
-                          ).map(membership => ({
-                            user: {
-                              ...membership.user,
-                              name: `${membership.user.firstName} ${membership.user.lastName}`,
-                              lastInteraction: "Circle Member"
-                            }
-                          }));
+                          // Show loading state
+                          if (loadingMembers) {
+                            return (
+                              <div className="text-center py-8 text-gray-500">
+                                <Users className="h-12 w-12 mx-auto mb-2 text-gray-300 animate-pulse" />
+                                <p>Loading peers...</p>
+                              </div>
+                            );
+                          }
+
+                          // Show only students from fetched circle members
+                          const peerMembers = circleMembers.filter(
+                            member => member.user.role === "student"
+                          );
 
                           if (peerMembers.length === 0) {
                             return (
