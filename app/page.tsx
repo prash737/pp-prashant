@@ -46,7 +46,7 @@ export default function HomePage() {
     if (!loading && !checkingParentAuth && user) {
       // Redirect authenticated users to their appropriate dashboard
       if (user.role === 'student') {
-        router.push('/feed')
+        router.push(`/student/profile/${user.id}`)
       } else if (user.role === 'mentor') {
         router.push('/mentor/profile')
       } else if (user.role === 'institution') {

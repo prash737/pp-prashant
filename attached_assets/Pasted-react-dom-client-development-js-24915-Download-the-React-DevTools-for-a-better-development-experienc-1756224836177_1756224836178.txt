@@ -1,0 +1,49 @@
+react-dom-client.development.js:24915 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+use-websocket.js:42 WebSocket connection to 'wss://2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev/_next/webpack-hmr' failed: 
+eval @ use-websocket.js:42
+internal-navbar.tsx:119 🔍 Navbar: User data fetched: Object
+use-auth.ts:148 🔄 Fetching and caching complete profile data...
+mood-board-section.tsx:44 🎨 Mood Board Section Debug: Object
+mood-board-section.tsx:44 🎨 Mood Board Section Debug: Object
+student-profile.tsx:112 📡 StudentProfile: Fetching data for student ID: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+mood-board-section.tsx:54 🎨 Mood Board Response: Object
+use-auth.ts:177 ✅ Profile data cached successfully: Object
+student-profile.tsx:126 📡 StudentProfile: Received student data: Array(1)
+student-profile.tsx:129 🧪 DETAILED DATA INSPECTION:
+student-profile.tsx:130   - ID: undefined
+student-profile.tsx:131   - Profile object: undefined
+student-profile.tsx:132   - Profile firstName: undefined
+student-profile.tsx:133   - Profile lastName: undefined
+student-profile.tsx:134   - Profile bio: undefined
+student-profile.tsx:135   - Profile location: undefined
+student-profile.tsx:136   - Profile image: undefined
+student-profile.tsx:137   - Profile tagline: undefined
+student-profile.tsx:138   - Connection counts: undefined
+student-profile.tsx:139   - Circles: undefined
+student-profile.tsx:140   - Achievements: undefined
+student-profile.tsx:141   - Education history: undefined
+student-profile.tsx:142   - Following institutions: undefined
+student-profile.tsx:143   - User interests: undefined
+student-profile.tsx:144   - User skills: undefined
+student-profile.tsx:163 🔍 StudentProfile: State after setting circles: Array(0)
+page.tsx:137 ✅ Fresh data loaded and cached for user: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+student-profile.tsx:112 📡 StudentProfile: Fetching data for student ID: 006a3d59-ec4d-42e6-aee4-d04f1d0caf2b
+mood-board-section.tsx:54 🎨 Mood Board Response: {collectionsCount: 2, collections: Array(2)}
+student-profile.tsx:126 📡 StudentProfile: Received student data: [{…}]0: achievements: (2) [{…}, {…}]age_group: "young_adult"bio: "Passionate about Data architectures and scalable systems !"birth_month: "10"birth_year: "2003"cover_image_url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAeducation_history: (2) [{…}, {…}]education_level: "undergraduate"favorite_quote: nullfirst_name: "Prashant"goals: [{…}]id: "006a3d59-ec4d-42e6-aee4-d04f1d0caf2b"institution_following: [{…}]last_name: "Dubey"learning_style: nulllocation: "Pune, Maharashtra"personality_type: nullprofile_image_url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAreceived_connections: (2) [{…}, {…}]sent_connections: [{…}]social_links: (2) [{…}, {…}]tagline: ""user_collections: (2) [{…}, {…}]user_interests: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]user_skills: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]verification_status: false[[Prototype]]: Objectlength: 1[[Prototype]]: Array(0)
+student-profile.tsx:129 🧪 DETAILED DATA INSPECTION:
+student-profile.tsx:130   - ID: undefined
+student-profile.tsx:131   - Profile object: undefined
+student-profile.tsx:132   - Profile firstName: undefined
+student-profile.tsx:133   - Profile lastName: undefined
+student-profile.tsx:134   - Profile bio: undefined
+student-profile.tsx:135   - Profile location: undefined
+student-profile.tsx:136   - Profile image: undefined
+student-profile.tsx:137   - Profile tagline: undefined
+student-profile.tsx:138   - Connection counts: undefined
+student-profile.tsx:139   - Circles: undefined
+student-profile.tsx:140   - Achievements: undefined
+student-profile.tsx:141   - Education history: undefined
+student-profile.tsx:142   - Following institutions: undefined
+student-profile.tsx:143   - User interests: undefined
+student-profile.tsx:144   - User skills: undefined
+student-profile.tsx:163 🔍 StudentProfile: State after setting circles: []

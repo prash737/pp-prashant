@@ -23,9 +23,10 @@ interface SuggestedUser {
 
 interface SuggestedConnectionsProps {
   student: any
+  suggestedConnections?: any[]
 }
 
-export default function SuggestedConnections({ student }: SuggestedConnectionsProps) {
+export default function SuggestedConnections({ student, suggestedConnections = [] }: SuggestedConnectionsProps) {
   const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([])
   const [loading, setLoading] = useState(true)
   const [sendingRequest, setSendingRequest] = useState<string | null>(null)

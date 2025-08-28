@@ -1,0 +1,43 @@
+Error: Route "/api/interests" used `cookies().get('sb-access-token')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/interests/route.ts:16:36)
+  14 |     // Get the access token from cookies
+  15 |     const cookieStore = cookies()
+> 16 |     const accessToken = cookieStore.get('sb-access-token')?.value
+     |                                    ^
+  17 |
+  18 |     if (!accessToken) {
+  19 |       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+ GET /api/interests?ageGroup=young_adult 200 in 2339ms
+Error: Route "/api/interests" used `cookies().get('sb-access-token')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/interests/route.ts:16:36)
+  14 |     // Get the access token from cookies
+  15 |     const cookieStore = cookies()
+> 16 |     const accessToken = cookieStore.get('sb-access-token')?.value
+     |                                    ^
+  17 |
+  18 |     if (!accessToken) {
+  19 |       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+ ○ Compiling /api/user/interests ...
+ GET /api/interests?ageGroup=young_adult 200 in 1010ms
+ ✓ Compiled /api/user/interests in 1260ms (2746 modules)
+Error: Route "/api/user/interests" used `cookies().get('sb-access-token')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/user/interests/route.ts:16:36)
+  14 |     // Get the access token from cookies
+  15 |     const cookieStore = cookies()
+> 16 |     const accessToken = cookieStore.get('sb-access-token')?.value
+     |                                    ^
+  17 |
+  18 |     if (!accessToken) {
+  19 |       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+ GET /api/user/interests 200 in 6233ms
+Error: Route "/api/user/interests" used `cookies().get('sb-access-token')`. `cookies()` should be awaited before using its value. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at GET (app/api/user/interests/route.ts:16:36)
+  14 |     // Get the access token from cookies
+  15 |     const cookieStore = cookies()
+> 16 |     const accessToken = cookieStore.get('sb-access-token')?.value
+     |                                    ^
+  17 |
+  18 |     if (!accessToken) {
+  19 |       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+ GET /api/user/interests 200 in 4170ms
+ ✓ Compiled in 667ms (1187 modules)

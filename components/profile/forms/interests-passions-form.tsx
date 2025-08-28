@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -120,7 +119,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -131,7 +130,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
     }
   }, [interestCategories, selectedInterests])
@@ -164,7 +163,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
-          
+
           return {
             ...category,
             interests: userCustomInterests.map(interest => ({
@@ -175,7 +174,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
         return category
       })
-      
+
       setFilteredCategories(filteredCategories)
       return
     }
@@ -190,7 +189,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
-          
+
           return {
             name: category.name,
             interests: userCustomInterests.map(interest => ({
@@ -199,7 +198,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             }))
           }
         }
-        
+
         return {
           name: category.name,
           interests: category.interests.filter((interest) => interest.name.toLowerCase().includes(term)),
@@ -219,7 +218,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }
 
-  
+
 
   const addCustomInterest = () => {
     const trimmedInterest = customInterest.trim()
@@ -337,9 +336,9 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           </div>
 
           {/* Interest Categories */}
-          <div className="space-y-6 max-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="space-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             {filteredCategories.map((category) => (
-              <div key={category.name}>
+              <div key={category.name} className="mb-6">
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
                   {category.name}
                 </h4>
@@ -392,18 +391,18 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
             ) : (
               <div className="flex-1 overflow-y-auto">
                 <div className="flex flex-wrap gap-2">
-                  {selectedInterests.map((interest) => (
+                  {selectedInterests.map((interest, index) => (
                     <div
-                      key={interest.id}
+                      key={interest.id !== undefined ? `selected-${interest.id}` : `selected-custom-${index}-${interest.name}`}
                       className="flex items-center bg-pathpiper-teal text-white px-3 py-1 rounded-full text-sm"
                     >
-                      <span className="font-medium">{interest.name}</span>
+                      <span className="font-medium mr-2">{interest.name || 'Unnamed Interest'}</span>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeInterest(interest.id)}
-                        className="ml-2 p-0 h-auto text-white hover:text-red-200 hover:bg-transparent"
+                        className="p-0 h-auto text-white hover:text-red-200 hover:bg-transparent"
                       >
                         <X size={14} />
                       </Button>
