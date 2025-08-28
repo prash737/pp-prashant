@@ -1,8 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
-import { userAchievements } from '@/lib/drizzle/schema'
-import { eq, desc } from 'drizzle-orm'
+import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -36,12 +34,21 @@ export async function GET(
 
     console.log('API: Authenticated user found:', user.id)
 
+    // Check if UserAchievement model exists
+    if (!prisma.userAchievement) {
+      console.error('UserAchievement model not found in Prisma client')
+      return NextResponse.json({ error: 'UserAchievement model not available' }, { status: 500 })
+    }
+
     // Get achievements for the specific student
-    const achievements = await db
-      .select()
-      .from(userAchievements)
-      .where(eq(userAchievements.userId, studentId))
-      .orderBy(desc(userAchievements.dateOfAchievement))
+    const achievements = await prisma.userAchievement.findMany({
+      where: {
+        userId: studentId
+      },
+      orderBy: {
+        dateOfAchievement: 'desc'
+      }
+    })
 
     console.log(`API: Found ${achievements.length} achievements for student ${studentId}`)
 

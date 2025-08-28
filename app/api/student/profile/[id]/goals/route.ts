@@ -1,8 +1,7 @@
+
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
-import { goals, suggestedGoals } from '@/lib/drizzle/schema'
+import { prisma } from '@/lib/prisma'
 import { createClient } from '@supabase/supabase-js'
-import { eq, desc, and } from 'drizzle-orm'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +14,7 @@ export async function GET(
 ) {
   try {
     const { id: studentId } = await params;
-
+    
     console.log('API: Student goals request received for:', studentId)
 
     const cookieStore = request.cookies
@@ -35,42 +34,25 @@ export async function GET(
 
     console.log('API: Authenticated user found:', user.id)
 
-    // Get goals for the specific student using Drizzle
-    const userGoals = await db.select().from(goals)
-      .where(eq(goals.userId, studentId))
-      .orderBy(desc(goals.createdAt))
+    // Check if Goal model exists
+    if (!prisma.goal) {
+      console.error('Goal model not found in Prisma client')
+      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
+    }
 
-    // Get suggested goals that have been added (is_added = true) using Drizzle
-    const userSuggestedGoals = await db.select().from(suggestedGoals)
-      .where(and(
-        eq(suggestedGoals.userId, studentId),
-        eq(suggestedGoals.isAdded, true)
-      ))
-      .orderBy(desc(suggestedGoals.createdAt))
+    // Get goals for the specific student
+    const goals = await prisma.goal.findMany({
+      where: {
+        userId: studentId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
 
-    // Combine both goal types into a single array
-    const allGoals = [
-      ...userGoals.map(g => ({
-        ...g,
-        isSuggested: false
-      })),
-      ...userSuggestedGoals.map(sg => ({
-        id: sg.id,
-        title: sg.title,
-        description: sg.description,
-        category: sg.category,
-        timeframe: sg.timeframe,
-        userId: sg.userId,
-        completed: false, // suggested goals don't have completed status
-        createdAt: sg.createdAt,
-        updatedAt: sg.createdAt, // use createdAt as updatedAt for suggested goals
-        isSuggested: true // flag to identify suggested goals
-      }))
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    console.log(`API: Found ${goals.length} goals for student ${studentId}`)
 
-    console.log(`API: Found ${userGoals.length} regular goals and ${userSuggestedGoals.length} suggested goals for student ${studentId}`)
-
-    return NextResponse.json({ goals: allGoals })
+    return NextResponse.json({ goals })
   } catch (error) {
     console.error('Error fetching student goals:', error)
     return NextResponse.json({ 

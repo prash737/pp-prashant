@@ -18,26 +18,66 @@ interface Goal {
 
 interface GoalsProps {
   student: any;
-  currentUser?: any;
-  goals?: any[];
+  currentUser: any;
   isViewMode?: boolean;
 }
 
-const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewMode = false }) => {
+const Goals: React.FC<GoalsProps> = ({ student, currentUser, isViewMode }) => {
   const router = useRouter();
-  const [internalGoals, setInternalGoals] = useState<Goal[]>(goals);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState(true);
   const isOwnProfile = currentUser && currentUser.id === student?.id;
 
   useEffect(() => {
-    // Update internal state if the prop changes
-    setInternalGoals(goals);
-  }, [goals]);
+    fetchGoals();
+  }, [isViewMode, student?.id]);
+
+  const fetchGoals = async () => {
+    try {
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch goals for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/goals`);
+      } else {
+        // In own profile mode, fetch goals for the current user
+        response = await fetch('/api/goals');
+      }
+      
+      if (response.ok) {
+        const data = await response.json();
+        setGoals(data.goals || []);
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleManage = () => {
     router.push("/student/profile/edit?section=goals");
   };
 
-  if (internalGoals.length === 0) {
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Goals</h2>
+          {isOwnProfile && (
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Manage
+            </Button>
+          )}
+        </div>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (goals.length === 0) {
     return (
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
@@ -60,7 +100,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals added yet</h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {isOwnProfile
+              {isOwnProfile 
                 ? "Add your first goal to start tracking your aspirations and achievements."
                 : "This user hasn't added any goals yet."
               }
@@ -92,15 +132,15 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
       </div>
 
       <div className="grid gap-4">
-        {internalGoals.map((goal, index) => (
+        {goals.map((goal, index) => (
           <motion.div
             key={goal.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={`bg-white dark:bg-gray-800 border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-              goal.completed
-                ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10"
+              goal.completed 
+                ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10" 
                 : "border-gray-200 dark:border-gray-700"
             }`}
           >
@@ -151,6 +191,8 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
           </motion.div>
         ))}
       </div>
+
+
     </div>
   );
 };

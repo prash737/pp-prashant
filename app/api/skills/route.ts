@@ -1,8 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
-import { skillCategories, skills } from '@/lib/drizzle/schema'
-import { eq } from 'drizzle-orm'
+import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
@@ -16,14 +13,16 @@ export async function GET(request: NextRequest) {
     let isParentRequest = false
     
     if (parentAuthTokenCookie) {
-      // Parent authentication - would need to add parent profile table to drizzle schema
+      // Parent authentication
       try {
         const parentId = parentAuthTokenCookie.value
-        // Note: You'll need to add parentProfiles table to drizzle schema
-        // const parentProfile = await db.select().from(parentProfiles).where(eq(parentProfiles.id, parentId)).limit(1)
-        // if (!parentProfile.length) {
-        //   return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
-        // }
+        const parentProfile = await prisma.parentProfile.findUnique({
+          where: { id: parentId }
+        })
+        
+        if (!parentProfile) {
+          return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
+        }
         
         isParentRequest = true
       } catch (error) {
@@ -69,61 +68,63 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Original age group:', ageGroup)
     console.log('🔍 Mapped age group:', mappedAgeGroup)
 
-    // Fetch skill categories and skills for the age group using Drizzle
-    const skillCategoriesWithSkills = await db
-      .select({
-        id: skillCategories.id,
-        name: skillCategories.name,
-        ageGroup: skillCategories.ageGroup,
-        skillId: skills.id,
-        skillName: skills.name,
-      })
-      .from(skillCategories)
-      .leftJoin(skills, eq(skillCategories.id, skills.categoryId))
-      .where(eq(skillCategories.ageGroup, mappedAgeGroup as any))
-      .orderBy(skillCategories.name, skills.name)
+    // Fetch skill categories and skills for the age group using Prisma
+    const skillCategories = await prisma.skillCategory.findMany({
+      where: {
+        ageGroup: mappedAgeGroup as any
+      },
+      include: {
+        skills: {
+          select: {
+            id: true,
+            name: true
+          },
+          orderBy: {
+            name: 'asc'
+          }
+        }
+      },
+      orderBy: [
+        { name: 'asc' }
+      ]
+    })
 
-    console.log('✅ Found', skillCategoriesWithSkills.length, 'skill categories for age group:', mappedAgeGroup)
+    console.log('✅ Found', skillCategories.length, 'skill categories for age group:', mappedAgeGroup)
 
     // If no categories found for this age group, try with a fallback
-    let finalCategories = skillCategoriesWithSkills
-    if (skillCategoriesWithSkills.length === 0) {
+    let finalCategories = skillCategories
+    if (skillCategories.length === 0) {
       console.log('⚠️ No categories found for', mappedAgeGroup, ', trying young_adult as fallback')
-      finalCategories = await db
-        .select({
-          id: skillCategories.id,
-          name: skillCategories.name,
-          ageGroup: skillCategories.ageGroup,
-          skillId: skills.id,
-          skillName: skills.name,
-        })
-        .from(skillCategories)
-        .leftJoin(skills, eq(skillCategories.id, skills.categoryId))
-        .where(eq(skillCategories.ageGroup, 'young_adult' as any))
-        .orderBy(skillCategories.name, skills.name)
+      finalCategories = await prisma.skillCategory.findMany({
+        where: {
+          ageGroup: 'young_adult' as any
+        },
+        include: {
+          skills: {
+            select: {
+              id: true,
+              name: true
+            },
+            orderBy: {
+              name: 'asc'
+            }
+          }
+        },
+        orderBy: [
+          { name: 'asc' }
+        ]
+      })
       console.log('✅ Found', finalCategories.length, 'fallback categories')
     }
 
     // Transform the data to match the expected format
-    const categoryMap = new Map()
-    
-    finalCategories.forEach(row => {
-      if (!categoryMap.has(row.name)) {
-        categoryMap.set(row.name, {
-          name: row.name,
-          skills: []
-        })
-      }
-      
-      if (row.skillId && row.skillName) {
-        categoryMap.get(row.name).skills.push({
-          id: row.skillId,
-          name: row.skillName
-        })
-      }
-    })
-
-    const transformedCategories = Array.from(categoryMap.values())
+    const transformedCategories = finalCategories.map(category => ({
+      name: category.name,
+      skills: category.skills.map(skill => ({
+        id: skill.id,
+        name: skill.name
+      }))
+    }))
 
     console.log('✅ Transformed categories:', transformedCategories.map(c => ({ name: c.name, skillCount: c.skills.length })))
 

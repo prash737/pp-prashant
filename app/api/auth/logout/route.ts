@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear the authentication cookies
-    const response = NextResponse.json({
-      success: true,
+    const response = NextResponse.json({ 
+      success: true, 
       message: "Logged out successfully",
       clearStorage: true // Signal to client to clear all storage
     })
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         path: '/',
         domain: isProduction ? undefined : undefined
       });
-
+      
       // Also clear without httpOnly for client-accessible cookies
       response.cookies.set(cookieName, '', {
         httpOnly: false,

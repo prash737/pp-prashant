@@ -85,29 +85,76 @@ interface Circle {
 }
 
 // Circle Badges Section Component
-function CircleBadgesSection({
-  onCircleSelect,
+function CircleBadgesSection({ 
+  onCircleSelect, 
   currentUserId,
   isViewMode = false,
-  studentId,
-  circles = [],
-  loading = false,
-  onCirclesUpdate
-}: {
+  studentId
+}: { 
   onCircleSelect: (circle: Circle) => void;
   currentUserId?: string;
   isViewMode?: boolean;
   studentId?: string;
-  circles?: Circle[];
-  loading?: boolean;
-  onCirclesUpdate?: () => void;
 }) {
+  const [circles, setCircles] = useState<Circle[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateCircle, setShowCreateCircle] = useState(false);
   const [newCircleName, setNewCircleName] = useState('');
   const [newCircleColor, setNewCircleColor] = useState('#3B82F6');
   const [newCircleDescription, setNewCircleDescription] = useState('');
   const [newCircleImageFile, setNewCircleImageFile] = useState<File | null>(null);
   const [newCircleImageUrl, setNewCircleImageUrl] = useState('');
+
+  useEffect(() => {
+    const fetchCircles = async () => {
+      try {
+        let response;
+        if (isViewMode && studentId) {
+          // In view mode, fetch circles for the student being viewed
+          response = await fetch(`/api/student/profile/${studentId}/circles`);
+        } else {
+          // In own profile mode, fetch circles for the current user
+          response = await fetch("/api/circles");
+        }
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Filter out disabled circles in view mode
+          if (isViewMode && studentId) {
+            const enabledCircles = data.filter((circle: any) => {
+              // Check if circle is globally disabled
+              if (circle.isDisabled) return false;
+
+              // Check if creator is disabled and the student being viewed is the creator
+              if (circle.isCreatorDisabled && circle.creator?.id === studentId) {
+                return false;
+              }
+
+              // Check if the student being viewed has disabled membership
+              const studentMembership = circle.memberships?.find(
+                (membership: any) => membership.user?.id === studentId
+              );
+              if (studentMembership && studentMembership.isDisabledMember) {
+                return false;
+              }
+
+              return true;
+            });
+            setCircles(enabledCircles);
+          } else {
+            setCircles(data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching circles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCircles();
+  }, [isViewMode, studentId]);
 
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
@@ -198,8 +245,12 @@ function CircleBadgesSection({
         setNewCircleImageUrl('')
         setShowCreateCircle(false)
 
-        // Show success message and suggest page refresh
-        alert('Circle created successfully! Please refresh the page to see the new circle.')
+        // Refresh circles
+        const fetchResponse = await fetch("/api/circles");
+        if (fetchResponse.ok) {
+          const data = await fetchResponse.json();
+          setCircles(data);
+        }
       } else {
         console.error('Failed to create circle')
       }
@@ -265,9 +316,9 @@ function CircleBadgesSection({
             <Badge variant="secondary" className="ml-2">{circles.length} circles</Badge>
           </div>
           {!isViewMode && (
-            <Button
-              variant="outline"
-              size="sm"
+            <Button 
+              variant="outline" 
+              size="sm" 
               className="h-8 w-8 p-0"
               title="Create new circle"
               onClick={() => setShowCreateCircle(true)}
@@ -320,11 +371,11 @@ function CircleBadgesSection({
                     <div className="relative mb-2">
                       <div
                         className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 overflow-hidden relative ${
-                          isDisabled
-                            ? 'grayscale cursor-not-allowed bg-gray-400 opacity-50'
+                          isDisabled 
+                            ? 'grayscale cursor-not-allowed bg-gray-400 opacity-50' 
                             : 'group-hover:shadow-xl group-hover:scale-105'
                         }`}
-                        style={{
+                        style={{ 
                           backgroundColor: isDisabled ? '#6B7280' : circle.color,
                           filter: isDisabled ? 'grayscale(1) brightness(0.6) contrast(0.8)' : 'none'
                         }}
@@ -373,9 +424,9 @@ function CircleBadgesSection({
                     </div>
 
                     {/* Circle Name */}
-                    <span className={`text-xs text-center font-medium w-16 ${
-                      isDisabled
-                        ? 'text-gray-400 dark:text-gray-500'
+                    <span className={`text-xs text-center font-medium truncate w-16 ${
+                      isDisabled 
+                        ? 'text-gray-400 dark:text-gray-500' 
                         : 'text-gray-700 dark:text-gray-300'
                     }`}>
                       {circle.name}
@@ -489,11 +540,11 @@ function CircleBadgesSection({
 
 interface CircleViewProps {
   student: any;
-  circles?: Circle[]; // Changed from any[] to Circle[] for type safety
+  currentUserId?: string;
   isViewMode?: boolean;
 }
 
-export default function CircleView({ student, circles: initialCircles = [], isViewMode = false }: CircleViewProps) {
+export default function CircleView({ student, currentUserId, isViewMode }: CircleViewProps) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -502,10 +553,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
   );
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [showCircleMembers, setShowCircleMembers] = useState(false);
-  const [circles, setCircles] = useState<Circle[]>(initialCircles);
-  const [circleMembers, setCircleMembers] = useState<any[]>([]);
-  const [loadingMembers, setLoadingMembers] = useState(false);
-  const getIconComponent = (iconName: string) => {
+
+    const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "crown":
         return <Crown className="h-4 w-4" />;
@@ -539,7 +588,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
         setConnections([]);
         return;
       }
-
+      
       const response = await fetch("/api/connections");
       if (response.ok) {
         const data = await response.json();
@@ -579,18 +628,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
     };
 
     fetchData();
-  }, [student?.id, isViewMode]); // Dependencies for re-fetching
-
-  // Update circles state when initialCircles prop changes
-  useEffect(() => {
-    console.log('🔍 CircleView - Initial circles received:', {
-      circlesLength: initialCircles?.length || 0,
-      circles: initialCircles,
-      circlesType: typeof initialCircles,
-      isArray: Array.isArray(initialCircles)
-    })
-    setCircles(initialCircles || []);
-  }, [initialCircles]);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -637,53 +675,15 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
     }
   };
 
-  const handleCircleSelect = async (circle: Circle) => {
+  const handleCircleSelect = (circle: Circle) => {
     setSelectedCircle(circle);
     setShowCircleMembers(true);
     setActiveView("connections");
-    setLoadingMembers(true);
-    setCircleMembers([]);
-
-    try {
-      const response = await fetch(`/api/circles/${circle.id}/members`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('🎯 Circle members fetched:', data);
-        
-        // Transform the API response to match the expected format
-        const transformedMembers = data.members.map((member: any) => ({
-          user: {
-            id: member.user.id,
-            firstName: member.user.firstName,
-            lastName: member.user.lastName,
-            profileImageUrl: member.user.profileImageUrl,
-            role: member.isCreator ? 'creator' : member.user.role,
-            bio: member.user.bio || '',
-            status: 'online', // Default status
-            name: `${member.user.firstName} ${member.user.lastName}`,
-            lastInteraction: member.isCreator ? 'Circle Creator' : 'Circle Member'
-          },
-          isCreator: member.isCreator
-        }));
-        
-        setCircleMembers(transformedMembers);
-      } else {
-        console.error('Failed to fetch circle members');
-        setCircleMembers([]);
-      }
-    } catch (error) {
-      console.error('Error fetching circle members:', error);
-      setCircleMembers([]);
-    } finally {
-      setLoadingMembers(false);
-    }
   };
 
   const handleCloseCircleMembers = () => {
     setSelectedCircle(null);
     setShowCircleMembers(false);
-    setCircleMembers([]);
-    setLoadingMembers(false);
   };
 
   if (loading) {
@@ -799,14 +799,11 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Circle Badges Section - Takes 4 columns on large screens */}
             <div className="lg:col-span-4">
-              <CircleBadgesSection
-                onCircleSelect={handleCircleSelect}
-                currentUserId={student?.id} // Pass student ID if available, otherwise fallback
+              <CircleBadgesSection 
+                onCircleSelect={handleCircleSelect} 
+                currentUserId={student?.id || currentUserId}
                 isViewMode={isViewMode}
                 studentId={student?.id}
-                circles={circles} // Use circles from state
-                loading={loading} // Pass loading state
-                onCirclesUpdate={() => {}} // No-op since circles come from main API
               />
             </div>
 
@@ -861,8 +858,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       <TabsTrigger value="all">
                         All ({(() => {
                           if (showCircleMembers && selectedCircle) {
-                            // Count all members from fetched data
-                            return loadingMembers ? '...' : circleMembers.length;
+                            // Count all members in the selected circle (including creator)
+                            return selectedCircle.memberships.length + 1;
                           }
                           return totalConnections;
                         })()})
@@ -870,9 +867,9 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       <TabsTrigger value="peers">
                         Peers ({(() => {
                           if (showCircleMembers && selectedCircle) {
-                            // Count only students from fetched data
-                            return loadingMembers ? '...' : circleMembers.filter(
-                              member => member.user.role === "student"
+                            // Count only students in the selected circle
+                            return selectedCircle.memberships.filter(
+                              (membership: any) => membership.user.role === "student"
                             ).length;
                           }
                           return peerConnections;
@@ -883,18 +880,31 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                     <TabsContent value="all" className="mt-0">
                       {(() => {
                         if (showCircleMembers && selectedCircle) {
-                          // Show loading state
-                          if (loadingMembers) {
-                            return (
-                              <div className="text-center py-8 text-gray-500">
-                                <Users className="h-12 w-12 mx-auto mb-2 text-gray-300 animate-pulse" />
-                                <p>Loading members...</p>
-                              </div>
-                            );
-                          }
-
-                          // Show circle members from API
-                          const allMembers = circleMembers;
+                          // Show circle members
+                          const allMembers = [
+                            // Add creator as first member
+                            {
+                              user: {
+                                id: selectedCircle.creator.id,
+                                firstName: selectedCircle.creator.firstName,
+                                lastName: selectedCircle.creator.lastName,
+                                profileImageUrl: selectedCircle.creator.profileImageUrl,
+                                role: "creator",
+                                status: "online",
+                                name: `${selectedCircle.creator.firstName} ${selectedCircle.creator.lastName}`,
+                                bio: "",
+                                lastInteraction: "Circle Creator"
+                              }
+                            },
+                            // Add other members
+                            ...selectedCircle.memberships.map(membership => ({
+                              user: {
+                                ...membership.user,
+                                name: `${membership.user.firstName} ${membership.user.lastName}`,
+                                lastInteraction: "Circle Member"
+                              }
+                            }))
+                          ];
 
                           if (allMembers.length === 0) {
                             return (
@@ -1052,7 +1062,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                                       variant="ghost"
                                       size="sm"
                                       className="h-6 w-6 p-0"
-                                      title="Schedule"
+                                     title="Schedule"
                                     >
                                       <Calendar className="h-3 w-3" />
                                     </Button>
@@ -1080,25 +1090,21 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       })()}
                     </TabsContent>
 
-
+                    
 
                     <TabsContent value="peers" className="mt-0">
                       {(() => {
                         if (showCircleMembers && selectedCircle) {
-                          // Show loading state
-                          if (loadingMembers) {
-                            return (
-                              <div className="text-center py-8 text-gray-500">
-                                <Users className="h-12 w-12 mx-auto mb-2 text-gray-300 animate-pulse" />
-                                <p>Loading peers...</p>
-                              </div>
-                            );
-                          }
-
-                          // Show only students from fetched circle members
-                          const peerMembers = circleMembers.filter(
-                            member => member.user.role === "student"
-                          );
+                          // Show only students from circle
+                          const peerMembers = selectedCircle.memberships.filter(
+                            membership => membership.user.role === "student"
+                          ).map(membership => ({
+                            user: {
+                              ...membership.user,
+                              name: `${membership.user.firstName} ${membership.user.lastName}`,
+                              lastInteraction: "Circle Member"
+                            }
+                          }));
 
                           if (peerMembers.length === 0) {
                             return (

@@ -35,9 +35,7 @@ import {
   Send,
   ArrowLeft,
   Brain,
-  Share2,
-  UserX,
-  Building2
+  Share2
 } from "lucide-react"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
@@ -55,13 +53,6 @@ interface ProfileHeaderProps {
   isViewMode?: boolean
   isShareMode?: boolean
   onGoBack?: () => void
-  circles?: any[]
-  onCirclesUpdate?: () => void
-  // New consolidated data props
-  achievements?: any[]
-  connectionRequestsSent?: any[]
-  connectionRequestsReceived?: any[]
-  circleInvitations?: any[]
 }
 
 interface Achievement {
@@ -71,26 +62,13 @@ interface Achievement {
   dateOfAchievement: string
   createdAt: string
   achievementImageIcon?: string
-  achievementTypeId?: number
 }
 
-export default function ProfileHeader({ 
-  student: studentProp, 
-  currentUser, 
-  connectionCounts, 
-  isViewMode = false, 
-  isShareMode = false, 
-  onGoBack, 
-  circles = [], 
-  onCirclesUpdate,
-  achievements = [],
-  connectionRequestsSent = [],
-  connectionRequestsReceived = [],
-  circleInvitations = []
-}: ProfileHeaderProps) {
+export default function ProfileHeader({ student: studentProp, currentUser, connectionCounts, isViewMode = false, isShareMode = false, onGoBack }: ProfileHeaderProps) {
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
+  const [circles, setCircles] = useState<any[]>([])
   const [showCreateCircle, setShowCreateCircle] = useState(false)
   const [newCircleName, setNewCircleName] = useState('')
   const [newCircleColor, setNewCircleColor] = useState('#3B82F6')
@@ -138,9 +116,7 @@ export default function ProfileHeader({
     profile: {
       firstName: "Alex",
       lastName: "Johnson", 
-      profileImageUrl: "/images/student-student-profile.png",
-      coverImageUrl: "/images/student-cover.png", // Added a mock cover image
-      bio: "A student exploring new opportunities.", // Added a mock bio
+      profileImageUrl: "/images/student-profile.png",
     },
     educationHistory: [
       {
@@ -154,189 +130,272 @@ export default function ProfileHeader({
     skills: []
   }
 
-  // Get display name - prioritize nested profile structure, then direct fields
-  const displayName = student?.profile?.firstName && student?.profile?.lastName ? 
-    `${student.profile.firstName} ${student.profile.lastName}`.trim() : 
-    student?.first_name && student?.last_name ? 
-      `${student.first_name} ${student.last_name}`.trim() : 
-      "Student"
-
-  const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent) || 
-                          student?.education_history?.find((edu: any) => edu.is_current || edu.isCurrent)
+  const displayName = student.profile ? `${student.profile.firstName} ${student.profile.lastName}` : "Student"
+  const currentEducation = student.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent)
   const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
   const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
-
-  // Get profile image - prioritize nested profile structure, then direct field
-  const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
-
-  // Get tagline - prioritize nested profile structure, then direct fields
-  const tagline = student?.profile?.tagline || student?.profile?.bio || student?.tagline || student?.bio || "Passionate learner exploring new horizons"
-
-  // Get cover image - prioritize nested profile structure, then direct field
-  const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
-
-  // Debug logging for ProfileHeader
-  console.log('🔍 ProfileHeader Debug:', {
-    hasStudent: !!student,
-    hasProfile: !!student?.profile,
-    displayName,
-    profileImage,
-    tagline,
-    coverImage,
-    directFields: {
-      firstName: student?.first_name,
-      lastName: student?.last_name,
-      bio: student?.bio,
-      profileImageUrl: student?.profile_image_url,
-      coverImageUrl: student?.cover_image_url
-    },
-    profileKeys: student?.profile ? Object.keys(student.profile) : 'No profile',
-    studentKeys: student ? Object.keys(student) : 'No student',
-    circlesCount: circles?.length || 0
-  })
+  const profileImage = student.profile?.profileImageUrl || "/images/student-profile.png"
+  // Fix tagline access - check multiple possible locations
+  const tagline = student.profile?.tagline || student.tagline || student.profile?.bio || "Passionate learner exploring new horizons"
 
   // Check if this is the current user's own profile
   const isOwnProfile = currentUser && currentUser.id === student.id
 
-  // Set connection status based on provided data
+  // Function to check connection status
+  const checkConnectionStatus = async () => {
+    if (!currentUser || isOwnProfile) return
+
+    setConnectionStatus('loading')
+    try {
+      // Check if they are already connected
+      const connectionsResponse = await fetch('/api/connections', {
+        credentials: 'include'
+      })
+
+      if (connectionsResponse.ok) {
+        const connections = await connectionsResponse.json()
+        const isConnected = connections.some((conn: any) => 
+          conn.user.id === student.id
+        )
+
+        if (isConnected) {
+          setConnectionStatus('connected')
+          return
+        }
+      }
+
+      // Check if there's a pending request
+      const requestsResponse = await fetch('/api/connections/requests?type=sent', {
+        credentials: 'include'
+      })
+
+      if (requestsResponse.ok) {
+        const sentRequests = await requestsResponse.json()
+        const pendingRequest = sentRequests.find((req: any) => 
+          req.receiverId === student.id && req.status === 'pending'
+        )
+
+        if (pendingRequest) {
+          setConnectionStatus('pending')
+          return
+        }
+      }
+
+      // Check if there's a pending request from the other user
+      const receivedRequestsResponse = await fetch('/api/connections/requests?type=received', {
+        credentials: 'include'
+      })
+
+      if (receivedRequestsResponse.ok) {
+        const receivedRequests = await receivedRequestsResponse.json()
+        const pendingRequest = receivedRequests.find((req: any) => 
+          req.sender?.id === student.id && req.status === 'pending'
+        )
+
+        if (pendingRequest) {
+          setConnectionStatus('pending')
+          return
+        }
+      }
+
+      setConnectionStatus('none')
+    } catch (error) {
+      console.error('Error checking connection status:', error)
+      setConnectionStatus('none')
+    }
+  }
+
+  // Initialize and fetch connection counts
   React.useEffect(() => {
     if (isOwnProfile) {
-      setConnectionStatus('none')
-      return
-    }
+      // For own profile, use the passed connectionCounts if available
+      if (connectionCounts) {
+        setActualConnectionCounts(connectionCounts)
+      } else {
+        // If no connectionCounts passed, fetch for current user
+        const fetchOwnConnectionCounts = async () => {
+          try {
+            const response = await fetch(`/api/connections`, {
+              credentials: 'include'
+            })
+            if (response.ok) {
+              const connections = await response.json()
 
-    // Check if already connected by looking at the student's connections
-    const isConnected = student?.connections?.some((conn: any) => 
-      conn.id === currentUser?.id
-    )
+              const counts = {
+                total: connections.length,
+                students: connections.filter((conn: any) => conn.user.role === 'student').length,
+                mentors: connections.filter((conn: any) => conn.user.role === 'mentor').length,
+                institutions: connections.filter((conn: any) => conn.user.role === 'institution').length
+              }
 
-    if (isConnected) {
-      setConnectionStatus('connected')
-      return
-    }
-
-    // Check for pending requests
-    const hasPendingSent = connectionRequestsSent.some((req: any) => 
-      req.receiverId === student.id || req.receiver?.id === student.id
-    )
-
-    const hasPendingReceived = connectionRequestsReceived.some((req: any) => 
-      req.senderId === student.id || req.sender?.id === student.id
-    )
-
-    if (hasPendingSent || hasPendingReceived) {
-      setConnectionStatus('pending')
-    } else {
-      setConnectionStatus('none')
-    }
-  }, [isOwnProfile, student?.connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
-
-  // Initialize connection counts from props or comprehensive profile data
-  React.useEffect(() => {
-    console.log('🔍 Connection counts effect triggered:', {
-      isOwnProfile,
-      studentId: student.id,
-      hasConnectionCounts: !!connectionCounts,
-      connectionCounts,
-      hasSentConnections: !!(student?.sent_connections),
-      hasReceivedConnections: !!(student?.received_connections)
-    })
-
-    // Always prioritize passed connectionCounts first
-    if (connectionCounts) {
-      console.log('✅ Using passed connectionCounts:', connectionCounts)
-      setActualConnectionCounts(connectionCounts)
-      return
-    }
-
-    // Then check comprehensive profile data
-    if (student?.sent_connections || student?.received_connections) {
-      console.log('🔄 Using comprehensive profile connection data')
-      const sentConnections = student.sent_connections || []
-      const receivedConnections = student.received_connections || []
-      const allConnections = [...sentConnections, ...receivedConnections]
-      
-      const counts = {
-        total: allConnections.length,
-        students: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'student' || conn.receiver?.role === 'student'
-        ).length,
-        mentors: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor'  
-        ).length,
-        institutions: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
-        ).length
+              setActualConnectionCounts(counts)
+            }
+          } catch (error) {
+            console.error('Error fetching own connection counts:', error)
+          }
+        }
+        fetchOwnConnectionCounts()
       }
-      
-      console.log('📊 Connection counts from comprehensive data:', counts)
-      setActualConnectionCounts(counts)
     } else {
-      // Default to zero counts if no data available
-      console.log('📊 No connection data available, using default counts')
-      setActualConnectionCounts({ total: 0, students: 0, mentors: 0, institutions: 0 })
+      // For viewing someone else's profile, always fetch their connection counts
+      const fetchViewedUserConnectionCounts = async () => {
+        try {
+          const response = await fetch(`/api/connections?userId=${student.id}`, {
+            credentials: 'include'
+          })
+          if (response.ok) {
+            const connections = await response.json()
+
+            // Count connections by role
+            const counts = {
+              total: connections.length,
+              students: connections.filter((conn: any) => conn.user.role === 'student').length,
+              mentors: connections.filter((conn: any) => conn.user.role === 'mentor').length,
+              institutions: connections.filter((conn: any) => conn.user.role === 'institution').length
+            }
+
+            setActualConnectionCounts(counts)
+          }
+        } catch (error) {
+          console.error('Error fetching connection counts for viewed user:', error)
+        }
+      }
+
+      if (student.id) {
+        fetchViewedUserConnectionCounts()
+      }
     }
-  }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections])
+  }, [isOwnProfile, student.id, connectionCounts])
 
-  // Set initial data from props
-  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>(achievements || [])
-  const [achievementLoading, setAchievementLoading] = useState(false)
+  // State for recent achievements
+  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>([])
+  const [achievementLoading, setAchievementLoading] = useState(true)
 
-  // Update state when achievements prop changes
+  // Fetch user's circles, connections, and achievements
   useEffect(() => {
-    setRecentAchievements(achievements || [])
-  }, [achievements])
+    const fetchCircles = async () => {
+      try {
+        let response;
+        if (isViewMode && student?.id) {
+          // In view mode, fetch circles for the student being viewed
+          response = await fetch(`/api/student/profile/${student.id}/circles`, {
+            credentials: 'include'
+          });
+        } else {
+          // In own profile mode, fetch circles for the current user
+          response = await fetch('/api/circles', {
+            credentials: 'include'
+          });
+        }
 
-  // Extract circles from student data and create local state
-  const [localCircles, setLocalCircles] = useState<any[]>([])
+        if (response.ok) {
+          const data = await response.json()
+          // Filter out disabled circles
+          const enabledCircles = data.filter((circle: any) => {
+            // Check if circle is globally disabled
+            if (circle.isDisabled) return false;
 
-  // Debug log for circles and handle student data circles
-  useEffect(() => {
-    console.log('🔍 ProfileHeader - Circles prop received:', {
-      circlesLength: circles?.length || 0,
-      circles: circles,
-      circlesType: typeof circles,
-      isArray: Array.isArray(circles),
-      sampleCircle: circles?.[0]
-    })
+            // Check if creator is disabled and current user is the creator
+            if (circle.isCreatorDisabled && circle.creator?.id === (isViewMode ? student?.id : currentUser?.id)) {
+              return false;
+            }
 
-    // Extract circles from student data if circles prop is empty
-    if ((!circles || circles.length === 0) && student) {
-      const createdCircles = student.created_circles || student.profile?.created_circles || []
-      const memberCircles = student.circles || student.profile?.circles || []
-      
-      if (createdCircles.length > 0 || memberCircles.length > 0) {
-        const combinedCircles = [...createdCircles, ...memberCircles]
-        console.log('🔍 ProfileHeader - Extracting circles from student data:', {
-          createdCount: createdCircles.length,
-          memberCount: memberCircles.length,
-          totalCount: combinedCircles.length,
-          combinedCircles
+            // Check if current user's membership is disabled
+            const userId = isViewMode ? student?.id : currentUser?.id;
+            const userMembership = circle.memberships?.find(
+              (membership: any) => membership.user?.id === userId
+            );
+            if (userMembership && userMembership.isDisabledMember) {
+              return false;
+            }
+
+            return true;
+          });
+
+          setCircles(enabledCircles)
+        } else {
+          console.error('Error fetching circles:', response.status)
+        }
+      } catch (error) {
+        console.error('Error fetching circles:', error)
+      }
+    }
+
+    const fetchConnections = async () => {
+      try {
+        const response = await fetch('/api/connections', {
+          credentials: 'include'
         })
-        
-        setLocalCircles(combinedCircles)
+        if (response.ok) {
+          const data = await response.json()
+          setConnections(data)
+        }
+      } catch (error) {
+        console.error('Error fetching connections:', error)
       }
-    } else if (circles && circles.length > 0) {
-      setLocalCircles(circles)
-    }
-  }, [circles, student])
-
-  // Use localCircles for display
-  const displayCircles = localCircles.length > 0 ? localCircles : circles || []
-
-  // Set connections and following data from student prop
-  useEffect(() => {
-    if (isOwnProfile && student?.connections) {
-      setConnections(student.connections)
     }
 
-    // Set following institutions from student data
-    if (student?.followingInstitutions) {
-      console.log('🏛️ ProfileHeader: Setting following institutions:', student.followingInstitutions)
-      setFollowingInstitutions(student.followingInstitutions)
-      setFollowingCount(student.followingInstitutions.length)
+    const fetchRecentAchievements = async () => {
+    try {
+      setAchievementLoading(true)
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch achievements for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/achievements`, {
+          credentials: 'include'
+        });
+      } else {
+        // In own profile mode, fetch achievements for the current user
+        response = await fetch('/api/achievements', {
+          credentials: 'include'
+        });
+      }
+      if (response.ok) {
+        const data = await response.json()
+        // Get the recent achievements (they're already sorted by date desc in the API)
+        if (data.achievements && data.achievements.length > 0) {
+          setRecentAchievements(data.achievements)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching achievements:', error)
+    } finally {
+      setAchievementLoading(false)
     }
-  }, [student, isOwnProfile])
+  }
+
+    const fetchFollowingInstitutions = async () => {
+      try {
+        const response = await fetch('/api/student/following', {
+          credentials: 'include'
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setFollowingInstitutions(data.following || [])
+          setFollowingCount(data.count || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching following institutions:', error)
+      }
+    }
+
+    if (isOwnProfile) {
+      fetchConnections()
+    }
+
+    // Always fetch circles (for both own profile and view mode)
+    fetchCircles()
+
+    if (student) {
+      fetchRecentAchievements()
+    }
+    fetchFollowingInstitutions()
+
+    // Check connection status for non-own profiles
+    if (!isOwnProfile && currentUser && student.id) {
+      checkConnectionStatus()
+    }
+  }, [isOwnProfile, student, isViewMode, student?.id, currentUser])
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) return
@@ -385,10 +444,8 @@ export default function ProfileHeader({
         setNewCircleImageUrl('')
         setShowCreateCircle(false)
 
-        // Notify parent to refresh circles
-        if (onCirclesUpdate) {
-          onCirclesUpdate()
-        }
+        // Refresh circles
+        await fetchCircles()
       } else {
         console.error('Failed to create circle')
       }
@@ -430,10 +487,18 @@ export default function ProfileHeader({
     }
   }
 
-  const handleCircleUpdated = () => {
-    // Notify parent to refresh circles
-    if (onCirclesUpdate) {
-      onCirclesUpdate()
+  const handleCircleUpdated = async () => {
+    // Refresh circles after invitations are sent
+    try {
+      const response = await fetch('/api/circles', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setCircles(data)
+      }
+    } catch (error) {
+      console.error('Error refreshing circles:', error)
     }
   }
 
@@ -460,7 +525,21 @@ export default function ProfileHeader({
     }
   };
 
-
+  const fetchCircles = async () => {
+    try {
+      const response = await fetch('/api/circles', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setCircles(data)
+      } else {
+        console.error('Error fetching circles:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching circles:', error)
+    }
+  }
 
   const handleUnfollowInstitution = async (institutionId: string) => {
     try {
@@ -523,21 +602,20 @@ export default function ProfileHeader({
     <>
       <div className="relative">
         {/* Customizable banner - Use cover photo if available, otherwise show blue gradient */}
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
-            {coverImage ? (
-              <img
-                src={coverImage}
-                alt="Cover photo"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
-            )}</div>
+        <div className="h-48 w-full relative overflow-hidden">
+          {student?.profile?.coverImageUrl ? (
+            <img
+              src={student.profile.coverImageUrl}
+              alt="Cover photo"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue"></div>
+          )}
         </div>
 
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="relative -mt-32 sm:-mt-24 mb-6">
+          <div className="relative -mt-24 sm:-mt-16 mb-6">
             {/* Back button - positioned below cover image */}
           {isViewMode && onGoBack && (
             <div className="mb-4">
@@ -724,11 +802,11 @@ export default function ProfileHeader({
 
                       </div>
                     </div>
-
+                    
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || student?.userSkills?.length || student?.user_skills?.length || 0}
+                        Skills: {student?.skills?.length || 0}
                       </span>
                     </div>
                     <div 
@@ -737,7 +815,7 @@ export default function ProfileHeader({
                     >
                       <Users className="h-3.5 w-3.5 text-indigo-500" data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`} />
                       <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
-                        Following: {student?.followingInstitutions?.length || followingCount || 0}
+                        Following: {followingCount}
                       </span>
                     </div>                  </div>
 
@@ -760,7 +838,7 @@ export default function ProfileHeader({
                     <div className="relative flex items-center">
                       {/* Check if scrolling is needed */}
                       {(() => {
-                        const totalCircles = (isOwnProfile ? 1 : 0) + displayCircles.length; // Friends circle + custom circles
+                        const totalCircles = (isOwnProfile ? 1 : 0) + circles.length; // Friends circle + custom circles
                         const needsScrolling = totalCircles > 4; // Adjust threshold as needed
 
                         return (
@@ -803,7 +881,7 @@ export default function ProfileHeader({
                                 )}
 
                                 {/* Dynamic Circles from Database */}
-                                {displayCircles.map((circle) => {
+                                {circles.map((circle) => {
                                   const isDisabled = isCircleDisabled(circle, student.id);
 
                                   return (
@@ -1050,10 +1128,7 @@ export default function ProfileHeader({
                   {/* Circle Invitations Section - Only show for own profile */}
                   {isOwnProfile && (
                     <div className="mb-6">
-                      <CircleInvitationsSection 
-                        onInvitationHandled={handleCircleUpdated} 
-                        invitations={circleInvitations}
-                      />
+                      <CircleInvitationsSection onInvitationHandled={handleCircleUpdated} />
                     </div>
                   )}
 
@@ -1061,55 +1136,29 @@ export default function ProfileHeader({
                   <div className="mt-4">
                     <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Skills</h3>
                     <div className="flex flex-wrap gap-2">
-                      {(() => {
-                        // Try multiple data structure paths for skills
-                        const skills = student?.profile?.skills || 
-                                     student?.profile?.userSkills || 
-                                     student?.userSkills || 
-                                     student?.user_skills || 
-                                     []
-
-                        if (skills.length > 0) {
-                          return skills
-                            .sort((a: any, b: any) => (b.proficiencyLevel || b.proficiency_level || 0) - (a.proficiencyLevel || a.proficiency_level || 0))
-                            .slice(0, 5)
-                            .map((skillItem: any, i: number) => {
-                              // Handle different skill data structures
-                              const skillName = skillItem.name || 
-                                              skillItem.skills?.name || 
-                                              skillItem.skill?.name || 
-                                              'Unknown Skill'
-
-                              return (
-                                <div
-                                  key={skillItem.id || i}
-                                  className={`px-3 py-1 rounded-full text-xs ${
-                                    i % 4 === 0
-                                      ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
-                                      : i % 4 === 1
-                                        ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
-                                        : i % 4 === 2
-                                          ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
-                                          : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
-                                  }`}
-                                >
-                                  {skillName}
-                                </div>
-                              )
-                            })
-                        } else if (student?.first_name === "Prashant" || displayName === "Student") {
-                          // Show placeholder when in loading state
-                          return (
-                            <div className="flex gap-2">
-                              <div className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse">
-                                Loading skills...
-                              </div>
-                            </div>
-                          )
-                        } else {
-                          return <span className="text-xs text-gray-500 dark:text-gray-400">No skills added yet</span>
-                        }
-                      })()}
+                      {student?.skills && student.skills.length > 0 ? (
+                        student.skills
+                          .sort((a: any, b: any) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
+                          .slice(0, 5)
+                          .map((skill: any, i: number) => (
+                          <div
+                            key={skill.id || i}
+                            className={`px-3 py-1 rounded-full text-xs ${
+                              i % 4 === 0
+                                ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
+                                : i % 4 === 1
+                                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300"
+                                  : i % 4 === 2
+                                    ? "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300"
+                                    : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                            }`}
+                          >
+                            {skill.name}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">No skills added yet</span>
+                      )}
                     </div>
                   </div>
 
@@ -1182,15 +1231,16 @@ export default function ProfileHeader({
                                               : "bg-green-100 dark:bg-green-900/40"
                                       }`}
                                     >
-                                      <Award className={`h-4 w-4 ${
-                                        index % 4 === 0
-                                          ? "text-yellow-600 dark:text-yellow-400"
-                                          : index % 4 === 1
-                                            ? "text-blue-600 dark:text-blue-400"
-                                            : index % 4 === 2
-                                              ? "text-purple-600 dark:text-purple-400"
-                                              : "text-green-600 dark:text-green-400"
-                                      }`}
+                                      <Award 
+                                        className={`h-4 w-4 ${
+                                          index % 4 === 0
+                                            ? "text-yellow-600 dark:text-yellow-400"
+                                            : index % 4 === 1
+                                              ? "text-blue-600 dark:text-blue-400"
+                                              : index % 4 === 2
+                                                ? "text-purple-600 dark:text-purple-400"
+                                                : "text-green-600 dark:text-green-400"
+                                        }`}
                                       />
                                     </div>
                                   )}
@@ -1215,17 +1265,6 @@ export default function ProfileHeader({
                             </div>
                           </div>
                         ))}
-                      </div>
-                    ) : displayName === "Student" ? (
-                      // Show placeholder when in static loading state
-                      <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex items-center gap-3 h-16">
-                        <div className="bg-gray-100 dark:bg-gray-700 h-8 w-8 rounded flex items-center justify-center animate-pulse">
-                          <Award className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading achievements...</h4>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">Fetching accomplishments</p>
-                        </div>
                       </div>
                     ) : (
                       <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex items-center gap-3 h-16">
@@ -1290,47 +1329,39 @@ export default function ProfileHeader({
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {followingInstitutions && followingInstitutions.length > 0 ? (
+            {followingInstitutions.length > 0 ? (
               followingInstitutions.map((institution) => (
-                <div key={institution.institutionId || institution.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold overflow-hidden">
-                      {institution.institutionProfile?.logoUrl ? (
-                        <img 
-                          src={institution.institutionProfile.logoUrl} 
-                          alt={institution.institutionProfile.institutionName}
-                          className="w-full h-full object-cover rounded-full"
+                <div key={institution.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                      {institution.logoUrl ? (
+                        <img
+                          src={institution.logoUrl}
+                          alt={institution.institutionName}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        institution.institutionProfile?.institutionName?.charAt(0) || 'I'
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Building2 className="h-6 w-6 text-gray-400" />
+                        </div>
                       )}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{institution.institutionProfile?.institutionName || 'Institution'}</h4>
-                      <p className="text-xs text-gray-500">{institution.institutionProfile?.institutionType || 'Educational Institution'}</p>
-                      {institution.institutionProfile?.location && (
-                        <p className="text-xs text-gray-400">{institution.institutionProfile.location}</p>
-                      )}
-                      {institution.institutionProfile?.verified && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 mt-1">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          Verified
-                        </span>
+                      <h4 className="font-semibold text-sm">{institution.institutionName}</h4>
+                      <p className="text-xs text-gray-500">{institution.institutionType}</p>
+                      {institution.location && (
+                        <p className="text-xs text-gray-400">{institution.location}</p>
                       )}
                     </div>
                   </div>
-                  {isOwnProfile && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUnfollowInstitution(institution.institutionId || institution.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      Unfollow
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUnfollowInstitution(institution.id)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    Unfollow
+                  </Button>
                 </div>
               ))
             ) : (
@@ -1351,13 +1382,29 @@ interface CircleInvitationsSectionProps {
   onInvitationHandled: () => void
 }
 
-function CircleInvitationsSection({ onInvitationHandled, invitations: initialInvitations = [] }: CircleInvitationsSectionProps & { invitations?: any[] }) {
-  const [invitations, setInvitations] = useState<any[]>(initialInvitations.filter((inv: any) => inv.status === 'pending'))
+function CircleInvitationsSection({ onInvitationHandled }: CircleInvitationsSectionProps) {
+  const [invitations, setInvitations] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    setInvitations(initialInvitations.filter((inv: any) => inv.status === 'pending'))
-  }, [initialInvitations])
+    fetchInvitations()
+  }, [])
+
+  const fetchInvitations = async () => {
+    try {
+      const response = await fetch('/api/circles/invitations?type=received', {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Only show pending invitations
+        setInvitations(data.filter((inv: any) => inv.status === 'pending'))
+      }
+    } catch (error) {
+      console.error('Error fetching invitations:', error)
+    }
+  }
 
   const handleInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
     setLoading(true)

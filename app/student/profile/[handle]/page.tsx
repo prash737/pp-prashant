@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -17,9 +16,6 @@ interface StudentData {
     bio?: string
     location?: string
     profileImageUrl?: string
-    coverImageUrl?: string
-    tagline?: string
-    verificationStatus?: boolean
     userInterests: Array<{
       interest: {
         name: string
@@ -42,24 +38,15 @@ interface StudentData {
     endDate?: string
     current: boolean
   }>
-  achievements: any[]
-  connectionCounts: {
-    total: number
-    students: number
-    mentors: number
-    institutions: number
-  }
-  circles: any[]
 }
 
 export default function StudentProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { user: currentUser, loading: authLoading } = useAuth()
   const [studentData, setStudentData] = useState<StudentData | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [handle, setHandle] = useState<string | null>(null)
   const router = useRouter()
-
   // Resolve params first
   useEffect(() => {
     const resolveParams = async () => {
@@ -90,26 +77,20 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     }
 
     // Security check: Users can only view their own profile via handle
+    // If the handle doesn't match their user ID, redirect to their own profile
     if (handle !== currentUser.id) {
       router.push(`/student/profile/${currentUser.id}`)
       return
     }
 
-    // Fetch student data - SINGLE API CALL ONLY
+    // Fetch student data - now we know it's the current user's profile
     const fetchStudentData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        console.log('📡 StudentProfilePage: Making single API call for user:', currentUser.id)
-        
         const response = await fetch(`/api/student/profile/${currentUser.id}`, {
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+          credentials: 'include'
         })
 
         if (!response.ok) {
@@ -124,84 +105,9 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
         }
 
         const data = await response.json()
-        console.log('✅ StudentProfilePage: Data received:', data)
-
-        // Transform the API response to match component expectations
-        if (Array.isArray(data) && data.length > 0) {
-          const rawStudentData = data[0]
-          
-          const transformedData = {
-            id: rawStudentData.id,
-            first_name: rawStudentData.first_name,
-            last_name: rawStudentData.last_name,
-            bio: rawStudentData.bio,
-            location: rawStudentData.location,
-            profile_image_url: rawStudentData.profile_image_url,
-            cover_image_url: rawStudentData.cover_image_url,
-            tagline: rawStudentData.tagline,
-            verification_status: rawStudentData.verification_status,
-            profile: {
-              firstName: rawStudentData.first_name,
-              lastName: rawStudentData.last_name,
-              bio: rawStudentData.bio,
-              location: rawStudentData.location,
-              profileImageUrl: rawStudentData.profile_image_url,
-              coverImageUrl: rawStudentData.cover_image_url,
-              tagline: rawStudentData.tagline,
-              verificationStatus: rawStudentData.verification_status,
-              userInterests: rawStudentData.user_interests || [],
-              userSkills: rawStudentData.user_skills || [],
-              skills: (rawStudentData.user_skills || []).map((us: any) => ({
-                id: us.skills?.id || us.skill?.id,
-                name: us.skills?.name || us.skill?.name,
-                proficiencyLevel: us.proficiency_level || 50,
-                category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
-              })),
-              socialLinks: rawStudentData.social_links || []
-            },
-            educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
-              id: edu.id,
-              institutionName: edu.institution_name,
-              institutionType: edu.institution_type,
-              gradeLevel: edu.grade_level,
-              isCurrent: edu.is_current,
-              is_current: edu.is_current,
-              startDate: edu.start_date,
-              endDate: edu.end_date,
-              degreeProgram: edu.degree_program,
-              fieldOfStudy: edu.field_of_study,
-              subjects: edu.subjects || [],
-              gpa: edu.gpa,
-              achievements: edu.achievements || [],
-              description: edu.description,
-              institutionVerified: edu.institution_verified
-            })),
-            achievements: rawStudentData.achievements || [],
-            goals: rawStudentData.goals || [],
-            userCollections: rawStudentData.user_collections || [],
-            connections: rawStudentData.connections || [],
-            connectionCounts: rawStudentData.connectionCounts || {
-              total: 0,
-              students: 0,
-              mentors: 0,
-              institutions: 0
-            },
-            circles: rawStudentData.circles || [],
-            followingInstitutions: rawStudentData.institution_following || [],
-            suggestedConnections: rawStudentData.suggestedConnections || [],
-            connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
-            connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
-            circleInvitations: rawStudentData.circleInvitations || []
-          }
-
-          console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
-          setStudentData(transformedData)
-        } else {
-          console.error('❌ StudentProfilePage: Unexpected data format:', data)
-          setError('Invalid profile data format')
-        }
+        setStudentData(data)
       } catch (err) {
-        console.error('❌ StudentProfilePage: Error fetching student data:', err)
+        console.error('Error fetching student data:', err)
         setError('Failed to load profile')
       } finally {
         setLoading(false)
@@ -211,16 +117,15 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     fetchStudentData()
   }, [handle, currentUser, authLoading, router])
 
-  // Show loading only if auth is loading AND we don't have studentData
-  if (authLoading && !studentData) {
+  if (authLoading || loading) {
     return (
       <ProtectedLayout>
         <div className="min-h-screen flex flex-col">
           <InternalNavbar />
           <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pathpiper-teal mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+              <p className="mt-4 text-gray-600">Loading profile...</p>
             </div>
           </main>
           <Footer />
@@ -257,14 +162,15 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          {/* Pass the studentData directly to StudentProfile with minimal props */}
-          <StudentProfile
-            studentId={currentUser?.id}
-            currentUser={currentUser}
-            studentData={studentData}
-            isViewMode={false}
-            showStaticStructure={!studentData && loading}
-          />
+          {studentData && (
+            <>
+              <StudentProfile
+                studentId={currentUser.id}
+                currentUser={currentUser}
+                studentData={studentData}
+              />
+            </>
+          )}
         </main>
         <Footer />
       </div>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -18,22 +19,48 @@ interface Achievement {
 }
 
 interface AchievementTimelineProps {
-  userId: string
+  userId?: string
   isOwnProfile?: boolean
   isViewMode?: boolean
   student?: any
-  achievements?: any[]
 }
 
-export default function AchievementTimeline({ userId, isOwnProfile = false, isViewMode = false, student, achievements }: AchievementTimelineProps) {
-  const [achievementList, setAchievementList] = useState<Achievement[]>([])
-  const [loading, setLoading] = useState(false)
+export default function AchievementTimeline({ userId, isOwnProfile = false, isViewMode = false, student }: AchievementTimelineProps) {
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    // Use achievements from props
-    setAchievementList(achievements || [])
-  }, [achievements])
+    fetchAchievements()
+  }, [isViewMode, student?.id])
+
+  const fetchAchievements = async () => {
+    try {
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch achievements for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/achievements`, {
+          credentials: 'include'
+        });
+      } else {
+        // In own profile mode, fetch achievements for the current user
+        response = await fetch('/api/achievements', {
+          credentials: 'include'
+        });
+      }
+
+      if (response.ok) {
+        const data = await response.json()
+        setAchievements(data.achievements || [])
+      } else {
+        console.error('Failed to fetch achievements')
+      }
+    } catch (error) {
+      console.error('Error fetching achievements:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleManageAchievements = () => {
     router.push('/student/profile/edit?section=achievements')
@@ -51,7 +78,7 @@ export default function AchievementTimeline({ userId, isOwnProfile = false, isVi
 
   return (
     <div className="space-y-8 p-6">
-      {achievementList.length === 0 ? (
+      {achievements.length === 0 ? (
         <div className="text-center py-12">
           <div className="mb-6">
             <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -89,7 +116,7 @@ export default function AchievementTimeline({ userId, isOwnProfile = false, isVi
           </div>
 
           <div className="space-y-6 pb-6">
-            {achievementList.map((achievement, index) => (
+            {achievements.map((achievement, index) => (
               <Card key={achievement.id} className="relative">
                 <CardContent className="pt-6 pb-6">
                   <div className="flex items-start gap-4">

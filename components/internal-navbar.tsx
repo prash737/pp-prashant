@@ -313,6 +313,43 @@ export function InternalNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Function to get profile URL based on user role
+  const getProfileUrl = () => {
+    if (!user || userLoading) return "/student/profile"; // Default fallback
+
+    console.log('🔍 Navbar: Getting profile URL for user role:', user.role);
+
+    switch (user.role) {
+      case "institution":
+        return "/institution/profile";
+      case "mentor":
+        return "/mentor/profile";
+      case "student":
+      default:
+        return "/student/profile";
+    }
+  };
+
+  // Function to handle profile navigation
+  const handleProfileNavigation = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (userLoading) {
+      console.log('🔍 Navbar: User still loading, waiting...');
+      return;
+    }
+
+    if (!user) {
+      console.log('🔍 Navbar: No user found, redirecting to login');
+      router.push('/login');
+      return;
+    }
+
+    const profileUrl = getProfileUrl();
+    console.log('🔍 Navbar: Navigating to profile URL:', profileUrl);
+    router.push(profileUrl);
+  };
+
   // Navigation items for logged-in users
   const navItems = [
     { name: "Feed", href: "/feed", icon: <Home size={20} /> },
@@ -320,8 +357,9 @@ export function InternalNavbar() {
     { name: "Messages", href: "/messages", icon: <MessageCircle size={20} /> },
     { 
       name: "Profile", 
-      href: "/student/profile", // Simple href - actual navigation handled by onClick
-      icon: <User size={20} />
+      href: getProfileUrl(), 
+      icon: <User size={20} />,
+      onClick: handleProfileNavigation
     },
   ];
 
@@ -396,7 +434,7 @@ export function InternalNavbar() {
                             setShowSearchResults(false);
                             setSearchQuery("");
                             if (searchUser.id === user?.id) {
-                              router.push(`/student/profile/${user.id}`);
+                              router.push(`/student/profile`);
                             } else {
                               if (searchUser.role === 'student') {
                                 router.push(`/public-view/student/profile/${searchUser.id}`);
@@ -544,25 +582,11 @@ export function InternalNavbar() {
                   return (
                     <button
                       key={link.name}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Get user ID from cookie - immediate redirect with no delays
-                        const cookies = document.cookie.split('; ');
-                        const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
-                        const userId = userIdCookie?.split('=')[1];
-                        
-                        if (userId) {
-                          // Use replace instead of push for faster navigation
-                          window.location.href = `/student/profile/${userId}`;
-                        } else {
-                          window.location.href = '/login';
-                        }
-                      }}
+                      onClick={link.onClick}
+                      disabled={userLoading}
                       className={`text-slate-700 hover:text-teal-500 transition-colors font-medium flex items-center gap-1 ${
-                        pathname.startsWith('/student/profile/') ? "text-teal-500" : ""
-                      }`}
+                        pathname === link.href ? "text-teal-500" : ""
+                      } ${userLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {link.icon}
                       <span>{link.name}</span>
@@ -700,27 +724,13 @@ export function InternalNavbar() {
               return (
                 <button
                   key={item.name}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Get user ID from cookie - immediate redirect with no delays
-                    const cookies = document.cookie.split('; ');
-                    const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
-                    const userId = userIdCookie?.split('=')[1];
-                    
-                    if (userId) {
-                      // Use direct window.location for fastest redirect
-                      window.location.href = `/student/profile/${userId}`;
-                    } else {
-                      window.location.href = '/login';
-                    }
-                  }}
+                  onClick={item.onClick}
+                  disabled={userLoading}
                   className={`flex flex-col items-center p-2 ${
-                    pathname.startsWith('/student/profile/')
+                    pathname === item.href
                       ? "text-teal-500"
                       : "text-gray-500 hover:text-teal-500"
-                  }`}
+                  } ${userLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {item.icon}
                   <span className="text-xs mt-1">{item.name}</span>
