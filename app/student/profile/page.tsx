@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import InternalNavbar from '@/components/internal-navbar'
 import Footer from '@/components/footer'
-import ProfileHeader from '@/components/profile-header'
+import ProfileHeader from '@/components/profile/profile-header'
 import CircleView from '@/components/circle-view'
 import { fetchStudentProfile } from '@/utils/api'
 
