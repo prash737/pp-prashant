@@ -384,8 +384,8 @@ export async function GET(
         circleInvitations: [],
       }
 
-      console.log('🚀 Public API Response - Full transformed data being returned:')
-      console.log('📋 Basic profile info:', {
+      console.log('🚀 PUBLIC API FALLBACK - COMPLETE RESPONSE DATA:', JSON.stringify(response, null, 2))
+      console.log('📋 PUBLIC API FALLBACK - Basic profile info:', {
         id: response.id,
         firstName: response.profile?.firstName,
         lastName: response.profile?.lastName,
@@ -394,9 +394,13 @@ export async function GET(
         profileImageUrl: response.profile?.profileImageUrl,
         tagline: response.profile?.tagline
       })
-      console.log('📊 Connection counts:', response.connectionCounts)
-      console.log('🎯 Circles count:', response.circles?.length || 0)
-      console.log('🎖️ Achievements count:', response.achievements?.length || 0)
+      console.log('📊 PUBLIC API FALLBACK - Connection counts:', response.connectionCounts)
+      console.log('🎯 PUBLIC API FALLBACK - Circles count:', response.circles?.length || 0)
+      console.log('🎖️ PUBLIC API FALLBACK - Achievements count:', response.achievements?.length || 0)
+      console.log('🎓 PUBLIC API FALLBACK - Education history count:', response.educationHistory?.length || 0)
+      console.log('🏆 PUBLIC API FALLBACK - Goals count:', response.goals?.length || 0)
+      console.log('💼 PUBLIC API FALLBACK - User collections count:', response.userCollections?.length || 0)
+      console.log('🏢 PUBLIC API FALLBACK - Following institutions count:', response.followingInstitutions?.length || 0)
 
       return NextResponse.json(response)
     }
@@ -414,6 +418,25 @@ export async function GET(
       hasEducationHistory: !!publicData?.[0]?.education_history,
       educationCount: publicData?.[0]?.education_history?.length || 0,
       sampleEducation: publicData?.[0]?.education_history?.[0]
+    })
+    
+    console.log('🚀 PUBLIC API - COMPLETE RESPONSE DATA:', JSON.stringify(publicData, null, 2))
+    console.log('🎯 PUBLIC API - Response Summary:', {
+      studentId: publicData?.[0]?.id,
+      firstName: publicData?.[0]?.first_name,
+      lastName: publicData?.[0]?.last_name,
+      bio: publicData?.[0]?.bio,
+      location: publicData?.[0]?.location,
+      profileImageUrl: publicData?.[0]?.profile_image_url,
+      educationHistoryCount: publicData?.[0]?.education_history?.length || 0,
+      circlesCount: publicData?.[0]?.circles?.length || 0,
+      achievementsCount: publicData?.[0]?.achievements?.length || 0,
+      goalsCount: publicData?.[0]?.goals?.length || 0,
+      userInterestsCount: publicData?.[0]?.user_interests?.length || 0,
+      userSkillsCount: publicData?.[0]?.user_skills?.length || 0,
+      sentConnectionsCount: publicData?.[0]?.sent_connections?.length || 0,
+      receivedConnectionsCount: publicData?.[0]?.received_connections?.length || 0,
+      institutionFollowingCount: publicData?.[0]?.institution_following?.length || 0
     })
     
     return NextResponse.json(publicData)
