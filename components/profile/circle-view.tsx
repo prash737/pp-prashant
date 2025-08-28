@@ -85,15 +85,15 @@ interface Circle {
 }
 
 // Circle Badges Section Component
-function CircleBadgesSection({ 
-  onCircleSelect, 
+function CircleBadgesSection({
+  onCircleSelect,
   currentUserId,
   isViewMode = false,
   studentId,
   circles = [],
   loading = false,
   onCirclesUpdate
-}: { 
+}: {
   onCircleSelect: (circle: Circle) => void;
   currentUserId?: string;
   isViewMode?: boolean;
@@ -265,9 +265,9 @@ function CircleBadgesSection({
             <Badge variant="secondary" className="ml-2">{circles.length} circles</Badge>
           </div>
           {!isViewMode && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="h-8 w-8 p-0"
               title="Create new circle"
               onClick={() => setShowCreateCircle(true)}
@@ -320,11 +320,11 @@ function CircleBadgesSection({
                     <div className="relative mb-2">
                       <div
                         className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 overflow-hidden relative ${
-                          isDisabled 
-                            ? 'grayscale cursor-not-allowed bg-gray-400 opacity-50' 
+                          isDisabled
+                            ? 'grayscale cursor-not-allowed bg-gray-400 opacity-50'
                             : 'group-hover:shadow-xl group-hover:scale-105'
                         }`}
-                        style={{ 
+                        style={{
                           backgroundColor: isDisabled ? '#6B7280' : circle.color,
                           filter: isDisabled ? 'grayscale(1) brightness(0.6) contrast(0.8)' : 'none'
                         }}
@@ -374,8 +374,8 @@ function CircleBadgesSection({
 
                     {/* Circle Name */}
                     <span className={`text-xs text-center font-medium w-16 ${
-                      isDisabled 
-                        ? 'text-gray-400 dark:text-gray-500' 
+                      isDisabled
+                        ? 'text-gray-400 dark:text-gray-500'
                         : 'text-gray-700 dark:text-gray-300'
                     }`}>
                       {circle.name}
@@ -759,8 +759,8 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Circle Badges Section - Takes 4 columns on large screens */}
             <div className="lg:col-span-4">
-              <CircleBadgesSection 
-                onCircleSelect={handleCircleSelect} 
+              <CircleBadgesSection
+                onCircleSelect={handleCircleSelect}
                 currentUserId={student?.id} // Pass student ID if available, otherwise fallback
                 isViewMode={isViewMode}
                 studentId={student?.id}
@@ -822,7 +822,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                         All ({(() => {
                           if (showCircleMembers && selectedCircle) {
                             // Count all members in the selected circle (including creator)
-                            return selectedCircle.memberships.length + 1;
+                            return selectedCircle.memberships?.length || 0 + 1;
                           }
                           return totalConnections;
                         })()})
@@ -831,7 +831,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                         Peers ({(() => {
                           if (showCircleMembers && selectedCircle) {
                             // Count only students in the selected circle
-                            return selectedCircle.memberships.filter(
+                            return (selectedCircle.memberships || []).filter(
                               (membership: any) => membership.user.role === "student"
                             ).length;
                           }
@@ -860,7 +860,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                               }
                             },
                             // Add other members
-                            ...selectedCircle.memberships.map(membership => ({
+                            ...(selectedCircle.memberships || []).map(membership => ({
                               user: {
                                 ...membership.user,
                                 name: `${membership.user.firstName} ${membership.user.lastName}`,
@@ -1025,7 +1025,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                                       variant="ghost"
                                       size="sm"
                                       className="h-6 w-6 p-0"
-                                     title="Schedule"
+                                      title="Schedule"
                                     >
                                       <Calendar className="h-3 w-3" />
                                     </Button>
@@ -1059,7 +1059,7 @@ export default function CircleView({ student, circles: initialCircles = [], isVi
                       {(() => {
                         if (showCircleMembers && selectedCircle) {
                           // Show only students from circle
-                          const peerMembers = selectedCircle.memberships.filter(
+                          const peerMembers = (selectedCircle.memberships || []).filter(
                             membership => membership.user.role === "student"
                           ).map(membership => ({
                             user: {
