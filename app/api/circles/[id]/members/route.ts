@@ -8,9 +8,125 @@ export async function GET(
 ) {
   try {
     const { id: circleId } = await params
+    
+    // Get current user ID from request headers or cookies
+    const authHeader = request.headers.get('authorization')
+    const cookieHeader = request.headers.get('cookie')
+    
+    let currentUserId: string | null = null
+    
+    // Try to extract user ID from auth token or cookies
+    if (cookieHeader?.includes('sb-access-token')) {
+      // Extract and verify token to get user ID
+      // This is a simplified approach - you might need to decode the JWT
+      const tokenMatch = cookieHeader.match(/sb-access-token=([^;]+)/)
+      if (tokenMatch) {
+        try {
+          // You might need to decode JWT here to get user ID
+          // For now, let's try to get it from another cookie or header
+          const userIdMatch = cookieHeader.match(/user-id=([^;]+)/)
+          if (userIdMatch) {
+            currentUserId = decodeURIComponent(userIdMatch[1])
+          }
+        } catch (e) {
+          console.log('Could not extract user ID from token')
+        }
+      }
+    }
 
-    // Fetch circle with all members
+    // If we still don't have user ID, try from a custom header
+    if (!currentUserId) {
+      currentUserId = request.headers.get('x-user-id')
+    }
+
+    // First, fetch the circle to check disable conditions
     const circle = await prisma.circleBadge.findUnique({
+      where: { id: circleId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        color: true,
+        icon: true,
+        creatorId: true,
+        isDisabled: true,
+        isCreatorDisabled: true,
+        createdAt: true
+      }
+    })
+
+    if (!circle) {
+      return NextResponse.json(
+        { error: 'Circle not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if current user is the creator
+    const isCreator = currentUserId && circle.creatorId === currentUserId
+
+    // 1. Check if circle is disabled for all members
+    if (circle.isDisabled === true) {
+      return NextResponse.json({
+        success: false,
+        message: 'This circle is disabled for all',
+        circle: {
+          id: circle.id,
+          name: circle.name,
+          description: circle.description,
+          color: circle.color,
+          icon: circle.icon
+        },
+        members: []
+      })
+    }
+
+    // 2. Check if creator is disabled and current user is the creator
+    if (circle.isCreatorDisabled === true && isCreator) {
+      return NextResponse.json({
+        success: false,
+        message: 'Circle disabled for you',
+        circle: {
+          id: circle.id,
+          name: circle.name,
+          description: circle.description,
+          color: circle.color,
+          icon: circle.icon
+        },
+        members: []
+      })
+    }
+
+    // 3. Check if current user is a member and is disabled
+    if (currentUserId && !isCreator) {
+      const userMembership = await prisma.circleMembership.findFirst({
+        where: {
+          circleId: circleId,
+          userId: currentUserId
+        },
+        select: {
+          isDisabledMember: true
+        }
+      })
+
+      if (userMembership?.isDisabledMember === true) {
+        return NextResponse.json({
+          success: false,
+          message: 'Circle is disabled for you',
+          circle: {
+            id: circle.id,
+            name: circle.name,
+            description: circle.description,
+            color: circle.color,
+            icon: circle.icon
+          },
+          members: []
+        })
+      }
+    }
+
+    // If all checks pass, fetch and return members
+    const circleWithMembers = await prisma.circleBadge.findUnique({
       where: { id: circleId },
       include: {
         creator: {
@@ -27,8 +143,8 @@ export async function GET(
           where: {
             status: 'active',
             OR: [
-              { is_disabled_member: false },
-              { is_disabled_member: null }
+              { isDisabledMember: false },
+              { isDisabledMember: null }
             ]
           },
           include: {
@@ -47,7 +163,7 @@ export async function GET(
       }
     })
 
-    if (!circle) {
+    if (!circleWithMembers) {
       return NextResponse.json(
         { error: 'Circle not found' },
         { status: 404 }
@@ -58,19 +174,19 @@ export async function GET(
     const members = []
 
     // Add creator first
-    if (circle.creator) {
+    if (circleWithMembers.creator) {
       members.push({
         user: {
-          ...circle.creator,
+          ...circleWithMembers.creator,
           role: 'creator'
         },
         isCreator: true,
-        joinedAt: circle.createdAt
+        joinedAt: circleWithMembers.createdAt
       })
     }
 
     // Add other members
-    circle.memberships.forEach(membership => {
+    circleWithMembers.memberships.forEach(membership => {
       members.push({
         user: membership.user,
         isCreator: false,
@@ -81,11 +197,11 @@ export async function GET(
     const responseData = {
       success: true,
       circle: {
-        id: circle.id,
-        name: circle.name,
-        description: circle.description,
-        color: circle.color,
-        icon: circle.icon
+        id: circleWithMembers.id,
+        name: circleWithMembers.name,
+        description: circleWithMembers.description,
+        color: circleWithMembers.color,
+        icon: circleWithMembers.icon
       },
       members
     };
