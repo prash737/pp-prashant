@@ -109,17 +109,81 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         }
 
         const data = await response.json()
-        console.log('📊 PublicView: API data received:', {
-          hasData: !!data,
-          hasProfile: !!data?.profile,
-          firstName: data?.profile?.firstName || data?.first_name,
-          lastName: data?.profile?.lastName || data?.last_name,
-          achievementsCount: data?.achievements?.length || 0,
-          circlesCount: data?.circles?.length || 0,
-          circles: data?.circles,
-          hasCircles: !!data?.circles
+        console.log('📊 PublicView: Raw API data received:', data)
+        
+        // Transform the data to match the expected structure
+        let transformedData = data
+        
+        // If data is an array (from RPC function), get the first element
+        if (Array.isArray(data) && data.length > 0) {
+          const rawData = data[0]
+          transformedData = {
+            id: rawData.id,
+            first_name: rawData.first_name,
+            last_name: rawData.last_name,
+            bio: rawData.bio,
+            location: rawData.location,
+            profile_image_url: rawData.profile_image_url,
+            cover_image_url: rawData.cover_image_url,
+            verification_status: rawData.verification_status,
+            tagline: rawData.tagline,
+            profile: {
+              firstName: rawData.first_name,
+              lastName: rawData.last_name,
+              bio: rawData.bio,
+              location: rawData.location,
+              profileImageUrl: rawData.profile_image_url,
+              coverImageUrl: rawData.cover_image_url,
+              verificationStatus: rawData.verification_status,
+              tagline: rawData.tagline,
+              userInterests: rawData.user_interests || [],
+              userSkills: rawData.user_skills || []
+            },
+            educationHistory: rawData.education_history || [],
+            achievements: rawData.achievements || [],
+            goals: rawData.goals || [],
+            userCollections: rawData.user_collections || [],
+            circles: rawData.circles || [],
+            connectionCounts: {
+              total: 0,
+              students: 0,
+              mentors: 0,
+              institutions: 0
+            },
+            followingInstitutions: rawData.institution_following || [],
+            sent_connections: rawData.sent_connections || [],
+            received_connections: rawData.received_connections || []
+          }
+        } else if (!data.profile && data.first_name) {
+          // If it's flat data structure, transform it
+          transformedData = {
+            ...data,
+            profile: {
+              firstName: data.first_name,
+              lastName: data.last_name,
+              bio: data.bio,
+              location: data.location,
+              profileImageUrl: data.profile_image_url,
+              coverImageUrl: data.cover_image_url,
+              verificationStatus: data.verification_status,
+              tagline: data.tagline,
+              userInterests: data.userInterests || data.user_interests || [],
+              userSkills: data.userSkills || data.user_skills || []
+            }
+          }
+        }
+
+        console.log('📊 PublicView: Transformed data:', {
+          hasData: !!transformedData,
+          hasProfile: !!transformedData?.profile,
+          firstName: transformedData?.profile?.firstName,
+          lastName: transformedData?.profile?.lastName,
+          achievementsCount: transformedData?.achievements?.length || 0,
+          circlesCount: transformedData?.circles?.length || 0,
+          educationCount: transformedData?.educationHistory?.length || 0
         })
-        setStudentData(data)
+        
+        setStudentData(transformedData)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')

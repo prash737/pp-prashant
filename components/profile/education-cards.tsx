@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 interface EducationCardsProps {
   educationHistory?: any[]
   isViewMode?: boolean
+  studentData?: any
 }
 
 interface EducationEntry {
@@ -33,12 +34,20 @@ interface EducationEntry {
   achievements?: string[]
 }
 
-export default function EducationCards({ isViewMode = false }: EducationCardsProps) {
+export default function EducationCards({ isViewMode = false, studentData }: EducationCardsProps) {
   const [educationHistory, setEducationHistory] = useState<EducationEntry[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch existing education history from database - same as edit page
+  // Use passed studentData if available (for public view), otherwise fetch from API
   useEffect(() => {
+    if (studentData && studentData.educationHistory) {
+      console.log('📚 Education Cards: Using passed student data:', studentData.educationHistory)
+      setEducationHistory(studentData.educationHistory)
+      setLoading(false)
+      return
+    }
+
+    // Only fetch from API if no studentData is passed (own profile view)
     const fetchEducationHistory = async () => {
       try {
         setLoading(true)
@@ -51,7 +60,7 @@ export default function EducationCards({ isViewMode = false }: EducationCardsPro
         if (response.ok) {
           const data = await response.json()
           const existingEducation = data.education || []
-          console.log('📚 Education Cards: Loaded education history:', existingEducation)
+          console.log('📚 Education Cards: Loaded education history from API:', existingEducation)
           setEducationHistory(existingEducation)
         } else {
           console.error('Failed to fetch education history:', await response.text())
@@ -64,7 +73,7 @@ export default function EducationCards({ isViewMode = false }: EducationCardsPro
     }
 
     fetchEducationHistory()
-  }, [])
+  }, [studentData])
 
   const getInstitutionTypeName = (typeId: string | number): string => {
     if (!typeId) return 'Institution Type'
