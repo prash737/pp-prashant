@@ -105,11 +105,11 @@ export async function GET(
           userId: currentUserId
         },
         select: {
-          isDisabledMember: true
+          is_disabled_member: true
         }
       })
 
-      if (userMembership?.isDisabledMember === true) {
+      if (userMembership?.is_disabled_member === true) {
         return NextResponse.json({
           success: false,
           message: 'Circle is disabled for you',
@@ -143,8 +143,8 @@ export async function GET(
           where: {
             status: 'active',
             OR: [
-              { isDisabledMember: false },
-              { isDisabledMember: null }
+              { is_disabled_member: false },
+              { is_disabled_member: null }
             ]
           },
           include: {
