@@ -28,52 +28,6 @@ import {
 import { Progress } from "@/components/ui/progress"
 
 
-// Dynamic imports for heavy form components - only load when tab is active
-const PersonalInfoForm = dynamic(() => import("./forms/personal-info-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const InterestsPassionsForm = dynamic(() => import("./forms/interests-passions-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const SkillsAbilitiesForm = dynamic(() => import("./forms/skills-abilities-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const EducationHistoryForm = dynamic(() => import("./forms/education-history-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const GoalsAspirationsForm = dynamic(() => import("./forms/goals-aspirations-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const AchievementsForm = dynamic(() => import("./forms/achievements-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const MoodBoardMediaForm = dynamic(() => import("./forms/mood-board-media-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const SocialContactForm = dynamic(() => import("./forms/social-contact-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const PrivacySettingsForm = dynamic(() => import("./forms/privacy-settings-form"), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
 // Form loading skeleton
 const FormSkeleton = () => (
   <div className="space-y-6 animate-pulse">
@@ -98,6 +52,52 @@ const FormSkeleton = () => (
   </div>
 )
 
+// Lazy load heavy form components only when needed
+const PersonalInfoForm = dynamic(() => import('./forms/personal-info-form').then(m => ({ default: m.PersonalInfoForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const InterestsPassionsForm = dynamic(() => import('./forms/interests-passions-form').then(m => ({ default: m.InterestsPassionsForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const SkillsAbilitiesForm = dynamic(() => import('./forms/skills-abilities-form').then(m => ({ default: m.SkillsAbilitiesForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const EducationHistoryForm = dynamic(() => import('./forms/education-history-form').then(m => ({ default: m.EducationHistoryForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const GoalsAspirationsForm = dynamic(() => import('./forms/goals-aspirations-form').then(m => ({ default: m.GoalsAspirationsForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const AchievementsForm = dynamic(() => import('./forms/achievements-form').then(m => ({ default: m.AchievementsForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const MoodBoardMediaForm = dynamic(() => import('./forms/mood-board-media-form').then(m => ({ default: m.MoodBoardMediaForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const SocialContactForm = dynamic(() => import('./forms/social-contact-form').then(m => ({ default: m.SocialContactForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
+const PrivacySettingsForm = dynamic(() => import('./forms/privacy-settings-form').then(m => ({ default: m.PrivacySettingsForm })), {
+  loading: () => <FormSkeleton />,
+  ssr: false
+})
+
 interface ProfileEditFormProps {
   userId: string
   initialSection?: string
@@ -117,7 +117,8 @@ interface PersonalInfoFormProps {
 }
 
 
-export default function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
+// Named export for better tree shaking
+export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState(initialSection || "personal")
@@ -420,13 +421,21 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
   const renderTabContent = (tabId: string) => {
     switch (tabId) {
       case "personal":
-        return <PersonalInfoForm data={profileData} onChange={handleFormChange} onSave={(data) => handleSectionSave('personal', data)} />
+        return loadedTabs.has('personal') && (
+              <PersonalInfoForm data={profileData} onChange={handleFormChange} onSave={(data) => handleSectionSave('personal', data)} />
+            )
       case "interests":
-        return <InterestsPassionsForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('interests') && (
+              <InterestsPassionsForm data={profileData} onChange={handleFormChange} />
+            )
       case "skills":
-        return <SkillsAbilitiesForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('skills') && (
+              <SkillsAbilitiesForm data={profileData} onChange={handleFormChange} />
+            )
       case "goals":
-        return <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
+        return loadedTabs.has('goals') && (
+              <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
+            )
       case "social":
         return (() => {
           console.log('🔧 ProfileEditForm: Rendering SocialContactForm with userId:', user?.id)
@@ -434,7 +443,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
             console.log('⚠️ ProfileEditForm: User ID not available yet, showing loading...')
             return <div className="p-8 text-center">Loading user data...</div>
           }
-          return (
+          return loadedTabs.has('social') && (
             <SocialContactForm
               data={formData.social}
               onChange={handleFormChange}
@@ -443,13 +452,21 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
           )
         })()
       case "education":
-        return <EducationHistoryForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('education') && (
+              <EducationHistoryForm data={profileData} onChange={handleFormChange} />
+            )
       case "media":
-        return <MoodBoardMediaForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('media') && (
+              <MoodBoardMediaForm data={profileData} onChange={handleFormChange} />
+            )
       case "privacy":
-        return <PrivacySettingsForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('privacy') && (
+              <PrivacySettingsForm data={profileData} onChange={handleFormChange} />
+            )
       case "achievements":
-        return <AchievementsForm data={profileData} onChange={handleFormChange} />
+        return loadedTabs.has('achievements') && (
+              <AchievementsForm data={profileData} onChange={handleFormChange} />
+            )
       default:
         return null
     }
@@ -551,7 +568,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
                 transition={{ duration: 0.2 }}
               >
                 {/* Conditionally render content only if the tab has been loaded */}
-                {loadedTabs.has(activeTab) ? renderTabContent(activeTab) : <FormSkeleton />}
+                {renderTabContent(activeTab) || <FormSkeleton />}
               </motion.div>
             </AnimatePresence>
           </div>

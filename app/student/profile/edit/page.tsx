@@ -1,179 +1,90 @@
+'use client'
 
-"use client"
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/use-auth'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import dynamic from 'next/dynamic'
 
-import React, { useEffect, useState, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
-import InternalNavbar from "@/components/internal-navbar"
-import Footer from "@/components/footer"
-import ProtectedLayout from "@/app/protected-layout"
-import dynamic from "next/dynamic"
-
-// Dynamic imports for heavy components - only load when needed
-const ProfileEditForm = dynamic(() => import("@/components/profile/profile-edit-form"), {
-  loading: () => (
-    <div className="flex items-center justify-center py-12">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pathpiper-teal mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading profile editor...</p>
+// Minimal loading component that renders immediately
+const ProfileEditLoading = () => (
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <Skeleton className="h-8 w-64 mb-2" />
+        <Skeleton className="h-4 w-96" />
       </div>
-    </div>
-  ),
-  ssr: false
-})
 
-// Static components that should load immediately
-const StaticPageLayout = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedLayout>
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      <InternalNavbar />
-      <main className="flex-grow pt-16 sm:pt-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Update your profile information to help others get to know you better
-            </p>
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            {/* Tab skeleton */}
+            <div className="flex gap-4 border-b">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-10 w-24" />
+              ))}
+            </div>
+
+            {/* Form skeleton */}
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+
+            {/* Button skeleton */}
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
           </div>
-          {children}
-        </div>
-      </main>
-      <Footer />
+        </CardContent>
+      </Card>
     </div>
-  </ProtectedLayout>
-)
-
-// Loading skeleton for the form
-const FormLoadingSkeleton = () => (
-  <div className="space-y-8">
-    {/* Header skeleton */}
-    <div className="animate-pulse">
-      <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-    </div>
-    
-    {/* Form sections skeleton */}
-    {[1, 2, 3].map((i) => (
-      <div key={i} className="animate-pulse space-y-4">
-        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-        <div className="space-y-2">
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    ))}
   </div>
 )
 
-function StudentProfileEditContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+// Dynamically import the heavy form component
+const ProfileEditForm = dynamic(
+  () => import('@/components/profile/profile-edit-form').then(mod => ({ default: mod.ProfileEditForm })),
+  {
+    loading: () => <ProfileEditLoading />,
+    ssr: false // Client-side only to reduce initial bundle
+  }
+)
+
+export default function StudentProfileEditPage() {
   const { user, loading: authLoading } = useAuth()
-  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null)
+  const router = useRouter()
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
-    // Only perform auth checks after component has mounted and rendered
-    if (!authLoading && user) {
-      if (user.role !== 'student') {
-        // Set redirect target but don't redirect immediately
-        if (user.role === 'mentor') {
-          setShouldRedirect('/mentor/profile')
-        } else if (user.role === 'institution') {
-          setShouldRedirect('/institution/profile')
-        } else {
-          setShouldRedirect('/feed')
-        }
-      } else {
-        // User is a student, show the form after a short delay to ensure page renders first
-        const timer = setTimeout(() => {
-          setShowForm(true)
-        }, 100)
-        return () => clearTimeout(timer)
+    // Immediate redirect check with minimal computation
+    if (!authLoading) {
+      if (!user) {
+        router.replace('/login')
+        return
       }
-    } else if (!authLoading && !user) {
-      // Set login redirect but don't redirect immediately
-      setShouldRedirect('/login')
+
+      if (user.role !== 'student') {
+        router.replace('/profile')
+        return
+      }
+
+      // User is authenticated and is a student, show the form
+      setShowForm(true)
     }
-  }, [user, authLoading])
+  }, [user, authLoading, router])
 
-  // Perform redirects after a short delay to allow page to render first
-  useEffect(() => {
-    if (shouldRedirect) {
-      const timer = setTimeout(() => {
-        router.push(shouldRedirect)
-      }, 500) // Small delay to show page loaded
-      return () => clearTimeout(timer)
-    }
-  }, [shouldRedirect, router])
-
-  // Redirect screens
-  if (shouldRedirect) {
-    return (
-      <StaticPageLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pathpiper-teal mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              {shouldRedirect === '/login' ? 'Please log in to continue...' : 'Redirecting to your profile...'}
-            </p>
-          </div>
-        </div>
-      </StaticPageLayout>
-    )
+  // Show loading immediately while auth checks happen
+  if (authLoading || !showForm) {
+    return <ProfileEditLoading />
   }
 
-  // Auth loading screen
-  if (authLoading) {
-    return (
-      <StaticPageLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pathpiper-teal mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your profile...</p>
-          </div>
-        </div>
-      </StaticPageLayout>
-    )
-  }
-
-  // Main content for authenticated students
-  if (user && user.role === 'student') {
-    return (
-      <StaticPageLayout>
-        {showForm ? (
-          <ProfileEditForm 
-            userId={user.id} 
-            initialSection={searchParams.get('section') || undefined}
-          />
-        ) : (
-          <FormLoadingSkeleton />
-        )}
-      </StaticPageLayout>
-    )
-  }
-
-  // Fallback loading state
-  return (
-    <StaticPageLayout>
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pathpiper-teal mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    </StaticPageLayout>
-  )
-}
-
-export default function StudentProfileEditPage() {
-  return (
-    <Suspense fallback={
-      <StaticPageLayout>
-        <FormLoadingSkeleton />
-      </StaticPageLayout>
-    }>
-      <StudentProfileEditContent />
-    </Suspense>
-  )
+  // Only render the heavy form component after auth is confirmed
+  return <ProfileEditForm />
 }
