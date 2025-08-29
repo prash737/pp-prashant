@@ -667,7 +667,7 @@ export default function StudentProfile({
       case "suggested":
         return !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />
       case "skills":
-        return <SkillsCanvas userId={student?.id} skills={student?.skills} isViewMode={isViewMode} />
+        return <SkillsCanvas userId={student?.id} skills={student?.profile?.userSkills} isViewMode={isViewMode} />
       case "projects":
         return <ProjectsShowcase student={student} isViewMode={isViewMode} />
       case "achievements":
