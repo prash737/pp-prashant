@@ -65,3 +65,6 @@ args = "echo \"✅ Feed testing setup complete!\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
+
+[agent]
+expertMode = true
