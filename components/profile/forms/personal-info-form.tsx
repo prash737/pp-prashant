@@ -65,7 +65,7 @@ const calculateAgeGroup = (birthMonth: string, birthYear: string): string => {
   }
 }
 
-export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInfoFormProps) {
+function PersonalInfoForm({ data, onChange, onSave }: PersonalInfoFormProps) {
   const [profileImagePreview, setProfileImagePreview] = useState<string>("")
   const [coverImagePreview, setCoverImagePreview] = useState<string>("")
   const [isDirty, setIsDirty] = useState(false)
@@ -657,3 +657,5 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
     </div>
   )
 }
+
+export default PersonalInfoForm

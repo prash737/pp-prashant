@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -26,8 +25,8 @@ interface SkillsAbilitiesFormProps {
   onChange: (sectionId: string, data: Skill[], isDirty?: boolean) => void
 }
 
-export default function SkillsAbilitiesForm({ 
-  data, 
+function SkillsAbilitiesForm({
+  data,
   onChange
 }: SkillsAbilitiesFormProps) {
   const [skills, setSkills] = useState<Skill[]>([])
@@ -54,12 +53,12 @@ export default function SkillsAbilitiesForm({
           const userData = await userResponse.json()
           // Try both possible field names for age group
           const actualAgeGroup = userData.user?.ageGroup || userData.user?.studentProfile?.age_group
-          
+
           console.log('🔍 Full user data:', userData.user)
           console.log('🔍 Age group from ageGroup field:', userData.user?.ageGroup)
           console.log('🔍 Age group from studentProfile.age_group:', userData.user?.studentProfile?.age_group)
           console.log('🔍 Final actualAgeGroup:', actualAgeGroup)
-          
+
           if (!actualAgeGroup) {
             console.error('❌ No age_group found in student profile. Please set age_group first.')
             setLoading(false)
@@ -123,13 +122,13 @@ export default function SkillsAbilitiesForm({
       const categoriesWithCustom = skillCategories.map(category => {
         if (category.name === "Custom") {
           // Only show user's own custom skills
-          const userCustomSkills = skills.filter(skill => 
+          const userCustomSkills = skills.filter(skill =>
             !skill.id || skill.id < 0 || skill.category === "Custom"
           ).map(skill => ({
             id: skill.id || -Date.now(),
             name: skill.name
           }))
-          
+
           return {
             ...category,
             skills: userCustomSkills
@@ -139,7 +138,7 @@ export default function SkillsAbilitiesForm({
       })
 
       // Add custom category if user has custom skills but no custom category exists
-      const customSkills = skills.filter(skill => 
+      const customSkills = skills.filter(skill =>
         !skill.id || skill.id < 0 || skill.category === "Custom"
       ).map(skill => ({
         id: skill.id || -Date.now(),
@@ -158,26 +157,26 @@ export default function SkillsAbilitiesForm({
     }
 
     const term = searchTerm.toLowerCase()
-    
+
     // Filter with search term, ensuring Custom category only shows user's own skills
     const filtered = skillCategories
       .map((category) => {
         if (category.name === "Custom") {
           // Only show user's own custom skills that match search
-          const userCustomSkills = skills.filter(skill => 
+          const userCustomSkills = skills.filter(skill =>
             (!skill.id || skill.id < 0 || skill.category === "Custom") &&
             skill.name.toLowerCase().includes(term)
           ).map(skill => ({
             id: skill.id || -Date.now(),
             name: skill.name
           }))
-          
+
           return {
             name: category.name,
             skills: userCustomSkills
           }
         }
-        
+
         return {
           name: category.name,
           skills: category.skills.filter((skill) =>
@@ -188,7 +187,7 @@ export default function SkillsAbilitiesForm({
       .filter((category) => category.skills.length > 0)
 
     // Add custom skills that match search if no custom category exists but user has custom skills
-    const customSkills = skills.filter(skill => 
+    const customSkills = skills.filter(skill =>
       (!skill.id || skill.id < 0 || skill.category === "Custom") &&
       skill.name.toLowerCase().includes(term)
     ).map(skill => ({
@@ -213,7 +212,7 @@ export default function SkillsAbilitiesForm({
         const originalSkill = originalSkills.find(orig => orig.name === skill.name)
         return !originalSkill || originalSkill.level !== skill.level
       })
-    
+
     console.log("🔍 Skills dirty bit:", skillsChanged)
     setIsDirty(skillsChanged)
     onChange("skills", skills, skillsChanged)
@@ -266,7 +265,7 @@ export default function SkillsAbilitiesForm({
 
   const getLevelLabel = (level: number) => {
     const isYoungChild = userAgeGroup === "early_childhood" || userAgeGroup === "elementary"
-    
+
     if (isYoungChild) {
       switch (level) {
         case 1: return "Just Started"
@@ -296,7 +295,7 @@ export default function SkillsAbilitiesForm({
         console.log("💾 Skills have changes, saving to database...")
         console.log("🔍 User age group for save:", userAgeGroup)
         console.log("🔍 Skills to save:", skills)
-        
+
         // Send all skills (with and without IDs) to the API
         // The API will handle filtering based on user's actual age group
         const response = await fetch('/api/user/skills', {
@@ -312,7 +311,7 @@ export default function SkillsAbilitiesForm({
           console.error('Failed to save skills:', errorData)
           throw new Error(errorData.error || 'Failed to save skills')
         }
-        
+
         setIsDirty(false)
         setOriginalSkills([...skills])
         // Notify parent component that changes have been saved
@@ -377,7 +376,7 @@ export default function SkillsAbilitiesForm({
                   <Plus size={16} />
                 </Button>
               </div>
-              
+
               {/* Default Level for New Skills */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                 <Label className="text-sm font-medium mb-2 block">
@@ -521,8 +520,8 @@ export default function SkillsAbilitiesForm({
           onClick={handleSave}
           disabled={!isDirty || saving}
           className={`w-full max-w-md mx-auto block ${
-            isDirty 
-              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90' 
+            isDirty
+              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >
@@ -532,3 +531,5 @@ export default function SkillsAbilitiesForm({
     </div>
   )
 }
+
+export default SkillsAbilitiesForm;

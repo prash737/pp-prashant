@@ -23,7 +23,7 @@ interface InterestsPassionsFormProps {
   onChange: (sectionId: string, data: Interest[], isDirty?: boolean) => void
 }
 
-export default function InterestsPassionsForm({ data, onChange }: InterestsPassionsFormProps) {
+function InterestsPassionsForm({ data, onChange }: InterestsPassionsFormProps) {
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [customInterest, setCustomInterest] = useState("")
@@ -432,3 +432,5 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     </div>
   )
 }
+
+export default InterestsPassionsForm

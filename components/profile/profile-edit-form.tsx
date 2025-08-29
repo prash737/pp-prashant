@@ -53,47 +53,47 @@ const FormSkeleton = () => (
 )
 
 // Lazy load heavy form components only when needed
-const PersonalInfoForm = dynamic(() => import('./forms/personal-info-form').then(m => ({ default: m.PersonalInfoForm })), {
+const PersonalInfoForm = dynamic(() => import('./forms/personal-info-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const InterestsPassionsForm = dynamic(() => import('./forms/interests-passions-form').then(m => ({ default: m.InterestsPassionsForm })), {
+const InterestsPassionsForm = dynamic(() => import('./forms/interests-passions-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const SkillsAbilitiesForm = dynamic(() => import('./forms/skills-abilities-form').then(m => ({ default: m.SkillsAbilitiesForm })), {
+const SkillsAbilitiesForm = dynamic(() => import('./forms/skills-abilities-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const EducationHistoryForm = dynamic(() => import('./forms/education-history-form').then(m => ({ default: m.EducationHistoryForm })), {
+const EducationHistoryForm = dynamic(() => import('./forms/education-history-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const GoalsAspirationsForm = dynamic(() => import('./forms/goals-aspirations-form').then(m => ({ default: m.GoalsAspirationsForm })), {
+const GoalsAspirationsForm = dynamic(() => import('./forms/goals-aspirations-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const AchievementsForm = dynamic(() => import('./forms/achievements-form').then(m => ({ default: m.AchievementsForm })), {
+const AchievementsForm = dynamic(() => import('./forms/achievements-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const MoodBoardMediaForm = dynamic(() => import('./forms/mood-board-media-form').then(m => ({ default: m.MoodBoardMediaForm })), {
+const MoodBoardMediaForm = dynamic(() => import('./forms/mood-board-media-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const SocialContactForm = dynamic(() => import('./forms/social-contact-form').then(m => ({ default: m.SocialContactForm })), {
+const SocialContactForm = dynamic(() => import('./forms/social-contact-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
 
-const PrivacySettingsForm = dynamic(() => import('./forms/privacy-settings-form').then(m => ({ default: m.PrivacySettingsForm })), {
+const PrivacySettingsForm = dynamic(() => import('./forms/privacy-settings-form'), {
   loading: () => <FormSkeleton />,
   ssr: false
 })
