@@ -662,6 +662,7 @@ export default function StudentProfile({
       case "about":
         return <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
       case "interests":
+        // Pass student data to InterestsSection, which will handle fetching interests if they are not already loaded
         return <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
       case "suggested":
         return !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />

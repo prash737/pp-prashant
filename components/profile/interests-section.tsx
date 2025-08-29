@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Heart, Sparkles, Edit, User, Camera, Book, Music, Palette, Code, Gamepad2, Globe, Star, Search, Plus, X } from "lucide-react"
+import { Heart, Sparkles, Edit, User, Camera, Book, Music, Palette, Code, Gamepad2, Globe, Star, Search, Plus, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -32,11 +32,56 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
   const [searchTerm, setSearchTerm] = useState("")
   const [filteredInterests, setFilteredInterests] = useState<Interest[]>([])
   const [groupedInterests, setGroupedInterests] = useState<InterestCategory[]>([])
+  const [userInterests, setUserInterests] = useState<Interest[]>([])
+  const [loading, setLoading] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
   const isOwnProfile = currentUser?.id === student?.id
   const isViewMode = false; //Placeholder, needs to be determined from props
 
   const handleEditInterests = () => {
     router.push('/student/profile/edit?section=interests')
+  }
+
+  // Lazy load interests when component mounts
+  useEffect(() => {
+    if (!hasLoaded && currentUser?.id) {
+      loadUserInterests()
+    }
+  }, [currentUser?.id, hasLoaded])
+
+  const loadUserInterests = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      console.log('🔍 InterestsSection: Lazy loading user interests for user:', currentUser?.id)
+      
+      const response = await fetch('/api/user/interests', {
+        credentials: 'include',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user interests')
+      }
+
+      const data = await response.json()
+      console.log('✅ InterestsSection: User interests loaded:', data.interests?.length || 0, 'interests')
+      
+      setUserInterests(data.interests || [])
+      setHasLoaded(true)
+    } catch (err) {
+      console.error('❌ InterestsSection: Error loading interests:', err)
+      setError('Failed to load interests')
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Category mapping with icons and colors
@@ -54,9 +99,9 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
   }
 
   useEffect(() => {
-    if (student?.interests) {
+    if (userInterests && userInterests.length > 0) {
       // Filter interests based on search
-      const filtered = student.interests.filter((interest: Interest) =>
+      const filtered = userInterests.filter((interest: Interest) =>
         interest.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
       setFilteredInterests(filtered)
@@ -80,7 +125,7 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
 
       setGroupedInterests(groupedArray)
     }
-  }, [student?.interests, searchTerm])
+  }, [userInterests, searchTerm])
 
   const getInterestColor = (index: number) => {
     const colors = [
@@ -96,7 +141,52 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
     return colors[index % colors.length]
   }
 
-  if (!student?.interests || student.interests.length === 0) {
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-16">
+          <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-6">
+            <Loader2 className="w-12 h-12 text-pathpiper-teal animate-spin" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Loading Interests...
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Fetching your interests and passions
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-16">
+          <div className="mx-auto w-24 h-24 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mb-6">
+            <X className="w-12 h-12 text-red-500" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Failed to Load Interests
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
+            {error}
+          </p>
+          <Button
+            className="bg-pathpiper-teal hover:bg-pathpiper-teal/90"
+            onClick={loadUserInterests}
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show empty state
+  if (!userInterests || userInterests.length === 0) {
     return (
       <div className="p-8">
         <div className="text-center py-16">
@@ -135,7 +225,7 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
             My Interests & Passions
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {student.interests.length} interests • Discover what drives me
+            {userInterests.length} interests • Discover what drives me
           </p>
         </div>
         {isOwnProfile && !isViewMode && (
