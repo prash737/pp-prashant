@@ -26,8 +26,7 @@ const nextConfig = {
         '*.ts': ['swc-loader']
       }
     },
-    swcPlugins: [],
-    forceSwcTransforms: true
+    swcPlugins: []
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
