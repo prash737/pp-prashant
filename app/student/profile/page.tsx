@@ -1,155 +1,257 @@
+
 "use client"
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import InternalNavbar from '@/components/internal-navbar'
-import Footer from '@/components/footer'
-import ProfileHeader from '@/components/profile/profile-header'
-import CircleView from '@/components/profile/circle-view'
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
+import InternalNavbar from "@/components/internal-navbar"
+import Footer from "@/components/footer"
+import ProtectedLayout from "@/app/protected-layout"
+import StudentProfile from "@/components/profile/student-profile"
+
+interface StudentData {
+  id: string
+  profile: {
+    firstName: string
+    lastName: string
+    bio?: string
+    location?: string
+    profileImageUrl?: string
+    coverImageUrl?: string
+    tagline?: string
+    verificationStatus?: boolean
+    userInterests: Array<{
+      interest: {
+        name: string
+        category: { name: string }
+      }
+    }>
+    userSkills: Array<{
+      skill: {
+        name: string
+        category: { name: string }
+      }
+    }>
+  }
+  educationHistory: Array<{
+    id: string
+    institutionName: string
+    degree?: string
+    fieldOfStudy?: string
+    startDate: string
+    endDate?: string
+    current: boolean
+  }>
+  achievements: any[]
+  connectionCounts: {
+    total: number
+    students: number
+    mentors: number
+    institutions: number
+  }
+  circles: any[]
+}
+
 export default function StudentProfilePage() {
   const { user: currentUser, loading: authLoading } = useAuth()
+  const [studentData, setStudentData] = useState<StudentData | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const [studentData, setStudentData] = useState(null)
-  const [circles, setCircles] = useState([])
-  const [circleInvitations, setCircleInvitations] = useState([])
-  const [connectionRequestsSent, setConnectionRequestsSent] = useState([])
-  const [connectionRequestsReceived, setConnectionRequestsReceived] = useState([])
-  const [achievements, setAchievements] = useState([])
-  const [connectionCounts, setConnectionCounts] = useState({
-    connections: 0,
-    mutualConnections: 0,
-  })
-  const [loading, setLoading] = useState(true)
-
-  const fetchData = async () => {
-    if (!currentUser?.id) return
-
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/student/profile/${currentUser.id}`, {
-        credentials: 'include',
-        cache: 'no-store'
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile data')
-      }
-      
-      const data = await response.json()
-      setStudentData(data)
-      setCircleInvitations(data.circle_invitations || [])
-      setConnectionRequestsSent(data.connection_requests_sent || [])
-      setConnectionRequestsReceived(data.connection_requests_received || [])
-      setAchievements(data.achievements || [])
-      setConnectionCounts({
-        connections: data.connections_count || 0,
-        mutualConnections: data.mutual_connections_count || 0,
-      })
-    } catch (error) {
-      console.error('Error fetching student profile:', error)
-      // Handle error appropriately, maybe redirect or show an error message
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
-    if (!authLoading && currentUser?.id) {
-      fetchData()
-    } else if (!authLoading && !currentUser) {
-      router.replace('/login')
+    if (authLoading) return
+
+    if (!currentUser) {
+      router.push('/login')
+      return
     }
+
+    // Redirect non-students to their appropriate profile pages
+    if (currentUser.role !== 'student') {
+      if (currentUser.role === 'mentor') {
+        router.push('/mentor/profile')
+      } else if (currentUser.role === 'institution') {
+        router.push('/institution/profile')
+      } else {
+        router.push('/feed')
+      }
+      return
+    }
+
+    // Fetch student data - SINGLE API CALL ONLY
+    const fetchStudentData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        console.log('📡 StudentProfilePage: Making single API call for user:', currentUser.id)
+        
+        const response = await fetch(`/api/student/profile/${currentUser.id}`, {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Profile not found')
+          } else if (response.status === 403) {
+            setError('Access denied')
+          } else {
+            setError('Failed to load profile')
+          }
+          return
+        }
+
+        const data = await response.json()
+        console.log('✅ StudentProfilePage: Data received:', data)
+
+        // Transform the API response to match component expectations
+        if (Array.isArray(data) && data.length > 0) {
+          const rawStudentData = data[0]
+          
+          const transformedData = {
+            id: rawStudentData.id,
+            first_name: rawStudentData.first_name,
+            last_name: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profile_image_url: rawStudentData.profile_image_url,
+            cover_image_url: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verification_status: rawStudentData.verification_status,
+            profile: {
+              firstName: rawStudentData.first_name,
+              lastName: rawStudentData.last_name,
+              bio: rawStudentData.bio,
+              location: rawStudentData.location,
+              profileImageUrl: rawStudentData.profile_image_url,
+              coverImageUrl: rawStudentData.cover_image_url,
+              tagline: rawStudentData.tagline,
+              verificationStatus: rawStudentData.verification_status,
+              userInterests: rawStudentData.user_interests || [],
+              userSkills: rawStudentData.user_skills || [],
+              skills: (rawStudentData.user_skills || []).map((us: any) => ({
+                id: us.skills?.id || us.skill?.id,
+                name: us.skills?.name || us.skill?.name,
+                proficiencyLevel: us.proficiency_level || 50,
+                category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+              })),
+              socialLinks: rawStudentData.social_links || []
+            },
+            educationHistory: (rawStudentData.education_history || []).map((edu: any) => ({
+              id: edu.id,
+              institutionName: edu.institution_name,
+              institutionType: edu.institution_type,
+              gradeLevel: edu.grade_level,
+              isCurrent: edu.is_current,
+              is_current: edu.is_current,
+              startDate: edu.start_date,
+              endDate: edu.end_date,
+              degreeProgram: edu.degree_program,
+              fieldOfStudy: edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institution_verified
+            })),
+            achievements: rawStudentData.achievements || [],
+            goals: rawStudentData.goals || [],
+            userCollections: rawStudentData.user_collections || [],
+            connections: rawStudentData.connections || [],
+            connectionCounts: rawStudentData.connectionCounts || {
+              total: 0,
+              students: 0,
+              mentors: 0,
+              institutions: 0
+            },
+            circles: rawStudentData.circles || [],
+            followingInstitutions: rawStudentData.institution_following || [],
+            suggestedConnections: rawStudentData.suggestedConnections || [],
+            connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+            connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+            circleInvitations: rawStudentData.circleInvitations || []
+          }
+
+          console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
+          setStudentData(transformedData)
+        } else {
+          console.error('❌ StudentProfilePage: Unexpected data format:', data)
+          setError('Invalid profile data format')
+        }
+      } catch (err) {
+        console.error('❌ StudentProfilePage: Error fetching student data:', err)
+        setError('Failed to load profile')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStudentData()
   }, [currentUser, authLoading, router])
 
-  // Handle circles update
-  const handleCirclesUpdate = () => {
-    console.log('🔄 Refreshing circles data...')
-    // Force refresh by clearing cache and refetching
-    setStudentData(null)
-    fetchData()
-  }
-
-  // Extract and combine circles from student data
-  useEffect(() => {
-    if (studentData && typeof studentData === 'object') {
-      let combinedCircles = []
-
-      if (Array.isArray(studentData)) {
-        // If studentData is an array, get first element
-        const student = studentData[0]
-        if (student) {
-          const createdCircles = student.created_circles || []
-          const memberCircles = student.circles || []
-          combinedCircles = [...createdCircles, ...memberCircles]
-        }
-      } else {
-        // If studentData is an object
-        const createdCircles = studentData.created_circles || []
-        const memberCircles = studentData.circles || []
-        combinedCircles = [...createdCircles, ...memberCircles]
-      }
-
-      console.log('🔍 StudentProfilePage: Extracting circles:', {
-        totalCircles: combinedCircles.length,
-        combinedCircles
-      })
-
-      if (combinedCircles.length > 0) {
-        setCircles(combinedCircles)
-      }
-    }
-  }, [studentData])
-
-  if (loading || authLoading) {
+  // Show loading only if auth is loading AND we don't have studentData
+  if (authLoading && !studentData) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading profile...</p>
-      </div>
+      <ProtectedLayout>
+        <div className="min-h-screen flex flex-col">
+          <InternalNavbar />
+          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pathpiper-teal mx-auto"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </ProtectedLayout>
     )
   }
 
-  if (!currentUser) {
-    // This case should ideally be handled by the router.replace in useEffect
-    return null
+  if (error) {
+    return (
+      <ProtectedLayout>
+        <div className="min-h-screen flex flex-col">
+          <InternalNavbar />
+          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <button 
+                onClick={() => router.push('/student/profile')}
+                className="bg-pathpiper-teal text-white px-4 py-2 rounded hover:bg-pathpiper-teal/90"
+              >
+                Go to My Profile
+              </button>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </ProtectedLayout>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <InternalNavbar />
-      <main className="container mx-auto py-8 px-4">
-        <ProfileHeader
-          student={studentData}
-          currentUser={currentUser}
-          connectionCounts={connectionCounts}
-          isViewMode={false}
-          isShareMode={false}
-          circles={circles}
-          onCirclesUpdate={handleCirclesUpdate}
-          achievements={achievements}
-          connectionRequestsSent={connectionRequestsSent}
-          connectionRequestsReceived={connectionRequestsReceived}
-          circleInvitations={circleInvitations}
-        />
-
-        <section className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <CircleView
-            title="Your Circles"
-            circles={circles}
+    <ProtectedLayout>
+      <div className="min-h-screen flex flex-col">
+        <InternalNavbar />
+        <main className="flex-grow pt-16 sm:pt-24">
+          {/* Pass the studentData directly to StudentProfile with minimal props */}
+          <StudentProfile
+            studentId={currentUser?.id}
             currentUser={currentUser}
-            onCirclesUpdate={handleCirclesUpdate}
+            studentData={studentData}
+            isViewMode={false}
+            showStaticStructure={!studentData && loading}
           />
-          <CircleView
-            title="Invitations"
-            circles={circleInvitations}
-            currentUser={currentUser}
-             invitaciónMode={true}
-            onCirclesUpdate={handleCirclesUpdate}
-          />
-          {/* Add other relevant sections here */}
-        </section>
-      </main>
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </ProtectedLayout>
   )
 }
