@@ -241,11 +241,9 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       }
     }
 
-    // Only load if we don't have profile data yet
-    if (!profileData) {
-      loadProfileData()
-    }
-  }, [userId, tabs, profileData]) // Remove tabs dependency to prevent unnecessary reloads
+    // Load data immediately without blocking render
+    loadProfileData()
+  }, [userId, tabs]) // Remove tabs dependency to prevent unnecessary reloads
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
