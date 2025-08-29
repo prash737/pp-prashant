@@ -23,7 +23,14 @@ export default function ActionBar({ student, currentUser }: ActionBarProps) {
               variant="outline" 
               size="sm" 
               className="rounded-full"
-              onClick={() => router.push('/student/profile/edit')}
+              onClick={() => {
+                if (isOwnProfile) {
+                  // Immediate routing - no delays or checks
+                  router.push('/student/profile/edit')
+                } else {
+                  setShowConnectionDialog(true)
+                }
+              }}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile

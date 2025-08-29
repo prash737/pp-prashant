@@ -213,21 +213,18 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     }
   ]
 
-  // Load profile data only once
+  // Load profile data in background after initial render
   useEffect(() => {
     const loadProfileData = async () => {
       try {
-        // Don't block initial render
-        setLoading(true)
-
-        // Start with basic empty structure so page renders immediately
+        // Set empty completion data immediately for instant render
         const emptyCompletion: Record<string, boolean> = {}
         tabs.forEach(tab => {
           emptyCompletion[tab.id] = false
         })
         setCompletionData(emptyCompletion)
 
-        // Fetch from the new personal info endpoint for more complete data
+        // Fetch data in background
         const response = await fetch('/api/profile/personal-info')
         if (!response.ok) throw new Error('Failed to load profile')
 
@@ -249,9 +246,9 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       }
     }
 
-    // Load data in background without blocking render
+    // Start loading immediately but don't block render
     loadProfileData()
-  }, [userId]) // Remove tabs dependency to prevent unnecessary reloads
+  }, [userId])
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
