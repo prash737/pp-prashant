@@ -992,74 +992,83 @@ export default function ProfileHeader({
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
                   {socialLinksData && Array.isArray(socialLinksData) && socialLinksData.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {socialLinksData.map((link: any, index: number) => {
-                        const getSocialIcon = (platform: string) => {
-                          switch (platform.toLowerCase()) {
-                            case 'instagram':
-                              return <Instagram className="h-4 w-4 text-pink-500" />
-                            case 'twitter':
-                            case 'x':
-                              return <Twitter className="h-4 w-4 text-blue-500" />
-                            case 'linkedin':
-                              return <Linkedin className="h-4 w-4 text-blue-600" />
-                            case 'github':
-                              return <Github className="h-4 w-4 text-gray-800 dark:text-gray-200" />
-                            case 'youtube':
-                              return <Youtube className="h-4 w-4 text-red-500" />
-                            case 'facebook':
-                              return <Facebook className="h-4 w-4 text-blue-600" />
-                            case 'portfolio':
-                              return <FolderKanban className="h-4 w-4 text-purple-500" />
-                            case 'website':
-                              return <Globe className="h-4 w-4 text-green-500" />
-                            case 'behance':
-                              return <ExternalLink className="h-4 w-4 text-blue-500" />
-                            case 'dribbble':
-                              return <Star className="h-4 w-4 text-pink-500" />
-                            default:
-                              return <Globe className="h-4 w-4 text-gray-500" />
+                    <div className="mb-4">
+                      <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Social Links</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {socialLinksData.map((link: any, index: number) => {
+                          const getSocialIcon = (platform: string) => {
+                            switch (platform.toLowerCase()) {
+                              case 'instagram':
+                                return <Instagram className="h-4 w-4 text-pink-500" />
+                              case 'twitter':
+                              case 'x':
+                                return <Twitter className="h-4 w-4 text-blue-500" />
+                              case 'linkedin':
+                                return <Linkedin className="h-4 w-4 text-blue-600" />
+                              case 'github':
+                                return <Github className="h-4 w-4 text-gray-800 dark:text-gray-200" />
+                              case 'youtube':
+                                return <Youtube className="h-4 w-4 text-red-500" />
+                              case 'facebook':
+                                return <Facebook className="h-4 w-4 text-blue-600" />
+                              case 'portfolio':
+                                return <FolderKanban className="h-4 w-4 text-purple-500" />
+                              case 'website':
+                                return <Globe className="h-4 w-4 text-green-500" />
+                              case 'behance':
+                                return <ExternalLink className="h-4 w-4 text-blue-500" />
+                              case 'dribbble':
+                                return <Star className="h-4 w-4 text-pink-500" />
+                              default:
+                                return <Globe className="h-4 w-4 text-gray-500" />
+                            }
                           }
-                        }
 
-                        const getPlatformLabel = (platform: string) => {
-                          switch (platform.toLowerCase()) {
-                            case 'x':
-                              return 'X (Twitter)'
-                            case 'linkedin':
-                              return 'LinkedIn'
-                            case 'github':
-                              return 'GitHub'
-                            case 'youtube':
-                              return 'YouTube'
-                            case 'behance':
-                              return 'Behance'
-                            case 'dribbble':
-                              return 'Dribbble'
-                            case 'portfolio':
-                              return 'Portfolio'
-                            case 'website':
-                              return 'Website'
-                            default:
-                              return platform.charAt(0).toUpperCase() + platform.slice(1)
+                          const getPlatformLabel = (platform: string) => {
+                            switch (platform.toLowerCase()) {
+                              case 'x':
+                                return 'X (Twitter)'
+                              case 'linkedin':
+                                return 'LinkedIn'
+                              case 'github':
+                                return 'GitHub'
+                              case 'youtube':
+                                return 'YouTube'
+                              case 'behance':
+                                return 'Behance'
+                              case 'dribbble':
+                                return 'Dribbble'
+                              case 'portfolio':
+                                return 'Portfolio'
+                              case 'website':
+                                return 'Website'
+                              default:
+                                return platform.charAt(0).toUpperCase() + platform.slice(1)
+                            }
                           }
-                        }
 
-                        return (
-                          <a
-                            key={`social-${link.id || index}`}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
-                            title={`Visit ${getPlatformLabel(link.platform)}`}
-                          >
-                            <span className="group-hover:scale-110 transition-transform">
-                              {getSocialIcon(link.platform)}
-                            </span>
-                          </a>
-                        )
-                      })}
+                          console.log('🔗 Rendering social link:', {
+                            platform: link.platform,
+                            url: link.url,
+                            label: getPlatformLabel(link.platform)
+                          })
+
+                          return (
+                            <a
+                              key={`social-${link.id || index}`}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
+                              title={`Visit ${getPlatformLabel(link.platform)}`}
+                            >
+                              <span className="group-hover:scale-110 transition-transform">
+                                {getSocialIcon(link.platform)}
+                              </span>
+                            </a>
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
 
