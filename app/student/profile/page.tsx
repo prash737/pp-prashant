@@ -7,8 +7,6 @@ import InternalNavbar from '@/components/internal-navbar'
 import Footer from '@/components/footer'
 import ProfileHeader from '@/components/profile/profile-header'
 import CircleView from '@/components/profile/circle-view'
-import { fetchStudentProfile } from '@/utils/api'
-
 export default function StudentProfilePage() {
   const { user: currentUser, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -29,7 +27,16 @@ export default function StudentProfilePage() {
 
     setLoading(true)
     try {
-      const data = await fetchStudentProfile(currentUser.id)
+      const response = await fetch(`/api/student/profile/${currentUser.id}`, {
+        credentials: 'include',
+        cache: 'no-store'
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data')
+      }
+      
+      const data = await response.json()
       setStudentData(data)
       setCircleInvitations(data.circle_invitations || [])
       setConnectionRequestsSent(data.connection_requests_sent || [])
