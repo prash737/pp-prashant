@@ -1,0 +1,38 @@
+
+     · swcPlugins
+
+ ✓ Starting...
+ ✓ Compiled in 859ms
+ ✓ Ready in 3s
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.6s
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
+ ⚠ Blocked cross-origin request from 2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev to /_next/* resource. To allow this, configure "allowedDevOrigins" in next.config
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ⨯ Error: Could not parse module '[project]/middleware.ts'
+    at [project]/middleware.ts [middleware-edge] (ecmascript) (.next/server/edge/chunks/[root of the server]__10ae24bd._.js:23:11)
