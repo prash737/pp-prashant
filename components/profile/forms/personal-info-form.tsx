@@ -96,53 +96,56 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
     console.log("🔄 PersonalInfoForm useEffect triggered")
     console.log("📊 Data received:", data)
 
-    if (data) {
+    if (data && Object.keys(data).length > 0) {
       const formData = {
-        firstName: data.firstName || "",
-        lastName: data.lastName || "",
+        firstName: data.firstName || data.first_name || "",
+        lastName: data.lastName || data.last_name || "",
         bio: data.bio || "",
         location: data.location || "",
-        educationLevel: data.educationLevel || "",
-        birthMonth: data.birthMonth || "",
-        birthYear: data.birthYear || "",
-        ageGroup: data.ageGroup || "",
+        educationLevel: data.educationLevel || data.education_level || "",
+        birthMonth: data.birthMonth || data.birth_month || "",
+        birthYear: data.birthYear || data.birth_year || "",
+        ageGroup: data.ageGroup || data.age_group || "",
         tagline: data.tagline || "",
-        profileImageUrl: data.profileImageUrl || "",
-        coverImageUrl: data.coverImageUrl || "",
+        profileImageUrl: data.profileImageUrl || data.profile_image_url || "",
+        coverImageUrl: data.coverImageUrl || data.cover_image_url || "",
       }
 
       console.log("🎯 =================================")
       console.log("🎯 PROFILE EDIT - FIELD VALUES FROM DB:")
       console.log("🎯 =================================")
-      console.log("🎯 First Name:", data.firstName)
-      console.log("🎯 Last Name:", data.lastName)
-      console.log("🎯 Bio:", data.bio)
-      console.log("🎯 Location:", data.location)
-      console.log("🎯 Education Level:", data.educationLevel)
-      console.log("🎯 Birth Month:", data.birthMonth)
-      console.log("🎯 Birth Year:", data.birthYear)
-      console.log("🎯 Age Group:", data.ageGroup)
-      console.log("🎯 Tagline:", data.tagline)
-      console.log("🎯 Profile Image URL:", data.profileImageUrl)
-      console.log("🎯 Cover Image URL:", data.coverImageUrl)
+      console.log("🎯 First Name:", formData.firstName)
+      console.log("🎯 Last Name:", formData.lastName)
+      console.log("🎯 Bio:", formData.bio)
+      console.log("🎯 Location:", formData.location)
+      console.log("🎯 Education Level:", formData.educationLevel)
+      console.log("🎯 Birth Month:", formData.birthMonth)
+      console.log("🎯 Birth Year:", formData.birthYear)
+      console.log("🎯 Age Group:", formData.ageGroup)
+      console.log("🎯 Tagline:", formData.tagline)
+      console.log("🎯 Profile Image URL:", formData.profileImageUrl)
+      console.log("🎯 Cover Image URL:", formData.coverImageUrl)
       console.log("🎯 =================================")
 
-      form.reset(formData)
-      setOriginalData(formData)
-      setIsDirty(false)
+      // Only reset form if data has actually changed
+      if (!originalData || JSON.stringify(formData) !== JSON.stringify(originalData)) {
+        form.reset(formData)
+        setOriginalData(formData)
+        setIsDirty(false)
 
-      setProfileImagePreview(data.profileImageUrl || "")
-      setCoverImagePreview(data.coverImageUrl || "")
+        setProfileImagePreview(formData.profileImageUrl || "")
+        setCoverImagePreview(formData.coverImageUrl || "")
 
-      console.log("✅ Form reset completed")
+        console.log("✅ Form reset completed")
+      }
     }
-  }, [data, form])
+  }, [data])
 
   // Handle form changes - only update parent state when saving
   const handleFormChange = useCallback((value: any, isDirtyState?: boolean) => {
     // Update parent state and pass dirty state
     onChange("personal", value, isDirtyState !== undefined ? isDirtyState : isDirty)
-  }, [onChange, isDirty])
+  }, [onChange]) // Remove isDirty from dependencies to prevent infinite loop
 
   // Watch for form changes to set dirty bit with better comparison
   const watchedValues = form.watch()
@@ -166,12 +169,12 @@ export default function PersonalInfoForm({ data, onChange, onSave }: PersonalInf
       if (isDirty !== hasChanges) {
         setIsDirty(hasChanges)
         // Always notify parent component about dirty state changes
-        handleFormChange(currentData, hasChanges)
+        onChange("personal", currentData, hasChanges)
       }
     }, 100) // Small delay to ensure form reset is complete
 
     return () => clearTimeout(timeoutId)
-  }, [watchedValues, originalData, form, isDirty, handleFormChange])
+  }, [watchedValues, originalData, isDirty, onChange]) // Remove form and handleFormChange from dependencies
 
   // Watch for changes in birth month and year to auto-calculate age group (reused from onboarding)
   const watchedBirthMonth = form.watch("birthMonth")
