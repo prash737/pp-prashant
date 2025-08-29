@@ -192,7 +192,9 @@ export default function ProfileHeader({
     },
     profileKeys: student?.profile ? Object.keys(student.profile) : 'No profile',
     studentKeys: student ? Object.keys(student) : 'No student',
-    circlesCount: circles?.length || 0
+    circlesCount: circles?.length || 0,
+    socialLinks: student?.social_links || student?.socialLinks,
+    hasSocialLinks: !!(student?.social_links || student?.socialLinks)
   })
 
   // Check if this is the current user's own profile
@@ -983,9 +985,9 @@ export default function ProfileHeader({
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {student.socialLinks && student.socialLinks.length > 0 && (
+                  {(student.socialLinks || student.social_links) && (student.socialLinks || student.social_links).length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {student.socialLinks.map((link: any, index: number) => {
+                      {(student.socialLinks || student.social_links).map((link: any, index: number) => {
                         const getSocialIcon = (platform: string) => {
                           switch (platform.toLowerCase()) {
                             case 'instagram':
