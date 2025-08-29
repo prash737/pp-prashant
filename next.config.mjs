@@ -4,7 +4,8 @@ const nextConfig = {
   allowedDevOrigins: [
     'pathpiper.com',
     'localhost:3000',
-    '*.replit.dev'
+    '*.replit.dev',
+    '2374dc7d-99ed-4276-9293-296b01bb20f1-00-1zgzx53ybd3pv.sisko.replit.dev'
   ],
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
   images: {

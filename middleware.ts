@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -49,22 +50,23 @@ export async function middleware(request: NextRequest) {
     }
 
     // Verify token with Supabase
-      try {
-        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        });
-        let user = null;
-        let authError = null;
-
-        // First try with access token
-        if (accessToken) {
-          const { data: { user: authUser }, error } = await supabase.auth.getUser(accessToken);
-          user = authUser;
-          authError = error;
+    try {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
         }
+      });
+      
+      let user = null;
+      let authError = null;
+
+      // First try with access token
+      if (accessToken) {
+        const { data: { user: authUser }, error } = await supabase.auth.getUser(accessToken);
+        user = authUser;
+        authError = error;
+      }
 
       // If access token failed and we have refresh token, try to refresh
       if ((!user || authError) && refreshToken) {
