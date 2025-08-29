@@ -17,6 +17,22 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@/components', 'lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+    turbo: {
+      rules: {
+        '*.tsx': ['swc-loader'],
+        '*.ts': ['swc-loader']
+      }
+    },
+    swcPlugins: [],
+    forceSwcTransforms: true
+  },
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 }
 
 export default nextConfig

@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useState, Suspense } from "react"
@@ -8,6 +7,44 @@ import InternalNavbar from "@/components/internal-navbar"
 import Footer from "@/components/footer"
 import ProtectedLayout from "@/app/protected-layout"
 import ProfileEditForm from "@/components/profile/profile-edit-form"
+import dynamic from 'next/dynamic';
+
+// Dynamically import heavy form components with loading states
+const PersonalInfoForm = dynamic(() => import('@/components/profile/forms/personal-info-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const InterestsPassionsForm = dynamic(() => import('@/components/profile/forms/interests-passions-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const SkillsAbilitiesForm = dynamic(() => import('@/components/profile/forms/skills-abilities-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const EducationHistoryForm = dynamic(() => import('@/components/profile/forms/education-history-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const GoalsAspirationsForm = dynamic(() => import('@/components/profile/forms/goals-aspirations-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const AchievementsForm = dynamic(() => import('@/components/profile/forms/achievements-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const SocialContactForm = dynamic(() => import('@/components/profile/forms/social-contact-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const MoodBoardMediaForm = dynamic(() => import('@/components/profile/forms/mood-board-media-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
+
+const PrivacySettingsForm = dynamic(() => import('@/components/profile/forms/privacy-settings-form'), {
+  loading: () => <div className="animate-pulse h-64 bg-gray-100 rounded-md"></div>
+});
 
 function StudentProfileEditContent() {
   const router = useRouter()
@@ -57,7 +94,7 @@ function StudentProfileEditContent() {
                 Update your profile information to help others get to know you better
               </p>
             </div>
-            
+
             {/* Show page content immediately, handle auth in background */}
             {shouldRedirect ? (
               <div className="flex items-center justify-center py-12">

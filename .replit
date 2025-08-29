@@ -30,7 +30,7 @@ localPort = 3004
 externalPort = 3000
 
 [workflows]
-runButton = "Run Dev Server"
+runButton = "Run Dev Server (Turbo)"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
@@ -65,6 +65,15 @@ args = "echo \"✅ Feed testing setup complete!\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
+
+[[workflows.workflow]]
+name = "Run Dev Server (Turbo)"
+author = 37308151
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_OPTIONS=\"--max-old-space-size=4096\" npm run dev -- --turbo"
 
 [agent]
 expertMode = true
