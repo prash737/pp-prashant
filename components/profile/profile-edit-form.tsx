@@ -217,7 +217,15 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
   useEffect(() => {
     const loadProfileData = async () => {
       try {
+        // Don't block initial render
         setLoading(true)
+
+        // Start with basic empty structure so page renders immediately
+        const emptyCompletion: Record<string, boolean> = {}
+        tabs.forEach(tab => {
+          emptyCompletion[tab.id] = false
+        })
+        setCompletionData(emptyCompletion)
 
         // Fetch from the new personal info endpoint for more complete data
         const response = await fetch('/api/profile/personal-info')
@@ -241,9 +249,9 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       }
     }
 
-    // Load data immediately without blocking render
+    // Load data in background without blocking render
     loadProfileData()
-  }, [userId, tabs]) // Remove tabs dependency to prevent unnecessary reloads
+  }, [userId]) // Remove tabs dependency to prevent unnecessary reloads
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
@@ -365,16 +373,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     router.push('/student/profile')
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
-        </div>
-      </div>
-    )
-  }
+  // Always render the form structure immediately
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
