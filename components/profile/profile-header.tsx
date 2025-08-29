@@ -176,8 +176,8 @@ export default function ProfileHeader({
   const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
 
   // Debug logging for ProfileHeader
-  // Get the actual social links data
-  const socialLinksData = student?.social_links || student?.socialLinks
+  // Get the actual social links data from comprehensive profile or nested profile
+  const socialLinksData = student?.social_links || student?.profile?.social_links || student?.socialLinks || student?.profile?.socialLinks
   
   console.log('🔍 ProfileHeader Debug:', {
     hasStudent: !!student,
@@ -200,7 +200,9 @@ export default function ProfileHeader({
     socialLinksType: typeof socialLinksData,
     socialLinksLength: socialLinksData?.length,
     hasSocialLinks: !!(socialLinksData && socialLinksData.length > 0),
-    socialLinksRaw: JSON.stringify(socialLinksData)
+    socialLinksRaw: JSON.stringify(socialLinksData),
+    rawStudentSocialLinks: student?.social_links,
+    profileSocialLinks: student?.profile?.social_links
   })
 
   // Check if this is the current user's own profile

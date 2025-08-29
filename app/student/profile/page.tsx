@@ -94,6 +94,22 @@ export default function StudentProfilePage() {
     }
   }, [studentData])
 
+  // Transform data for ProfileHeader
+  const transformedData = studentData ? {
+    ...studentData,
+    profile: studentData, // Assuming profile details are directly in studentData
+    social_links: studentData.social_links || []
+  } : null;
+
+  console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
+  console.log('🔗 Social links in transformed data:', {
+    socialLinks: transformedData?.social_links,
+    socialLinksLength: transformedData?.social_links?.length,
+    socialLinksType: typeof transformedData?.social_links,
+    socialLinksData: JSON.stringify(transformedData?.social_links)
+  })
+
+
   if (loading || authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -112,11 +128,16 @@ export default function StudentProfilePage() {
       <InternalNavbar />
       <main className="container mx-auto py-8 px-4">
         <ProfileHeader
-          student={studentData}
+          student={{
+            ...transformedData,
+            social_links: transformedData?.social_links || [],
+            profile: {
+              ...transformedData?.profile,
+              social_links: transformedData?.social_links || []
+            }
+          }}
           currentUser={currentUser}
           connectionCounts={connectionCounts}
-          isViewMode={false}
-          isShareMode={false}
           circles={circles}
           onCirclesUpdate={handleCirclesUpdate}
           achievements={achievements}
