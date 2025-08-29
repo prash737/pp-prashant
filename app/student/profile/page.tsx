@@ -62,6 +62,8 @@ export default function StudentProfilePage() {
   // Prefetch edit route for faster navigation
   useEffect(() => {
     router.prefetch('/student/profile/edit')
+    router.prefetch('/student/profile/edit?section=personal-info')
+    router.prefetch('/student/profile/edit?section=education')
   }, [router])
 
   useEffect(() => {
