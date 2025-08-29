@@ -140,6 +140,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     goals: [],
   })
   const [activeSection, setActiveSection] = useState<string | null>(null)
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set(['personal'])) // Start with personal tab loaded
 
   // Warn user about unsaved changes only when there are actual changes
   useEffect(() => {
@@ -395,11 +396,15 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     if (actuallyHasDirtyForms) {
       const confirmed = window.confirm('You have unsaved changes. Do you want to save before switching sections?')
       if (confirmed) {
-        handleSave().then(() => setActiveTab(tabId))
+        handleSave().then(() => {
+          setActiveTab(tabId)
+          setLoadedTabs(prev => new Set([...prev, tabId]))
+        })
         return
       }
     }
     setActiveTab(tabId)
+    setLoadedTabs(prev => new Set([...prev, tabId]))
   }
 
   // Handle back navigation
