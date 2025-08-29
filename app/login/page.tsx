@@ -124,9 +124,6 @@ function LoginPageContent() {
         toast.success("Login successful!")
         setIsRedirecting(true)
 
-        // Prefetch the student profile edit route
-        router.prefetch(`/student/profile/${data.userId}`);
-
         // Determine redirect path based on user type and onboarding status
         let redirectPath = '/feed' // default
 
@@ -140,7 +137,7 @@ function LoginPageContent() {
         } else if (data.userType === 'parent') {
           router.push('/parent/dashboard')
         }
-
+        
         // Reduced delay for faster redirect
         setTimeout(() => {
           // The actual navigation happens via router.push above.
@@ -263,7 +260,7 @@ function LoginPageContent() {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-
+      
 
       {/* Header */}
       <header className="w-full py-4 px-6 flex justify-between items-center bg-white border-b border-slate-200">
