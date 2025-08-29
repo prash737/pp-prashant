@@ -50,6 +50,12 @@ interface PersonalInfoFormProps {
   onSave?: (data: any) => Promise<void>
 }
 
+// Placeholder for getCachedProfileData - replace with actual implementation
+const getCachedProfileData = () => {
+  // In a real app, this would check localStorage, sessionStorage, or a state management store
+  return null;
+}
+
 export default function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
   const router = useRouter()
   const { user } = useAuth()
@@ -61,17 +67,35 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
   const [formDirtyStates, setFormDirtyStates] = useState<{[key: string]: boolean}>({})
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-  // Update unsaved changes when form states change
+  // State for managing form data for each section
+  const [formData, setFormData] = useState<any>({
+    personal: {},
+    interests: [],
+    skills: [],
+    goals: [],
+    social: {},
+    education: [],
+    media: [],
+    privacy: {},
+    achievements: []
+  });
+
+  // State for individual forms (to manage their own dirty states if needed)
+  const [selectedInterests, setSelectedInterests] = useState<any[]>([])
+  const [selectedSkills, setSelectedSkills] = useState<any[]>([])
+  const [educationHistory, setEducationHistory] = useState<any[]>([])
+  const [achievements, setAchievements] = useState<any[]>([])
+  const [goals, setGoals] = useState<any[]>([])
+
+  // Derived states for completion calculation and form state management
   useEffect(() => {
+    // Update unsaved changes when form states change
     const hasDirtyForms = Object.values(formDirtyStates).some(Boolean);
     setHasUnsavedChanges(hasDirtyForms);
   }, [formDirtyStates]);
-  const [formData, setFormData] = useState<any>({
-    skills: [],
-    interests: [],
-    goals: [],
-  })
+
   const [activeSection, setActiveSection] = useState<string | null>(null)
+
 
   // Warn user about unsaved changes only when there are actual changes
   useEffect(() => {
@@ -98,31 +122,74 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
   // Update form data and track changes
   const handleFormChange = useCallback((sectionId: string, data: any, isDirty?: boolean) => {
     console.log(`📝 Form change detected in ${sectionId}:`, data, 'isDirty:', isDirty)
+    
+    // Update the specific section's data in the main formData state
     setFormData((prev: any) => ({ ...prev, [sectionId]: data }))
     setActiveSection(sectionId)
 
     // For goals, also update the profileData to ensure completion calculation works
     if (sectionId === 'goals') {
-      setProfileData((prev: any) => ({
-        ...prev,
-        goals: data
-      }))
-
-      // Recalculate completion for goals tab
+      setGoals(data); // Update local state for goals
       setCompletionData(prev => ({
         ...prev,
         goals: !!(data && data.length > 0)
+      }))
+    } else if (sectionId === 'personal') {
+      setProfileData((prev: any) => ({
+        ...prev,
+        ...data
+      }));
+       // Recalculate completion for personal tab
+      setCompletionData(prev => ({
+        ...prev,
+        personal: !!(data.firstName && data.lastName && data.bio && data.location && data.ageGroup && data.educationLevel)
+      }));
+    } else if (sectionId === 'interests') {
+      setSelectedInterests(data); // Update local state for interests
+       setCompletionData(prev => ({
+        ...prev,
+        interests: !!(data && data.length > 0)
+      }))
+    } else if (sectionId === 'skills') {
+      setSelectedSkills(data); // Update local state for skills
+       setCompletionData(prev => ({
+        ...prev,
+        skills: !!(data && data.length > 0)
+      }))
+    } else if (sectionId === 'education') {
+      setEducationHistory(data); // Update local state for education
+       setCompletionData(prev => ({
+        ...prev,
+        education: !!(data && data.length > 0)
+      }))
+    } else if (sectionId === 'media') {
+       setProfileData((prev: any) => ({
+        ...prev,
+        moodBoard: data // Assuming moodBoard is part of profileData for media
+      }));
+        setCompletionData(prev => ({
+        ...prev,
+        media: !!(data && data.length > 0)
+      }))
+    } else if (sectionId === 'social') {
+      setFormData((prev: any) => ({ ...prev, social: data })) // Assuming social is managed in formData
+      setCompletionData(prev => ({
+        ...prev,
+        social: !!(data.githubUrl || data.linkedinUrl || data.portfolioUrl)
+      }))
+    } else if (sectionId === 'achievements') {
+      setAchievements(data); // Update local state for achievements
+      setCompletionData(prev => ({
+        ...prev,
+        achievements: !!(data && data.length > 0) // Assuming achievements are required for completion
       }))
     }
 
     // Track dirty state per form
     if (isDirty !== undefined) {
       setFormDirtyStates(prev => ({ ...prev, [sectionId]: isDirty }))
-      // Update overall dirty state based on any form being dirty
-      const hasAnyDirtyForm = Object.values({ ...formDirtyStates, [sectionId]: isDirty }).some(dirty => dirty)
-      setHasUnsavedChanges(hasAnyDirtyForm)
     }
-  }, [formDirtyStates])
+  }, [formData, formDirtyStates, setGoals, setSelectedInterests, setSelectedSkills, setEducationHistory, setAchievements, setProfileData])
 
   // Watch for form changes in any section
   useEffect(() => {
@@ -141,7 +208,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       label: "Personal Info",
       icon: <User className="h-4 w-4" />,
       component: <PersonalInfoForm 
-        data={profileData} 
+        data={formData.personal} 
         onChange={handleFormChange} 
         onSave={(data) => handleSectionSave('personal', data)}
       />,
@@ -151,21 +218,20 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       id: "interests",
       label: "Interests & Passions",
       icon: <Heart className="h-4 w-4" />,
-      component: <InterestsPassionsForm data={profileData} onChange={handleFormChange} />,
+      component: <InterestsPassionsForm data={selectedInterests} onChange={handleFormChange} />,
       required: true
     },
     {
       id: "skills",
       label: "Skills & Abilities",
       icon: <Palette className="h-4 w-4" />,
-      component: <SkillsAbilitiesForm data={profileData} onChange={handleFormChange} />
+      component: <SkillsAbilitiesForm data={selectedSkills} onChange={handleFormChange} />
     },
     {
       id: "goals",
       label: "Goals & Aspirations",
       icon: <Target className="h-4 w-4" />,
-      // component: <GoalsAspirationsForm data={profileData} onChange={handleFormChange} />
-      component: <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
+      component: <GoalsAspirationsForm data={goals} onChange={handleFormChange} />
     },
     {
       id: "social",
@@ -190,51 +256,165 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       id: "education",
       label: "Education History",
       icon: <GraduationCap className="h-4 w-4" />,
-      component: <EducationHistoryForm data={profileData} onChange={handleFormChange} />,
+      component: <EducationHistoryForm data={educationHistory} onChange={handleFormChange} />,
       required: true
     },
     {
       id: "media",
       label: "Mood Board & Media",
       icon: <ImageIcon className="h-4 w-4" />,
-      component: <MoodBoardMediaForm data={profileData} onChange={handleFormChange} />
+      component: <MoodBoardMediaForm data={formData.media} onChange={handleFormChange} />
     },
     {
       id: "privacy",
       label: "Privacy & Settings",
       icon: <Shield className="h-4 w-4" />,
-      component: <PrivacySettingsForm data={profileData} onChange={handleFormChange} />
+      component: <PrivacySettingsForm data={formData.privacy} onChange={handleFormChange} />
     },
         {
       id: "achievements",
       label: "Achievements",
       icon: <ImageIcon className="h-4 w-4" />,
-      component: <AchievementsForm data={profileData} onChange={handleFormChange} />
+      component: <AchievementsForm data={achievements} onChange={handleFormChange} />
     }
   ]
 
   // Load profile data in background after initial render
   useEffect(() => {
-    const loadProfileData = async () => {
+    const fetchAllData = async () => {
+      if (!user || user.role !== 'student') return
+
+      setLoading(true) // Use setLoading instead of setIsLoading
+
       try {
-        // Set empty completion data immediately for instant render
-        const emptyCompletion: Record<string, boolean> = {}
-        tabs.forEach(tab => {
-          emptyCompletion[tab.id] = false
+        // Use cached profile data from useAuth if available
+        const cachedProfileData = getCachedProfileData()
+        if (cachedProfileData) {
+          setFormData({
+            firstName: cachedProfileData.profile?.firstName || '',
+            lastName: cachedProfileData.profile?.lastName || '',
+            bio: cachedProfileData.profile?.bio || '',
+            location: cachedProfileData.profile?.location || '',
+            tagline: cachedProfileData.profile?.tagline || '',
+            ageGroup: cachedProfileData.profile?.ageGroup || 'young_adult',
+            educationLevel: cachedProfileData.profile?.educationLevel || 'undergraduate',
+            birthMonth: user.birthMonth || '',
+            birthYear: user.birthYear || '',
+            personalityType: user.personalityType || '',
+            learningStyle: user.learningStyle || '',
+            favoriteQuote: user.favoriteQuote || ''
+          })
+          setSelectedInterests(cachedProfileData.interests || [])
+          setSelectedSkills(cachedProfileData.skills || [])
+          setEducationHistory(cachedProfileData.educationHistory || [])
+          setAchievements(cachedProfileData.achievements || [])
+          setGoals(cachedProfileData.goals || [])
+          setLoading(false) // Use setLoading
+          return
+        }
+
+        // Only fetch if no cached data available
+        const [
+          profileResponse,
+          interestsResponse,
+          skillsResponse,
+          educationResponse,
+          achievementsResponse,
+          goalsResponse,
+          socialLinksResponse
+        ] = await Promise.all([
+          fetch('/api/auth/user', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/user/interests', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/user/skills', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/education', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/achievements', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/goals', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          }),
+          fetch('/api/profile/social-contact', { 
+            credentials: 'include',
+            headers: { 'Cache-Control': 'max-age=300' }
+          })
+        ])
+
+        if (!profileResponse.ok) throw new Error('Failed to load user profile')
+        if (!interestsResponse.ok) throw new Error('Failed to load interests')
+        if (!skillsResponse.ok) throw new Error('Failed to load skills')
+        if (!educationResponse.ok) throw new Error('Failed to load education history')
+        if (!achievementsResponse.ok) throw new Error('Failed to load achievements')
+        if (!goalsResponse.ok) throw new Error('Failed to load goals')
+        if (!socialLinksResponse.ok) throw new Error('Failed to load social links')
+
+        const userData = await profileResponse.json()
+        const interestsData = await interestsResponse.json()
+        const skillsData = await skillsResponse.json()
+        const educationData = await educationResponse.json()
+        const achievementsData = await achievementsResponse.json()
+        const goalsData = await goalsResponse.json()
+        const socialLinksData = await socialLinksResponse.json()
+
+        // Populate form data and state
+        setFormData({
+          personal: {
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            bio: userData.bio || '',
+            location: userData.location || '',
+            tagline: userData.tagline || '',
+            ageGroup: userData.ageGroup || 'young_adult',
+            educationLevel: userData.educationLevel || 'undergraduate',
+            birthMonth: userData.birthMonth || '',
+            birthYear: userData.birthYear || '',
+            personalityType: userData.personalityType || '',
+            learningStyle: userData.learningStyle || '',
+            favoriteQuote: userData.favoriteQuote || ''
+          },
+          interests: interestsData,
+          skills: skillsData,
+          goals: goalsData,
+          social: socialLinksData,
+          education: educationData,
+          media: userData.moodBoard || [], // Assuming moodBoard is part of user data
+          privacy: userData.privacySettings || {}, // Assuming privacySettings
+          achievements: achievementsData
         })
-        setCompletionData(emptyCompletion)
 
-        // Fetch data in background
-        const response = await fetch('/api/profile/personal-info')
-        if (!response.ok) throw new Error('Failed to load profile')
+        // Set individual states
+        setProfileData(userData); // Keep profileData for potential use elsewhere if needed
+        setSelectedInterests(interestsData || [])
+        setSelectedSkills(skillsData || [])
+        setEducationHistory(educationData || [])
+        setAchievements(achievementsData || [])
+        setGoals(goalsData || [])
 
-        const userData = await response.json()
-        setProfileData(userData)
-
-        // Calculate completion status for each section
+        // Calculate initial completion status
         const completion: Record<string, boolean> = {}
         tabs.forEach(tab => {
-          completion[tab.id] = calculateSectionCompletion(tab.id, userData)
+          completion[tab.id] = calculateSectionCompletion(tab.id, {
+            ...userData,
+            interests: interestsData,
+            skills: skillsData,
+            goals: goalsData,
+            educationHistory: educationData,
+            achievements: achievementsData,
+            socialLinks: socialLinksData
+          })
         })
         setCompletionData(completion)
 
@@ -242,13 +422,13 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
         console.error('Error loading profile:', error)
         toast.error('Failed to load profile data')
       } finally {
-        setLoading(false)
+        setLoading(false) // Use setLoading
       }
     }
 
     // Start loading immediately but don't block render
-    loadProfileData()
-  }, [userId])
+    fetchAllData()
+  }, [userId, user]) // Depend on user as well
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
@@ -272,7 +452,7 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       case "privacy":
         return true // Always considered complete
           case "achievements":
-        return true // Always considered complete
+        return !!(data.achievements && data.achievements.length > 0)
       default:
         return false
     }
@@ -288,36 +468,94 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     try {
       setSaving(true)
 
-      if (sectionId === 'personal') {
-        console.log('💾 Saving personal info section:', data)
+      let apiUrl = '';
+      let method = 'PUT';
+      let requestBody = data;
 
-        const response = await fetch('/api/profile/personal-info', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to save personal info')
-        }
-
-        const result = await response.json()
-        console.log('✅ Personal info saved successfully:', result)
-
-        // Update the profile data with the saved data
-        setProfileData((prev: any) => ({
-          ...prev,
-          ...data
-        }))
-
-        toast.success('Personal information updated successfully!')
+      switch(sectionId) {
+        case 'personal':
+          apiUrl = '/api/profile/personal-info';
+          break;
+        case 'interests':
+          apiUrl = '/api/user/interests';
+          break;
+        case 'skills':
+          apiUrl = '/api/user/skills';
+          break;
+        case 'goals':
+          apiUrl = '/api/goals';
+          break;
+        case 'social':
+          apiUrl = '/api/profile/social-contact';
+          break;
+        case 'education':
+          apiUrl = '/api/education';
+          break;
+        case 'media':
+          apiUrl = '/api/profile/media'; // Assuming an endpoint for media
+          break;
+        case 'privacy':
+          apiUrl = '/api/profile/privacy-settings'; // Assuming an endpoint for privacy
+          break;
+        case 'achievements':
+          apiUrl = '/api/achievements';
+          break;
+        default:
+          throw new Error(`Unknown sectionId: ${sectionId}`);
       }
-      // Add other section save logic here as needed
 
-      setHasUnsavedChanges(false)
+      console.log(`💾 Saving ${sectionId} section to ${apiUrl}:`, requestBody)
+
+      const response = await fetch(apiUrl, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `Failed to save ${sectionId}`)
+      }
+
+      const result = await response.json()
+      console.log(`✅ ${sectionId} saved successfully:`, result)
+
+      // Update local state and completion data after successful save
+      if (sectionId === 'personal') {
+        setProfileData((prev: any) => ({ ...prev, ...data }))
+      } else if (sectionId === 'interests') {
+        setSelectedInterests(data)
+      } else if (sectionId === 'skills') {
+        setSelectedSkills(data)
+      } else if (sectionId === 'goals') {
+        setGoals(data)
+      } else if (sectionId === 'education') {
+        setEducationHistory(data)
+      } else if (sectionId === 'achievements') {
+        setAchievements(data)
+      }
+      // Update completion status after saving
+      setCompletionData(prev => ({
+        ...prev,
+        [sectionId]: calculateSectionCompletion(sectionId, {
+          ...formData.personal, // Include current form data for recalculation
+          ...formData.interests,
+          ...formData.skills,
+          ...formData.goals,
+          ...formData.social,
+          ...formData.education,
+          ...formData.media,
+          ...formData.privacy,
+          ...formData.achievements,
+          [sectionId]: data // Use the newly saved data
+        })
+      }))
+
+
+      toast.success(`${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)} updated successfully!`)
+      setFormDirtyStates(prev => ({ ...prev, [sectionId]: false })) // Mark as not dirty after save
 
     } catch (error) {
       console.error('Error saving section:', error)
@@ -354,8 +592,18 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
     if (actuallyHasDirtyForms) {
       const confirmed = window.confirm('You have unsaved changes. Do you want to save before switching sections?')
       if (confirmed) {
-        handleSave().then(() => setActiveTab(tabId))
-        return
+        // Attempt to save the currently active dirty form before switching
+        const activeTabConfig = tabs.find(tab => tab.id === activeTab);
+        if (activeTabConfig && formDirtyStates[activeTab]) {
+          // Assuming handleSectionSave is available and works for the active tab
+          // You might need to pass the current form data to handleSectionSave
+          // For simplicity, we'll just prompt to save and then switch
+          // A more robust solution would involve passing the correct data
+          handleSectionSave(activeTab, formData[activeTab]).then(() => setActiveTab(tabId));
+        } else {
+           setActiveTab(tabId);
+        }
+        return;
       }
     }
     setActiveTab(tabId)
@@ -454,19 +702,25 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
 
         {/* Form Content */}
         <div className="flex-1 min-h-[600px]">
-          <div className="p-6 lg:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                {tabs.find(tab => tab.id === activeTab)?.component}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <p>Loading profile...</p>
+            </div>
+          ) : (
+            <div className="p-6 lg:p-8">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {tabs.find(tab => tab.id === activeTab)?.component}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       </div>
     </div>

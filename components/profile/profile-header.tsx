@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -255,7 +256,7 @@ export default function ProfileHeader({
       const sentConnections = student.sent_connections || []
       const receivedConnections = student.received_connections || []
       const allConnections = [...sentConnections, ...receivedConnections]
-      
+
       const counts = {
         total: allConnections.length,
         students: allConnections.filter((conn: any) => 
@@ -268,7 +269,7 @@ export default function ProfileHeader({
           conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
         ).length
       }
-      
+
       console.log('📊 Connection counts from comprehensive data:', counts)
       setActualConnectionCounts(counts)
     } else {
@@ -304,7 +305,7 @@ export default function ProfileHeader({
     if ((!circles || circles.length === 0) && student) {
       const createdCircles = student.created_circles || student.profile?.created_circles || []
       const memberCircles = student.circles || student.profile?.circles || []
-      
+
       if (createdCircles.length > 0 || memberCircles.length > 0) {
         const combinedCircles = [...createdCircles, ...memberCircles]
         console.log('🔍 ProfileHeader - Extracting circles from student data:', {
@@ -313,7 +314,7 @@ export default function ProfileHeader({
           totalCount: combinedCircles.length,
           combinedCircles
         })
-        
+
         setLocalCircles(combinedCircles)
       }
     } else if (circles && circles.length > 0) {
@@ -602,14 +603,13 @@ export default function ProfileHeader({
                           )}
 
                           {isOwnProfile && !isViewMode ? (
-                            <Button 
-                              size="sm" 
-                              className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
-                              onClick={() => router.push('/student/profile/edit')}
+                            <Link
+                              href="/student/profile/edit"
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-pathpiper-teal text-white rounded-lg hover:bg-pathpiper-teal/90 transition-colors duration-200"
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Profile
-                            </Button>
+                            </Link>
                           ) : !isOwnProfile && !isShareMode && (
                             <>
                               {connectionStatus === 'connected' ? (

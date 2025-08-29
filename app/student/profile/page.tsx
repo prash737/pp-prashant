@@ -59,6 +59,11 @@ export default function StudentProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
+  // Prefetch edit route for faster navigation
+  useEffect(() => {
+    router.prefetch('/student/profile/edit')
+  }, [router])
+
   useEffect(() => {
     if (authLoading) return
 

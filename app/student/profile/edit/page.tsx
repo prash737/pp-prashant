@@ -13,36 +13,25 @@ function StudentProfileEditContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
-  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null)
 
   useEffect(() => {
-    // Only perform auth checks after component has mounted and rendered
+    // Immediate redirect without delays for better performance
     if (!authLoading && user) {
       if (user.role !== 'student') {
-        // Set redirect target but don't redirect immediately
         if (user.role === 'mentor') {
-          setShouldRedirect('/mentor/profile')
+          router.replace('/mentor/profile')
         } else if (user.role === 'institution') {
-          setShouldRedirect('/institution/profile')
+          router.replace('/institution/profile')
         } else {
-          setShouldRedirect('/feed')
+          router.replace('/feed')
         }
+        return
       }
     } else if (!authLoading && !user) {
-      // Set login redirect but don't redirect immediately
-      setShouldRedirect('/login')
+      router.replace('/login')
+      return
     }
-  }, [user, authLoading])
-
-  // Perform redirects after a short delay to allow page to render first
-  useEffect(() => {
-    if (shouldRedirect) {
-      const timer = setTimeout(() => {
-        router.push(shouldRedirect)
-      }, 500) // Small delay to show page loaded
-      return () => clearTimeout(timer)
-    }
-  }, [shouldRedirect, router])
+  }, [user, authLoading, router])
 
   // Always render page immediately - no blocking
   return (
