@@ -176,6 +176,9 @@ export default function ProfileHeader({
   const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
 
   // Debug logging for ProfileHeader
+  // Get the actual social links data
+  const socialLinksData = student?.social_links || student?.socialLinks
+  
   console.log('🔍 ProfileHeader Debug:', {
     hasStudent: !!student,
     hasProfile: !!student?.profile,
@@ -193,8 +196,11 @@ export default function ProfileHeader({
     profileKeys: student?.profile ? Object.keys(student.profile) : 'No profile',
     studentKeys: student ? Object.keys(student) : 'No student',
     circlesCount: circles?.length || 0,
-    socialLinks: student?.social_links || student?.socialLinks,
-    hasSocialLinks: !!(student?.social_links || student?.socialLinks)
+    socialLinks: socialLinksData,
+    socialLinksType: typeof socialLinksData,
+    socialLinksLength: socialLinksData?.length,
+    hasSocialLinks: !!(socialLinksData && socialLinksData.length > 0),
+    socialLinksRaw: JSON.stringify(socialLinksData)
   })
 
   // Check if this is the current user's own profile
@@ -985,9 +991,9 @@ export default function ProfileHeader({
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {(student.socialLinks || student.social_links) && (student.socialLinks || student.social_links).length > 0 && (
+                  {socialLinksData && Array.isArray(socialLinksData) && socialLinksData.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {(student.socialLinks || student.social_links).map((link: any, index: number) => {
+                      {socialLinksData.map((link: any, index: number) => {
                         const getSocialIcon = (platform: string) => {
                           switch (platform.toLowerCase()) {
                             case 'instagram':
