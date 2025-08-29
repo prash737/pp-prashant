@@ -24,8 +24,9 @@ export function Navbar() {
 
     window.addEventListener("scroll", handleScroll)
     
-    // Prefetch login page for instant navigation
+    // Prefetch login and signup pages for instant navigation
     router.prefetch('/login')
+    router.prefetch('/signup')
     
     return () => window.removeEventListener("scroll", handleScroll)
   }, [router])
@@ -79,11 +80,12 @@ export function Navbar() {
             >
               Login
             </Button>
-            <Link href="/signup">
-              <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-6">
-                Join Now
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => router.push('/signup')}
+              className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-6"
+            >
+              Join Now
+            </Button>
           </nav>
 
           {/* Mobile Navigation Toggle */}
@@ -121,14 +123,15 @@ export function Navbar() {
                 >
                   Login
                 </Button>
-                <Link href="/signup">
-                  <Button
-                    className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full w-full"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Join Now
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => {
+                    setIsOpen(false)
+                    router.push('/signup')
+                  }}
+                  className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full w-full"
+                >
+                  Join Now
+                </Button>
               </div>
             </motion.div>
           )}
