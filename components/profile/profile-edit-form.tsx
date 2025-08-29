@@ -1,16 +1,10 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import dynamic from "next/dynamic"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { motion, AnimatePresence } from "framer-motion"
+import { toast } from "sonner"
 import { 
   User, 
   Heart, 
@@ -25,78 +19,17 @@ import {
   ArrowLeft,
   CheckCircle
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-
-
-// Form loading skeleton
-const FormSkeleton = () => (
-  <div className="space-y-6 animate-pulse">
-    <div className="space-y-4">
-      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-    </div>
-
-    {[1, 2, 3].map((i) => (
-      <div key={i} className="space-y-4">
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-        <div className="space-y-2">
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-      </div>
-    ))}
-
-    <div className="flex justify-end pt-6">
-      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-    </div>
-  </div>
-)
-
-// Lazy load heavy form components only when needed
-const PersonalInfoForm = dynamic(() => import('./forms/personal-info-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const InterestsPassionsForm = dynamic(() => import('./forms/interests-passions-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const SkillsAbilitiesForm = dynamic(() => import('./forms/skills-abilities-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const EducationHistoryForm = dynamic(() => import('./forms/education-history-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const GoalsAspirationsForm = dynamic(() => import('./forms/goals-aspirations-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const AchievementsForm = dynamic(() => import('./forms/achievements-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const MoodBoardMediaForm = dynamic(() => import('./forms/mood-board-media-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const SocialContactForm = dynamic(() => import('./forms/social-contact-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
-
-const PrivacySettingsForm = dynamic(() => import('./forms/privacy-settings-form'), {
-  loading: () => <FormSkeleton />,
-  ssr: false
-})
+import PersonalInfoForm from "./forms/personal-info-form"
+import InterestsPassionsForm from "./forms/interests-passions-form"
+import SkillsAbilitiesForm from "./forms/skills-abilities-form"
+import GoalsAspirationsForm from "./forms/goals-aspirations-form"
+import SocialContactForm from "./forms/social-contact-form"
+import EducationHistoryForm from "./forms/education-history-form"
+import MoodBoardMediaForm from "./forms/mood-board-media-form"
+import PrivacySettingsForm from "./forms/privacy-settings-form"
+import AchievementsForm from "./forms/achievements-form"
 
 interface ProfileEditFormProps {
   userId: string
@@ -107,6 +40,7 @@ interface TabConfig {
   id: string
   label: string
   icon: React.ReactNode
+  component: React.ReactNode
   required?: boolean
 }
 
@@ -116,9 +50,7 @@ interface PersonalInfoFormProps {
   onSave?: (data: any) => Promise<void>
 }
 
-
-// Named export for better tree shaking
-export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
+export default function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps) {
   const router = useRouter()
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState(initialSection || "personal")
@@ -134,14 +66,12 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
     const hasDirtyForms = Object.values(formDirtyStates).some(Boolean);
     setHasUnsavedChanges(hasDirtyForms);
   }, [formDirtyStates]);
-
   const [formData, setFormData] = useState<any>({
     skills: [],
     interests: [],
     goals: [],
   })
   const [activeSection, setActiveSection] = useState<string | null>(null)
-  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set(['personal'])) // Start with personal tab loaded
 
   // Warn user about unsaved changes only when there are actual changes
   useEffect(() => {
@@ -210,64 +140,86 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
       id: "personal",
       label: "Personal Info",
       icon: <User className="h-4 w-4" />,
+      component: <PersonalInfoForm 
+        data={profileData} 
+        onChange={handleFormChange} 
+        onSave={(data) => handleSectionSave('personal', data)}
+      />,
       required: true
     },
     {
       id: "interests",
       label: "Interests & Passions",
       icon: <Heart className="h-4 w-4" />,
+      component: <InterestsPassionsForm data={profileData} onChange={handleFormChange} />,
       required: true
     },
     {
       id: "skills",
       label: "Skills & Abilities",
       icon: <Palette className="h-4 w-4" />,
+      component: <SkillsAbilitiesForm data={profileData} onChange={handleFormChange} />
     },
     {
       id: "goals",
       label: "Goals & Aspirations",
       icon: <Target className="h-4 w-4" />,
+      // component: <GoalsAspirationsForm data={profileData} onChange={handleFormChange} />
+      component: <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
     },
     {
       id: "social",
       label: "Social & Contact",
       icon: <MessageSquare className="h-4 w-4" />,
+      component: (() => {
+            console.log('🔧 ProfileEditForm: Rendering SocialContactForm with userId:', user?.id)
+            if (!user?.id) {
+              console.log('⚠️ ProfileEditForm: User ID not available yet, showing loading...')
+              return <div className="p-8 text-center">Loading user data...</div>
+            }
+            return (
+              <SocialContactForm
+                data={formData.social}
+                onChange={handleFormChange}
+                userId={user.id}
+              />
+            )
+          })()
     },
     {
       id: "education",
       label: "Education History",
       icon: <GraduationCap className="h-4 w-4" />,
+      component: <EducationHistoryForm data={profileData} onChange={handleFormChange} />,
       required: true
     },
     {
       id: "media",
       label: "Mood Board & Media",
       icon: <ImageIcon className="h-4 w-4" />,
+      component: <MoodBoardMediaForm data={profileData} onChange={handleFormChange} />
     },
     {
       id: "privacy",
       label: "Privacy & Settings",
       icon: <Shield className="h-4 w-4" />,
+      component: <PrivacySettingsForm data={profileData} onChange={handleFormChange} />
     },
         {
       id: "achievements",
       label: "Achievements",
       icon: <ImageIcon className="h-4 w-4" />,
+      component: <AchievementsForm data={profileData} onChange={handleFormChange} />
     }
   ]
 
-  // Load profile data in background after initial render
+  // Load profile data only once
   useEffect(() => {
     const loadProfileData = async () => {
       try {
-        // Set empty completion data immediately for instant render
-        const emptyCompletion: Record<string, boolean> = {}
-        tabs.forEach(tab => {
-          emptyCompletion[tab.id] = false
-        })
-        setCompletionData(emptyCompletion)
+        setLoading(true)
 
-        // Fetch data in background
+        // Fetch from the new personal info endpoint for more complete data
         const response = await fetch('/api/profile/personal-info')
         if (!response.ok) throw new Error('Failed to load profile')
 
@@ -289,9 +241,11 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
       }
     }
 
-    // Start loading immediately but don't block render
-    loadProfileData()
-  }, [userId])
+    // Only load if we don't have profile data yet
+    if (!profileData) {
+      loadProfileData()
+    }
+  }, [userId, tabs, profileData]) // Remove tabs dependency to prevent unnecessary reloads
 
   // Calculate section completion
   const calculateSectionCompletion = (sectionId: string, data: any): boolean => {
@@ -397,15 +351,11 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
     if (actuallyHasDirtyForms) {
       const confirmed = window.confirm('You have unsaved changes. Do you want to save before switching sections?')
       if (confirmed) {
-        handleSave().then(() => {
-          setActiveTab(tabId)
-          setLoadedTabs(prev => new Set([...prev, tabId]))
-        })
+        handleSave().then(() => setActiveTab(tabId))
         return
       }
     }
     setActiveTab(tabId)
-    setLoadedTabs(prev => new Set([...prev, tabId]))
   }
 
   // Handle back navigation
@@ -417,59 +367,15 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
     router.push('/student/profile')
   }
 
-  // Use the dynamically imported components conditionally based on loadedTabs state
-  const renderTabContent = (tabId: string) => {
-    switch (tabId) {
-      case "personal":
-        return loadedTabs.has('personal') && (
-              <PersonalInfoForm data={profileData} onChange={handleFormChange} onSave={(data) => handleSectionSave('personal', data)} />
-            )
-      case "interests":
-        return loadedTabs.has('interests') && (
-              <InterestsPassionsForm data={profileData} onChange={handleFormChange} />
-            )
-      case "skills":
-        return loadedTabs.has('skills') && (
-              <SkillsAbilitiesForm data={profileData} onChange={handleFormChange} />
-            )
-      case "goals":
-        return loadedTabs.has('goals') && (
-              <GoalsAspirationsForm data={formData.goals} onChange={handleFormChange} />
-            )
-      case "social":
-        return (() => {
-          console.log('🔧 ProfileEditForm: Rendering SocialContactForm with userId:', user?.id)
-          if (!user?.id) {
-            console.log('⚠️ ProfileEditForm: User ID not available yet, showing loading...')
-            return <div className="p-8 text-center">Loading user data...</div>
-          }
-          return loadedTabs.has('social') && (
-            <SocialContactForm
-              data={formData.social}
-              onChange={handleFormChange}
-              userId={user.id}
-            />
-          )
-        })()
-      case "education":
-        return loadedTabs.has('education') && (
-              <EducationHistoryForm data={profileData} onChange={handleFormChange} />
-            )
-      case "media":
-        return loadedTabs.has('media') && (
-              <MoodBoardMediaForm data={profileData} onChange={handleFormChange} />
-            )
-      case "privacy":
-        return loadedTabs.has('privacy') && (
-              <PrivacySettingsForm data={profileData} onChange={handleFormChange} />
-            )
-      case "achievements":
-        return loadedTabs.has('achievements') && (
-              <AchievementsForm data={profileData} onChange={handleFormChange} />
-            )
-      default:
-        return null
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -495,10 +401,6 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4">
-          <Progress value={completionPercentage} className="h-2 bg-white/50" />
-          <p className="text-xs mt-1 text-white/80">{completionPercentage}% Profile Complete</p>
-        </div>
       </div>
 
       <div className="flex">
@@ -567,8 +469,7 @@ export function ProfileEditForm({ userId, initialSection }: ProfileEditFormProps
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* Conditionally render content only if the tab has been loaded */}
-                {renderTabContent(activeTab) || <FormSkeleton />}
+                {tabs.find(tab => tab.id === activeTab)?.component}
               </motion.div>
             </AnimatePresence>
           </div>

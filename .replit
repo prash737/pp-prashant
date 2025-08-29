@@ -65,15 +65,3 @@ args = "echo \"✅ Feed testing setup complete!\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
-
-[[workflows.workflow]]
-name = "Run Dev Server (Turbo)"
-mode = "parallel"
-author = 37308151
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "NODE_OPTIONS=\"--max-old-space-size=4096\" npm run dev -- --turbo"
-
-[agent]
-expertMode = true
