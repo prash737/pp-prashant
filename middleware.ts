@@ -113,7 +113,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
   }
-  }
 
   return NextResponse.next();
 }
