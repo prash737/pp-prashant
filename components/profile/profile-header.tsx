@@ -178,7 +178,7 @@ export default function ProfileHeader({
   // Debug logging for ProfileHeader
   // Get the actual social links data from comprehensive profile or nested profile
   const socialLinksData = student?.social_links || student?.profile?.social_links || student?.socialLinks || student?.profile?.socialLinks
-  
+
   console.log('🔍 ProfileHeader Debug:', {
     hasStudent: !!student,
     hasProfile: !!student?.profile,
@@ -265,7 +265,7 @@ export default function ProfileHeader({
       const sentConnections = student.sent_connections || []
       const receivedConnections = student.received_connections || []
       const allConnections = [...sentConnections, ...receivedConnections]
-      
+
       const counts = {
         total: allConnections.length,
         students: allConnections.filter((conn: any) => 
@@ -278,7 +278,7 @@ export default function ProfileHeader({
           conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
         ).length
       }
-      
+
       console.log('📊 Connection counts from comprehensive data:', counts)
       setActualConnectionCounts(counts)
     } else {
@@ -314,7 +314,7 @@ export default function ProfileHeader({
     if ((!circles || circles.length === 0) && student) {
       const createdCircles = student.created_circles || student.profile?.created_circles || []
       const memberCircles = student.circles || student.profile?.circles || []
-      
+
       if (createdCircles.length > 0 || memberCircles.length > 0) {
         const combinedCircles = [...createdCircles, ...memberCircles]
         console.log('🔍 ProfileHeader - Extracting circles from student data:', {
@@ -323,7 +323,7 @@ export default function ProfileHeader({
           totalCount: combinedCircles.length,
           combinedCircles
         })
-        
+
         setLocalCircles(combinedCircles)
       }
     } else if (circles && circles.length > 0) {
@@ -688,61 +688,8 @@ export default function ProfileHeader({
                     </div>
                   </div>
 
-                  {/* Quick Stats - Horizontal display with icons and pastel backgrounds */}
+                  {/* Skills section */}
                   <div className="flex flex-wrap gap-3 text-xs font-medium mt-4">
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 text-pink-600 dark:text-pink-300 px-3 py-1.5 rounded-full">
-                      <Users className="h-3.5 w-3.5 text-pink-500" data-tooltip="Total connections in their circle" />
-                      <span data-tooltip="Total connections in their circle">
-                        {actualConnectionCounts?.total || 0} in {isOwnProfile ? 'My' : 'Their'} Circle
-                      </span>
-                      <div className="ml-1.5 flex items-center gap-1 border-l border-pink-200 dark:border-pink-800/30 pl-1.5">
-                        <div className="flex items-center" data-tooltip="Students in their circle">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-3 w-3 text-pink-500"
-                            data-tooltip="Students"
-                          >
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                          </svg>
-                          <span className="text-[10px] ml-0.5" data-tooltip="Students in their circle">
-                            {actualConnectionCounts?.students || 0}
-                          </span>
-                        </div>
-                        <div className="flex items-center" data-tooltip="Mentors guiding them">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-3 w-3 text-pink-500"
-                            data-tooltip="Mentors"
-                          >
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                          </svg>
-                          <span className="text-[10px] ml-0.5" data-tooltip="Mentors guiding them">
-                            {actualConnectionCounts?.mentors || 0}
-                          </span>
-                        </div>
-
-                      </div>
-                    </div>
-
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
                       <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
                       <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
@@ -757,7 +704,8 @@ export default function ProfileHeader({
                       <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
                         Following: {student?.followingInstitutions?.length || followingCount || 0}
                       </span>
-                    </div>                  </div>
+                    </div>                  
+                  </div>
 
                   {/* Circle preview - Friends circle with add button */}
                   <div className="mt-4">
