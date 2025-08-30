@@ -23,7 +23,7 @@ interface StudentProfileProps {
   isViewMode?: boolean // New prop to indicate if this is a view-only mode
   isShareMode?: boolean
   onGoBack?: () => void // New prop for back button handler
-  showStaticStructure?: boolean
+  showSkeletalLoader?: boolean
 }
 
 export default function StudentProfile({ 
@@ -33,7 +33,7 @@ export default function StudentProfile({
   isViewMode = false,
   isShareMode = false,
   onGoBack,
-  showStaticStructure = false 
+  showSkeletalLoader = false 
 }: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -560,7 +560,7 @@ export default function StudentProfile({
 
 
   // Create static structure for immediate display
-  const staticStudentStructure = showStaticStructure ? {
+  const staticStudentStructure = showSkeletalLoader ? {
     id: studentId || currentUser?.id || "",
     profile: {
       firstName: "Student", 
@@ -599,7 +599,7 @@ export default function StudentProfile({
 
   // Always render the component structure - we'll show loading states for missing sections
   // This ensures immediate rendering when cached data is available
-  if (loading && !showStaticStructure) { // Only show loading state if not showing static structure
+  if (loading && !showSkeletalLoader) { // Only show loading state if not showing static structure
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
@@ -649,7 +649,7 @@ export default function StudentProfile({
 
   // Placeholder for content rendering, which will be updated when data is fully loaded
   const renderContent = () => {
-    if (showStaticStructure && !student) {
+    if (showSkeletalLoader && !finalStudentData) {
       return (
         <div className="mt-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
@@ -699,9 +699,9 @@ export default function StudentProfile({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      {/* Always show ProfileHeader immediately with available data */}
+      {/* Always show ProfileHeader - with skeletal loader when no data */}
       <ProfileHeader
-        student={finalStudentData || staticStudentStructure}
+        student={showSkeletalLoader ? null : (finalStudentData || staticStudentStructure)}
         currentUser={currentUser}
         connectionCounts={finalStudentData?.connectionCounts}
         isViewMode={isViewMode}
@@ -714,7 +714,7 @@ export default function StudentProfile({
       />
 
       {/* Show navigation and content when we have real data */}
-      {finalStudentData && finalStudentData !== staticStudentStructure && (
+      {finalStudentData && !showSkeletalLoader && (
         <>
           <HorizontalNavigation 
             tabs={tabs} 
@@ -727,32 +727,8 @@ export default function StudentProfile({
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
               {renderContent()}
             </div>
-            </div>
-        </>
-      )}
-
-      {/* Show loading indicator for content sections when using static structure and real data is not yet loaded */}
-      {showStaticStructure && finalStudentData === staticStudentStructure && (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden text-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile sections...</p>
           </div>
-        </div>
-      )}
-
-      {!isViewMode && isOwnProfile && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <a
-            href="/student/self-analysis"
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-            <span className="font-semibold">Self Analysis</span>
-          </a>
-        </div>
+        </>
       )}
     </div>
   )

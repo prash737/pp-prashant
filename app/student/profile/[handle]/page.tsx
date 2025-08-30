@@ -211,23 +211,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
     fetchStudentData()
   }, [handle, currentUser, authLoading, router])
 
-  // Show loading only if auth is loading AND we don't have studentData
-  if (authLoading && !studentData) {
-    return (
-      <ProtectedLayout>
-        <div className="min-h-screen flex flex-col">
-          <InternalNavbar />
-          <main className="flex-grow pt-16 sm:pt-24 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pathpiper-teal mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
-            </div>
-          </main>
-          <Footer />
-        </div>
-      </ProtectedLayout>
-    )
-  }
+  
 
   if (error) {
     return (
@@ -257,13 +241,13 @@ export default function StudentProfilePage({ params }: { params: Promise<{ handl
       <div className="min-h-screen flex flex-col">
         <InternalNavbar />
         <main className="flex-grow pt-16 sm:pt-24">
-          {/* Pass the studentData directly to StudentProfile with minimal props */}
+          {/* Always show the profile - with skeletal loader when no data */}
           <StudentProfile
             studentId={currentUser?.id}
             currentUser={currentUser}
             studentData={studentData}
             isViewMode={false}
-            showStaticStructure={!studentData && loading}
+            showSkeletalLoader={!studentData || loading}
           />
         </main>
         <Footer />

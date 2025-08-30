@@ -39,6 +39,7 @@ import {
   UserX,
   Building2
 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
 import { format } from "date-fns"
 import CircleManagementDialog from "./circle-management-dialog"
@@ -103,8 +104,9 @@ export default function ProfileHeader({
   const [showFollowingDialog, setShowFollowingDialog] = useState(false)
   const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
   const [followingCount, setFollowingCount] = useState(0)
-  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
+  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('loading')
   const [sendingRequest, setSendingRequest] = useState(false)
+  const [isLoading, setIsLoading] = useState(true) // State to manage overall loading
 
   const handleShareProfile = async () => {
     const profileUrl = `https://pathpiper.com/public-view/student/profile/${student.id}`
@@ -153,6 +155,13 @@ export default function ProfileHeader({
     customBadges: [],
     skills: []
   }
+
+  // Set loading to false once student data is available (or if studentProp was null)
+  useEffect(() => {
+    if (studentProp !== undefined) { // Check if studentProp was actually provided
+      setIsLoading(false)
+    }
+  }, [studentProp])
 
   // Get display name - prioritize nested profile structure, then direct fields
   const displayName = student?.profile?.firstName && student?.profile?.lastName ? 
@@ -535,17 +544,21 @@ export default function ProfileHeader({
         {/* Customizable banner - Use cover photo if available, otherwise show pathpiper-teal background */}
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="h-100 w-full relative overflow-hidden rounded-t-xl">
-            {coverImage ? (
-              <img
-                src={coverImage}
-                alt="Cover photo"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // If image fails to load, hide it and show default background
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : null}
+            {isLoading ? (
+              <Skeleton className="w-full h-full object-cover" style={{ minHeight: '400px' }} />
+            ) : (
+              coverImage && (
+                <img
+                  src={coverImage}
+                  alt="Cover photo"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // If image fails to load, hide it and show default background
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )
+            )}
             {/* Default background - always present, only visible when no cover image or image fails */}
             <div 
               className={`w-full h-full bg-pathpiper-teal ${coverImage ? 'absolute inset-0 -z-10' : ''}`}
@@ -579,13 +592,17 @@ export default function ProfileHeader({
                     {/* Profile image */}
                     <div className="relative z-10 flex-shrink-0">
                       <div className="rounded-full border-4 border-white dark:border-gray-800 overflow-hidden h-20 w-20 sm:h-28 sm:w-28 shadow-md">
-                        <Image
-                          src={profileImage || "/placeholder.svg"}
-                          alt={displayName}
-                          width={112}
-                          height={112}
-                          className="w-full h-full object-cover"
-                        />
+                        {isLoading ? (
+                          <Skeleton className="w-full h-full rounded-full" />
+                        ) : (
+                          <Image
+                            src={profileImage || "/placeholder.svg"}
+                            alt={displayName}
+                            width={112}
+                            height={112}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
                     </div>
 
@@ -593,13 +610,17 @@ export default function ProfileHeader({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 justify-between">
                         <div className="flex items-center gap-2">
-                          <h1 className="text-xl sm:text-3xl font-bold truncate">{displayName}</h1>
-                          {true && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
+                          {isLoading ? (
+                            <Skeleton className="h-8 w-48" />
+                          ) : (
+                            <h1 className="text-xl sm:text-3xl font-bold truncate">{displayName}</h1>
+                          )}
+                          {true && !isLoading && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
                         </div>
                         {/* Edit Profile button for own profile or Connect button for viewing others */}
                         <div className="flex items-center gap-2">
                           {/* Share Profile button - Show for view mode and own profile */}
-                          {(isViewMode || isOwnProfile) && (
+                          {(isViewMode || isOwnProfile) && !isLoading && (
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -620,7 +641,7 @@ export default function ProfileHeader({
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Profile
                             </Button>
-                          ) : !isOwnProfile && !isShareMode && (
+                          ) : !isOwnProfile && !isShareMode && !isLoading && (
                             <>
                               {connectionStatus === 'connected' ? (
                                 <Button 
@@ -677,34 +698,47 @@ export default function ProfileHeader({
                           )}
                         </div>
                       </div>
-                      {tagline && (
+                      {tagline && !isLoading && (
                         <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base truncate">
                           {tagline}
                         </p>
                       )}
-                      <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                        {gradeLevel} • {schoolName}
-                      </p>
+                      {isLoading ? (
+                        <Skeleton className="h-4 w-32 mt-2" />
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                          {gradeLevel} • {schoolName}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* Skills section */}
                   <div className="flex flex-wrap gap-3 text-xs font-medium mt-4">
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
-                      <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
-                      <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || student?.userSkills?.length || student?.user_skills?.length || 0}
-                      </span>
-                    </div>
-                    <div 
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all"
-                      onClick={() => setShowFollowingDialog(true)}
-                    >
-                      <Users className="h-3.5 w-3.5 text-indigo-500" data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`} />
-                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
-                        Following: {student?.followingInstitutions?.length || followingCount || 0}
-                      </span>
-                    </div>                  
+                    {isLoading ? (
+                      <>
+                        <Skeleton className="h-6 w-32 rounded-full" />
+                        <Skeleton className="h-6 w-32 rounded-full" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
+                          <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
+                          <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
+                            Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || student?.userSkills?.length || student?.user_skills?.length || 0}
+                          </span>
+                        </div>
+                        <div 
+                          className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all"
+                          onClick={() => setShowFollowingDialog(true)}
+                        >
+                          <Users className="h-3.5 w-3.5 text-indigo-500" data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`} />
+                          <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
+                            Following: {student?.followingInstitutions?.length || followingCount || 0}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Circle preview - Friends circle with add button */}
@@ -713,7 +747,7 @@ export default function ProfileHeader({
                       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {isViewMode ? 'Circles' : 'My Circles'}
                       </h3>
-                      {isOwnProfile && !isViewMode && (
+                      {isOwnProfile && !isViewMode && !isLoading && (
                         <button
                           onClick={() => setShowCreateCircle(true)}
                           className="text-xs text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"
@@ -735,7 +769,7 @@ export default function ProfileHeader({
                             <div className={needsScrolling ? "flex-1 overflow-hidden" : "flex-1"}>
                               <div className={`flex ${needsScrolling ? 'overflow-x-auto pb-2 hide-scrollbar' : ''} gap-4 ${needsScrolling ? 'pr-4' : ''}`}>
                                 {/* Default Friends Circle - Only show for own profile */}
-                                {isOwnProfile && (
+                                {isOwnProfile && !isLoading && (
                                   <div className="flex flex-col items-center min-w-[72px] shrink-0">
                                     <div className="relative mb-1">
                                       <button
@@ -833,11 +867,18 @@ export default function ProfileHeader({
                                   );
                                 })}
 
-
+                                {isLoading && (
+                                  <>
+                                    {[...Array(4)].map((_, i) => (
+                                      <div key={i} className="flex flex-col items-center min-w-[72px] shrink-0">
+                                        <Skeleton className="w-16 h-16 rounded-full mb-1" />
+                                        <Skeleton className="h-4 w-12 rounded" />
+                                      </div>
+                                    ))}
+                                  </>
+                                )}
                               </div>
                             </div>
-
-
                           </>
                         );
                       })()}
@@ -941,7 +982,7 @@ export default function ProfileHeader({
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {socialLinksData && Array.isArray(socialLinksData) && socialLinksData.length > 0 && (
+                  {socialLinksData && Array.isArray(socialLinksData) && socialLinksData.length > 0 && !isLoading && (
                     <div className="mb-4">
                       <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Social Links</h3>
                       <div className="flex flex-wrap gap-2">
@@ -1044,7 +1085,15 @@ export default function ProfileHeader({
                                      student?.user_skills || 
                                      []
 
-                        if (skills.length > 0) {
+                        if (isLoading) {
+                          return (
+                            <>
+                              <Skeleton className="h-6 w-24 rounded-full" />
+                              <Skeleton className="h-6 w-20 rounded-full" />
+                              <Skeleton className="h-6 w-28 rounded-full" />
+                            </>
+                          )
+                        } else if (skills.length > 0) {
                           return skills
                             .sort((a: any, b: any) => (b.proficiencyLevel || b.proficiency_level || 0) - (a.proficiencyLevel || a.proficiency_level || 0))
                             .slice(0, 5)
@@ -1072,8 +1121,8 @@ export default function ProfileHeader({
                                 </div>
                               )
                             })
-                        } else if (student?.first_name === "Prashant" || displayName === "Student") {
-                          // Show placeholder when in loading state
+                        } else if (displayName === "Student") {
+                          // Show placeholder when in static loading state
                           return (
                             <div className="flex gap-2">
                               <div className="px-3 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse">
@@ -1092,7 +1141,7 @@ export default function ProfileHeader({
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">Recent Achievements</h3>
-                      {isOwnProfile && !isViewMode && (
+                      {isOwnProfile && !isViewMode && !isLoading && (
                         <button
                           onClick={() => router.push('/student/profile/edit?section=achievements')}
                           className="text-xs text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"
