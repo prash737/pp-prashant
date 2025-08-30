@@ -39,13 +39,25 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
       const response = await fetch(`/api/student/profile/${student.id}/goals`);
       if (response.ok) {
         const data = await response.json();
-        setInternalGoals(data || []);
+        // Handle different API response formats
+        let goalsArray = [];
+        if (Array.isArray(data)) {
+          goalsArray = data;
+        } else if (data && Array.isArray(data.goals)) {
+          goalsArray = data.goals;
+        } else if (data && typeof data === 'object') {
+          // If data is an object, extract goals from it
+          goalsArray = data.goals || data.data || [];
+        }
+        setInternalGoals(goalsArray);
         setHasLoadedGoals(true);
       } else {
         console.error('Failed to fetch goals:', response.statusText);
+        setInternalGoals([]);
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
+      setInternalGoals([]);
     } finally {
       setLoading(false);
     }
@@ -60,7 +72,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
 
   useEffect(() => {
     // Update internal state if the prop changes
-    if (goals && goals.length > 0 && !hasLoadedGoals) {
+    if (goals && Array.isArray(goals) && goals.length > 0 && !hasLoadedGoals) {
       setInternalGoals(goals);
       setHasLoadedGoals(true);
     }
@@ -88,7 +100,10 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
     );
   }
 
-  if (internalGoals.length === 0) {
+  // Ensure internalGoals is always an array
+  const safeGoals = Array.isArray(internalGoals) ? internalGoals : [];
+
+  if (safeGoals.length === 0) {
     return (
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
@@ -143,7 +158,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
       </div>
 
       <div className="grid gap-4">
-        {internalGoals.map((goal, index) => (
+        {safeGoals.map((goal, index) => (
           <motion.div
             key={goal.id}
             initial={{ opacity: 0, y: 20 }}
