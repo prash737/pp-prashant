@@ -689,7 +689,7 @@ export default function StudentProfile({
           />
         )
       case "goals":
-        return <Goals student={student} currentUser={currentUser} goals={student?.careerGoals || []} isViewMode={isViewMode} />
+        return <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />
       case "following":
         return <FollowingInstitutions userId={studentId} followingInstitutions={followingInstitutions || []} />
       default:

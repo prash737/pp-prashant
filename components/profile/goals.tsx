@@ -26,16 +26,67 @@ interface GoalsProps {
 const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewMode = false }) => {
   const router = useRouter();
   const [internalGoals, setInternalGoals] = useState<Goal[]>(goals);
+  const [loading, setLoading] = useState(false);
+  const [hasLoadedGoals, setHasLoadedGoals] = useState(false);
   const isOwnProfile = currentUser && currentUser.id === student?.id;
+
+  // Fetch goals when component mounts (lazy loading)
+  const fetchGoals = async () => {
+    if (!student?.id || hasLoadedGoals) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/student/profile/${student.id}/goals`);
+      if (response.ok) {
+        const data = await response.json();
+        setInternalGoals(data || []);
+        setHasLoadedGoals(true);
+      } else {
+        console.error('Failed to fetch goals:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch if goals haven't been loaded yet
+    if (!hasLoadedGoals) {
+      fetchGoals();
+    }
+  }, [student?.id, hasLoadedGoals]);
 
   useEffect(() => {
     // Update internal state if the prop changes
-    setInternalGoals(goals);
-  }, [goals]);
+    if (goals && goals.length > 0 && !hasLoadedGoals) {
+      setInternalGoals(goals);
+      setHasLoadedGoals(true);
+    }
+  }, [goals, hasLoadedGoals]);
 
   const handleManage = () => {
     router.push("/student/profile/edit?section=goals");
   };
+
+  // Show loading state while fetching goals
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Goals</h2>
+            <p className="text-gray-600 dark:text-gray-400">Track your aspirations and achievements</p>
+          </div>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading goals...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (internalGoals.length === 0) {
     return (
