@@ -16,16 +16,54 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Deployment optimizations - moved from experimental
+  // Deployment optimizations
   outputFileTracingExcludes: {
     '*': [
       'node_modules/@swc/core-linux-x64-gnu',
       'node_modules/@swc/core-linux-x64-musl',
       'node_modules/@esbuild/linux-x64',
+      'node_modules/**/.cache/**',
+      'node_modules/**/test/**',
+      'node_modules/**/tests/**',
+      'node_modules/**/*.md',
     ],
   },
   // Prevent static generation timeout
-  staticPageGenerationTimeout: 300,
+  staticPageGenerationTimeout: 60,
+  // Disable static optimization for problematic pages
+  experimental: {
+    optimizeCss: false,
+    optimizePackageImports: ['@radix-ui/react-icons'],
+  },
+  // Webpack optimizations for faster builds
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    // Reduce bundle size
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+        },
+      },
+    };
+    
+    return config;
+  },
 }
 
 export default nextConfig
