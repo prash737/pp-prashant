@@ -101,13 +101,15 @@ export default function StudentProfilePage() {
     social_links: studentData.social_links || []
   } : null;
 
-  console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
-  console.log('🔗 Social links in transformed data:', {
-    socialLinks: transformedData?.social_links,
-    socialLinksLength: transformedData?.social_links?.length,
-    socialLinksType: typeof transformedData?.social_links,
-    socialLinksData: JSON.stringify(transformedData?.social_links)
-  })
+  if (typeof window !== 'undefined') {
+    console.log('🎯 StudentProfilePage: Setting transformed data:', transformedData)
+    console.log('🔗 Social links in transformed data:', {
+      socialLinks: transformedData?.social_links,
+      socialLinksLength: transformedData?.social_links?.length,
+      socialLinksType: typeof transformedData?.social_links,
+      socialLinksData: JSON.stringify(transformedData?.social_links)
+    })
+  }
 
 
   if (loading || authLoading) {

@@ -113,11 +113,7 @@ Provide analysis with: Current strengths, student attraction opportunities, prog
         totalTokens: promptTokens + responseTokens,
         modelName
       }
-    })ge?.content
-
-    if (!analysis) {
-      throw new Error('No analysis received from AI')
-    }
+    })
 
     console.log('✅ Institution analysis completed successfully')
 
