@@ -34,7 +34,6 @@ const nextConfig = {
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['@radix-ui/react-icons'],
-    serverComponentsExternalPackages: ['@prisma/client'],
   },
   // Webpack optimizations for faster builds
   webpack: (config, { isServer, webpack }) => {
