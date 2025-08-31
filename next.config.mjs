@@ -30,12 +30,10 @@ const nextConfig = {
   },
   // Prevent static generation timeout
   staticPageGenerationTimeout: 60,
-  swcMinify: true,
   // Disable static optimization for problematic pages
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['@radix-ui/react-icons'],
-    esmExternals: false,
   },
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
@@ -54,8 +52,9 @@ const nextConfig = {
       };
       
       // Define global 'self' for server-side rendering
+      const webpack = require('webpack');
       config.plugins.push(
-        new config.webpack.DefinePlugin({
+        new webpack.DefinePlugin({
           self: 'global',
         })
       );
