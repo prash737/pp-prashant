@@ -28,6 +28,11 @@ let globalUserCache: { user: User | null; timestamp: number } | null = null
 let globalProfileDataCache: { profileData: CachedProfileData | null; timestamp: number } | null = null
 let globalUserPromise: Promise<User | null> | null = null
 let globalProfileDataPromise: Promise<CachedProfileData | null> | null = null
+
+// Global cache for profile header data by user ID
+let globalProfileHeaderCache: Map<string, { data: any; timestamp: number }> = new Map()
+let globalProfileHeaderPromises: Map<string, Promise<any>> = new Map()
+
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 export function useAuth() {
@@ -208,12 +213,18 @@ export function invalidateUserCache() {
   globalUserPromise = null
   globalProfileDataCache = null
   globalProfileDataPromise = null
+  globalProfileHeaderCache.clear()
+  globalProfileHeaderPromises.clear()
 }
 
 // Function to completely clear all user data and storage
 export function clearAllUserData() {
   // Clear global caches
   invalidateUserCache()
+  
+  // Clear profile header cache
+  globalProfileHeaderCache.clear()
+  globalProfileHeaderPromises.clear()
 
   // Clear localStorage
   if (typeof window !== 'undefined') {
@@ -263,4 +274,59 @@ export function getCachedProfileData(): CachedProfileData | null {
     return globalProfileDataCache.profileData
   }
   return null
+}
+
+// Profile Header Cache Functions
+export function getCachedProfileHeaderData(userId: string): any | null {
+  const cached = globalProfileHeaderCache.get(userId)
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    return cached.data
+  }
+  return null
+}
+
+export function setCachedProfileHeaderData(userId: string, data: any): void {
+  globalProfileHeaderCache.set(userId, {
+    data,
+    timestamp: Date.now()
+  })
+}
+
+export function fetchAndCacheProfileHeaderData(userId: string): Promise<any> {
+  // Check if there's already a request in progress
+  const existingPromise = globalProfileHeaderPromises.get(userId)
+  if (existingPromise) {
+    return existingPromise
+  }
+
+  // Check if we have valid cached data
+  const cachedData = getCachedProfileHeaderData(userId)
+  if (cachedData) {
+    return Promise.resolve(cachedData)
+  }
+
+  // Make the API call
+  const promise = fetch(`/api/student/profile/${userId}`, {
+    credentials: 'include',
+    cache: 'no-store'
+  }).then(async (response) => {
+    if (response.ok) {
+      const data = await response.json()
+      
+      // Cache the result
+      setCachedProfileHeaderData(userId, data)
+      
+      console.log('✅ Profile header data cached for user:', userId)
+      return data
+    }
+    throw new Error('Failed to fetch profile header data')
+  }).catch((error) => {
+    console.error('Error fetching profile header data:', error)
+    return null
+  }).finally(() => {
+    globalProfileHeaderPromises.delete(userId)
+  })
+
+  globalProfileHeaderPromises.set(userId, promise)
+  return promise
 }

@@ -13,6 +13,8 @@ import Goals from "./goals"
 import InterestsSection from "./interests-section"
 import SuggestedConnections from "./suggested-connections"
 import FollowingInstitutions from "./following-institutions"
+import { TabsContent } from "@/components/ui/tabs" // Assuming TabsContent is imported from here
+import EducationCards from "./education-cards" // Assuming EducationCards is imported from here
 
 interface StudentProfileProps {
   studentId?: string
@@ -21,15 +23,17 @@ interface StudentProfileProps {
   isViewMode?: boolean // New prop to indicate if this is a view-only mode
   isShareMode?: boolean
   onGoBack?: () => void // New prop for back button handler
+  showStaticStructure?: boolean
 }
 
 export default function StudentProfile({ 
   studentId, 
-  currentUser, 
-  studentData, 
+  currentUser: propCurrentUser, // Renamed prop to avoid conflict with state
+  studentData: propStudentData, 
   isViewMode = false,
   isShareMode = false,
-  onGoBack 
+  onGoBack,
+  showStaticStructure = false 
 }: StudentProfileProps) {
   const [student, setStudent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -42,69 +46,467 @@ export default function StudentProfile({
     mentors: 0,
     institutions: 0
   })
+  const [circles, setCircles] = useState<any[]>([])
+  const [circlesLoading, setCirclesLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null) // State for current user
+  const [formData, setFormData] = useState<any>({}) // State for form data
+  const [suggestedConnections, setSuggestedConnections] = useState<any[]>([])
+  const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
 
   // Determine if this is the current user's own profile
   const isOwnProfile = currentUser?.id === student?.id
 
-  // Fetch connections data
-  const fetchConnections = async () => {
+  // Function to fetch user data
+  const fetchUserData = async () => {
     try {
-      const response = await fetch('/api/connections')
-      if (response.ok) {
-        const data = await response.json()
-        setConnections(data)
-
-        // Calculate connection counts by role
-        const counts = {
-          total: data.length,
-          students: data.filter((conn: any) => conn.user.role === 'student').length,
-          mentors: data.filter((conn: any) => conn.user.role === 'mentor').length,
-          institutions: data.filter((conn: any) => conn.user.role === 'institution').length
+      setLoading(true)
+      // If propCurrentUser is provided, use it directly
+      if (propCurrentUser) {
+        setCurrentUser(propCurrentUser)
+        // If studentData is also provided, use it to set student details and skip fetching from /api/auth/user
+        if (propStudentData) {
+          setStudent(propStudentData)
+          setCircles(propStudentData.circles || []) // Set circles from studentData
+          setLoading(false)
+        } else {
+          // If only propCurrentUser is provided, we might still need to fetch student specific data if different
+          // For now, assuming propCurrentUser is sufficient for user identification and basic data
+          // If student details are needed, a separate fetch might be required or studentData should be mandatory
+          // Setting student to propCurrentUser for now, but this might need refinement
+          setStudent(propCurrentUser) 
+          setLoading(false)
         }
-        setConnectionCounts(counts)
+        return
       }
+
+      // Fetch current user data if propCurrentUser is not provided
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data')
+      }
+
+      const userData = await response.json()
+      setCurrentUser(userData)
+      setStudent(userData) // Assuming the user API also returns student data
     } catch (error) {
-      console.error('Error fetching connections:', error)
+      console.error('Error fetching user data:', error)
+      setError('Failed to load profile data')
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (studentData) {
-      fetchConnections()
+  // Function to fetch student data by ID
+  const fetchStudentData = async () => {
+    // Use studentId from props if provided, otherwise fall back to current user's ID if it's their own profile
+    const id = studentId || (isOwnProfile && currentUser?.id) || (propCurrentUser?.id)
 
-      // Transform the real data to match our component's expected structure
+    if (!id) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      console.log('📡 StudentProfile: Fetching data for student ID:', id)
+      const response = await fetch(`/api/student/profile/${id}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+
+      // Detailed logging of all data fields
+      console.log('🧪 DETAILED DATA INSPECTION:')
+      console.log('  - ID:', data?.id)
+      console.log('  - Profile object:', data?.profile)
+      console.log('  - Profile firstName:', data?.profile?.firstName)
+      console.log('  - Profile lastName:', data?.profile?.lastName)
+      console.log('  - Profile bio:', data?.profile?.bio)
+      console.log('  - Profile location:', data?.profile?.location)
+      console.log('  - Profile image:', data?.profile?.profileImageUrl)
+      console.log('  - Profile tagline:', data?.profile?.tagline)
+      console.log('  - Connection counts:', data?.connectionCounts)
+      console.log('  - Circles:', data?.circles)
+      console.log('  - Achievements:', data?.achievements)
+      console.log('  - Education history:', data?.educationHistory)
+      console.log('  - Following institutions:', data?.followingInstitutions)
+      console.log('  - User interests:', data?.profile?.userInterests)
+      console.log('  - User skills:', data?.profile?.userSkills)
+
+      // If studentData is an array, take the first item
+    if (Array.isArray(data)) {
+      console.log('📡 StudentProfile: Received student data:', data)
+
+      if (data.length > 0) {
+        const rawStudentData = data[0]
+        console.log('🔍 StudentProfile: Processed student data:', rawStudentData)
+
+        // Log raw API response structure for debugging
+        console.log('🔍 Raw API Response Structure:', {
+          isArray: Array.isArray(data),
+          hasProfile: !!rawStudentData?.profile,
+          hasId: !!rawStudentData?.id,
+          topLevelKeys: Object.keys(rawStudentData || {}),
+          profileKeys: rawStudentData?.profile ? Object.keys(rawStudentData.profile) : 'No profile object'
+        })
+
+        // Transform the flat API response into the nested structure expected by ProfileHeader
+        const transformedStudentData = {
+          id: rawStudentData.id,
+          first_name: rawStudentData.first_name,
+          last_name: rawStudentData.last_name,
+          bio: rawStudentData.bio,
+          location: rawStudentData.location,
+          profile_image_url: rawStudentData.profile_image_url,
+          cover_image_url: rawStudentData.cover_image_url,
+          tagline: rawStudentData.tagline,
+          verification_status: rawStudentData.verification_status,
+          // Create nested profile structure that ProfileHeader expects
+          profile: {
+            firstName: rawStudentData.first_name,
+            lastName: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profileImageUrl: rawStudentData.profile_image_url,
+            coverImageUrl: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verificationStatus: rawStudentData.verification_status,
+            userInterests: rawStudentData.user_interests || [],
+            userSkills: rawStudentData.user_skills || [],
+            skills: (rawStudentData.user_skills || []).map((us: any) => ({
+              id: us.skills?.id || us.skill?.id,
+              name: us.skills?.name || us.skill?.name,
+              proficiencyLevel: us.proficiency_level || 50,
+              category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+            })),
+            socialLinks: rawStudentData.social_links || []
+          },
+          // Map education history - preserve all fields from comprehensive profile
+          educationHistory: (rawStudentData.education_history || []).map((edu: any, index: number) => {
+            console.log('🔍 Mapping education entry:', JSON.stringify(edu, null, 2));
+            console.log(`📚 Education entry ${index + 1} field analysis:`, {
+              hasInstitutionName: !!edu.institutionName,
+              hasInstitutionType: !!edu.institutionType,
+              hasDegreeProgram: !!edu.degreeProgram,
+              hasStartDate: !!edu.startDate,
+              hasInstitutionVerified: edu.institutionVerified !== undefined,
+              allFields: Object.keys(edu)
+            });
+
+            const mappedEducation = {
+              id: edu.id,
+              institutionName: edu.institutionName || edu.institution_name,
+              institutionType: edu.institutionType || edu.institution_type,
+              institutionTypeName: edu.institutionType?.name || edu.institution_type?.name,
+              institutionTypeId: edu.institutionTypeId || edu.institution_type_id,
+              gradeLevel: edu.gradeLevel || edu.grade_level,
+              isCurrent: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              is_current: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              startDate: edu.startDate || edu.start_date,
+              endDate: edu.endDate || edu.end_date,
+              degreeProgram: edu.degreeProgram || edu.degree_program,
+              fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : edu.institution_verified
+            };
+
+            console.log(`✅ Mapped education entry ${index + 1}:`, JSON.stringify(mappedEducation, null, 2));
+            return mappedEducation;
+          }),
+          // Map other fields
+          achievements: rawStudentData.achievements || [],
+          goals: rawStudentData.goals || [],
+          userCollections: rawStudentData.user_collections || [],
+          connections: rawStudentData.connections || [],
+          connectionCounts: rawStudentData.connectionCounts || {
+            total: 0,
+            students: 0,
+            mentors: 0,
+            institutions: 0
+          },
+          circles: rawStudentData.circles || [],
+          followingInstitutions: rawStudentData.institution_following || rawStudentData.followingInstitutions || [],
+          suggestedConnections: rawStudentData.suggestedConnections || [],
+          connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+          connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+          circleInvitations: rawStudentData.circleInvitations || [],
+          // Map additional student-specific fields
+          ageGroup: rawStudentData.age_group,
+          educationLevel: rawStudentData.education_level,
+          birthMonth: rawStudentData.birth_month,
+          birthYear: rawStudentData.birth_year,
+          personalityType: rawStudentData.personality_type,
+          learningStyle: rawStudentData.learning_style,
+          favoriteQuote: rawStudentData.favorite_quote,
+          userInterests: rawStudentData.user_interests || [],
+          userSkills: rawStudentData.user_skills || []
+        }
+
+        console.log('🔍 StudentProfile: Circles data received:', transformedStudentData.circles)
+        console.log('🔍 StudentProfile: Number of circles:', transformedStudentData.circles?.length || 0)
+
+        setStudent(transformedStudentData)
+        setCircles(transformedStudentData.circles || [])
+        console.log('🔍 StudentProfile: State after setting circles:', transformedStudentData.circles || [])
+
+        setConnectionCounts(transformedStudentData.connectionCounts)
+        setConnections(transformedStudentData.connections)
+        setSuggestedConnections(transformedStudentData.suggestedConnections)
+        setFollowingInstitutions(transformedStudentData.followingInstitutions)
+        setLoading(false)
+        return
+      }
+    }
+
+    // Handle cases where data might not be an array or is empty
+    if (!Array.isArray(data) && data) {
+       // Assuming the response is a single object if not an array
+       const rawStudentData = data;
+       console.log('📡 StudentProfile: Received student data (single object):', rawStudentData)
+
+       // Log raw API response structure for debugging
+       console.log('🔍 Raw API Response Structure:', {
+         isArray: Array.isArray(data),
+         hasProfile: !!rawStudentData?.profile,
+         hasId: !!rawStudentData?.id,
+         topLevelKeys: Object.keys(rawStudentData || {}),
+         profileKeys: rawStudentData?.profile ? Object.keys(rawStudentData.profile) : 'No profile object'
+       })
+
+       // Transform the flat API response into the nested structure expected by ProfileHeader
+        const transformedStudentData = {
+          id: rawStudentData.id,
+          first_name: rawStudentData.first_name,
+          last_name: rawStudentData.last_name,
+          bio: rawStudentData.bio,
+          location: rawStudentData.location,
+          profile_image_url: rawStudentData.profile_image_url,
+          cover_image_url: rawStudentData.cover_image_url,
+          tagline: rawStudentData.tagline,
+          verification_status: rawStudentData.verification_status,
+          // Create nested profile structure that ProfileHeader expects
+          profile: {
+            firstName: rawStudentData.first_name,
+            lastName: rawStudentData.last_name,
+            bio: rawStudentData.bio,
+            location: rawStudentData.location,
+            profileImageUrl: rawStudentData.profile_image_url,
+            coverImageUrl: rawStudentData.cover_image_url,
+            tagline: rawStudentData.tagline,
+            verificationStatus: rawStudentData.verification_status,
+            userInterests: rawStudentData.user_interests || [],
+            userSkills: rawStudentData.user_skills || [],
+            skills: (rawStudentData.user_skills || []).map((us: any) => ({
+              id: us.skills?.id || us.skill?.id,
+              name: us.skills?.name || us.skill?.name,
+              proficiencyLevel: us.proficiency_level || 50,
+              category: us.skills?.skill_categories?.name || us.skill?.category?.name || 'General'
+            })),
+            socialLinks: rawStudentData.social_links || []
+          },
+          // Map education history - preserve all fields from comprehensive profile  
+          educationHistory: (rawStudentData.education_history || []).map((edu: any) => {
+            console.log('🔍 Mapping education entry (second block):', JSON.stringify(edu, null, 2));
+            return {
+              id: edu.id,
+              institutionName: edu.institutionName || edu.institution_name,
+              institutionType: edu.institutionType || edu.institution_type,
+              institutionTypeName: edu.institutionType?.name || edu.institution_type?.name,
+              institutionTypeId: edu.institutionTypeId || edu.institution_type_id,
+              gradeLevel: edu.gradeLevel || edu.grade_level,
+              isCurrent: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              is_current: edu.isCurrent !== undefined ? edu.isCurrent : edu.is_current,
+              startDate: edu.startDate || edu.start_date,
+              endDate: edu.endDate || edu.end_date,
+              degreeProgram: edu.degreeProgram || edu.degree_program,
+              fieldOfStudy: edu.fieldOfStudy || edu.field_of_study,
+              subjects: edu.subjects || [],
+              gpa: edu.gpa,
+              achievements: edu.achievements || [],
+              description: edu.description,
+              institutionVerified: edu.institutionVerified !== undefined ? edu.institutionVerified : edu.institution_verified
+            };
+          }),
+          // Map other fields
+          achievements: rawStudentData.achievements || [],
+          goals: rawStudentData.goals || [],
+          userCollections: rawStudentData.user_collections || [],
+          connections: rawStudentData.connections || [],
+          connectionCounts: rawStudentData.connectionCounts || {
+            total: 0,
+            students: 0,
+            mentors: 0,
+            institutions: 0
+          },
+          circles: rawStudentData.circles || [],
+          followingInstitutions: rawStudentData.institution_following || rawStudentData.followingInstitutions || [],
+          suggestedConnections: rawStudentData.suggestedConnections || [],
+          connectionRequestsSent: rawStudentData.connectionRequestsSent || [],
+          connectionRequestsReceived: rawStudentData.connectionRequestsReceived || [],
+          circleInvitations: rawStudentData.circleInvitations || [],
+          // Map additional student-specific fields
+          ageGroup: rawStudentData.age_group,
+          educationLevel: rawStudentData.education_level,
+          birthMonth: rawStudentData.birth_month,
+          birthYear: rawStudentData.birth_year,
+          personalityType: rawStudentData.personality_type,
+          learningStyle: rawStudentData.learning_style,
+          favoriteQuote: rawStudentData.favorite_quote,
+          userInterests: rawStudentData.user_interests || [],
+          userSkills: rawStudentData.user_skills || []
+        }
+
+        console.log('🔍 StudentProfile: Circles data received:', transformedStudentData.circles)
+        console.log('🔍 StudentProfile: Number of circles:', transformedStudentData.circles?.length || 0)
+
+        setStudent(transformedStudentData)
+        setCircles(transformedStudentData.circles || [])
+        console.log('🔍 StudentProfile: State after setting circles:', transformedStudentData.circles || [])
+
+        setConnectionCounts(transformedStudentData.connectionCounts)
+        setConnections(transformedStudentData.connections)
+        setSuggestedConnections(transformedStudentData.suggestedConnections)
+        setFollowingInstitutions(transformedStudentData.followingInstitutions)
+        setLoading(false)
+        return
+    }
+
+    // If no student data is found or the response is unexpected
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      setError('No student data found.')
+      setLoading(false)
+      return
+    }
+
+    } catch (error) {
+      console.error('❌ StudentProfile: Error fetching student data:', error)
+      setError(error instanceof Error ? error.message : 'Failed to fetch student data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Function to handle circles update (for creating new circles)
+  const handleCirclesUpdate = () => {
+    // If we need to refresh circles after creation, we can fetch the entire profile again
+    // For now, we'll rely on the parent component to handle this
+    console.log('Circle updated - parent should refresh data')
+  }
+
+  useEffect(() => {
+    // If studentData is provided directly, use it and skip all API calls
+    if (propStudentData) {
+      console.log('🎯 StudentProfile: Using provided studentData, skipping API calls')
+      setStudent(propStudentData)
+      setCircles(propStudentData.circles || [])
+      setConnectionCounts(propStudentData.connectionCounts || { total: 0, students: 0, mentors: 0, institutions: 0 })
+      setConnections(propStudentData.connections || [])
+      setSuggestedConnections(propStudentData.suggestedConnections || [])
+      setFollowingInstitutions(propStudentData.followingInstitutions || [])
+      setCurrentUser(propCurrentUser || null)
+      setLoading(false)
+      return
+    }
+
+    // Only fetch if no studentData is provided
+    fetchUserData().then(() => {
+      const idToFetch = studentId || (propCurrentUser ? propCurrentUser.id : null)
+      if (idToFetch) {
+        fetchStudentData()
+      } else {
+        setLoading(false)
+      }
+    })
+  }, [propCurrentUser, propStudentData, studentId])
+
+
+  // Set circles from studentData when available (alternative/fallback if fetchStudentData doesn't set it)
+  useEffect(() => {
+    if (propStudentData?.circles && !student) { // Only if student is not yet populated by fetchStudentData
+      const enabledCircles = propStudentData.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
+    } else if (!propStudentData && student?.circles) { // If student is populated but propStudentData was not the source
+       const enabledCircles = student.circles.filter((circle: any) => {
+        if (circle.isDisabled) return false;
+        if (circle.isCreatorDisabled && circle.creator?.id === currentUser?.id) return false;
+        const userMembership = circle.memberships?.find(
+          (membership: any) => membership.user?.id === currentUser?.id
+        );
+        if (userMembership && userMembership.isDisabledMember) return false;
+        return true;
+      });
+      setCircles(enabledCircles);
+    }
+  }, [propStudentData?.circles, student?.circles, currentUser?.id])
+
+  // Transform studentData if it's provided directly and not fetched by studentId
+  useEffect(() => {
+    if (propStudentData && !studentId && !student) { // Only transform if propStudentData is provided directly and not fetched via ID
+      // Use connection counts from API response
+      setConnectionCounts(propStudentData.connectionCounts || {
+        total: 0,
+        students: 0,
+        mentors: 0,
+        institutions: 0
+      })
+
+      setConnections(propStudentData.connections || [])
+
+      // Transform the comprehensive data to match component structure
       const transformedStudent = {
-        id: studentData.id,
-        ageGroup: studentData.ageGroup || "young_adult",
-        educationLevel: studentData.educationLevel || "undergraduate",
-        birthMonth: studentData.birthMonth,
-        birthYear: studentData.birthYear,
-        personalityType: studentData.personalityType,
-        learningStyle: studentData.learningStyle,
-        favoriteQuote: studentData.favoriteQuote,
+        id: propStudentData.id,
+        ageGroup: propStudentData.ageGroup || "young_adult",
+        educationLevel: propStudentData.educationLevel || "undergraduate",
+        birthMonth: propStudentData.birthMonth,
+        birthYear: propStudentData.birthYear,
+        personalityType: propStudentData.personalityType,
+        learningStyle: propStudentData.learningStyle,
+        favoriteQuote: propStudentData.favoriteQuote,
         profile: {
-          firstName: studentData.profile?.firstName || "Student",
-          lastName: studentData.profile?.lastName || "",
-          bio: studentData.profile?.bio || "No bio available",
-          location: studentData.profile?.location || "Location not specified",
-          profileImageUrl: studentData.profile?.profileImageUrl || "/images/student-profile.png",
-          coverImageUrl: studentData.profile?.coverImageUrl,
-          verificationStatus: studentData.profile?.verificationStatus || false,
+          firstName: propStudentData.profile?.firstName || "Student",
+          lastName: propStudentData.profile?.lastName || "",
+          bio: propStudentData.profile?.bio || "No bio available",
+          location: propStudentData.profile?.location || "Location not specified",
+          profileImageUrl: propStudentData.profile?.profileImageUrl || "/images/student-profile.png",
+          coverImageUrl: propStudentData.profile?.coverImageUrl,
+          verificationStatus: propStudentData.profile?.verificationStatus || false,
           role: "student",
-          tagline: studentData.profile?.tagline
+          tagline: propStudentData.profile?.tagline
         },
-        interests: studentData.profile?.userInterests?.map((ui: any) => ({
+        interests: propStudentData.profile?.userInterests?.map((ui: any) => ({
           id: ui.interest.id,
           name: ui.interest.name,
           category: ui.interest.category?.name || "General"
         })) || [],
-        skills: studentData.profile?.userSkills?.map((us: any) => ({
+        skills: propStudentData.profile?.userSkills?.map((us: any) => ({
           id: us.skill.id,
           name: us.skill.name,
           proficiencyLevel: us.proficiencyLevel || 50,
           category: us.skill.category?.name || "General"
         })) || [],
-        educationHistory: studentData.educationHistory?.map((edu: any) => ({
+        educationHistory: propStudentData.educationHistory?.map((edu: any) => ({
           id: edu.id,
           institutionName: edu.institutionName,
           institutionType: edu.institutionType || {
@@ -124,34 +526,80 @@ export default function StudentProfile({
           description: edu.description,
           institutionVerified: edu.institutionVerified
         })) || [],
-        socialLinks: studentData.profile?.socialLinks || [],
-        careerGoals: studentData.profile?.careerGoals || [],
-        customBadges: studentData.profile?.customBadges || [],
+        socialLinks: propStudentData.profile?.socialLinks || [],
+        careerGoals: propStudentData.goals || [],
+        customBadges: propStudentData.profile?.customBadges || [],
 
-        // Placeholder data for sections without database tables
-        // These sections will show "Coming Soon" or placeholder content
-        projects: [],
-        achievements: [],
+        // Now using real data from API
+        projects: [], // Still placeholder - add to API if needed
+        achievements: propStudentData.achievements || [],
+        // circles: propStudentData.circles || [], // This is now fetched separately
+        userCollections: propStudentData.userCollections || [],
+        circles: propStudentData.circles || [], // Keep circles in student object
+        followingInstitutions: propStudentData.followingInstitutions || [],
+        suggestedConnections: propStudentData.suggestedConnections || [],
         learningPath: {
           currentCourses: [],
           completedCourses: [],
           recommendations: []
         },
         connections: {
-          mentors: [],
-          peers: [],
-          institutions: [],
-          total: connectionCounts.total,
-          students: connectionCounts.students
+          mentors: propStudentData.connections?.filter((c: any) => c.role === 'mentor') || [],
+          peers: propStudentData.connections?.filter((c: any) => c.role === 'student') || [],
+          institutions: propStudentData.connections?.filter((c: any) => c.role === 'institution') || [],
+          total: propStudentData.connectionCounts?.total || 0,
+          students: propStudentData.connectionCounts?.students || 0
         }
       }
 
       setStudent(transformedStudent)
+      setCircles(transformedStudent.circles || [])
       setLoading(false)
     }
-  }, [studentData])
+  }, [propStudentData, studentId, student, propCurrentUser]) // Re-run if propStudentData, studentId or student changes
 
-  if (loading) {
+
+  // Create static structure for immediate display
+  const staticStudentStructure = showStaticStructure ? {
+    id: studentId || currentUser?.id || "",
+    profile: {
+      firstName: "Student", 
+      lastName: "", 
+      profileImageUrl: "/images/student-profile.png",
+      bio: "Loading profile information...",
+      tagline: "Passionate learner exploring new horizons",
+      userInterests: [],
+      userSkills: [],
+      skills: [],
+      socialLinks: []
+    },
+    educationHistory: [{
+      id: "temp",
+      institutionName: "School",
+      gradeLevel: "Student",
+      isCurrent: true,
+      is_current: true
+    }],
+    connections: [],
+    achievements: [],
+    connectionCounts: {
+      total: 0,
+      students: 0,
+      mentors: 0,
+      institutions: 0
+    },
+    circles: [],
+    connectionRequestsSent: [],
+    connectionRequestsReceived: [],
+    circleInvitations: []
+  } : null
+
+  // Use passed student data, fetched data, or static structure
+  const finalStudentData = propStudentData || student || staticStudentStructure
+
+  // Always render the component structure - we'll show loading states for missing sections
+  // This ensures immediate rendering when cached data is available
+  if (loading && !showStaticStructure) { // Only show loading state if not showing static structure
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
@@ -182,6 +630,7 @@ export default function StudentProfile({
     )
   }
 
+
   const tabs = [
     { id: "about", label: "About" },
     // Only show interests tab if student has interests or if it's not view mode
@@ -198,42 +647,100 @@ export default function StudentProfile({
     ...((!isViewMode || (student?.careerGoals && student.careerGoals.length > 0)) ? [{ id: "goals", label: "Goals" }] : []),
   ]
 
+  // Placeholder for content rendering, which will be updated when data is fully loaded
+  const renderContent = () => {
+    if (showStaticStructure && !student) {
+      return (
+        <div className="mt-6 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile sections...</p>
+        </div>
+      )
+    }
+
+    switch (activeTab) {
+      case "about":
+        return <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
+      case "interests":
+        // Pass student data to InterestsSection, which will handle fetching interests if they are not already loaded
+        return <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />
+      case "suggested":
+        return !isViewMode && <SuggestedConnections student={student} suggestedConnections={suggestedConnections || []} />
+      case "skills":
+        return <SkillsCanvas userId={student?.id} skills={student?.profile?.userSkills} isViewMode={isViewMode} />
+      case "projects":
+        return <ProjectsShowcase student={student} isViewMode={isViewMode} />
+      case "achievements":
+        return (
+          <AchievementTimeline 
+            userId={student?.id} 
+            isOwnProfile={isOwnProfile}
+            isViewMode={isViewMode}
+            student={student}
+            achievements={student?.achievements || []}
+          />
+        )
+      case "circle":
+        return (
+          <CircleView 
+            student={student} 
+            circles={circles || []}
+            isViewMode={isViewMode} 
+          />
+        )
+      case "goals":
+        return <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />
+      case "following":
+        return <FollowingInstitutions userId={studentId} followingInstitutions={followingInstitutions || []} />
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
-      <ProfileHeader 
-        student={student} 
-        currentUser={currentUser} 
-        connectionCounts={connectionCounts} 
-        isViewMode={isViewMode} 
-        isShareMode={isShareMode}
-        onGoBack={onGoBack} />
+      {/* Always show ProfileHeader immediately with available data */}
+      <ProfileHeader
+        student={finalStudentData || staticStudentStructure}
+        currentUser={currentUser}
+        connectionCounts={finalStudentData?.connectionCounts}
+        isViewMode={isViewMode}
+        circles={finalStudentData?.circles || []}
+        onCirclesUpdate={handleCirclesUpdate}
+        achievements={finalStudentData?.achievements || []}
+        connectionRequestsSent={finalStudentData?.connectionRequestsSent || []}
+        connectionRequestsReceived={finalStudentData?.connectionRequestsReceived || []}
+        circleInvitations={finalStudentData?.circleInvitations || []}
+      />
 
-      <HorizontalNavigation tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Show navigation and content when we have real data */}
+      {finalStudentData && finalStudentData !== staticStudentStructure && (
+        <>
+          <HorizontalNavigation 
+            tabs={tabs} 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+            isViewMode={isViewMode}
+          />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          {activeTab === "about" && <AboutSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "interests" && <InterestsSection student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "suggested" && !isViewMode && <SuggestedConnections student={student} />}
-          {activeTab === "skills" && <SkillsCanvas userId={student.id} skills={student.skills} isViewMode={isViewMode} />}
-          {activeTab === "projects" && <ProjectsShowcase student={student} isViewMode={isViewMode} />}
-          {activeTab === "achievements" && (
-            <AchievementTimeline 
-              userId={student?.id} 
-              isOwnProfile={isOwnProfile}
-              isViewMode={isViewMode}
-              student={student}
-            />
-          )}
-          {activeTab === "circle" && <CircleView student={student} isViewMode={isViewMode} />}
-          {activeTab === "goals" && <Goals student={student} currentUser={currentUser} isViewMode={isViewMode} />}
-          {activeTab === "following" && <FollowingInstitutions userId={studentId} />}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              {renderContent()}
+            </div>
+            </div>
+        </>
+      )}
+
+      {/* Show loading indicator for content sections when using static structure and real data is not yet loaded */}
+      {showStaticStructure && finalStudentData === staticStudentStructure && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden text-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading profile sections...</p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {!isViewMode && <ActionBar student={student} currentUser={currentUser} />}
-
-      {/* Self Analysis Floating Button - Only show for own profile and not in view mode */}
       {!isViewMode && isOwnProfile && (
         <div className="fixed bottom-6 right-6 z-50">
           <a

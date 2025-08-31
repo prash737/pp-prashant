@@ -16,6 +16,8 @@ interface Goal {
   description: string
   category: string
   timeframe: string
+  isSuggested?: boolean
+  isAIGoal?: boolean // Added to distinguish AI goals
 }
 
 interface GoalsAspirationsFormProps {
@@ -45,20 +47,48 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
     const fetchGoals = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/goals', {
+        let allGoals: Goal[] = []
+
+        // Fetch user's own goals
+        const goalsResponse = await fetch('/api/goals', {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store'
         })
 
-        if (response.ok) {
-          const data = await response.json()
-          const existingGoals = data.goals || []
-          console.log('📊 Loaded existing goals:', existingGoals)
-          setGoals(existingGoals)
+        if (goalsResponse.ok) {
+          const goalData = await goalsResponse.json()
+          allGoals = goalData.goals || []
+          console.log('📊 Loaded existing goals:', allGoals)
         } else {
-          console.error('Failed to fetch goals:', await response.text())
+          console.error('Failed to fetch goals:', await goalsResponse.text())
         }
+
+        // Fetch suggested goals
+        const suggestedGoalsResponse = await fetch('/api/suggested-goals', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store'
+        })
+
+        if (suggestedGoalsResponse.ok) {
+          const suggestedData = await suggestedGoalsResponse.json()
+          const suggestedGoals = (suggestedData.suggestedGoals || [])
+            .filter(goal => goal.isAdded === true) // Only show suggested goals that are added
+            .map(goal => ({
+              ...goal,
+              isSuggested: true,
+              isAIGoal: true, // Flag to identify AI-generated goals
+              id: goal.id || goal.created_at || String(Date.now() + Math.random()), // Ensure a unique ID
+              // suggested goals don't have completed status or timeframe/category set initially
+            }))
+          allGoals = [...allGoals, ...suggestedGoals]
+        } else {
+          console.error('Failed to fetch suggested goals:', await suggestedGoalsResponse.text())
+        }
+
+        setGoals(allGoals)
+
       } catch (error) {
         console.error('Error fetching goals:', error)
         toast.error('Failed to load goals')
@@ -128,11 +158,51 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
   }
 
   const handleRemoveGoal = async (id: number | string) => {
+    const goalToRemove = goals.find(goal => goal.id === id)
     const updatedGoals = goals.filter(goal => goal.id !== id)
     setGoals(updatedGoals)
 
-    // Auto-save to database
-    await saveGoalsToDatabase(updatedGoals)
+    // Handle deletion based on goal type
+    try {
+      if (goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
+        // Delete suggested goal
+        const response = await fetch(`/api/suggested-goals/${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to delete suggested goal:', errorData)
+          throw new Error(errorData.error || 'Failed to delete suggested goal')
+        }
+
+        toast.success('Suggested goal removed successfully!')
+      } else if (!goalToRemove?.isSuggested && typeof id === 'number' && id > 0) {
+        // Delete regular goal
+        const response = await fetch(`/api/goals/${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to delete regular goal:', errorData)
+          throw new Error(errorData.error || 'Failed to delete goal')
+        }
+
+        toast.success('Goal removed successfully!')
+      } else {
+        // For client-side only goals (negative IDs), just update the list
+        await saveGoalsToDatabase(updatedGoals)
+      }
+    } catch (error) {
+      console.error('Error removing goal:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to remove goal')
+
+      // Revert the goals state on error
+      await fetchGoalsFromDatabase()
+    }
   }
 
   const handleCancel = () => {
@@ -152,24 +222,54 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
       setIsSaving(true)
       console.log('💾 Auto-saving goals:', goalsToSave)
 
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ goals: goalsToSave }),
-      })
+      // Separate regular goals from suggested goals
+      const regularGoals = goalsToSave.filter(goal => !goal.isSuggested)
+      const suggestedGoals = goalsToSave.filter(goal => goal.isSuggested)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Failed to save goals:', errorData)
-        throw new Error(errorData.error || 'Failed to save goals')
+      // Save regular goals
+      if (regularGoals.length > 0) {
+        const response = await fetch('/api/goals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ goals: regularGoals }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Failed to save regular goals:', errorData)
+          throw new Error(errorData.error || 'Failed to save goals')
+        }
       }
 
-      const result = await response.json()
-      console.log('✅ Goals auto-saved successfully:', result)
+      // Update suggested goals individually
+      for (const suggestedGoal of suggestedGoals) {
+        if (typeof suggestedGoal.id === 'number' && suggestedGoal.id > 0) {
+          const response = await fetch(`/api/suggested-goals/${suggestedGoal.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: suggestedGoal.title,
+              description: suggestedGoal.description,
+              category: suggestedGoal.category,
+              timeframe: suggestedGoal.timeframe,
+            }),
+          })
 
+          if (!response.ok) {
+            const errorData = await response.json()
+            console.error('Failed to update suggested goal:', errorData)
+            throw new Error(errorData.error || 'Failed to update suggested goal')
+          }
+        }
+      }
+
+      console.log('✅ Goals auto-saved successfully!')
       toast.success('Goal saved successfully!')
     } catch (error) {
       console.error('Error saving goals:', error)
@@ -360,10 +460,13 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
           ) : (
             <div className="space-y-4">
               {goals.map((goal) => (
-                <div key={goal.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800">
+                <div key={goal.id} className={`border rounded-lg p-4 bg-white dark:bg-gray-800 ${goal.isAIGoal ? 'border-blue-500 bg-blue-50' : 'border-gray-200 dark:border-gray-700'}`}>
                   <div className="flex justify-between items-start">
                     <div className="flex-grow">
-                      <h4 className="font-medium text-gray-800 dark:text-gray-200 mb-2">{goal.title}</h4>
+                      <h4 className={`font-medium ${goal.isAIGoal ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'} mb-2`}>
+                        {goal.title}
+                        {goal.isAIGoal && <span className="ml-2 text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">AI Goal</span>}
+                      </h4>
                       <div className="flex items-center text-sm text-gray-500 space-x-4 mb-2">
                         {goal.category && (
                           <span className="flex items-center">
@@ -382,46 +485,49 @@ export default function GoalsAspirationsForm({ data, onChange }: GoalsAspiration
                         <p className="text-sm text-gray-600 dark:text-gray-400">{goal.description}</p>
                       )}
                     </div>
-                    <div className="flex space-x-2 ml-4">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditGoal(goal)}
-                        className="text-gray-400 hover:text-pathpiper-teal"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <X size={16} />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Goal</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{goal.title}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleRemoveGoal(goal.id)}
-                              className="bg-red-500 hover:bg-red-600"
+                    {/* Conditionally render edit/delete buttons only if it's not an AI Goal */}
+                    {!goal.isAIGoal && (
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditGoal(goal)}
+                          className="text-gray-400 hover:text-pathpiper-teal"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-400 hover:text-red-500"
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                              <X size={16} />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Goal</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{goal.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveGoal(goal.id)}
+                                className="bg-red-500 hover:bg-red-600"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

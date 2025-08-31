@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db, executeWithRetry } from '@/lib/drizzle/client'
+import { connections, profiles } from '@/lib/drizzle/schema'
+import { eq, or, desc, inArray } from 'drizzle-orm'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -34,57 +36,69 @@ export async function GET(request: NextRequest) {
     const targetUserId = searchParams.get('userId')
 
     // If no specific user is requested, default to current user
-    const userIdToQuery = targetUserId || user.id
+    const userIdToQuery = targetUserId && targetUserId !== 'undefined' ? targetUserId : user.id
+
+    // Validate userIdToQuery
+    if (!userIdToQuery || userIdToQuery === 'undefined') {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+    }
 
     // Get connections where user is either user1 or user2
-    const connections = await prisma.connection.findMany({
-      where: {
-        OR: [
-          { user1Id: userIdToQuery },
-          { user2Id: userIdToQuery }
-        ]
-      },
-      include: {
-        user1: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImageUrl: true,
-            role: true,
-            bio: true,
-            location: true,
-            lastActiveDate: true,
-            availabilityStatus: true
-          }
-        },
-        user2: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profileImageUrl: true,
-            role: true,
-            bio: true,
-            location: true,
-            lastActiveDate: true,
-            availabilityStatus: true
-          }
-        }
-      },
-      orderBy: {
-        connectedAt: 'desc'
-      }
+    const userConnections = await executeWithRetry(() => db
+      .select()
+      .from(connections)
+      .where(
+        or(
+          eq(connections.user1Id, userIdToQuery),
+          eq(connections.user2Id, userIdToQuery)
+        )
+      )
+      .orderBy(desc(connections.connectedAt))
+    )
+
+    // Get all unique user IDs from connections
+    const userIds = new Set<string>()
+    userConnections.forEach(conn => {
+      userIds.add(conn.user1Id)
+      userIds.add(conn.user2Id)
     })
 
+    // Fetch all user profiles in one query
+    const userProfiles = await executeWithRetry(() => db
+      .select({
+        id: profiles.id,
+        firstName: profiles.firstName,
+        lastName: profiles.lastName,
+        profileImageUrl: profiles.profileImageUrl,
+        role: profiles.role,
+        bio: profiles.bio,
+        location: profiles.location,
+        lastActiveDate: profiles.updatedAt,
+        availabilityStatus: profiles.availabilityStatus
+      })
+      .from(profiles)
+      .where(
+        or(...Array.from(userIds).map(id => eq(profiles.id, id)))
+      )
+    )
+
+    // Create a map of user profiles for easy lookup
+    const userProfileMap = new Map(userProfiles.map(p => [p.id, p]))
+
     // Format connections to show the other user's info
-    const formattedConnections = connections.map(connection => {
-      const otherUser = connection.user1Id === userIdToQuery ? connection.user2 : connection.user1
+    const formattedConnections = userConnections.map(conn => {
+      // Get the other user's profile
+      const otherUserId = conn.user1Id === userIdToQuery ? conn.user2Id : conn.user1Id
+      const otherUser = userProfileMap.get(otherUserId)
+
+      if (!otherUser) {
+        return null // Skip if user profile not found
+      }
 
       return {
-        id: connection.id,
-        connectionType: connection.connectionType,
-        connectedAt: connection.connectedAt,
+        id: conn.id,
+        connectionType: conn.connectionType,
+        connectedAt: conn.connectedAt,
         user: {
           id: otherUser.id,
           firstName: otherUser.firstName,
@@ -97,7 +111,7 @@ export async function GET(request: NextRequest) {
           lastInteraction: formatLastInteraction(otherUser.lastActiveDate)
         }
       }
-    })
+    }).filter(Boolean) // Remove null entries
 
     return NextResponse.json(formattedConnections)
 
@@ -110,8 +124,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function getStatusFromAvailability(availabilityStatus: string, lastActiveDate: Date): 'online' | 'offline' | 'away' {
-  if (availabilityStatus === 'online') {
+function getStatusFromAvailability(availabilityStatus: string | null, lastActiveDate: Date | null): 'online' | 'offline' | 'away' {
+  if (availabilityStatus === 'online' && lastActiveDate) {
     const now = new Date()
     const lastActive = new Date(lastActiveDate)
     const diffMinutes = (now.getTime() - lastActive.getTime()) / (1000 * 60)
@@ -124,7 +138,9 @@ function getStatusFromAvailability(availabilityStatus: string, lastActiveDate: D
   return 'offline'
 }
 
-function formatLastInteraction(lastActiveDate: Date): string {
+function formatLastInteraction(lastActiveDate: Date | null): string {
+  if (!lastActiveDate) return 'Never'
+
   const now = new Date()
   const lastActive = new Date(lastActiveDate)
   const diffMs = now.getTime() - lastActive.getTime()

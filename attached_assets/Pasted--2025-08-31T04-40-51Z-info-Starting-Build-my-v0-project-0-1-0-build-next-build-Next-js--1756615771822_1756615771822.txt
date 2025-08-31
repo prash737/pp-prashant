@@ -1,0 +1,122 @@
+
+2025-08-31T04:40:51Z info: Starting Build
+
+> my-v0-project@0.1.0 build
+> next build
+
+
+   ▲ Next.js 15.2.4
+
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+
+ ⚠ Compiled with warnings
+
+
+./app/api/token-usage/route.ts
+Attempted import error: 'createClient' is not exported from '@/lib/supabase' (imported as 'createClient').
+
+Import trace for requested module:
+./app/api/token-usage/route.ts
+
+./app/api/token-usage/route.ts
+Attempted import error: 'createClient' is not exported from '@/lib/supabase' (imported as 'createClient').
+
+Import trace for requested module:
+./app/api/token-usage/route.ts
+
+
+ ✓ Compiled successfully
+
+   Skipping validation of types
+
+   Skipping linting
+
+   Collecting page data ...
+
+   Generating static pages (0/132) ...
+
+   Generating static pages (33/132) 
+   Generating static pages (66/132) 
+
+🎯 StudentProfilePage: Setting transformed data: null
+🔗 Social links in transformed data: {
+  socialLinks: undefined,
+  socialLinksLength: undefined,
+  socialLinksType: 'undefined',
+  socialLinksData: undefined
+}
+
+   Generating static pages (99/132) 
+
+ ✓ Generating static pages (132/132)
+
+   Finalizing page optimization ...
+
+   Collecting build traces ...
+
+Route (app)                                                       Size  First Load JS
+┌ ○ /                                                          16.2 kB         173 kB
+├ ○ /_not-found                                                  988 B         102 kB
+├ ○ /about                                                     5.53 kB         180 kB
+├ ○ /admin/moderation                                          6.06 kB         129 kB
+├ ƒ /api/achievement-categories                                  464 B         102 kB
+├ ƒ /api/achievement-types                                       464 B         102 kB
+├ ƒ /api/achievements                                            464 B         102 kB
+├ ƒ /api/admin/moderation/[id]                                   464 B         102 kB
+├ ƒ /api/admin/moderation/performance                            464 B         102 kB
+├ ƒ /api/admin/moderation/stats                                  464 B         102 kB
+├ ƒ /api/auth/callback                                           464 B         102 kB
+├ ƒ /api/auth/check-token                                        464 B         102 kB
+├ ƒ /api/auth/cookie-check                                       464 B         102 kB
+├ ƒ /api/auth/forgot-password                                    464 B         102 kB
+├ ƒ /api/auth/login                                              464 B         102 kB
+├ ƒ /api/auth/logout                                             464 B         102 kB
+├ ƒ /api/auth/register                                           464 B         102 kB
+├ ƒ /api/auth/social                                             464 B         102 kB
+├ ƒ /api/auth/user                                               464 B         102 kB
+├ ƒ /api/auth/user-login                                         464 B         102 kB
+├ ƒ /api/auth/verify-parent                                      464 B         102 kB
+├ ƒ /api/auth/verify-student-email                               464 B         102 kB
+├ ƒ /api/circles                                                 464 B         102 kB
+├ ƒ /api/circles/[id]/members                                    464 B         102 kB
+├ ƒ /api/circles/invitations                                     464 B         102 kB
+├ ƒ /api/circles/invitations/[id]                                464 B         102 kB
+├ ƒ /api/connections                                             464 B         102 kB
+├ ƒ /api/connections/[id]                                        464 B         102 kB
+├ ƒ /api/connections/request                                     464 B         102 kB
+├ ƒ /api/connections/requests                                    464 B         102 kB
+├ ƒ /api/connections/requests/[id]                               464 B         102 kB
+├ ƒ /api/db-test                                                 464 B         102 kB
+├ ƒ /api/db-test-write                                           464 B         102 kB
+├ ƒ /api/education                                               464 B         102 kB
+├ ƒ /api/education/[id]                                          464 B         102 kB
+├ ƒ /api/education/verification                                  464 B         102 kB
+├ ƒ /api/feed/debug                                              464 B         102 kB
+├ ƒ /api/feed/errors                                             464 B         102 kB
+├ ƒ /api/feed/health-check                                       464 B         102 kB
+├ ƒ /api/feed/posts                                              464 B         102 kB
+├ ƒ /api/feed/posts/[id]                                         464 B         102 kB
+├ ƒ /api/feed/posts/[id]/bookmark                                464 B         102 kB
+├ ƒ /api/feed/posts/[id]/comment                                 464 B         102 kB
+├ ƒ /api/feed/posts/[id]/delete                                  464 B         102 kB
+├ ƒ /api/feed/posts/[id]/like                                    464 B         102 kB
+├ ƒ /api/feed/posts/[id]/react                                   464 B         102 kB
+├ ƒ /api/feed/posts/[id]/repost                       
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.5.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+npm notice To update run: npm install -g npm@11.5.2
+npm notice
+
+2025-08-31T04:42:03Z info: Pushing pid1 binary layer...
+2025-08-31T04:42:07Z info: Pushing hosting layer...
+2025-08-31T04:42:07Z info: Pushing Repl layer...
+2025-08-31T04:42:07Z info: Retrieved cached nix layer
+2025-08-31T04:42:08Z info: Created hosting layer
+2025-08-31T04:42:12Z info: Created pid1 binary layer

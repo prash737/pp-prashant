@@ -6,10 +6,12 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,8 +23,13 @@ export function Navbar() {
     }
 
     window.addEventListener("scroll", handleScroll)
+    
+    // Prefetch login and signup pages for instant navigation
+    router.prefetch('/login')
+    router.prefetch('/signup')
+    
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [router])
 
   const navLinks = [
     { name: "Home", href: "#" },
@@ -67,16 +74,18 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Link href="/login">
-              <Button className="bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white rounded-full px-6 mr-2">
-                Login
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-6">
-                Join Now
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => router.push('/login')}
+              className="bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white rounded-full px-6 mr-2"
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={() => router.push('/signup')}
+              className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-6"
+            >
+              Join Now
+            </Button>
           </nav>
 
           {/* Mobile Navigation Toggle */}
@@ -105,22 +114,24 @@ export function Navbar() {
                     {link.name}
                   </Link>
                 ))}
-                <Link href="/login">
-                  <Button
-                    className="bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white rounded-full w-full mb-2"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button
-                    className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full w-full"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Join Now
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => {
+                    setIsOpen(false)
+                    router.push('/login')
+                  }}
+                  className="bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white rounded-full w-full mb-2"
+                >
+                  Login
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsOpen(false)
+                    router.push('/signup')
+                  }}
+                  className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full w-full"
+                >
+                  Join Now
+                </Button>
               </div>
             </motion.div>
           )}
