@@ -6,7 +6,7 @@ channel = "stable-24_05"
 packages = ["unixtools.ping"]
 
 [deployment]
-run = ["sh", "-c", "npm start"]
+run = ["sh", "-c", "npm run start"]
 build = ["sh", "-c", "npm run build"]
 
 [[ports]]
