@@ -36,7 +36,37 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui/react-icons'],
   },
   // Webpack optimizations for faster builds
-  webpack: (config, { isServer, webpack }) => {
+  webpack: (config, { isServer, webpack, nextRuntime }) => {
+    // Special handling for Edge Runtime (middleware)
+    if (nextRuntime === 'edge') {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        buffer: false,
+        util: false,
+        assert: false,
+        events: false,
+        path: false,
+        os: false,
+      };
+      
+      // Exclude problematic packages from Edge Runtime
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@supabase/supabase-js': 'commonjs @supabase/supabase-js',
+        'crypto': 'commonjs crypto',
+        'stream': 'commonjs stream',
+        'buffer': 'commonjs buffer',
+      });
+      
+      return config;
+    }
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
