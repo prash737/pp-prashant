@@ -36,7 +36,7 @@ const nextConfig = {
     optimizePackageImports: ['@radix-ui/react-icons'],
   },
   // Webpack optimizations for faster builds
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -52,7 +52,6 @@ const nextConfig = {
       };
       
       // Define global 'self' for server-side rendering
-      const webpack = require('webpack');
       config.plugins.push(
         new webpack.DefinePlugin({
           self: 'global',
