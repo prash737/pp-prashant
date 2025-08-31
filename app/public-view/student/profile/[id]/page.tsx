@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/use-auth"
 import StudentProfile from "@/components/profile/student-profile"
 import InternalNavbar from "@/components/internal-navbar"
 import InstitutionNavbar from "@/components/institution-navbar"
-import EducationCards from "@/components/profile/education-cards"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -39,12 +38,6 @@ interface StudentData {
     startDate: string
     endDate?: string
     current: boolean
-  }>
-  circles?: Array<{
-    id: string
-    name: string
-    description?: string
-    profileImageUrl?: string
   }>
 }
 
@@ -94,7 +87,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/public/student/profile/${profileId}`, {
+        const response = await fetch(`/api/student/profile/${profileId}`, {
           credentials: 'include'
         })
 
@@ -110,81 +103,7 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
         }
 
         const data = await response.json()
-        console.log('📊 PublicView: Raw API data received:', data)
-        
-        // Transform the data to match the expected structure
-        let transformedData = data
-        
-        // If data is an array (from RPC function), get the first element
-        if (Array.isArray(data) && data.length > 0) {
-          const rawData = data[0]
-          transformedData = {
-            id: rawData.id,
-            first_name: rawData.first_name,
-            last_name: rawData.last_name,
-            bio: rawData.bio,
-            location: rawData.location,
-            profile_image_url: rawData.profile_image_url,
-            cover_image_url: rawData.cover_image_url,
-            verification_status: rawData.verification_status,
-            tagline: rawData.tagline,
-            profile: {
-              firstName: rawData.first_name,
-              lastName: rawData.last_name,
-              bio: rawData.bio,
-              location: rawData.location,
-              profileImageUrl: rawData.profile_image_url,
-              coverImageUrl: rawData.cover_image_url,
-              verificationStatus: rawData.verification_status,
-              tagline: rawData.tagline,
-              userInterests: rawData.user_interests || [],
-              userSkills: rawData.user_skills || []
-            },
-            educationHistory: rawData.education_history || [],
-            achievements: rawData.achievements || [],
-            goals: rawData.goals || [],
-            userCollections: rawData.user_collections || [],
-            circles: rawData.circles || [],
-            connectionCounts: {
-              total: 0,
-              students: 0,
-              mentors: 0,
-              institutions: 0
-            },
-            followingInstitutions: rawData.institution_following || [],
-            sent_connections: rawData.sent_connections || [],
-            received_connections: rawData.received_connections || []
-          }
-        } else if (!data.profile && data.first_name) {
-          // If it's flat data structure, transform it
-          transformedData = {
-            ...data,
-            profile: {
-              firstName: data.first_name,
-              lastName: data.last_name,
-              bio: data.bio,
-              location: data.location,
-              profileImageUrl: data.profile_image_url,
-              coverImageUrl: data.cover_image_url,
-              verificationStatus: data.verification_status,
-              tagline: data.tagline,
-              userInterests: data.userInterests || data.user_interests || [],
-              userSkills: data.userSkills || data.user_skills || []
-            }
-          }
-        }
-
-        console.log('📊 PublicView: Transformed data:', {
-          hasData: !!transformedData,
-          hasProfile: !!transformedData?.profile,
-          firstName: transformedData?.profile?.firstName,
-          lastName: transformedData?.profile?.lastName,
-          achievementsCount: transformedData?.achievements?.length || 0,
-          circlesCount: transformedData?.circles?.length || 0,
-          educationCount: transformedData?.educationHistory?.length || 0
-        })
-        
-        setStudentData(transformedData)
+        setStudentData(data)
       } catch (err) {
         console.error('Error fetching student data:', err)
         setError('Failed to load profile')
@@ -245,48 +164,38 @@ export default function PublicViewStudentProfilePage({ params }: { params: Promi
     )
   }
 
-  // Extract circles data for components
-  const circles = studentData?.circles || [];
-  const profileHeaderData = studentData; // Alias for clarity if needed, though studentData is directly used
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <NavbarComponent />
+      {/* Back button - Sticky header */}
+
+
       {/* Profile content */}
       <main className="flex-grow">
-        <div className="container mx-auto px-4 max-w-7xl pt-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
+      <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleGoBack}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         {studentData && (
-          <>
-            <StudentProfile
-              studentId={profileId!}
-              currentUser={currentUser}
-              studentData={studentData}
-              circles={studentData?.circles || []} // Pass circles directly from studentData
-              isViewMode={true} // This prop indicates it's a view-only mode
-              shareProfile={() => {
-                  const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
-                  navigator.clipboard.writeText(profileUrl).then(() => {
-                    alert('Profile link copied to clipboard!');
-                  }).catch(() => {
-                    alert('Failed to copy link');
-                  });
-                }}
-            />
-            {/* Education Cards section for public view */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-              <EducationCards isViewMode={true} studentData={studentData} />
-            </div>
-          </>
+          <StudentProfile
+            studentId={profileId!}
+            currentUser={currentUser}
+            studentData={studentData}
+            isViewMode={true} // This prop indicates it's a view-only mode
+            shareProfile={() => {
+                const profileUrl = `https://pathpiper.com/public-view/student/profile/${profileId}`;
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                  alert('Profile link copied to clipboard!');
+                }).catch(() => {
+                  alert('Failed to copy link');
+                });
+              }}
+          />
         )}
       </main>
     </div>

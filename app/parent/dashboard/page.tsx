@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { LogOut, User, Calendar, GraduationCap, MapPin } from "lucide-react"
-import PipLoader from '@/components/loading/pip-loader'
 
 interface ChildProfile {
   id: string
@@ -209,7 +208,10 @@ export default function ParentDashboard() {
           </Link>
         </header>
         <main className="flex-grow flex items-center justify-center">
-          <PipLoader />
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pathpiper-teal"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
         </main>
       </div>
     )

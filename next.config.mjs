@@ -16,16 +16,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Deployment optimizations - moved from experimental
-  outputFileTracingExcludes: {
-    '*': [
-      'node_modules/@swc/core-linux-x64-gnu',
-      'node_modules/@swc/core-linux-x64-musl',
-      'node_modules/@esbuild/linux-x64',
-    ],
-  },
-  // Prevent static generation timeout
-  staticPageGenerationTimeout: 300,
 }
 
 export default nextConfig

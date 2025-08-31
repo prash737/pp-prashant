@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -16,102 +15,46 @@ interface Skill {
 interface SkillsCanvasProps {
   userId?: string
   skills?: Skill[]
-  isViewMode?: boolean
 }
 
-export default function SkillsCanvas({ userId, skills: passedSkills, isViewMode = false }: SkillsCanvasProps) {
+export default function SkillsCanvas({ userId, skills: passedSkills }: SkillsCanvasProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedSkill, setSelectedSkill] = useState<number | null>(null)
   const [skills, setSkills] = useState<Skill[]>([])
   const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // Fetch skills from API when component mounts (lazy loading)
   useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    if (passedSkills && passedSkills.length > 0) {
+      // Transform the passed skills data to match component format
+      const transformedSkills = passedSkills.map((skill: any, index: number) => {
+        // Convert proficiency level (1-5) to percentage (20-100%)
+        const proficiencyLevel = skill.proficiencyLevel || skill.proficiency_level || 1
+        const percentageLevel = (proficiencyLevel / 5) * 100
 
-        console.log('🎨 SkillsCanvas: Fetching skills for userId:', userId)
-
-        // If skills are passed as props, use them directly
-        if (passedSkills && passedSkills.length > 0) {
-          console.log('🎨 SkillsCanvas: Using passed skills:', passedSkills)
-          transformAndSetSkills(passedSkills)
-          return
+        return {
+          id: skill.id || index,
+          name: skill.name,
+          level: Math.round(percentageLevel),
+          category: skill.category || "Unknown",
+          categoryName: skill.categoryName || skill.category || "Unknown",
+          color: getColorForSkill(index)
         }
+      })
 
-        // Otherwise, fetch skills from API
-        const response = await fetch('/api/user/skills', {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
+      setSkills(transformedSkills)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch skills: ${response.status}`)
-        }
+      // Extract unique categories from skills
+      const uniqueCategories = [...new Set(transformedSkills.map(skill => skill.categoryName))]
+      setAvailableCategories(uniqueCategories)
 
-        const data = await response.json()
-        console.log('🎨 SkillsCanvas: Fetched skills data:', data)
-
-        if (data.userSkills && Array.isArray(data.userSkills)) {
-          transformAndSetSkills(data.userSkills)
-        } else {
-          console.log('🎨 SkillsCanvas: No skills found in response')
-          setSkills([])
-          setAvailableCategories([])
-        }
-
-      } catch (error) {
-        console.error('❌ SkillsCanvas: Error fetching skills:', error)
-        setError(error instanceof Error ? error.message : 'Failed to load skills')
-        setSkills([])
-        setAvailableCategories([])
-      } finally {
-        setLoading(false)
-      }
+      setLoading(false)
+    } else {
+      setSkills([])
+      setAvailableCategories([])
+      setLoading(false)
     }
-
-    fetchSkills()
-  }, [userId, passedSkills])
-
-  const transformAndSetSkills = (skillsData: any[]) => {
-    console.log('🎨 SkillsCanvas: Transforming skills data:', skillsData)
-
-    // Transform the skills data to match component format
-    const transformedSkills = skillsData.map((skill: any, index: number) => {
-      // Handle different data structures from API
-      const skillInfo = skill.skill || skill.skills || skill
-      const proficiencyLevel = skill.proficiencyLevel || skill.proficiency_level || skill.level || 1
-      
-      // Convert proficiency level (1-5) to percentage (20-100%)
-      const percentageLevel = (proficiencyLevel / 5) * 100
-
-      return {
-        id: skill.id || skillInfo.id || index,
-        name: skillInfo.name || skill.name,
-        level: Math.round(percentageLevel),
-        category: skillInfo.category?.name || skill.categoryName || skill.category || "Unknown",
-        categoryName: skillInfo.category?.name || skill.categoryName || skill.category || "Unknown",
-        color: getColorForSkill(index)
-      }
-    })
-
-    console.log('🎨 SkillsCanvas: Transformed skills:', transformedSkills)
-
-    setSkills(transformedSkills)
-
-    // Extract unique categories from skills
-    const uniqueCategories = [...new Set(transformedSkills.map(skill => skill.categoryName))]
-    setAvailableCategories(uniqueCategories)
-
-    console.log('🎨 SkillsCanvas: Available categories:', uniqueCategories)
-  }
+  }, [passedSkills])
 
   // Helper function to assign colors to skills
   const getColorForSkill = (index: number) => {
@@ -142,24 +85,6 @@ export default function SkillsCanvas({ userId, skills: passedSkills, isViewMode 
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">Loading skills...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="text-red-600 mb-4">
-              <svg className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to Load Skills</h3>
-            <p className="text-gray-500 dark:text-gray-400">{error}</p>
           </div>
         </div>
       </div>
@@ -209,7 +134,7 @@ export default function SkillsCanvas({ userId, skills: passedSkills, isViewMode 
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Skills Added Yet</h3>
           <p className="text-gray-500 dark:text-gray-400">
-            {isViewMode ? "This user hasn't added any skills yet" : "Add skills to your profile to see them visualized here"}
+            Add skills to your profile to see them visualized here
           </p>
         </div>
       ) : (

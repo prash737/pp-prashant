@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -22,24 +23,16 @@ interface FollowingInstitution {
 }
 
 interface FollowingInstitutionsProps {
-  userId?: string
-  followingInstitutions?: any[]
+  userId: string
 }
 
-export default function FollowingInstitutions({ userId, followingInstitutions: propInstitutions }: FollowingInstitutionsProps) {
+export default function FollowingInstitutions({ userId }: FollowingInstitutionsProps) {
   const [institutions, setInstitutions] = useState<FollowingInstitution[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isParentContext, setIsParentContext] = useState(false)
 
   useEffect(() => {
-    // If institutions are provided via props, use them directly
-    if (propInstitutions !== undefined) {
-      setInstitutions(propInstitutions)
-      setLoading(false)
-      return
-    }
-
     const fetchFollowingInstitutions = async () => {
       try {
         setLoading(true)
@@ -61,7 +54,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
         }
 
         const data = await response.json()
-
+        
         if (data.success) {
           setInstitutions(data.following)
         } else {
@@ -76,7 +69,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
     }
 
     fetchFollowingInstitutions()
-  }, [userId, propInstitutions]) // Depend on propInstitutions as well
+  }, [userId])
 
   if (loading) {
     return (
@@ -163,7 +156,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
           {institutions.length} institution{institutions.length !== 1 ? 's' : ''}
         </Badge>
       </div>
-
+      
       <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
         {institutions.map((institution) => (
           <Card 
@@ -182,7 +175,7 @@ export default function FollowingInstitutions({ userId, followingInstitutions: p
                 <div className="w-full h-full bg-gradient-to-r from-pathpiper-teal to-blue-500" />
               )}
             </div>
-
+            
             <CardContent className="p-4">
               <div className="text-center">
                 {/* Institution Name */}

@@ -27,12 +27,7 @@ export async function GET(request: NextRequest) {
     // Fetch profile data and social links
     const profile = await getUserProfile(user.id)
     const socialLinks = await getUserSocialLinks(user.id)
-    console.log('✅ Fetched profile and social links:', { 
-      email: profile?.email, 
-      phone: profile?.phone, 
-      socialLinksCount: socialLinks.length,
-      socialLinksData: socialLinks
-    })
+    console.log('✅ Fetched profile and social links:', { email: profile?.email, phone: profile?.phone, socialLinksCount: socialLinks.length })
 
     return NextResponse.json({ 
       profile: {

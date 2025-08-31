@@ -1,13 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
-import { goals } from '@/lib/drizzle/schema'
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import { eq, desc } from 'drizzle-orm'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/lib/supabase'
+import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,22 +12,33 @@ export async function GET(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Fetch user's goals using Drizzle
-    const userGoals = await db.select().from(goals)
-      .where(eq(goals.userId, user.id))
-      .orderBy(desc(goals.createdAt))
+    // Check if Goal model exists
+    if (!prisma.goal) {
+      console.error('Goal model not found in Prisma client')
+      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
+    }
 
-    return NextResponse.json({ goals: userGoals })
+    // Fetch user's goals using Prisma
+    const goals = await prisma.goal.findMany({
+      where: {
+        userId: user.id
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    return NextResponse.json({ goals })
   } catch (error) {
     console.error('Goals API error:', error)
-    return NextResponse.json({
+    return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
@@ -47,26 +53,35 @@ export async function POST(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    
     const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    const { goals: goalsList } = await request.json()
+    const { goals } = await request.json()
 
-    if (!Array.isArray(goalsList)) {
+    if (!Array.isArray(goals)) {
       return NextResponse.json({ error: 'Goals must be an array' }, { status: 400 })
     }
 
-    // Get existing goals from database using Drizzle
-    const existingGoals = await db.select().from(goals)
-      .where(eq(goals.userId, user.id))
+    // Check if Goal model exists
+    if (!prisma.goal) {
+      console.error('Goal model not found in Prisma client')
+      return NextResponse.json({ error: 'Goal model not available' }, { status: 500 })
+    }
+
+    // Get existing goals from database
+    const existingGoals = await prisma.goal.findMany({
+      where: {
+        userId: user.id
+      }
+    })
 
     // Separate new goals (negative IDs) from existing goals (positive IDs)
-    const newGoals = goalsList.filter(goal => typeof goal.id === 'number' && goal.id < 0)
-    const existingGoalsFromClient = goalsList.filter(goal => typeof goal.id === 'number' && goal.id > 0)
+    const newGoals = goals.filter(goal => typeof goal.id === 'number' && goal.id < 0)
+    const existingGoalsFromClient = goals.filter(goal => typeof goal.id === 'number' && goal.id > 0)
 
     // Find goals to delete (exist in DB but not in client)
     const existingGoalIds = existingGoalsFromClient.map(goal => goal.id)
@@ -76,7 +91,7 @@ export async function POST(request: NextRequest) {
     const goalsToUpdate = existingGoalsFromClient.filter(clientGoal => {
       const dbGoal = existingGoals.find(g => g.id === clientGoal.id)
       if (!dbGoal) return false
-
+      
       // Check if any field has changed
       return (
         dbGoal.title !== clientGoal.title ||
@@ -88,17 +103,21 @@ export async function POST(request: NextRequest) {
 
     let operationsCount = 0
 
-    // Delete removed goals using Drizzle
+    // Delete removed goals
     if (goalsToDelete.length > 0) {
-      const deleteResult = await db.delete(goals)
-        .where(eq(goals.userId, user.id) && goals.id.in(goalsToDelete.map(goal => goal.id)))
-        .returning({ count: goals.id })
-
-      operationsCount += deleteResult.length
-      console.log(`🗑️ Deleted ${deleteResult.length} goals`)
+      const deleteResult = await prisma.goal.deleteMany({
+        where: {
+          userId: user.id,
+          id: {
+            in: goalsToDelete.map(goal => goal.id)
+          }
+        }
+      })
+      operationsCount += deleteResult.count
+      console.log(`🗑️ Deleted ${deleteResult.count} goals`)
     }
 
-    // Insert new goals using Drizzle
+    // Insert new goals
     if (newGoals.length > 0) {
       const goalsToInsert = newGoals.map(goal => ({
         userId: user.id,
@@ -109,43 +128,45 @@ export async function POST(request: NextRequest) {
         completed: false
       }))
 
-      const insertResult = await db.insert(goals)
-        .values(goalsToInsert)
-        .returning({ id: goals.id })
-
-      operationsCount += insertResult.length
-      console.log(`➕ Added ${insertResult.length} new goals`)
+      const insertResult = await prisma.goal.createMany({
+        data: goalsToInsert
+      })
+      operationsCount += insertResult.count
+      console.log(`➕ Added ${insertResult.count} new goals`)
     }
 
-    // Update existing goals that have changes using Drizzle
+    // Update existing goals that have changes
     for (const goalToUpdate of goalsToUpdate) {
-      await db.update(goals)
-        .set({
+      await prisma.goal.update({
+        where: {
+          id: goalToUpdate.id,
+          userId: user.id
+        },
+        data: {
           title: goalToUpdate.title,
           description: goalToUpdate.description || null,
           category: goalToUpdate.category || null,
           timeframe: goalToUpdate.timeframe || null
-        })
-        .where(eq(goals.id, goalToUpdate.id) && eq(goals.userId, user.id))
-
+        }
+      })
       operationsCount++
     }
-
+    
     if (goalsToUpdate.length > 0) {
       console.log(`✏️ Updated ${goalsToUpdate.length} goals`)
     }
 
     if (operationsCount === 0) {
       console.log(`✅ No changes detected - goals are already up to date`)
-      return NextResponse.json({
+      return NextResponse.json({ 
         message: 'No changes detected - goals are already up to date',
         operations: 0
       })
     }
 
     console.log(`✅ Successfully processed ${operationsCount} goal operations for user ${user.id}`)
-    return NextResponse.json({
-      message: 'Goals updated successfully',
+    return NextResponse.json({ 
+      message: 'Goals updated successfully', 
       operations: operationsCount,
       deleted: goalsToDelete.length,
       added: newGoals.length,
@@ -154,9 +175,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Goals save API error:', error)
-    return NextResponse.json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 })
   }
 }

@@ -81,40 +81,6 @@ Provide analysis with: Current strengths, student attraction opportunities, prog
       throw new Error('No analysis received from AI')
     }
 
-    // Extract token usage from OpenAI response
-    const tokenUsage = aiResult.usage
-    const promptTokens = tokenUsage?.prompt_tokens || 0
-    const responseTokens = tokenUsage?.completion_tokens || 0
-    const modelName = 'gpt-4o-mini'
-
-    // Save token usage to database
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/token-usage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt_token: promptTokens,
-          response_token: responseTokens,
-          model_name: modelName,
-          user_id: user.id
-        })
-      })
-    } catch (tokenError) {
-      console.error('Failed to save token usage:', tokenError)
-    }
-
-    return NextResponse.json({ 
-      analysis,
-      tokenUsage: {
-        promptTokens,
-        responseTokens,
-        totalTokens: promptTokens + responseTokens,
-        modelName
-      }
-    })
-
     console.log('✅ Institution analysis completed successfully')
 
     return NextResponse.json({ 

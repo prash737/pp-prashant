@@ -121,12 +121,10 @@ export default function AboutSection({ student: studentProp, currentUser, isView
             </div>
           </motion.div>
 
-          {/* Education Cards - only show on own profile, not in public view */}
-          {!isViewMode && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <EducationCards educationHistory={studentProp?.educationHistory} isViewMode={isViewMode}/>
-            </motion.div>
-          )}
+          {/* Education Cards */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <EducationCards educationHistory={studentProp?.educationHistory} isViewMode={isViewMode}/>
+          </motion.div>
 
           {/* Circle Friends - Real connections */}
           <motion.div

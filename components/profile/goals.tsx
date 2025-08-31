@@ -18,92 +18,66 @@ interface Goal {
 
 interface GoalsProps {
   student: any;
-  currentUser?: any;
-  goals?: any[];
+  currentUser: any;
   isViewMode?: boolean;
 }
 
-const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewMode = false }) => {
+const Goals: React.FC<GoalsProps> = ({ student, currentUser, isViewMode }) => {
   const router = useRouter();
-  const [internalGoals, setInternalGoals] = useState<Goal[]>(goals);
-  const [loading, setLoading] = useState(false);
-  const [hasLoadedGoals, setHasLoadedGoals] = useState(false);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState(true);
   const isOwnProfile = currentUser && currentUser.id === student?.id;
 
-  // Fetch goals when component mounts (lazy loading)
-  const fetchGoals = async () => {
-    if (!student?.id || hasLoadedGoals) return;
+  useEffect(() => {
+    fetchGoals();
+  }, [isViewMode, student?.id]);
 
-    setLoading(true);
+  const fetchGoals = async () => {
     try {
-      const response = await fetch(`/api/student/profile/${student.id}/goals`);
+      let response;
+      if (isViewMode && student?.id) {
+        // In view mode, fetch goals for the student being viewed
+        response = await fetch(`/api/student/profile/${student.id}/goals`);
+      } else {
+        // In own profile mode, fetch goals for the current user
+        response = await fetch('/api/goals');
+      }
+      
       if (response.ok) {
         const data = await response.json();
-        // Handle different API response formats
-        let goalsArray = [];
-        if (Array.isArray(data)) {
-          goalsArray = data;
-        } else if (data && Array.isArray(data.goals)) {
-          goalsArray = data.goals;
-        } else if (data && typeof data === 'object') {
-          // If data is an object, extract goals from it
-          goalsArray = data.goals || data.data || [];
-        }
-        setInternalGoals(goalsArray);
-        setHasLoadedGoals(true);
-      } else {
-        console.error('Failed to fetch goals:', response.statusText);
-        setInternalGoals([]);
+        setGoals(data.goals || []);
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
-      setInternalGoals([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    // Only fetch if goals haven't been loaded yet
-    if (!hasLoadedGoals) {
-      fetchGoals();
-    }
-  }, [student?.id, hasLoadedGoals]);
-
-  useEffect(() => {
-    // Update internal state if the prop changes
-    if (goals && Array.isArray(goals) && goals.length > 0 && !hasLoadedGoals) {
-      setInternalGoals(goals);
-      setHasLoadedGoals(true);
-    }
-  }, [goals, hasLoadedGoals]);
-
   const handleManage = () => {
     router.push("/student/profile/edit?section=goals");
   };
 
-  // Show loading state while fetching goals
   if (loading) {
     return (
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Goals</h2>
-            <p className="text-gray-600 dark:text-gray-400">Track your aspirations and achievements</p>
-          </div>
+          <h2 className="text-2xl font-semibold">Goals</h2>
+          {isOwnProfile && (
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Manage
+            </Button>
+          )}
         </div>
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading goals...</p>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pathpiper-teal"></div>
         </div>
       </div>
     );
   }
 
-  // Ensure internalGoals is always an array
-  const safeGoals = Array.isArray(internalGoals) ? internalGoals : [];
-
-  if (safeGoals.length === 0) {
+  if (goals.length === 0) {
     return (
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
@@ -126,7 +100,7 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals added yet</h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {isOwnProfile
+              {isOwnProfile 
                 ? "Add your first goal to start tracking your aspirations and achievements."
                 : "This user hasn't added any goals yet."
               }
@@ -158,15 +132,15 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
       </div>
 
       <div className="grid gap-4">
-        {safeGoals.map((goal, index) => (
+        {goals.map((goal, index) => (
           <motion.div
             key={goal.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={`bg-white dark:bg-gray-800 border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-              goal.completed
-                ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10"
+              goal.completed 
+                ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10" 
                 : "border-gray-200 dark:border-gray-700"
             }`}
           >
@@ -217,6 +191,8 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
           </motion.div>
         ))}
       </div>
+
+
     </div>
   );
 };

@@ -383,9 +383,20 @@ export default function ProfileEditForm({ userId, initialSection }: ProfileEditF
       {/* Header */}
       <div className="bg-gradient-to-r from-pathpiper-teal to-pathpiper-blue p-6 text-white">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold">Edit Your Profile</h2>
-            <p className="text-white/80 text-sm">Complete your profile to help others connect with you</p>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Profile
+            </Button>
+            <div>
+              <h2 className="text-xl font-bold">Edit Your Profile</h2>
+              <p className="text-white/80 text-sm">Complete your profile to help others connect with you</p>
+            </div>
           </div>
         </div>
 
