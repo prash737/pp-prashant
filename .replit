@@ -5,6 +5,9 @@ run = "npm run dev"
 channel = "stable-24_05"
 packages = ["unixtools.ping"]
 
+[env]
+REPLIT_DISABLE_PACKAGE_LAYER = "1"
+
 [deployment]
 run = ["sh", "-c", "npm run start"]
 build = ["sh", "-c", "npm run build"]
