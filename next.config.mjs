@@ -34,6 +34,7 @@ const nextConfig = {
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['@radix-ui/react-icons'],
+    serverComponentsExternalPackages: ['@prisma/client'],
   },
   // Webpack optimizations for faster builds
   webpack: (config, { isServer, webpack }) => {
@@ -50,13 +51,6 @@ const nextConfig = {
         ...config.resolve.fallback,
         self: false,
       };
-      
-      // Define global 'self' for server-side rendering
-      config.plugins.push(
-        new webpack.DefinePlugin({
-          self: 'global',
-        })
-      );
     }
     
     // Reduce bundle size
