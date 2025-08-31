@@ -30,10 +30,12 @@ const nextConfig = {
   },
   // Prevent static generation timeout
   staticPageGenerationTimeout: 60,
+  swcMinify: true,
   // Disable static optimization for problematic pages
   experimental: {
     optimizeCss: false,
     optimizePackageImports: ['@radix-ui/react-icons'],
+    esmExternals: false,
   },
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
@@ -44,6 +46,19 @@ const nextConfig = {
         net: false,
         tls: false,
       };
+    } else {
+      // Fix for 'self is not defined' error on server
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        self: false,
+      };
+      
+      // Define global 'self' for server-side rendering
+      config.plugins.push(
+        new config.webpack.DefinePlugin({
+          self: 'global',
+        })
+      );
     }
     
     // Reduce bundle size
