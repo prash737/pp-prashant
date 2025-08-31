@@ -16,6 +16,22 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Deployment optimizations
+  experimental: {
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/@swc/core-linux-x64-gnu',
+        'node_modules/@swc/core-linux-x64-musl',
+        'node_modules/@esbuild/linux-x64',
+      ],
+    },
+  },
+  // Prevent static generation timeout
+  staticPageGenerationTimeout: 300,
+  // Ensure server starts on 0.0.0.0
+  server: {
+    host: '0.0.0.0'
+  }
 }
 
 export default nextConfig
