@@ -62,9 +62,9 @@ export default function InterestsStep({
         }
 
         // Fetch interests based on user's age group
-        const interestsUrl = user.ageGroup 
-          ? `/api/interests?ageGroup=${user.ageGroup}` 
-          : '/api/interests'
+        const interestsUrl = user.ageGroup
+          ? `/api/onboarding-interests?ageGroup=${user.ageGroup}`
+          : '/api/onboarding-interests'
 
         console.log('🔍 Fetching interests from:', interestsUrl)
         const interestsResponse = await fetch(interestsUrl)
@@ -89,7 +89,7 @@ export default function InterestsStep({
         } else if (initialData.length > 0) {
           // Convert initial data (names) to interest objects if any match available interests
           const availableInterests = categories.flatMap(category => category.interests)
-          const matchedInterests = availableInterests.filter(interest => 
+          const matchedInterests = availableInterests.filter(interest =>
             initialData.includes(interest.name)
           )
           console.log('✅ Matched initial interests for age group', user.ageGroup, ':', matchedInterests.length, 'out of', initialData.length)
@@ -110,7 +110,7 @@ export default function InterestsStep({
             }
           }
           return category
-        }).filter(category => 
+        }).filter(category =>
           // Remove Custom category entirely if user has no custom interests selected
           category.name !== 'Custom' || category.interests.length > 0
         )
@@ -133,10 +133,10 @@ export default function InterestsStep({
   // Re-filter selected interests when interest categories change (age group change)
   useEffect(() => {
     if (interestCategories.length > 0 && selectedInterests.length > 0) {
-      const availableInterestIds = interestCategories.flatMap(category => 
+      const availableInterestIds = interestCategories.flatMap(category =>
         category.interests.map(interest => interest.id)
       )
-      const filteredInterests = selectedInterests.filter(interest => 
+      const filteredInterests = selectedInterests.filter(interest =>
         availableInterestIds.includes(interest.id)
       )
 
@@ -154,7 +154,7 @@ export default function InterestsStep({
     const initialNames = [...initialData].sort()
 
     // Check if arrays are different
-    const hasChanges = selectedNames.length !== initialNames.length || 
+    const hasChanges = selectedNames.length !== initialNames.length ||
                       !selectedNames.every((name, index) => name === initialNames[index])
 
     setIsDirty(hasChanges)
@@ -176,7 +176,7 @@ export default function InterestsStep({
           }
         }
         return category
-      }).filter(category => 
+      }).filter(category =>
         // Remove Custom category entirely if no custom interests are selected
         category.name !== 'Custom' || category.interests.length > 0
       )
