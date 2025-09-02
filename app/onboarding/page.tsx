@@ -66,9 +66,10 @@ export default function Onboarding() {
           console.log("User data received:", data)
 
           // FIRST: Check profile completeness before setting any user data
-          if (data.user) {
+          const userData = data.user || data;
+          if (userData && userData.id) {
             try {
-              const profileResponse = await fetch('/api/student/profile/' + data.user.id, {
+              const profileResponse = await fetch('/api/student/profile/' + userData.id, {
                 method: 'GET',
                 credentials: 'include',
                 cache: 'no-store'
@@ -119,7 +120,10 @@ export default function Onboarding() {
           }
 
           // ONLY load user data if profile is incomplete (we reach this point)
-          if (data.user) {
+          if (data && (data.user || data.firstName)) {
+            // Handle both possible response formats
+            const userData = data.user || data;
+            
             // Fetch existing goals
             let existingGoals = [];
             try {
@@ -140,20 +144,20 @@ export default function Onboarding() {
 
             // Set user data from API response
             setUserData({
-              firstName: data.user.firstName || "",
-              lastName: data.user.lastName || "",
-              email: data.user.email || "",
-              birthdate: data.user.birthdate || "",
-              location: data.user.location || "",
+              firstName: userData.firstName || "",
+              lastName: userData.lastName || "",
+              email: userData.email || "",
+              birthdate: userData.birthdate || "",
+              location: userData.location || "",
               interests: [],
               skills: [],
               skillLevels: {},
               goals: existingGoals,
-              educationLevel: data.user.educationLevel || "",
-              bio: data.user.bio || "",
-              birthMonth: data.user.birthMonth || "",
-              birthYear: data.user.birthYear || "",
-              ageGroup: data.user?.studentProfile?.age_group || ''
+              educationLevel: userData.educationLevel || "",
+              bio: userData.bio || "",
+              birthMonth: userData.birthMonth || "",
+              birthYear: userData.birthYear || "",
+              ageGroup: userData.ageGroup || userData?.studentProfile?.age_group || ''
             })
           } else {
             console.warn("No user data found in response")
