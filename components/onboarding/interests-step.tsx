@@ -77,7 +77,7 @@ export default function InterestsStep({
         // Load user's existing interests first to filter custom interests
         let userSelectedInterests = []
         if (initialData.length === 0) {
-          const userInterestsResponse = await fetch('/api/user/interests')
+          const userInterestsResponse = await fetch('/api/user/onboarding-interests')
           if (userInterestsResponse.ok) {
             const { interests } = await userInterestsResponse.json()
             console.log('✅ User existing interests loaded:', interests.length, 'interests:', interests)
@@ -297,7 +297,7 @@ export default function InterestsStep({
           console.log("ℹ️ Custom interests will be created in database:", customInterests.map(i => i.name))
         }
         // Save interests to database
-        const response = await fetch('/api/user/interests', {
+        const response = await fetch('/api/user/onboarding-interests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
