@@ -1,13 +1,10 @@
+
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/drizzle/client";
-import {
-  userSkills,
-  skills,
-  skillCategories,
-  studentProfiles,
-} from "@/lib/drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +15,9 @@ export async function GET(request: NextRequest) {
     if (!accessTokenCookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user from session - try API first, fallback to direct validation
     let user;
@@ -36,12 +36,6 @@ export async function GET(request: NextRequest) {
           "⚠️ Failed to validate user via API, trying direct Supabase validation",
         );
         // Fallback to direct Supabase validation
-        const { createClient } = require("@supabase/supabase-js");
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        );
-
         const {
           data: { user: supabaseUser },
           error,
@@ -73,40 +67,50 @@ export async function GET(request: NextRequest) {
 
     console.log("🔍 Fetching skills for user:", user.id);
 
-    // Get user's current skills with skill details using Drizzle
-    const userSkillsData = await db
-      .select({
-        skillId: userSkills.skillId,
-        proficiencyLevel: userSkills.proficiencyLevel,
-        skillId2: skills.id,
-        skillName: skills.name,
-        categoryName: skillCategories.name,
-        categoryAgeGroup: skillCategories.ageGroup,
-      })
-      .from(userSkills)
-      .innerJoin(skills, eq(userSkills.skillId, skills.id))
-      .innerJoin(skillCategories, eq(skills.categoryId, skillCategories.id))
-      .where(eq(userSkills.userId, user.id));
+    // Get user's current skills with skill details using direct Supabase query
+    const { data: userSkillsData, error: userSkillsError } = await supabase
+      .from('user_skills')
+      .select(`
+        skill_id,
+        proficiency_level,
+        skills (
+          id,
+          name,
+          skill_categories (
+            name,
+            age_group
+          )
+        )
+      `)
+      .eq('user_id', user.id);
 
-    console.log("✅ Found", userSkillsData.length, "skills for user");
+    if (userSkillsError) {
+      console.error("Supabase query error:", userSkillsError);
+      return NextResponse.json(
+        { error: "Failed to fetch user skills" },
+        { status: 500 },
+      );
+    }
+
+    console.log("✅ Found", userSkillsData?.length || 0, "skills for user");
 
     // Transform to match the expected format
-    const transformedSkills = userSkillsData.map((userSkill) => ({
-      skill_id: userSkill.skillId,
-      proficiency_level: userSkill.proficiencyLevel,
+    const transformedSkills = (userSkillsData || []).map((userSkill) => ({
+      skill_id: userSkill.skill_id,
+      proficiency_level: userSkill.proficiency_level,
       skills: {
-        id: userSkill.skillId2,
-        name: userSkill.skillName,
+        id: userSkill.skills.id,
+        name: userSkill.skills.name,
         skill_categories: {
-          name: userSkill.categoryName,
-          age_group: userSkill.categoryAgeGroup,
+          name: userSkill.skills.skill_categories.name,
+          age_group: userSkill.skills.skill_categories.age_group,
         },
       },
     }));
 
     return NextResponse.json({ skills: transformedSkills });
   } catch (error) {
-    console.error("Error in GET /api/user/skills:", error);
+    console.error("Error in GET /api/user/onboarding-skills:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -122,6 +126,9 @@ export async function POST(request: NextRequest) {
     if (!accessTokenCookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get user from session - try API first, fallback to direct validation
     let user;
@@ -140,12 +147,6 @@ export async function POST(request: NextRequest) {
           "⚠️ Failed to validate user via API, trying direct Supabase validation",
         );
         // Fallback to direct Supabase validation
-        const { createClient } = require("@supabase/supabase-js");
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        );
-
         const {
           data: { user: supabaseUser },
           error,
@@ -199,14 +200,16 @@ export async function POST(request: NextRequest) {
     // If no age group found, try to fetch from database
     if (!ageGroup && user.id) {
       try {
-        const studentProfile = await db
-          .select({ ageGroup: studentProfiles.ageGroup })
-          .from(studentProfiles)
-          .where(eq(studentProfiles.id, user.id))
-          .limit(1);
+        const { data: studentProfile, error: studentProfileError } = await supabase
+          .from('student_profiles')
+          .select('age_group')
+          .eq('id', user.id)
+          .single();
 
-        ageGroup = studentProfile[0]?.ageGroup;
-        console.log("🔍 Fetched age group from database:", ageGroup);
+        if (!studentProfileError && studentProfile) {
+          ageGroup = studentProfile.age_group;
+          console.log("🔍 Fetched age group from database:", ageGroup);
+        }
       } catch (error) {
         console.log("⚠️ Could not fetch age group from database:", error);
       }
@@ -228,43 +231,62 @@ export async function POST(request: NextRequest) {
     console.log("🔍 Using age group:", ageGroup);
 
     // Get available skills for user's current age group
-    const availableSkillsData = await db
-      .select({
-        id: skills.id,
-        name: skills.name,
-      })
-      .from(skills)
-      .innerJoin(skillCategories, eq(skills.categoryId, skillCategories.id))
-      .where(eq(skillCategories.ageGroup, ageGroup as any));
+    const { data: availableSkillsData, error: availableSkillsError } = await supabase
+      .from('skills')
+      .select(`
+        id,
+        name,
+        skill_categories!inner (
+          age_group
+        )
+      `)
+      .eq('skill_categories.age_group', ageGroup);
 
-    const availableSkillIds = availableSkillsData.map((skill) => skill.id);
+    if (availableSkillsError) {
+      console.error("Error fetching available skills:", availableSkillsError);
+      return NextResponse.json(
+        { error: "Failed to fetch available skills" },
+        { status: 500 },
+      );
+    }
+
+    const availableSkillIds = (availableSkillsData || []).map((skill) => skill.id);
     const availableSkillNamesMap = new Map(
-      availableSkillsData.map((skill) => [skill.name, skill.id]),
+      (availableSkillsData || []).map((skill) => [skill.name, skill.id]),
     );
 
     // Get or create custom skill category for this age group
-    let customSkillCategory = await db
-      .select()
-      .from(skillCategories)
-      .where(
-        and(
-          eq(skillCategories.name, "Custom"),
-          eq(skillCategories.ageGroup, ageGroup as any),
-        ),
-      )
-      .limit(1);
+    let customSkillCategory;
+    const { data: existingCustomCategory, error: customCategoryError } = await supabase
+      .from('skill_categories')
+      .select('*')
+      .eq('name', 'Custom')
+      .eq('age_group', ageGroup)
+      .single();
 
-    if (!customSkillCategory.length) {
-      const newCustomCategory = await db
-        .insert(skillCategories)
-        .values({
-          name: "Custom",
-          ageGroup: ageGroup as any,
+    if (customCategoryError || !existingCustomCategory) {
+      // Create custom category
+      const { data: newCustomCategory, error: createError } = await supabase
+        .from('skill_categories')
+        .insert({
+          name: 'Custom',
+          age_group: ageGroup,
         })
-        .returning();
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Error creating custom skill category:", createError);
+        return NextResponse.json(
+          { error: "Failed to create custom skill category" },
+          { status: 500 },
+        );
+      }
 
       customSkillCategory = newCustomCategory;
       console.log("✅ Created custom skill category for age group:", ageGroup);
+    } else {
+      customSkillCategory = existingCustomCategory;
     }
 
     // Process custom skills (those without IDs) and create them in database
@@ -273,45 +295,47 @@ export async function POST(request: NextRequest) {
         console.log("🔍 Processing custom skill:", skill.name);
 
         // Check if this custom skill already exists
-        const existingCustomSkill = await db
-          .select()
-          .from(skills)
-          .where(
-            and(
-              eq(skills.name, skill.name),
-              eq(skills.categoryId, customSkillCategory[0].id),
-            ),
-          )
-          .limit(1);
+        const { data: existingCustomSkill, error: existingSkillError } = await supabase
+          .from('skills')
+          .select('*')
+          .eq('name', skill.name)
+          .eq('category_id', customSkillCategory.id)
+          .single();
 
-        if (!existingCustomSkill.length) {
+        if (existingSkillError || !existingCustomSkill) {
           // Create the custom skill
-          const newCustomSkill = await db
-            .insert(skills)
-            .values({
+          const { data: newCustomSkill, error: createSkillError } = await supabase
+            .from('skills')
+            .insert({
               name: skill.name,
-              categoryId: customSkillCategory[0].id,
+              category_id: customSkillCategory.id,
             })
-            .returning();
+            .select()
+            .single();
+
+          if (createSkillError) {
+            console.error("Error creating custom skill:", createSkillError);
+            continue; // Skip this skill if creation fails
+          }
 
           // Add to our maps so it can be processed normally
-          availableSkillIds.push(newCustomSkill[0].id);
-          availableSkillNamesMap.set(skill.name, newCustomSkill[0].id);
+          availableSkillIds.push(newCustomSkill.id);
+          availableSkillNamesMap.set(skill.name, newCustomSkill.id);
           console.log(
             "✅ Created custom skill:",
             skill.name,
             "with ID:",
-            newCustomSkill[0].id,
+            newCustomSkill.id,
           );
         } else {
           // Add existing custom skill to our maps
-          availableSkillIds.push(existingCustomSkill[0].id);
-          availableSkillNamesMap.set(skill.name, existingCustomSkill[0].id);
+          availableSkillIds.push(existingCustomSkill.id);
+          availableSkillNamesMap.set(skill.name, existingCustomSkill.id);
           console.log(
             "✅ Found existing custom skill:",
             skill.name,
             "with ID:",
-            existingCustomSkill[0].id,
+            existingCustomSkill.id,
           );
         }
       }
@@ -347,27 +371,36 @@ export async function POST(request: NextRequest) {
     });
 
     // Get currently saved user skills
-    const currentUserSkillsData = await db
-      .select({
-        id: userSkills.id,
-        skillId: userSkills.skillId,
-        proficiencyLevel: userSkills.proficiencyLevel,
-        skillName: skills.name,
-      })
-      .from(userSkills)
-      .innerJoin(skills, eq(userSkills.skillId, skills.id))
-      .where(eq(userSkills.userId, user.id));
+    const { data: currentUserSkillsData, error: currentSkillsError } = await supabase
+      .from('user_skills')
+      .select(`
+        id,
+        skill_id,
+        proficiency_level,
+        skills (
+          name
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (currentSkillsError) {
+      console.error("Error fetching current user skills:", currentSkillsError);
+      return NextResponse.json(
+        { error: "Failed to fetch current user skills" },
+        { status: 500 },
+      );
+    }
 
     const currentSkillsMap = new Map(
-      currentUserSkillsData.map((us) => [
-        us.skillName,
-        { id: us.skillId, level: us.proficiencyLevel },
+      (currentUserSkillsData || []).map((us) => [
+        us.skills.name,
+        { id: us.skill_id, level: us.proficiency_level },
       ]),
     );
 
     console.log(
       "🔍 Current saved skills:",
-      currentUserSkillsData.length,
+      currentUserSkillsData?.length || 0,
       Array.from(currentSkillsMap.keys()),
     );
     console.log(
@@ -408,20 +441,27 @@ export async function POST(request: NextRequest) {
           const skillId = skill.id || availableSkillNamesMap.get(skill.name);
           return skillId
             ? {
-                userId: user.id,
-                skillId: skillId,
-                proficiencyLevel: skill.level || 1,
+                user_id: user.id,
+                skill_id: skillId,
+                proficiency_level: skill.level || 1,
               }
             : null;
         })
-        .filter(Boolean) as {
-        userId: string;
-        skillId: number;
-        proficiencyLevel: number;
-      }[];
+        .filter(Boolean);
 
       if (userSkillData.length > 0) {
-        await db.insert(userSkills).values(userSkillData);
+        const { error: insertError } = await supabase
+          .from('user_skills')
+          .insert(userSkillData);
+
+        if (insertError) {
+          console.error("Error inserting new skills:", insertError);
+          return NextResponse.json(
+            { error: "Failed to add new skills" },
+            { status: 500 },
+          );
+        }
+
         console.log("✅ Added", userSkillData.length, "new skills");
       }
     }
@@ -431,15 +471,16 @@ export async function POST(request: NextRequest) {
       for (const skill of skillsToUpdate) {
         const skillId = skill.id || availableSkillNamesMap.get(skill.name);
         if (skillId) {
-          await db
-            .update(userSkills)
-            .set({ proficiencyLevel: skill.level || 1 })
-            .where(
-              and(
-                eq(userSkills.userId, user.id),
-                eq(userSkills.skillId, skillId),
-              ),
-            );
+          const { error: updateError } = await supabase
+            .from('user_skills')
+            .update({ proficiency_level: skill.level || 1 })
+            .eq('user_id', user.id)
+            .eq('skill_id', skillId);
+
+          if (updateError) {
+            console.error("Error updating skill:", updateError);
+            // Continue with other skills even if one fails
+          }
         }
       }
       console.log(
@@ -474,7 +515,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error in POST /api/user/skills:", error);
+    console.error("Error in POST /api/user/onboarding-skills:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

@@ -124,7 +124,7 @@ export default function SkillsStep({
 
           // Fetch existing user skills to preselect them
           try {
-            const userSkillsResponse = await fetch('/api/user/skills')
+            const userSkillsResponse = await fetch('/api/user/onboarding-skills')
             if (userSkillsResponse.ok) {
               const userSkillsData = await userSkillsResponse.json()
               console.log('✅ Fetched existing user skills:', userSkillsData.skills)
@@ -404,7 +404,7 @@ export default function SkillsStep({
 
         // Send all skills (including custom ones) to the API
         // The API will handle creating custom skills in the database
-        const response = await fetch('/api/user/skills', {
+        const response = await fetch('/api/user/onboarding-skills', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
