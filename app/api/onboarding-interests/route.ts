@@ -1,12 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/drizzle/client";
-import {
-  profiles,
-  studentProfiles,
-  interestCategories,
-  interests,
-} from "@/lib/drizzle/schema";
-import { eq, asc } from "drizzle-orm";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
@@ -34,24 +26,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const parentId = searchParams.get("parentId");
     const ageGroupParam = searchParams.get("ageGroup");
 
     // Get user's role for age group determination
-    const profile = await db
-      .select({
-        role: profiles.role,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
       .limit(1);
 
-    if (!profile.length) {
+    if (profileError || !profileData || profileData.length === 0) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
@@ -61,18 +47,16 @@ export async function GET(request: NextRequest) {
     if (parentId) {
       // For parent requests, use the provided age group parameter
       ageGroup = ageGroupParam;
-    } else if (profile[0].role === "student") {
+    } else if (profileData[0].role === "student") {
       // Get student's age group
-      const studentProfile = await db
-        .select({
-          ageGroup: studentProfiles.ageGroup,
-        })
-        .from(studentProfiles)
-        .where(eq(studentProfiles.id, user.id))
+      const { data: studentProfileData, error: studentProfileError } = await supabase
+        .from('student_profiles')
+        .select('age_group')
+        .eq('id', user.id)
         .limit(1);
 
-      if (studentProfile.length) {
-        ageGroup = studentProfile[0].ageGroup;
+      if (!studentProfileError && studentProfileData && studentProfileData.length > 0) {
+        ageGroup = studentProfileData[0].age_group;
       }
     }
 
@@ -85,48 +69,47 @@ export async function GET(request: NextRequest) {
 
     // Fetch interest categories and interests for the specified age group
     console.log(
-      "🔍 Drizzle Query: Fetching interest categories and interests for age group:",
+      "🔍 Supabase Query: Fetching interest categories and interests for age group:",
       ageGroup,
     );
-    const categoriesWithInterests = await db
-      .select({
-        categoryId: interestCategories.id,
-        categoryName: interestCategories.name,
-        interestId: interests.id,
-        interestName: interests.name,
-      })
-      .from(interestCategories)
-      .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
-      .where(eq(interestCategories.ageGroup, ageGroup))
-      .orderBy(asc(interestCategories.name), asc(interests.name));
+
+    const { data: categoriesWithInterests, error: queryError } = await supabase
+      .from('interest_categories')
+      .select(`
+        id,
+        name,
+        interests (
+          id,
+          name
+        )
+      `)
+      .eq('age_group', ageGroup)
+      .order('name', { ascending: true });
+
+    if (queryError) {
+      console.error("Supabase query error:", queryError);
+      return NextResponse.json(
+        { error: "Failed to fetch interests" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: Found",
-      categoriesWithInterests.length,
-      "category-interest combinations",
+      "✅ Supabase Result: Found",
+      categoriesWithInterests?.length || 0,
+      "categories",
     );
 
-    // Group interests by category
-    const categoriesMap = new Map();
-
-    categoriesWithInterests.forEach((row) => {
-      if (!categoriesMap.has(row.categoryId)) {
-        categoriesMap.set(row.categoryId, {
-          name: row.categoryName,
-          interests: [],
-        });
-      }
-
-      if (row.interestId && row.interestName) {
-        categoriesMap.get(row.categoryId).interests.push({
-          id: row.interestId,
-          name: row.interestName,
-        });
-      }
-    });
-
-    // Convert map to array format matching Prisma response
-    const formattedCategories = Array.from(categoriesMap.values());
+    // Transform the data to match the expected format
+    const formattedCategories = categoriesWithInterests?.map(category => ({
+      name: category.name,
+      interests: (category.interests || [])
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(interest => ({
+          id: interest.id,
+          name: interest.name,
+        }))
+    })) || [];
 
     return NextResponse.json(formattedCategories);
   } catch (error) {
