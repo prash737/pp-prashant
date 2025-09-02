@@ -1,8 +1,10 @@
+
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/drizzle/client";
-import { skillCategories, skills } from "@/lib/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,18 +13,30 @@ export async function GET(request: NextRequest) {
     const accessTokenCookie = cookieStore.get("sb-access-token");
     const parentAuthTokenCookie = cookieStore.get("parent-auth-token");
 
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     // Check if this is a parent or regular user request
     let isParentRequest = false;
 
     if (parentAuthTokenCookie) {
-      // Parent authentication - would need to add parent profile table to drizzle schema
+      // Parent authentication - validate parent profile
       try {
         const parentId = parentAuthTokenCookie.value;
-        // Note: You'll need to add parentProfiles table to drizzle schema
-        // const parentProfile = await db.select().from(parentProfiles).where(eq(parentProfiles.id, parentId)).limit(1)
-        // if (!parentProfile.length) {
-        //   return NextResponse.json({ error: 'Invalid parent session' }, { status: 401 })
-        // }
+        
+        // Check if parent profile exists
+        const { data: parentProfile, error: parentError } = await supabase
+          .from('parent_profiles')
+          .select('id')
+          .eq('id', parentId)
+          .limit(1);
+
+        if (parentError || !parentProfile || parentProfile.length === 0) {
+          return NextResponse.json(
+            { error: "Invalid parent session" },
+            { status: 401 },
+          );
+        }
 
         isParentRequest = true;
       } catch (error) {
@@ -36,19 +50,13 @@ export async function GET(request: NextRequest) {
     } else {
       // Verify the access token is valid for regular users
       try {
-        const { createClient } = require("@supabase/supabase-js");
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        );
-
         const {
           data: { user },
           error,
         } = await supabase.auth.getUser(accessTokenCookie.value);
 
         if (error || !user) {
-          console.log("⚠️ Invalid access token for skills API");
+          console.log("⚠️ Invalid access token for onboarding-skills API");
           return NextResponse.json(
             { error: "Invalid session" },
             { status: 401 },
@@ -80,70 +88,81 @@ export async function GET(request: NextRequest) {
     console.log("🔍 Original age group:", ageGroup);
     console.log("🔍 Mapped age group:", mappedAgeGroup);
 
-    // Fetch skill categories and skills for the age group using Drizzle
-    const skillCategoriesWithSkills = await db
-      .select({
-        id: skillCategories.id,
-        name: skillCategories.name,
-        ageGroup: skillCategories.ageGroup,
-        skillId: skills.id,
-        skillName: skills.name,
-      })
-      .from(skillCategories)
-      .leftJoin(skills, eq(skillCategories.id, skills.categoryId))
-      .where(eq(skillCategories.ageGroup, mappedAgeGroup as any))
-      .orderBy(skillCategories.name, skills.name);
+    // Fetch skill categories and skills for the age group using direct Supabase query
+    const { data: skillCategoriesWithSkills, error: queryError } = await supabase
+      .from('skill_categories')
+      .select(`
+        id,
+        name,
+        age_group,
+        skills (
+          id,
+          name
+        )
+      `)
+      .eq('age_group', mappedAgeGroup)
+      .order('name', { ascending: true });
+
+    if (queryError) {
+      console.error("Supabase query error:", queryError);
+      return NextResponse.json(
+        { error: "Failed to fetch skill categories" },
+        { status: 500 },
+      );
+    }
 
     console.log(
       "✅ Found",
-      skillCategoriesWithSkills.length,
+      skillCategoriesWithSkills?.length || 0,
       "skill categories for age group:",
       mappedAgeGroup,
     );
 
     // If no categories found for this age group, try with a fallback
-    let finalCategories = skillCategoriesWithSkills;
-    if (skillCategoriesWithSkills.length === 0) {
+    let finalCategories = skillCategoriesWithSkills || [];
+    if (!skillCategoriesWithSkills || skillCategoriesWithSkills.length === 0) {
       console.log(
         "⚠️ No categories found for",
         mappedAgeGroup,
         ", trying young_adult as fallback",
       );
-      finalCategories = await db
-        .select({
-          id: skillCategories.id,
-          name: skillCategories.name,
-          ageGroup: skillCategories.ageGroup,
-          skillId: skills.id,
-          skillName: skills.name,
-        })
-        .from(skillCategories)
-        .leftJoin(skills, eq(skillCategories.id, skills.categoryId))
-        .where(eq(skillCategories.ageGroup, "young_adult" as any))
-        .orderBy(skillCategories.name, skills.name);
+      
+      const { data: fallbackCategories, error: fallbackError } = await supabase
+        .from('skill_categories')
+        .select(`
+          id,
+          name,
+          age_group,
+          skills (
+            id,
+            name
+          )
+        `)
+        .eq('age_group', 'young_adult')
+        .order('name', { ascending: true });
+
+      if (fallbackError) {
+        console.error("Supabase fallback query error:", fallbackError);
+        return NextResponse.json(
+          { error: "Failed to fetch fallback skill categories" },
+          { status: 500 },
+        );
+      }
+
+      finalCategories = fallbackCategories || [];
       console.log("✅ Found", finalCategories.length, "fallback categories");
     }
 
     // Transform the data to match the expected format
-    const categoryMap = new Map();
-
-    finalCategories.forEach((row) => {
-      if (!categoryMap.has(row.name)) {
-        categoryMap.set(row.name, {
-          name: row.name,
-          skills: [],
-        });
-      }
-
-      if (row.skillId && row.skillName) {
-        categoryMap.get(row.name).skills.push({
-          id: row.skillId,
-          name: row.skillName,
-        });
-      }
-    });
-
-    const transformedCategories = Array.from(categoryMap.values());
+    const transformedCategories = finalCategories.map((category) => ({
+      name: category.name,
+      skills: (category.skills || [])
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+        }))
+    }));
 
     console.log(
       "✅ Transformed categories:",
