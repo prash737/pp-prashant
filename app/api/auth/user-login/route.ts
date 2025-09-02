@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       // Check onboarding completion for student
       const hasBasicInfo = studentProfile.profile.firstName &&
                          studentProfile.profile.lastName &&
-                         studentProfile.profile.bio;
+                         (studentProfile.profile.bio || studentProfile.profile.location);
 
       const hasInterests = studentProfile.profile.userInterests &&
                          studentProfile.profile.userInterests.length > 0;
@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
       const hasEducation = studentProfile.educationHistory &&
                          studentProfile.educationHistory.length > 0;
 
-      const onboardingCompleted = hasBasicInfo && hasInterests && hasEducation;
+      // For profile access, require personal info AND education (interests optional)
+      const onboardingCompleted = hasBasicInfo && hasEducation;
 
       console.log('🔍 Student onboarding check:', {
         hasBasicInfo,
@@ -149,11 +150,11 @@ export async function POST(request: NextRequest) {
       // For students, redirect based on onboarding status
       // Since we know this is a student (we're in the studentProfile block)
       const redirectPath = onboardingCompleted ? `/student/profile/${authData.user.id}` : '/onboarding'
-      
+
       // Set redirect header to avoid intermediate redirects
       response.headers.set('Location', redirectPath)
       response.headers.set('X-Redirect-To', redirectPath)
-      
+
       return response;
     }
 

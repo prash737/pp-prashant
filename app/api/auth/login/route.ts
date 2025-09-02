@@ -66,10 +66,10 @@ export async function POST(request: NextRequest) {
           });
 
           if (studentProfile) {
-            // Check 1: Personal Information (first name, last name, bio)
+            // Check 1: Personal Info - Must have firstName, lastName, AND at least bio OR location
             const hasBasicInfo = studentProfile.profile.firstName && 
                                studentProfile.profile.lastName && 
-                               studentProfile.profile.bio;
+                               (studentProfile.profile.bio || studentProfile.profile.location);
 
             // Check 2: Interests (at least one interest)
             const hasInterests = studentProfile.profile.userInterests && 
@@ -79,8 +79,9 @@ export async function POST(request: NextRequest) {
             const hasEducation = studentProfile.educationHistory && 
                                studentProfile.educationHistory.length > 0;
 
-            // Only redirect to profile if ALL THREE sections have data
-            needsOnboarding = !hasBasicInfo || !hasInterests || !hasEducation;
+            // Only redirect to profile if personal info AND education are complete
+            // (Interests are optional for profile access but required for full onboarding)
+            needsOnboarding = !hasBasicInfo || !hasEducation;
 
             console.log('Login onboarding check:', {
               hasBasicInfo,

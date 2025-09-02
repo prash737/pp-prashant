@@ -18,17 +18,17 @@ export async function GET(request: NextRequest) {
     const cookieString = request.headers.get('cookie') || '';
 
     // Parse cookies properly
-    const cookies = Object.fromEntries(
+    const cookieMap = Object.fromEntries(
       cookieString.split(';').map(cookie => {
         const [name, ...rest] = cookie.trim().split('=');
         return [name, decodeURIComponent(rest.join('='))];
       })
     );
 
-    console.log("API: Available cookies:", Object.keys(cookies).join(', '));
+    console.log("API: Available cookies:", Object.keys(cookieMap).join(', '));
 
     // Log all available cookies for debugging
-    console.log("API: Available cookies:", Object.keys(cookies));
+    console.log("API: Available cookies:", Object.keys(cookieMap));
     console.log("API: Looking for session cookies...");
 
     // Prioritize auth header, then look for our new session cookies
@@ -38,12 +38,12 @@ export async function GET(request: NextRequest) {
       console.log("API: Using token from Authorization header");
     } else {
       // First try our new access token cookie
-      if (cookies['sb-access-token']) {
-        token = cookies['sb-access-token'];
+      if (cookieMap['sb-access-token']) {
+        token = cookieMap['sb-access-token'];
         console.log("API: Using access token from sb-access-token cookie");
       } else {
         // Fallback to looking for other Supabase session cookies
-        const sbAuthTokens = Object.keys(cookies).filter(key => 
+        const sbAuthTokens = Object.keys(cookieMap).filter(key => 
           key.startsWith('sb-') && (key.includes('auth-token') || key.includes('access'))
         );
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
         for (const cookieName of sbAuthTokens) {
           try {
-            const cookieValue = cookies[cookieName];
+            const cookieValue = cookieMap[cookieName];
             console.log(`API: Checking cookie ${cookieName} (length: ${cookieValue?.length || 0})`);
 
             // Try to parse as JSON if it looks like a session object
@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
 
     // If no access token found, try to use refresh token to get a new session
     let refreshData = null;
-    if (!token && cookies['sb-refresh-token']) {
+    if (!token && cookieMap['sb-refresh-token']) {
       console.log("API: No access token found, attempting to refresh session");
       try {
         const refreshResult = await supabase.auth.refreshSession({
-          refresh_token: cookies['sb-refresh-token']
+          refresh_token: cookieMap['sb-refresh-token']
         });
         refreshData = refreshResult.data;
         const refreshError = refreshResult.error;
@@ -120,7 +120,16 @@ export async function GET(request: NextRequest) {
           const userProfile = await prisma.profile.findUnique({
             where: { id: authData.user.id },
             include: {
-              student: true,
+              student: {
+                include: {
+                  profile: {
+                    include: {
+                      userInterests: true
+                    }
+                  },
+                  educationHistory: true,
+                }
+              },
               mentor: true,
               institution: true
             }
@@ -128,7 +137,44 @@ export async function GET(request: NextRequest) {
 
           if (userProfile) {
             console.log("API: User profile found in database");
-            console.log("API: Raw age_group from database:", userProfile.student?.age_group);
+            let onboardingCompleted = userProfile.onboardingCompleted ?? true; // Default to true if null
+
+            // For students, check if onboarding is complete
+            if (userProfile.role === 'student') {
+              try {
+                const studentProfile = userProfile.student; // Directly use included student data
+
+                if (studentProfile) {
+                  // Check if basic profile info is complete - require firstName, lastName, AND (bio OR location)
+                  const hasBasicInfo = studentProfile.profile.firstName && 
+                                     studentProfile.profile.lastName &&
+                                     (studentProfile.profile.bio || studentProfile.profile.location);
+
+                  // Check if at least one interest is selected
+                  const hasInterests = studentProfile.profile.userInterests && 
+                                     studentProfile.profile.userInterests.length > 0;
+
+                  // Check if at least one education entry exists
+                  const hasEducation = studentProfile.educationHistory && 
+                                     studentProfile.educationHistory.length > 0;
+
+                  // For profile access, require personal info AND education (interests can be optional)
+                  onboardingCompleted = hasBasicInfo && hasEducation;
+                }
+              } catch (error) {
+                console.error('Error checking student onboarding status:', error);
+                // If there's an error, assume onboarding is not complete
+                onboardingCompleted = false;
+              }
+            } else {
+              // For mentors and institutions, rely on the onboardingCompleted field
+              // or a specific check if needed in the future
+              onboardingCompleted = userProfile.onboardingCompleted ?? true; // Default for non-students
+            }
+            
+            console.log("API: Onboarding completed status:", onboardingCompleted);
+
+
             // Format birth month and year for display
             let birthMonth = "";
             let birthYear = "";
@@ -147,10 +193,10 @@ export async function GET(request: NextRequest) {
                 bio: userProfile.bio,
                 location: userProfile.location,
                 profileImageUrl: userProfile.profileImageUrl,
+                onboardingCompleted: onboardingCompleted, // Include the computed onboarding status
                 // Add student-specific data if this is a student
                 ...(userProfile.student && {
                   educationLevel: userProfile.student.educationLevel,
-                  onboardingCompleted: userProfile.student.onboardingCompleted ?? true, // Default to true if null
                   birthMonth: birthMonth,
                   birthYear: birthYear,
                   ageGroup: userProfile.student.age_group, // Return exactly as stored in DB
@@ -274,39 +320,52 @@ export async function PUT(request: Request) {
 
       // If user is a student, also update student profile
       if (profileData.educationLevel || profileData.birthMonth || profileData.birthYear || profileData.ageGroup) {
-      const studentUpdateData: any = {};
+        const studentUpdateData: any = {};
 
-      if (profileData.educationLevel) {
-        studentUpdateData.educationLevel = profileData.educationLevel;
-      }
-      if (profileData.birthMonth) {
-        studentUpdateData.birthMonth = profileData.birthMonth;
-      }
-      if (profileData.birthYear) {
-        studentUpdateData.birthYear = profileData.birthYear;
-      }
-      if (profileData.ageGroup) {
-        studentUpdateData.age_group = profileData.ageGroup;
+        if (profileData.educationLevel) {
+          studentUpdateData.educationLevel = profileData.educationLevel;
+        }
+        if (profileData.birthMonth) {
+          studentUpdateData.birthMonth = profileData.birthMonth;
+        }
+        if (profileData.birthYear) {
+          studentUpdateData.birthYear = profileData.birthYear;
+        }
+        if (profileData.ageGroup) {
+          studentUpdateData.age_group = profileData.ageGroup;
+        }
+
+        // Check if student profile exists before updating
+        const existingStudentProfile = await prisma.studentProfile.findUnique({ where: { id: user.id } });
+        if (existingStudentProfile) {
+          await prisma.studentProfile.update({
+            where: { id: user.id },
+            data: studentUpdateData
+          });
+          console.log("API: Student profile updated successfully");
+        } else {
+          // If student profile does not exist, create it
+          await prisma.studentProfile.create({
+            data: {
+              id: user.id, // Assuming profile ID is the user ID
+              ...studentUpdateData
+            }
+          });
+          console.log("API: Student profile created successfully");
+        }
       }
 
-      await prisma.studentProfile.update({
-        where: { id: user.id },
-        data: studentUpdateData
+      return NextResponse.json({
+        success: true,
+        message: "Profile updated successfully",
+        user: {
+          id: updatedProfile.id,
+          firstName: updatedProfile.firstName,
+          lastName: updatedProfile.lastName,
+          bio: updatedProfile.bio,
+          location: updatedProfile.location,
+        }
       });
-      console.log("API: Student profile updated successfully");
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Profile updated successfully",
-      user: {
-        id: updatedProfile.id,
-        firstName: updatedProfile.firstName,
-        lastName: updatedProfile.lastName,
-        bio: updatedProfile.bio,
-        location: updatedProfile.location,
-      }
-    });
     }
 
     // If no profile data to update
