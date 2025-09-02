@@ -1,13 +1,5 @@
+
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/drizzle/client";
-import {
-  profiles,
-  studentProfiles,
-  interestCategories,
-  interests,
-  userInterests,
-} from "@/lib/drizzle/schema";
-import { eq, asc, inArray } from "drizzle-orm";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
@@ -36,32 +28,41 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's role
-    const profile = await db
-      .select({
-        role: profiles.role,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
+    console.log(
+      "🔍 Supabase Query: Fetching user role for user:",
+      user.id,
+    );
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .limit(1)
+      .single();
 
-    if (!profile.length) {
+    if (profileError || !profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
+    console.log("✅ Supabase Result: Found user role:", profile.role);
+
     let ageGroup = null;
 
-    if (profile[0].role === "student") {
+    if (profile.role === "student") {
       // Get student's age group
-      const studentProfile = await db
-        .select({
-          ageGroup: studentProfiles.ageGroup,
-        })
-        .from(studentProfiles)
-        .where(eq(studentProfiles.id, user.id))
-        .limit(1);
+      console.log(
+        "🔍 Supabase Query: Fetching age group for student:",
+        user.id,
+      );
+      const { data: studentProfile, error: studentError } = await supabase
+        .from('student_profiles')
+        .select('age_group')
+        .eq('id', user.id)
+        .limit(1)
+        .single();
 
-      if (studentProfile.length) {
-        ageGroup = studentProfile[0].ageGroup;
+      if (studentProfile && !studentError) {
+        ageGroup = studentProfile.age_group;
+        console.log("✅ Supabase Result: Found age group:", ageGroup);
       }
     }
 
@@ -74,131 +75,156 @@ export async function GET(request: NextRequest) {
 
     // Get available interest categories for age group filtering
     console.log(
-      "🔍 Drizzle Query: Fetching available categories for age group:",
+      "🔍 Supabase Query: Fetching available categories for age group:",
       ageGroup,
     );
-    const availableCategories = await db
-      .select({
-        id: interestCategories.id,
-        name: interestCategories.name,
-      })
-      .from(interestCategories)
-      .leftJoin(interests, eq(interests.categoryId, interestCategories.id))
-      .where(eq(interestCategories.ageGroup, ageGroup));
+    const { data: availableCategories, error: categoriesError } = await supabase
+      .from('interest_categories')
+      .select('id, name')
+      .eq('age_group', ageGroup);
+
+    if (categoriesError) {
+      console.error("Error fetching categories:", categoriesError);
+      return NextResponse.json(
+        { error: "Failed to fetch categories" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: Found",
-      availableCategories.length,
+      "✅ Supabase Result: Found",
+      availableCategories?.length || 0,
       "available categories",
     );
 
     const availableInterestNames = new Set();
-    for (const category of availableCategories) {
+    for (const category of availableCategories || []) {
       console.log(
-        "🔍 Drizzle Query: Fetching interests for category:",
+        "🔍 Supabase Query: Fetching interests for category:",
         category.name,
         "ID:",
         category.id,
       );
-      const categoryInterests = await db
-        .select({
-          name: interests.name,
-        })
-        .from(interests)
-        .where(eq(interests.categoryId, category.id));
+      const { data: categoryInterests, error: interestsError } = await supabase
+        .from('interests')
+        .select('name')
+        .eq('category_id', category.id);
 
-      console.log(
-        "✅ Drizzle Result: Found",
-        categoryInterests.length,
-        "interests for category:",
-        category.name,
-      );
-      categoryInterests.forEach((interest) => {
-        availableInterestNames.add(interest.name);
-      });
+      if (!interestsError && categoryInterests) {
+        console.log(
+          "✅ Supabase Result: Found",
+          categoryInterests.length,
+          "interests for category:",
+          category.name,
+        );
+        categoryInterests.forEach((interest) => {
+          availableInterestNames.add(interest.name);
+        });
+      }
     }
 
     // Get user's current interests with details
     console.log(
-      "🔍 Drizzle Query: Fetching current user interests for user:",
+      "🔍 Supabase Query: Fetching current user interests for user:",
       user.id,
     );
-    const currentUserInterests = await db
-      .select({
-        userInterestId: userInterests.id,
-        interestId: interests.id,
-        interestName: interests.name,
-        categoryId: interests.categoryId,
-      })
-      .from(userInterests)
-      .innerJoin(interests, eq(interests.id, userInterests.interestId))
-      .where(eq(userInterests.userId, user.id));
+    const { data: currentUserInterests, error: userInterestsError } = await supabase
+      .from('user_interests')
+      .select(`
+        id,
+        interest_id,
+        interests!inner(
+          id,
+          name,
+          category_id
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (userInterestsError) {
+      console.error("Error fetching user interests:", userInterestsError);
+      return NextResponse.json(
+        { error: "Failed to fetch user interests" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: Found",
-      currentUserInterests.length,
+      "✅ Supabase Result: Found",
+      currentUserInterests?.length || 0,
       "current user interests",
     );
 
     // Get all available interests for user's current age group
     console.log(
-      "🔍 Drizzle Query: Fetching all available interests for age group:",
+      "🔍 Supabase Query: Fetching all available interests for age group:",
       ageGroup,
     );
-    const availableInterests = await db
-      .select({
-        id: interests.id,
-        name: interests.name,
-        categoryId: interests.categoryId,
-      })
-      .from(interests)
-      .innerJoin(
-        interestCategories,
-        eq(interestCategories.id, interests.categoryId),
-      )
-      .where(eq(interestCategories.ageGroup, ageGroup));
+    const { data: availableInterests, error: availableInterestsError } = await supabase
+      .from('interests')
+      .select(`
+        id,
+        name,
+        category_id,
+        interest_categories!inner(
+          age_group
+        )
+      `)
+      .eq('interest_categories.age_group', ageGroup);
+
+    if (availableInterestsError) {
+      console.error("Error fetching available interests:", availableInterestsError);
+      return NextResponse.json(
+        { error: "Failed to fetch available interests" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: Found",
-      availableInterests.length,
+      "✅ Supabase Result: Found",
+      availableInterests?.length || 0,
       "available interests for age group",
     );
 
     // Filter valid interests (those that exist in current age group)
-    const validInterests = currentUserInterests.filter((userInterest) =>
-      availableInterestNames.has(userInterest.interestName),
+    const validInterests = (currentUserInterests || []).filter((userInterest) =>
+      availableInterestNames.has(userInterest.interests.name),
     );
 
     // Find invalid interests to cleanup
-    const invalidInterestIds = currentUserInterests
+    const invalidInterestIds = (currentUserInterests || [])
       .filter(
         (userInterest) =>
-          !availableInterestNames.has(userInterest.interestName),
+          !availableInterestNames.has(userInterest.interests.name),
       )
-      .map((userInterest) => userInterest.interestId);
+      .map((userInterest) => userInterest.interest_id);
 
     // Cleanup invalid interests if any exist
     if (invalidInterestIds.length > 0) {
       console.log(
-        "🗑️ Drizzle Query: Cleaning up",
+        "🗑️ Supabase Query: Cleaning up",
         invalidInterestIds.length,
         "invalid interests for user:",
         user.id,
       );
-      await db
-        .delete(userInterests)
-        .where(
-          eq(userInterests.userId, user.id) &&
-            inArray(userInterests.interestId, invalidInterestIds),
-        );
-      console.log("✅ Drizzle Result: Cleaned up invalid interests");
+      const { error: deleteError } = await supabase
+        .from('user_interests')
+        .delete()
+        .eq('user_id', user.id)
+        .in('interest_id', invalidInterestIds);
+
+      if (deleteError) {
+        console.error("Error cleaning up invalid interests:", deleteError);
+      } else {
+        console.log("✅ Supabase Result: Cleaned up invalid interests");
+      }
     }
 
     // Format response to match frontend expectations
     const formattedInterests = validInterests.map((userInterest) => ({
-      id: userInterest.interestId,
-      name: userInterest.interestName,
-      categoryId: userInterest.categoryId,
+      id: userInterest.interests.id,
+      name: userInterest.interests.name,
+      categoryId: userInterest.interests.category_id,
     }));
 
     return NextResponse.json({ interests: formattedInterests });
@@ -242,31 +268,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's role and age group
-    const profile = await db
-      .select({
-        role: profiles.role,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
+    console.log(
+      "🔍 Supabase Query: [POST] Fetching user role for user:",
+      user.id,
+    );
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .limit(1)
+      .single();
 
-    if (!profile.length) {
+    if (profileError || !profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
     let ageGroup = null;
 
-    if (profile[0].role === "student") {
-      const studentProfile = await db
-        .select({
-          ageGroup: studentProfiles.ageGroup,
-        })
-        .from(studentProfiles)
-        .where(eq(studentProfiles.id, user.id))
-        .limit(1);
+    if (profile.role === "student") {
+      console.log(
+        "🔍 Supabase Query: [POST] Fetching age group for student:",
+        user.id,
+      );
+      const { data: studentProfile, error: studentError } = await supabase
+        .from('student_profiles')
+        .select('age_group')
+        .eq('id', user.id)
+        .limit(1)
+        .single();
 
-      if (studentProfile.length) {
-        ageGroup = studentProfile[0].ageGroup;
+      if (studentProfile && !studentError) {
+        ageGroup = studentProfile.age_group;
+        console.log("✅ Supabase Result: [POST] Found age group:", ageGroup);
       }
     }
 
@@ -279,74 +312,88 @@ export async function POST(request: NextRequest) {
 
     // Get available interests for user's age group
     console.log(
-      "🔍 Drizzle Query: [POST] Fetching available interests for age group:",
+      "🔍 Supabase Query: [POST] Fetching available interests for age group:",
       ageGroup,
     );
-    const availableInterests = await db
-      .select({
-        id: interests.id,
-        name: interests.name,
-      })
-      .from(interests)
-      .innerJoin(
-        interestCategories,
-        eq(interestCategories.id, interests.categoryId),
-      )
-      .where(eq(interestCategories.ageGroup, ageGroup));
+    const { data: availableInterests, error: availableInterestsError } = await supabase
+      .from('interests')
+      .select(`
+        id,
+        name,
+        interest_categories!inner(
+          age_group
+        )
+      `)
+      .eq('interest_categories.age_group', ageGroup);
+
+    if (availableInterestsError) {
+      console.error("Error fetching available interests:", availableInterestsError);
+      return NextResponse.json(
+        { error: "Failed to fetch available interests" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: [POST] Found",
-      availableInterests.length,
+      "✅ Supabase Result: [POST] Found",
+      availableInterests?.length || 0,
       "available interests",
     );
 
     const availableInterestMap = new Map();
-    availableInterests.forEach((interest) => {
+    (availableInterests || []).forEach((interest) => {
       availableInterestMap.set(interest.name, interest.id);
     });
 
     // Get or create custom interest category for this age group
     console.log(
-      "🔍 Drizzle Query: [POST] Looking for Custom category for age group:",
+      "🔍 Supabase Query: [POST] Looking for Custom category for age group:",
       ageGroup,
     );
-    let customCategory = await db
-      .select({
-        id: interestCategories.id,
-      })
-      .from(interestCategories)
-      .where(
-        eq(interestCategories.name, "Custom") &&
-          eq(interestCategories.ageGroup, ageGroup),
-      )
-      .limit(1);
+    let { data: customCategory, error: customCategoryError } = await supabase
+      .from('interest_categories')
+      .select('id')
+      .eq('name', 'Custom')
+      .eq('age_group', ageGroup)
+      .limit(1)
+      .single();
 
-    if (!customCategory.length) {
+    let customCategoryId;
+
+    if (customCategoryError || !customCategory) {
       console.log(
-        "🔍 Drizzle Query: [POST] Creating new Custom category for age group:",
+        "🔍 Supabase Query: [POST] Creating new Custom category for age group:",
         ageGroup,
       );
-      const newCategory = await db
-        .insert(interestCategories)
-        .values({
-          name: "Custom",
-          ageGroup: ageGroup,
+      const { data: newCategory, error: newCategoryError } = await supabase
+        .from('interest_categories')
+        .insert({
+          name: 'Custom',
+          age_group: ageGroup,
         })
-        .returning({ id: interestCategories.id });
+        .select('id')
+        .single();
+
+      if (newCategoryError || !newCategory) {
+        console.error("Error creating custom category:", newCategoryError);
+        return NextResponse.json(
+          { error: "Failed to create custom category" },
+          { status: 500 },
+        );
+      }
 
       console.log(
-        "✅ Drizzle Result: [POST] Created Custom category with ID:",
-        newCategory[0].id,
+        "✅ Supabase Result: [POST] Created Custom category with ID:",
+        newCategory.id,
       );
-      customCategory = newCategory;
+      customCategoryId = newCategory.id;
     } else {
       console.log(
-        "✅ Drizzle Result: [POST] Found existing Custom category with ID:",
-        customCategory[0].id,
+        "✅ Supabase Result: [POST] Found existing Custom category with ID:",
+        customCategory.id,
       );
+      customCategoryId = customCategory.id;
     }
-
-    const customCategoryId = customCategory[0].id;
 
     // Process interests and create custom ones if needed
     const interestIds = [];
@@ -358,99 +405,115 @@ export async function POST(request: NextRequest) {
       } else {
         // Check if custom interest already exists
         console.log(
-          "🔍 Drizzle Query: [POST] Checking for existing custom interest:",
+          "🔍 Supabase Query: [POST] Checking for existing custom interest:",
           interestName,
         );
-        const existingCustom = await db
-          .select({
-            id: interests.id,
-          })
-          .from(interests)
-          .where(
-            eq(interests.name, interestName) &&
-              eq(interests.categoryId, customCategoryId),
-          )
-          .limit(1);
+        const { data: existingCustom, error: existingCustomError } = await supabase
+          .from('interests')
+          .select('id')
+          .eq('name', interestName)
+          .eq('category_id', customCategoryId)
+          .limit(1)
+          .single();
 
-        if (existingCustom.length) {
+        if (existingCustom && !existingCustomError) {
           console.log(
-            "✅ Drizzle Result: [POST] Found existing custom interest:",
+            "✅ Supabase Result: [POST] Found existing custom interest:",
             interestName,
             "ID:",
-            existingCustom[0].id,
+            existingCustom.id,
           );
-          interestIds.push(existingCustom[0].id);
+          interestIds.push(existingCustom.id);
         } else {
           // Create new custom interest
           console.log(
-            "🔍 Drizzle Query: [POST] Creating new custom interest:",
+            "🔍 Supabase Query: [POST] Creating new custom interest:",
             interestName,
           );
-          const newInterest = await db
-            .insert(interests)
-            .values({
+          const { data: newInterest, error: newInterestError } = await supabase
+            .from('interests')
+            .insert({
               name: interestName,
-              categoryId: customCategoryId,
+              category_id: customCategoryId,
             })
-            .returning({ id: interests.id });
+            .select('id')
+            .single();
+
+          if (newInterestError || !newInterest) {
+            console.error("Error creating custom interest:", newInterestError);
+            continue; // Skip this interest if creation fails
+          }
 
           console.log(
-            "✅ Drizzle Result: [POST] Created custom interest:",
+            "✅ Supabase Result: [POST] Created custom interest:",
             interestName,
             "ID:",
-            newInterest[0].id,
+            newInterest.id,
           );
-          interestIds.push(newInterest[0].id);
+          interestIds.push(newInterest.id);
         }
       }
     }
 
     // Get currently saved user interests
     console.log(
-      "🔍 Drizzle Query: [POST] Fetching currently saved user interests for user:",
+      "🔍 Supabase Query: [POST] Fetching currently saved user interests for user:",
       user.id,
     );
-    const currentUserInterests = await db
-      .select({
-        id: userInterests.id,
-        interestId: userInterests.interestId,
-        interestName: interests.name,
-      })
-      .from(userInterests)
-      .innerJoin(interests, eq(interests.id, userInterests.interestId))
-      .where(eq(userInterests.userId, user.id));
+    const { data: currentUserInterests, error: currentUserInterestsError } = await supabase
+      .from('user_interests')
+      .select(`
+        id,
+        interest_id,
+        interests!inner(
+          name
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (currentUserInterestsError) {
+      console.error("Error fetching current user interests:", currentUserInterestsError);
+      return NextResponse.json(
+        { error: "Failed to fetch current user interests" },
+        { status: 500 },
+      );
+    }
 
     console.log(
-      "✅ Drizzle Result: [POST] Found",
-      currentUserInterests.length,
+      "✅ Supabase Result: [POST] Found",
+      currentUserInterests?.length || 0,
       "currently saved interests",
     );
 
     // Find interests to remove (those not in the new selection)
-    const interestsToRemove = currentUserInterests.filter(
-      (ui) => !interestIds.includes(ui.interestId),
+    const interestsToRemove = (currentUserInterests || []).filter(
+      (ui) => !interestIds.includes(ui.interest_id),
     );
 
     // Remove interests that are no longer selected
     if (interestsToRemove.length > 0) {
-      const idsToRemove = interestsToRemove.map((ui) => ui.interestId);
+      const idsToRemove = interestsToRemove.map((ui) => ui.interest_id);
       console.log(
-        "🗑️ Drizzle Query: [POST] Removing",
+        "🗑️ Supabase Query: [POST] Removing",
         interestsToRemove.length,
         "interests for user:",
         user.id,
       );
-      await db
-        .delete(userInterests)
-        .where(
-          eq(userInterests.userId, user.id) &&
-            inArray(userInterests.interestId, idsToRemove),
-        );
-      console.log("✅ Drizzle Result: [POST] Removed interests");
+      const { error: deleteError } = await supabase
+        .from('user_interests')
+        .delete()
+        .eq('user_id', user.id)
+        .in('interest_id', idsToRemove);
+
+      if (deleteError) {
+        console.error("Error removing interests:", deleteError);
+      } else {
+        console.log("✅ Supabase Result: [POST] Removed interests");
+      }
     }
 
     // Find new interests to add
-    const currentInterestIds = currentUserInterests.map((ui) => ui.interestId);
+    const currentInterestIds = (currentUserInterests || []).map((ui) => ui.interest_id);
     const newInterestIds = interestIds.filter(
       (id) => !currentInterestIds.includes(id),
     );
@@ -458,18 +521,25 @@ export async function POST(request: NextRequest) {
     // Add new interests
     if (newInterestIds.length > 0) {
       const userInterestData = newInterestIds.map((interestId) => ({
-        userId: user.id,
-        interestId: interestId,
+        user_id: user.id,
+        interest_id: interestId,
       }));
 
       console.log(
-        "➕ Drizzle Query: [POST] Adding",
+        "➕ Supabase Query: [POST] Adding",
         newInterestIds.length,
         "new interests for user:",
         user.id,
       );
-      await db.insert(userInterests).values(userInterestData);
-      console.log("✅ Drizzle Result: [POST] Added new interests");
+      const { error: insertError } = await supabase
+        .from('user_interests')
+        .insert(userInterestData);
+
+      if (insertError) {
+        console.error("Error adding new interests:", insertError);
+      } else {
+        console.log("✅ Supabase Result: [POST] Added new interests");
+      }
     }
 
     return NextResponse.json({
