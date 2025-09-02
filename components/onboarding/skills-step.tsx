@@ -93,7 +93,7 @@ export default function SkillsStep({
           setUserAgeGroup(calculatedAgeGroup)
 
           // Fetch skill categories for the calculated age group
-          const skillsResponse = await fetch(`/api/skills?ageGroup=${calculatedAgeGroup}`)
+          const skillsResponse = await fetch(`/api/onboarding-skills?ageGroup=${calculatedAgeGroup}`)
           if (skillsResponse.ok) {
             const skillsData = await skillsResponse.json()
             console.log('✅ Fetched skill categories:', skillsData.categories)
@@ -159,7 +159,7 @@ export default function SkillsStep({
           setUserAgeGroup(fallbackAgeGroup)
           console.log('🔍 Using fallback age group for skills:', fallbackAgeGroup)
 
-          const skillsResponse = await fetch(`/api/skills?ageGroup=${fallbackAgeGroup}`)
+          const skillsResponse = await fetch(`/api/onboarding-skills?ageGroup=${fallbackAgeGroup}`)
           if (skillsResponse.ok) {
             const skillsData = await skillsResponse.json()
             console.log('✅ Fetched skill categories (fallback):', skillsData.categories)
