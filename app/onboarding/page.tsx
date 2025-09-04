@@ -578,8 +578,8 @@ export default function Onboarding() {
                       console.log('Goals saved successfully - onboarding complete');
                       toast.success('Onboarding completed successfully!');
                       
-                      // Redirect to profile page instead of moving to completion step
-                      router.push('/student/profile');
+                      // Redirect to specific user profile page
+                      router.push(`/student/profile`);
                     } catch (error) {
                       console.error('Error during onboarding completion:', error);
                       toast.error('Failed to complete onboarding');
@@ -587,16 +587,17 @@ export default function Onboarding() {
                     }
                   }}
                   onNext={() => {
-                    // This shouldn't be called now since onComplete handles the redirect
-                    console.log('Goals step next clicked');
+                    console.log('Goals step next clicked - completing onboarding');
+                    toast.success('Onboarding completed successfully!');
+                    router.push('/student/profile');
                   }}
                   onSkip={() => {
                     console.log('🔄 Skipping goals step');
                     setUserData({ ...userData, goals: [] });
                     console.log('Goals skipped - completing onboarding');
                     toast.success('Onboarding completed successfully!');
-                    // Redirect to profile page
-                    router.push('/student/profile');
+                    // Redirect to specific user profile page
+                    router.push(`/student/profile`);
                   }}
                 />
               )}

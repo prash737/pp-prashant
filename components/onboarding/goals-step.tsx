@@ -59,7 +59,7 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
     }))
   }
 
-  const handleAddGoal = () => {
+  const handleAddGoal = async () => {
     if (newGoal.title.trim() === "") return
 
     const goalToAdd = {
@@ -67,7 +67,8 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
       id: -Date.now(), // Use negative number for temporary client-side IDs
     }
 
-    setGoals((prev) => [...prev, goalToAdd])
+    const updatedGoals = [...goals, goalToAdd]
+    setGoals(updatedGoals)
     setNewGoal({
       id: "",
       title: "",
@@ -76,6 +77,10 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
       timeframe: "",
     })
     setIsAddingGoal(false)
+
+    // Save goals immediately when a new goal is added
+    console.log('🎯 Goal added - saving to database immediately:', goalToAdd.title)
+    onComplete(updatedGoals)
   }
 
   // Track dirty state
@@ -326,8 +331,8 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
             type="button"
             onClick={() => {
               console.log('🎯 Goals step - Continue button clicked')
-              console.log('🎯 Calling onComplete with goals:', goals)
-              onComplete(goals)
+              console.log('🎯 Moving to next step without saving (goals already saved)')
+              onNext()
             }}
             className="bg-teal-500 hover:bg-teal-600 text-white flex-1"
           >
