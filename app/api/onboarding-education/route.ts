@@ -1,8 +1,10 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { prisma } from "@/lib/prisma";
-import { supabase } from "@/lib/supabase";
 import { cookies } from "next/headers";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +19,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     const {
       data: { user },
       error: authError,
@@ -27,76 +32,104 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch education history for the authenticated user using Prisma
-    const educationHistory = await prisma.studentEducationHistory.findMany({
-      where: {
-        studentId: user.id,
-      },
-      orderBy: {
-        startDate: "desc",
-      },
-      include: {
-        institutionType: {
-          include: {
-            category: true,
-          },
-        },
-      },
-    });
+    // Fetch education history for the authenticated user using direct Supabase query
+    const { data: educationHistory, error: queryError } = await supabase
+      .from('student_education_history')
+      .select(`
+        id,
+        student_id,
+        institution_id,
+        institution_name,
+        institution_type_id,
+        degree_program,
+        field_of_study,
+        subjects,
+        start_date,
+        end_date,
+        is_current,
+        grade_level,
+        gpa,
+        achievements,
+        description,
+        institution_verified,
+        created_at,
+        updated_at,
+        institution_types!inner (
+          id,
+          name,
+          slug,
+          institution_categories!inner (
+            id,
+            name,
+            slug,
+            description
+          )
+        )
+      `)
+      .eq('student_id', user.id)
+      .order('start_date', { ascending: false });
+
+    if (queryError) {
+      console.error("Supabase query error:", queryError);
+      return NextResponse.json(
+        { error: "Failed to fetch education history" },
+        { status: 500 },
+      );
+    }
 
     // Debug log verification status for each education record
-    educationHistory.forEach((edu) => {
+    (educationHistory || []).forEach((edu) => {
       console.log(
         "🔍 RAW Education DB record in API route:",
         JSON.stringify(edu, null, 2),
       );
       console.log("🔍 Education API verification status:", {
-        institution: edu.institutionName,
-        institutionVerified: edu.institutionVerified,
-        type: typeof edu.institutionVerified,
+        institution: edu.institution_name,
+        institutionVerified: edu.institution_verified,
+        type: typeof edu.institution_verified,
         hasProperty: Object.prototype.hasOwnProperty.call(
           edu,
-          "institutionVerified",
+          "institution_verified",
         ),
         allKeys: Object.keys(edu),
       });
     });
 
     // Transform database fields to match the frontend interface
-    const transformedEducation = educationHistory.map((entry) => {
+    const transformedEducation = (educationHistory || []).map((entry) => {
       console.log(
         "🔍 API Transform - Raw entry institutionVerified:",
-        entry.institutionVerified,
+        entry.institution_verified,
         "type:",
-        typeof entry.institutionVerified,
+        typeof entry.institution_verified,
       );
 
       return {
         id: entry.id,
-        institutionId: entry.institutionId || "",
-        institutionName: entry.institutionName,
-        institutionCategory: entry.institutionType?.category?.slug || "",
-        institutionType: entry.institutionTypeId
-          ? entry.institutionTypeId.toString()
+        institutionId: entry.institution_id || "",
+        institutionName: entry.institution_name,
+        institutionCategory: entry.institution_types?.institution_categories?.slug || "",
+        institutionType: entry.institution_type_id
+          ? entry.institution_type_id.toString()
           : "",
-        institutionTypeName: entry.institutionType?.name || "", // Add the type name
-        institutionVerified: entry.institutionVerified, // Make sure this is included
-        degree: entry.degreeProgram || "",
-        fieldOfStudy: entry.fieldOfStudy || "",
+        institutionTypeName: entry.institution_types?.name || "", // Add the type name
+        institutionVerified: entry.institution_verified, // Make sure this is included
+        degree: entry.degree_program || "",
+        fieldOfStudy: entry.field_of_study || "",
         subjects: Array.isArray(entry.subjects) ? entry.subjects : [],
-        startDate: entry.startDate
-          ? entry.startDate.toISOString().split("T")[0]
+        startDate: entry.start_date
+          ? new Date(entry.start_date).toISOString().split("T")[0]
           : "",
-        endDate: entry.endDate ? entry.endDate.toISOString().split("T")[0] : "",
-        isCurrent: entry.isCurrent || false,
-        grade: entry.gradeLevel || "",
+        endDate: entry.end_date ? new Date(entry.end_date).toISOString().split("T")[0] : "",
+        isCurrent: entry.is_current || false,
+        grade: entry.grade_level || "",
         description: entry.description || "",
       };
     });
 
     return NextResponse.json({ education: transformedEducation });
   } catch (error) {
-    console.error("Error in GET /api/education:", error);
+    console.error("Error in GET /api/onboarding-education:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -116,6 +149,9 @@ export async function POST(request: NextRequest) {
       console.log("❌ No access token found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const {
       data: { user },
@@ -137,23 +173,31 @@ export async function POST(request: NextRequest) {
       for (const entry of data.education) {
         if (!entry.institutionName || !entry.institutionType) continue;
 
-        const educationRecord = await prisma.studentEducationHistory.create({
-          data: {
-            studentId: userId,
-            institutionId: entry.institutionId || null,
-            institutionName: entry.institutionName,
-            institutionTypeId: parseInt(entry.institutionType),
-            degreeProgram: entry.degree || null,
-            fieldOfStudy: entry.fieldOfStudy || null,
+        const { data: educationRecord, error: insertError } = await supabase
+          .from('student_education_history')
+          .insert({
+            student_id: userId,
+            institution_id: entry.institutionId || null,
+            institution_name: entry.institutionName,
+            institution_type_id: parseInt(entry.institutionType),
+            degree_program: entry.degree || null,
+            field_of_study: entry.fieldOfStudy || null,
             subjects: Array.isArray(entry.subjects) ? entry.subjects : [],
-            startDate: entry.startDate ? new Date(entry.startDate) : null,
-            endDate: entry.endDate ? new Date(entry.endDate) : null,
-            isCurrent: Boolean(entry.isCurrent),
-            gradeLevel: entry.grade || null,
+            start_date: entry.startDate ? new Date(entry.startDate).toISOString() : null,
+            end_date: entry.endDate ? new Date(entry.endDate).toISOString() : null,
+            is_current: Boolean(entry.isCurrent),
+            grade_level: entry.grade || null,
             description: entry.description || null,
-            institutionVerified: entry.institutionId ? null : undefined, // null if institution selected, undefined if manual entry
-          },
-        });
+            institution_verified: entry.institutionId ? null : undefined, // null if institution selected, undefined if manual entry
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error("Error inserting education record:", insertError);
+          continue; // Skip this entry if insertion fails
+        }
+
         savedEntries.push(educationRecord);
       }
       return NextResponse.json({ education: savedEntries });
@@ -167,23 +211,35 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const educationRecord = await prisma.studentEducationHistory.create({
-        data: {
-          studentId: userId,
-          institutionId: data.institutionId || null,
-          institutionName: data.institutionName,
-          institutionTypeId: parseInt(data.institutionTypeId),
-          degreeProgram: data.degree || null,
-          fieldOfStudy: data.fieldOfStudy || null,
+      const { data: educationRecord, error: insertError } = await supabase
+        .from('student_education_history')
+        .insert({
+          student_id: userId,
+          institution_id: data.institutionId || null,
+          institution_name: data.institutionName,
+          institution_type_id: parseInt(data.institutionTypeId),
+          degree_program: data.degree || null,
+          field_of_study: data.fieldOfStudy || null,
           subjects: Array.isArray(data.subjects) ? data.subjects : [],
-          startDate: data.startDate ? new Date(data.startDate) : null,
-          endDate: data.endDate ? new Date(data.endDate) : null,
-          isCurrent: Boolean(data.isCurrent),
-          gradeLevel: data.grade || null,
+          start_date: data.startDate ? new Date(data.startDate).toISOString() : null,
+          end_date: data.endDate ? new Date(data.endDate).toISOString() : null,
+          is_current: Boolean(data.isCurrent),
+          grade_level: data.grade || null,
           description: data.description || null,
-          institutionVerified: data.institutionId ? null : undefined, // null if institution selected, undefined if manual entry
-        },
-      });
+          institution_verified: data.institutionId ? null : undefined, // null if institution selected, undefined if manual entry
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating education record:", insertError);
+        return NextResponse.json(
+          {
+            error: insertError.message || "Failed to create education record",
+          },
+          { status: 500 },
+        );
+      }
 
       return NextResponse.json(educationRecord);
     }
