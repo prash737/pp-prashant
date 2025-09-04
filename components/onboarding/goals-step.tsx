@@ -83,17 +83,17 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
     // Compare current goals with original goals
     const goalsChanged = goals.length !== originalGoals.length ||
       goals.some(goal => {
-        const originalGoal = originalGoals.find(orig => 
+        const originalGoal = originalGoals.find(orig =>
           (typeof orig.id === 'number' && typeof goal.id === 'number' && orig.id === goal.id) ||
           (orig.title === goal.title && orig.description === goal.description)
         )
-        return !originalGoal || 
+        return !originalGoal ||
                originalGoal.title !== goal.title ||
                originalGoal.description !== goal.description ||
                originalGoal.category !== goal.category ||
                originalGoal.timeframe !== goal.timeframe
       })
-    
+
     setIsDirty(goalsChanged)
     console.log("🔍 Goals dirty bit:", goalsChanged)
   }, [goals, originalGoals])
@@ -123,9 +123,9 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     console.log("🔍 Goals dirty bit:", isDirty)
-    
+
     if (isDirty) {
       console.log("💾 Goals have changes, will be saved by parent component...")
       setIsDirty(false)
@@ -133,7 +133,7 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
     } else {
       console.log("✅ Goals unchanged, skipping database save")
     }
-    
+
     onComplete(goals)
     onNext()
   }
@@ -310,12 +310,26 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
         </div>
 
         <div className="flex justify-between pt-4">
-          <Button type="button" variant="ghost" onClick={onSkip} className="text-slate-500 hover:text-slate-700">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              console.log('🔄 Skipping goals step')
+              console.log('🔄 Calling onSkip')
+              onSkip()
+            }}
+            className="flex-1"
+          >
             Skip for now
           </Button>
           <Button
-            type="submit"
-            className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8"
+            type="button"
+            onClick={() => {
+              console.log('🎯 Goals step - Continue button clicked')
+              console.log('🎯 Calling onComplete with goals:', goals)
+              onComplete(goals)
+            }}
+            className="bg-teal-500 hover:bg-teal-600 text-white flex-1"
           >
             Continue
           </Button>
