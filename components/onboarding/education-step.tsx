@@ -917,8 +917,8 @@ export default function EducationStep({
               {educationHistory.map((entry) => (
                 <Card key={entry.id} className="border-gray-200 dark:border-gray-700">
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-grow">
+                    <div>
+                      <div>
                         <div className="flex items-center space-x-2 mb-2">
                           <h4 className="font-medium text-gray-800 dark:text-gray-200">{entry.institutionName}</h4>
                           {entry.isCurrent && (
@@ -957,46 +957,7 @@ export default function EducationStep({
                           )}
                         </div>
                       </div>
-                      <div className="flex space-x-2 ml-4">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEntry(entry)}
-                          className="text-gray-400 hover:text-pathpiper-teal"
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="text-gray-400 hover:text-red-500"
-                            >
-                              <X size={16} />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Education Entry</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{entry.institutionName}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleRemoveEntry(entry.id)}
-                                className="bg-red-500 hover:bg-red-600"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      
                     </div>
                   </CardContent>
                 </Card>
