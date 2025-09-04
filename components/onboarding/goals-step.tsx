@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,6 +24,7 @@ interface GoalsStepProps {
   onComplete: (data: Goal[]) => void
   onNext: () => void
   onSkip: () => void
+  userId?: string
 }
 
 // Sample goal categories
@@ -31,7 +33,8 @@ const GOAL_CATEGORIES = ["Academic", "Career", "Skill Development", "Personal Gr
 // Sample timeframes
 const TIMEFRAMES = ["1 month", "3 months", "6 months", "1 year", "2+ years", "Ongoing"]
 
-export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: GoalsStepProps) {
+export default function GoalsStep({ initialData, onComplete, onNext, onSkip, userId }: GoalsStepProps) {
+  const router = useRouter()
   const [goals, setGoals] = useState<Goal[]>(initialData)
   const [originalGoals, setOriginalGoals] = useState<Goal[]>(initialData)
   const [isDirty, setIsDirty] = useState(false)
@@ -331,8 +334,8 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip }: G
             type="button"
             onClick={() => {
               console.log('🎯 Goals step - Continue button clicked')
-              console.log('🎯 Moving to next step without saving (goals already saved)')
-              onNext()
+              console.log('🎯 Redirecting directly to user profile page')
+              router.push(`/student/profile`)
             }}
             className="bg-teal-500 hover:bg-teal-600 text-white flex-1"
           >

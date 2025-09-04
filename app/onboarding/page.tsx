@@ -28,6 +28,7 @@ export default function Onboarding() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [userData, setUserData] = useState({
+    id: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -144,6 +145,7 @@ export default function Onboarding() {
 
             // Set user data from API response
             setUserData({
+              id: userData.id || "",
               firstName: userData.firstName || "",
               lastName: userData.lastName || "",
               email: userData.email || "",
@@ -554,6 +556,7 @@ export default function Onboarding() {
               {step === 5 && (
                 <GoalsStep
                   initialData={userData.goals || []}
+                  userId={userData.id || userData.studentId}
                   onComplete={async (goals) => {
                     setUserData({ ...userData, goals });
 
@@ -589,7 +592,7 @@ export default function Onboarding() {
                   onNext={() => {
                     console.log('Goals step next clicked - completing onboarding');
                     toast.success('Onboarding completed successfully!');
-                    router.push('/student/profile');
+                    router.push(`/student/profile`);
                   }}
                   onSkip={() => {
                     console.log('🔄 Skipping goals step');
