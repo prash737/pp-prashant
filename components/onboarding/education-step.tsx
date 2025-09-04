@@ -112,7 +112,7 @@ export default function EducationStep({
   useEffect(() => {
     const fetchInstitutionTypes = async () => {
       try {
-        const response = await fetch('/api/institution-types');
+        const response = await fetch('/api/onboarding-institution-types');
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
