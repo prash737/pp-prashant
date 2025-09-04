@@ -128,7 +128,7 @@ export default function EducationStep({
 
     const fetchExistingEducation = async () => {
       try {
-        const response = await fetch('/api/education', {
+        const response = await fetch('/api/onboarding-education', {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store'
@@ -271,7 +271,7 @@ export default function EducationStep({
 
     try {
       // Save to database immediately
-      const response = await fetch('/api/education', {
+      const response = await fetch('/api/onboarding-education', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -379,7 +379,7 @@ export default function EducationStep({
 
     try {
       // Save to database
-      const response = await fetch(`/api/education/${editingEntry.id}`, {
+      const response = await fetch(`/api/onboarding-education/${editingEntry.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ export default function EducationStep({
     try {
       // Only try to delete from database if it's a real ID (not negative temp ID)
       if (typeof id === 'number' && id > 0) {
-        const response = await fetch(`/api/education/${id}`, {
+        const response = await fetch(`/api/onboarding-education/${id}`, {
           method: 'DELETE',
           credentials: 'include',
         });
