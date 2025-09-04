@@ -559,7 +559,7 @@ export default function Onboarding() {
 
                     // Save goals to database
                     try {
-                      const response = await fetch('/api/goals', {
+                      const response = await fetch('/api/onboarding-goals', {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
