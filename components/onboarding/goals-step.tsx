@@ -323,8 +323,19 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip, use
             variant="outline"
             onClick={() => {
               console.log('🔄 Skipping goals step')
-              console.log('🔄 Calling onSkip')
-              onSkip()
+              
+              // Get user ID from cookie - immediate redirect with no delays
+              const cookies = document.cookie.split('; ');
+              const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
+              const userId = userIdCookie?.split('=')[1];
+              
+              if (userId) {
+                console.log('🎯 Redirecting to user-specific profile:', `/student/profile/${userId}`)
+                window.location.href = `/student/profile/${userId}`;
+              } else {
+                console.log('❌ No user ID found, redirecting to login')
+                window.location.href = '/login';
+              }
             }}
             className="flex-1"
           >
@@ -334,8 +345,19 @@ export default function GoalsStep({ initialData, onComplete, onNext, onSkip, use
             type="button"
             onClick={() => {
               console.log('🎯 Goals step - Continue button clicked')
-              console.log('🎯 Redirecting directly to user profile page')
-              router.push(`/student/profile`)
+              
+              // Get user ID from cookie - immediate redirect with no delays
+              const cookies = document.cookie.split('; ');
+              const userIdCookie = cookies.find(row => row.startsWith('current_user_id='));
+              const userId = userIdCookie?.split('=')[1];
+              
+              if (userId) {
+                console.log('🎯 Redirecting to user-specific profile:', `/student/profile/${userId}`)
+                window.location.href = `/student/profile/${userId}`;
+              } else {
+                console.log('❌ No user ID found, redirecting to login')
+                window.location.href = '/login';
+              }
             }}
             className="bg-teal-500 hover:bg-teal-600 text-white flex-1"
           >
