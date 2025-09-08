@@ -52,8 +52,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         }
 
         // Fetch interests based on user's age group
-        const interestsUrl = user.ageGroup 
-          ? `/api/interests?ageGroup=${user.ageGroup}` 
+        const interestsUrl = user.ageGroup
+          ? `/api/interests?ageGroup=${user.ageGroup}`
           : '/api/interests'
 
         console.log('🔍 Fetching interests from:', interestsUrl)
@@ -93,10 +93,10 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
   // Re-filter selected interests when interest categories change (age group change)
   useEffect(() => {
     if (interestCategories.length > 0 && selectedInterests.length > 0) {
-      const availableInterestIds = interestCategories.flatMap(category => 
+      const availableInterestIds = interestCategories.flatMap(category =>
         category.interests.map(interest => interest.id)
       )
-      const filteredInterests = selectedInterests.filter(interest => 
+      const filteredInterests = selectedInterests.filter(interest =>
         availableInterestIds.includes(interest.id)
       )
 
@@ -114,8 +114,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
@@ -135,31 +135,14 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }, [interestCategories, selectedInterests])
 
-  // Track dirty state - compare current interests with initial data
-  useEffect(() => {
-    const selectedNames = selectedInterests.map(interest => interest.name).sort()
-    const initialNames = [...initialInterests].sort()
-
-    // Check if arrays are different
-    const hasChanges = selectedNames.length !== initialNames.length || 
-                      !selectedNames.every((name, index) => name === initialNames[index])
-
-    if (isDirty !== hasChanges) {
-      setIsDirty(hasChanges)
-      // Notify parent about dirty state change
-      onChange("interests", selectedInterests, hasChanges)
-      console.log("🔍 Interests dirty bit:", hasChanges)
-    }
-  }, [selectedInterests, initialInterests, isDirty, onChange])
-
   useEffect(() => {
     if (searchTerm.trim() === "") {
       // Apply custom interest filtering when no search term
       const filteredCategories = interestCategories.map(category => {
         if (category.name === "Custom") {
           // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             )
           )
@@ -184,8 +167,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       .map((category) => {
         if (category.name === "Custom") {
           // For custom category, only show user's own custom interests that match search
-          const userCustomInterests = selectedInterests.filter(selected => 
-            category.interests.some(categoryInterest => 
+          const userCustomInterests = selectedInterests.filter(selected =>
+            category.interests.some(categoryInterest =>
               categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
             ) && selected.name.toLowerCase().includes(term)
           )
@@ -421,8 +404,8 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           onClick={handleSave}
           disabled={!isDirty}
           className={`w-full max-w-md mx-auto block ${
-            isDirty 
-              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90' 
+            isDirty
+              ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >
