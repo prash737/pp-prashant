@@ -1,6 +1,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,16 +18,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const types = await prisma.achievementType.findMany({
-      where: {
-        categoryId: parseInt(categoryId)
-      },
-      orderBy: {
-        name: 'asc'
-      }
-    })
+    // Fetch achievement types using direct Supabase query
+    const { data: types, error } = await supabase
+      .from('achievement_types')
+      .select('*')
+      .eq('category_id', parseInt(categoryId))
+      .order('name', { ascending: true })
 
-    return NextResponse.json({ types })
+    if (error) {
+      console.error('❌ Error fetching achievement types:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch achievement types' },
+        { status: 500 }
+      )
+    }
+
+    // Transform snake_case fields to camelCase for frontend compatibility
+    const transformedTypes = (types || []).map(type => ({
+      id: type.id,
+      name: type.name,
+      categoryId: type.category_id
+    }))
+
+    return NextResponse.json({ types: transformedTypes })
   } catch (error) {
     console.error('Error fetching achievement types:', error)
     return NextResponse.json(
