@@ -250,22 +250,29 @@ export default function AchievementsForm({ userId }: AchievementsFormProps) {
   const handleEdit = async (achievement: Achievement) => {
     setEditingId(achievement.id)
     
-    // First, get the category ID for this achievement type
-    const categoryId = await getCategoryIdFromTypeId(achievement.achievementTypeId)
-    
     // Format the date to ensure it has day as 01
     const originalDate = new Date(achievement.dateOfAchievement)
     const formattedDate = `${originalDate.getFullYear()}-${String(originalDate.getMonth() + 1).padStart(2, '0')}-01`
     
+    // Set the edit form data immediately with available data
     setEditFormData({
       name: achievement.name,
       description: achievement.description,
       dateOfAchievement: formattedDate,
-      categoryId: categoryId,
+      categoryId: '', // Will be set after fetching
       achievementTypeId: achievement.achievementTypeId?.toString() || '',
       achievementImageIcon: achievement.achievementImageIcon || '',
       useDefaultIcon: !achievement.achievementImageIcon
     })
+    
+    // Get the category ID for this achievement type asynchronously
+    const categoryId = await getCategoryIdFromTypeId(achievement.achievementTypeId)
+    
+    // Update the form data with the category ID
+    setEditFormData(prev => ({
+      ...prev,
+      categoryId: categoryId
+    }))
     
     // Fetch types for the category if we have one
     if (categoryId) {
