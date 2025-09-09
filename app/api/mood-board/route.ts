@@ -1,9 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { db, executeWithRetry } from '@/lib/drizzle/client'
-import { userCollections, moodBoard } from '@/lib/drizzle/schema'
-import { eq, and, or, isNull, asc, desc } from 'drizzle-orm'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -53,78 +50,93 @@ export async function GET(request: NextRequest) {
       reasoning: shouldFilterPrivate ? 'Filtering private collections' : 'Showing all collections including private'
     })
 
-    // Get collections with their mood board items - select only existing columns
-    let collectionsQuery = db
-      .select({
-        id: userCollections.id,
-        userId: userCollections.userId,
-        name: userCollections.name,
-        description: userCollections.description,
-        isPrivate: userCollections.isPrivate,
-        createdAt: userCollections.createdAt
-      })
-      .from(userCollections)
-      .where(eq(userCollections.userId, userId))
-      .orderBy(desc(userCollections.createdAt))
+    // Get collections with their mood board items
+    let collectionsQuery = supabase
+      .from('user_collections')
+      .select(`
+        id,
+        user_id,
+        name,
+        description,
+        is_private,
+        created_at
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
 
     if (shouldFilterPrivate) {
-      collectionsQuery = db
-        .select({
-          id: userCollections.id,
-          userId: userCollections.userId,
-          name: userCollections.name,
-          description: userCollections.description,
-          isPrivate: userCollections.isPrivate,
-          createdAt: userCollections.createdAt
-        })
-        .from(userCollections)
-        .where(
-          and(
-            eq(userCollections.userId, userId),
-            or(
-              eq(userCollections.isPrivate, false),
-              isNull(userCollections.isPrivate)
-            )
-          )
-        )
-        .orderBy(desc(userCollections.createdAt))
+      collectionsQuery = collectionsQuery.or('is_private.is.null,is_private.eq.false')
     }
 
-    const collections = await executeWithRetry(() => collectionsQuery)
+    const { data: collections, error: collectionsError } = await collectionsQuery
+
+    if (collectionsError) {
+      console.error('Error fetching collections:', collectionsError)
+      return NextResponse.json({ error: 'Failed to fetch collections' }, { status: 500 })
+    }
 
     // Get mood board items for each collection
     const collectionsWithItems = await Promise.all(
-      collections.map(async (collection) => {
-        const items = await executeWithRetry(() => db
-          .select()
-          .from(moodBoard)
-          .where(eq(moodBoard.collectionId, collection.id))
-          .orderBy(asc(moodBoard.position))
-        )
+      (collections || []).map(async (collection) => {
+        const { data: items, error: itemsError } = await supabase
+          .from('mood_board')
+          .select('*')
+          .eq('collection_id', collection.id)
+          .order('position', { ascending: true })
+
+        if (itemsError) {
+          console.error('Error fetching mood board items:', itemsError)
+          return {
+            ...collection,
+            userId: collection.user_id,
+            isPrivate: collection.is_private,
+            createdAt: collection.created_at,
+            moodBoard: []
+          }
+        }
 
         return {
           ...collection,
-          moodBoard: items
+          userId: collection.user_id,
+          isPrivate: collection.is_private,
+          createdAt: collection.created_at,
+          moodBoard: items?.map(item => ({
+            ...item,
+            userId: item.user_id,
+            imageUrl: item.image_url,
+            collectionId: item.collection_id,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          })) || []
         }
       })
     )
 
     // Also get mood board items without collections (legacy support)
-    const uncategorizedItems = await executeWithRetry(() => db
-      .select()
-      .from(moodBoard)
-      .where(
-        and(
-          eq(moodBoard.userId, userId),
-          isNull(moodBoard.collectionId)
-        )
-      )
-      .orderBy(asc(moodBoard.position))
-    )
+    const { data: uncategorizedItems, error: uncategorizedError } = await supabase
+      .from('mood_board')
+      .select('*')
+      .eq('user_id', userId)
+      .is('collection_id', null)
+      .order('position', { ascending: true })
+
+    if (uncategorizedError) {
+      console.error('Error fetching uncategorized items:', uncategorizedError)
+      return NextResponse.json({ error: 'Failed to fetch uncategorized items' }, { status: 500 })
+    }
+
+    const transformedUncategorizedItems = (uncategorizedItems || []).map(item => ({
+      ...item,
+      userId: item.user_id,
+      imageUrl: item.image_url,
+      collectionId: item.collection_id,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    }))
 
     return NextResponse.json({ 
       collections: collectionsWithItems,
-      uncategorizedItems
+      uncategorizedItems: transformedUncategorizedItems
     })
   } catch (error) {
     console.error('Error fetching mood board:', error)
@@ -140,18 +152,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID and image URL are required' }, { status: 400 })
     }
 
-    const [newItem] = await db
-      .insert(moodBoard)
-      .values({
-        userId,
-        imageUrl,
+    const { data: newItem, error } = await supabase
+      .from('mood_board')
+      .insert({
+        user_id: userId,
+        image_url: imageUrl,
         caption: caption || '',
         position: position || 0,
-        collectionId: collectionId || null
+        collection_id: collectionId || null
       })
-      .returning()
+      .select()
+      .single()
 
-    return NextResponse.json({ success: true, item: newItem })
+    if (error) {
+      console.error('Error creating mood board item:', error)
+      return NextResponse.json({ error: 'Failed to create mood board item' }, { status: 500 })
+    }
+
+    const transformedItem = {
+      ...newItem,
+      userId: newItem.user_id,
+      imageUrl: newItem.image_url,
+      collectionId: newItem.collection_id,
+      createdAt: newItem.created_at,
+      updatedAt: newItem.updated_at
+    }
+
+    return NextResponse.json({ success: true, item: transformedItem })
   } catch (error) {
     console.error('Error creating mood board item:', error)
     return NextResponse.json({ error: 'Failed to create mood board item' }, { status: 500 })
@@ -164,10 +191,15 @@ export async function PUT(request: NextRequest) {
 
     // Handle single item caption update
     if (itemId && caption !== undefined) {
-      await db
-        .update(moodBoard)
-        .set({ caption })
-        .where(eq(moodBoard.id, itemId))
+      const { error } = await supabase
+        .from('mood_board')
+        .update({ caption })
+        .eq('id', itemId)
+
+      if (error) {
+        console.error('Error updating mood board item caption:', error)
+        return NextResponse.json({ error: 'Failed to update mood board item' }, { status: 500 })
+      }
       
       return NextResponse.json({ success: true })
     }
@@ -175,13 +207,18 @@ export async function PUT(request: NextRequest) {
     // Handle bulk update (for backward compatibility)
     if (Array.isArray(items)) {
       for (let i = 0; i < items.length; i++) {
-        await db
-          .update(moodBoard)
-          .set({ 
+        const { error } = await supabase
+          .from('mood_board')
+          .update({ 
             position: i,
             caption: items[i].caption || ''
           })
-          .where(eq(moodBoard.id, items[i].id))
+          .eq('id', items[i].id)
+
+        if (error) {
+          console.error('Error updating mood board item:', error)
+          return NextResponse.json({ error: 'Failed to update mood board item' }, { status: 500 })
+        }
       }
       return NextResponse.json({ success: true })
     }
@@ -202,9 +239,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Item ID is required' }, { status: 400 })
     }
 
-    await db
-      .delete(moodBoard)
-      .where(eq(moodBoard.id, itemId))
+    const { error } = await supabase
+      .from('mood_board')
+      .delete()
+      .eq('id', itemId)
+
+    if (error) {
+      console.error('Error deleting mood board item:', error)
+      return NextResponse.json({ error: 'Failed to delete mood board item' }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
