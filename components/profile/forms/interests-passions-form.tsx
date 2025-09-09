@@ -53,23 +53,28 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
 
         // Fetch interests based on user's age group
         const interestsUrl = user.ageGroup
-          ? `/api/interests?ageGroup=${user.ageGroup}`
-          : '/api/interests'
+          ? `/api/onboarding-interests?ageGroup=${user.ageGroup}`
+          : '/api/onboarding-interests'
 
         console.log('🔍 Fetching interests from:', interestsUrl)
         const interestsResponse = await fetch(interestsUrl)
         if (!interestsResponse.ok) {
           throw new Error('Failed to fetch interests')
         }
-        const categories = await interestsResponse.json()
+        const { categories } = await interestsResponse.json()
         console.log('✅ Interest categories loaded:', categories.length, 'categories')
         setInterestCategories(categories)
         setFilteredCategories(categories)
 
         // Load user's existing interests
-        const userInterestsResponse = await fetch('/api/user/interests')
+        const userInterestsResponse = await fetch('/api/user/onboarding-interests')
         if (userInterestsResponse.ok) {
-          const { interests } = await userInterestsResponse.json()
+          const { interests: userInterestsData } = await userInterestsResponse.json()
+          const interests = userInterestsData.map(item => ({
+            id: item.interests.id,
+            name: item.interests.name,
+            category: item.interests.interest_categories?.name
+          }))
           console.log('✅ User existing interests loaded:', interests.length, 'interests:', interests)
           setSelectedInterests(interests)
 
@@ -232,7 +237,7 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
       if (isDirty) {
         console.log("💾 Interests have changes, saving to database...")
         // Save interests to database
-        const response = await fetch('/api/user/interests', {
+        const response = await fetch('/api/user/onboarding-interests', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
