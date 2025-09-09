@@ -62,9 +62,9 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           throw new Error('Failed to fetch interests')
         }
         const { categories } = await interestsResponse.json()
-        console.log('✅ Interest categories loaded:', categories.length, 'categories')
-        setInterestCategories(categories)
-        setFilteredCategories(categories)
+        console.log('✅ Interest categories loaded:', categories?.length || 0, 'categories')
+        setInterestCategories(categories || [])
+        setFilteredCategories(categories || [])
 
         // Load user's existing interests
         const userInterestsResponse = await fetch('/api/user/onboarding-interests')
