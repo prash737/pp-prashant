@@ -228,43 +228,6 @@ export default function AboutSection({ student: studentProp, currentUser, isView
             </div>
           </motion.div>
 
-          {/* Interests Section - Only show for own profile */}
-          {isOwnProfile && (
-            <motion.div
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h3 className="font-semibold mb-3">My Interests</h3>
-              <div className="space-y-4">
-                {student.interests && student.interests.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {student.interests.map((interest, index) => (
-                      <span
-                        key={`interest-${interest.id || index}`}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-pathpiper-teal/10 text-pathpiper-teal border border-pathpiper-teal/20"
-                      >
-                        {interest.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="bg-gray-100 dark:bg-gray-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">No interests added yet</p>
-                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
-                      Add interests to help others discover your passions
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
           {/* Career Goals */}
           {student.careerGoals && student.careerGoals.length > 0 && (
             <motion.div
