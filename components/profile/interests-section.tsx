@@ -44,12 +44,13 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
     router.push('/student/profile/edit?section=interests')
   }
 
-  // Lazy load interests when component mounts
+  // Lazy load interests when component mounts and user is available
   useEffect(() => {
-    if (!hasLoaded && currentUser?.id) {
+    if (!hasLoaded && currentUser?.id && currentUser.role === 'student') {
+      console.log('🎯 InterestsSection: Component mounted, loading user interests...')
       loadUserInterests()
     }
-  }, [currentUser?.id, hasLoaded])
+  }, [currentUser?.id, currentUser?.role, hasLoaded])
 
   const loadUserInterests = async () => {
     try {
@@ -58,7 +59,7 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
       
       console.log('🔍 InterestsSection: Lazy loading user interests for user:', currentUser?.id)
       
-      const response = await fetch('/api/user/interests', {
+      const response = await fetch('/api/user/onboarding-interests', {
         credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -72,9 +73,16 @@ export default function InterestsSection({ student, currentUser }: InterestsSect
       }
 
       const data = await response.json()
-      console.log('✅ InterestsSection: User interests loaded:', data.interests?.length || 0, 'interests')
+      console.log('✅ InterestsSection: User interests loaded from onboarding-interests API:', data.interests?.length || 0, 'interests')
       
-      setUserInterests(data.interests || [])
+      // Transform the data to match expected format
+      const transformedInterests = (data.interests || []).map(interest => ({
+        id: interest.id,
+        name: interest.name,
+        category: interest.categoryId ? 'Custom' : 'General'
+      }))
+      
+      setUserInterests(transformedInterests)
       setHasLoaded(true)
     } catch (err) {
       console.error('❌ InterestsSection: Error loading interests:', err)
