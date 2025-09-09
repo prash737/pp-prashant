@@ -70,10 +70,10 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         const userInterestsResponse = await fetch('/api/user/onboarding-interests')
         if (userInterestsResponse.ok) {
           const { interests: userInterestsData } = await userInterestsResponse.json()
-          const interests = userInterestsData.map(item => ({
-            id: item.interests.id,
-            name: item.interests.name,
-            category: item.interests.interest_categories?.name
+          const interests = (userInterestsData || []).map(item => ({
+            id: item.id,
+            name: item.name,
+            category: item.categoryId ? 'Custom' : undefined
           }))
           console.log('✅ User existing interests loaded:', interests.length, 'interests:', interests)
           setSelectedInterests(interests)
