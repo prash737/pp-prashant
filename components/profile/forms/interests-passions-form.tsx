@@ -61,29 +61,51 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
         if (!interestsResponse.ok) {
           throw new Error('Failed to fetch interests')
         }
-        const { categories } = await interestsResponse.json()
+        const categories = await interestsResponse.json()
         console.log('✅ Interest categories loaded:', categories?.length || 0, 'categories')
-        setInterestCategories(categories || [])
-        setFilteredCategories(categories || [])
 
-        // Load user's existing interests
+        // Load user's existing interests first
+        let userSelectedInterests = []
         const userInterestsResponse = await fetch('/api/user/onboarding-interests')
         if (userInterestsResponse.ok) {
           const { interests: userInterestsData } = await userInterestsResponse.json()
-          const interests = (userInterestsData || []).map(item => ({
+          userSelectedInterests = (userInterestsData || []).map(item => ({
             id: item.id,
             name: item.name,
             category: item.categoryId ? 'Custom' : undefined
           }))
-          console.log('✅ User existing interests loaded:', interests.length, 'interests:', interests)
-          setSelectedInterests(interests)
+          console.log('✅ User existing interests loaded:', userSelectedInterests.length, 'interests:', userSelectedInterests)
+          setSelectedInterests(userSelectedInterests)
 
           // Store initial interests for dirty tracking
-          const interestNames = interests.map((interest: Interest) => interest.name)
+          const interestNames = userSelectedInterests.map((interest: Interest) => interest.name)
           setInitialInterests(interestNames)
         } else {
           console.log('❌ Failed to load user interests:', userInterestsResponse.status)
         }
+
+        // Filter custom interests to show only those selected by the user
+        const filteredCategories = categories.map(category => {
+          if (category.name === 'Custom') {
+            // Only show custom interests that the user has actually selected
+            const userSelectedCustomInterests = category.interests.filter(interest =>
+              userSelectedInterests.some(selectedInterest => selectedInterest.id === interest.id)
+            )
+            return {
+              ...category,
+              interests: userSelectedCustomInterests
+            }
+          }
+          return category
+        }).filter(category =>
+          // Remove Custom category entirely if user has no custom interests selected
+          category.name !== 'Custom' || category.interests.length > 0
+        )
+
+        console.log('✅ Filtered categories (Custom interests filtered to user-selected only):', filteredCategories.length, 'categories')
+        setInterestCategories(filteredCategories)
+        setFilteredCategories(filteredCategories)
+
       } catch (error) {
         console.error('Error fetching user data and interests:', error)
         toast.error('Failed to load interests. Please try again.')
@@ -113,89 +135,64 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
   }, [interestCategories])
 
-  // Filter interest categories to only show user's own custom interests
-  useEffect(() => {
-    if (interestCategories.length > 0) {
-      const filteredCategories = interestCategories.map(category => {
-        if (category.name === "Custom") {
-          // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
-              categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
-            )
-          )
-
-          return {
-            ...category,
-            interests: userCustomInterests.map(interest => ({
-              id: interest.id,
-              name: interest.name
-            }))
-          }
-        }
-        return category
-      })
-
-      setFilteredCategories(filteredCategories)
-    }
-  }, [interestCategories, selectedInterests])
-
   useEffect(() => {
     if (searchTerm.trim() === "") {
-      // Apply custom interest filtering when no search term
-      const filteredCategories = interestCategories.map(category => {
-        if (category.name === "Custom") {
-          // For custom category, only show interests that the user has selected
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
-              categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
-            )
+      // When no search term, show all categories but filter custom interests
+      const categoriesWithFilteredCustom = interestCategories.map(category => {
+        if (category.name === 'Custom') {
+          // For custom category, only show interests that are selected by the user
+          const userSelectedCustomInterests = category.interests.filter(interest =>
+            selectedInterests.some(selectedInterest => selectedInterest.id === interest.id)
           )
-
           return {
             ...category,
-            interests: userCustomInterests.map(interest => ({
-              id: interest.id,
-              name: interest.name
-            }))
+            interests: userSelectedCustomInterests
           }
         }
         return category
-      })
+      }).filter(category =>
+        // Remove Custom category entirely if no custom interests are selected
+        category.name !== 'Custom' || category.interests.length > 0
+      )
 
-      setFilteredCategories(filteredCategories)
+      setFilteredCategories(categoriesWithFilteredCustom)
       return
     }
 
     const term = searchTerm.toLowerCase()
     const filtered = interestCategories
       .map((category) => {
-        if (category.name === "Custom") {
-          // For custom category, only show user's own custom interests that match search
-          const userCustomInterests = selectedInterests.filter(selected =>
-            category.interests.some(categoryInterest =>
-              categoryInterest.id === selected.id && (selected.id < 0 || selected.category === "Custom")
-            ) && selected.name.toLowerCase().includes(term)
-          )
+        let filteredInterests = category.interests.filter((interest) => interest.name.toLowerCase().includes(term))
 
-          return {
-            name: category.name,
-            interests: userCustomInterests.map(interest => ({
-              id: interest.id,
-              name: interest.name
-            }))
-          }
+        // For custom category, also filter to only show user-selected interests
+        if (category.name === 'Custom') {
+          filteredInterests = filteredInterests.filter(interest =>
+            selectedInterests.some(selectedInterest => selectedInterest.id === interest.id)
+          )
         }
 
         return {
           name: category.name,
-          interests: category.interests.filter((interest) => interest.name.toLowerCase().includes(term)),
+          interests: filteredInterests,
         }
       })
       .filter((category) => category.interests.length > 0)
 
     setFilteredCategories(filtered)
   }, [searchTerm, interestCategories, selectedInterests])
+
+  // Track dirty state - compare current interests with initial data
+  useEffect(() => {
+    const selectedNames = selectedInterests.map(interest => interest.name).sort()
+    const initialNames = [...initialInterests].sort()
+
+    // Check if arrays are different
+    const hasChanges = selectedNames.length !== initialNames.length ||
+                      !selectedNames.every((name, index) => name === initialNames[index])
+
+    setIsDirty(hasChanges)
+    console.log("🔍 Interests dirty bit:", hasChanges)
+  }, [selectedInterests, initialInterests])
 
   const toggleInterest = (interest: Interest) => {
     const isSelected = selectedInterests.some(i => i.id === interest.id)
@@ -220,6 +217,33 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
     }
 
     setSelectedInterests([...selectedInterests, customInterestObj])
+
+    // Add the custom interest to the Custom category in interestCategories if it doesn't exist
+    setInterestCategories(prevCategories => {
+      const updatedCategories = prevCategories.map(category => {
+        if (category.name === 'Custom') {
+          // Add the new custom interest if it's not already there
+          if (!category.interests.some(interest => interest.name === trimmedInterest)) {
+            return {
+              ...category,
+              interests: [...category.interests, customInterestObj]
+            }
+          }
+        }
+        return category
+      })
+
+      // If no Custom category exists, create one
+      if (!updatedCategories.some(cat => cat.name === 'Custom')) {
+        updatedCategories.push({
+          name: 'Custom',
+          interests: [customInterestObj]
+        })
+      }
+
+      return updatedCategories
+    })
+
     setCustomInterest("")
   }
 
@@ -324,35 +348,31 @@ export default function InterestsPassionsForm({ data, onChange }: InterestsPassi
           </div>
 
           {/* Interest Categories */}
-          <div className="space-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="space-y-6 max-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             {filteredCategories.map((category) => (
-              <div key={category.name} className="mb-6">
-                <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                  {category.name}
-                </h4>
+              <div key={category.name}>
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-3">{category.name}</h3>
                 <div className="flex flex-wrap gap-2">
                   {category.interests.map((interest) => {
-                    const isSelected = selectedInterests.some(i => i.id === interest.id)
+                    const isSelected = selectedInterests.some(si => si.id === interest.id)
                     return (
-                      <Button
-                        key={interest.id}
+                      <button
+                        key={`interest-${interest.id}`}
                         type="button"
-                        variant={isSelected ? "default" : "outline"}
-                        size="sm"
                         onClick={() => toggleInterest(interest)}
-                        className={`transition-all ${
+                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
                           isSelected
-                            ? 'bg-pathpiper-teal hover:bg-pathpiper-teal/90 text-white'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                            ? "bg-pathpiper-teal text-white"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                         }`}
                       >
                         {interest.name}
                         {isSelected ? (
-                          <X size={14} className="ml-1" />
+                          <X size={14} className="ml-1 inline" />
                         ) : (
-                          <Plus size={14} className="ml-1" />
+                          <Plus size={14} className="ml-1 inline" />
                         )}
-                      </Button>
+                      </button>
                     )
                   })}
                 </div>
