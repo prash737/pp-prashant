@@ -70,7 +70,7 @@ export default function SkillsAbilitiesForm({
           console.log('🔍 Using user age group for skills:', actualAgeGroup)
 
           // Fetch skill categories for the user's age group
-          const skillsResponse = await fetch(`/api/skills?ageGroup=${actualAgeGroup}`)
+          const skillsResponse = await fetch(`/api/onboarding-skills?ageGroup=${actualAgeGroup}`)
           if (skillsResponse.ok) {
             const skillsData = await skillsResponse.json()
             console.log('✅ Loaded skill categories for age group:', actualAgeGroup, skillsData.categories?.length || 0, 'categories')
@@ -88,7 +88,7 @@ export default function SkillsAbilitiesForm({
         }
 
         // Fetch user's current skills
-        const userSkillsResponse = await fetch('/api/user/skills')
+        const userSkillsResponse = await fetch('/api/user/onboarding-skills')
         if (userSkillsResponse.ok) {
           const userSkillsData = await userSkillsResponse.json()
           // Transform user skills to match component format
@@ -299,7 +299,7 @@ export default function SkillsAbilitiesForm({
         
         // Send all skills (with and without IDs) to the API
         // The API will handle filtering based on user's actual age group
-        const response = await fetch('/api/user/skills', {
+        const response = await fetch('/api/user/onboarding-skills', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
