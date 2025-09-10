@@ -330,19 +330,61 @@ export default function EducationHistoryForm({ data, onChange }: EducationHistor
       return;
     }
 
-    const updatedEducation = educationHistory.map(entry => 
-      entry.id === editingEntry.id ? editingEntry : entry
-    )
-    setEducationHistory(updatedEducation)
+    try {
+      setIsSaving(true)
+      console.log('📝 Updating education entry:', editingEntry.id, editingEntry)
 
-    // Auto-save to database
-    await saveEducationToDatabase(updatedEducation)
+      // Make PUT request to update specific education entry
+      const response = await fetch(`/api/education/${editingEntry.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          institutionName: editingEntry.institutionName,
+          institutionType: editingEntry.institutionType,
+          institutionId: editingEntry.institutionId,
+          institutionVerified: editingEntry.institutionVerified,
+          degree: editingEntry.degree,
+          fieldOfStudy: editingEntry.fieldOfStudy,
+          subjects: editingEntry.subjects,
+          startDate: editingEntry.startDate,
+          endDate: editingEntry.endDate,
+          isCurrent: editingEntry.isCurrent,
+          grade: editingEntry.grade,
+          description: editingEntry.description
+        }),
+      })
 
-    // Fetch fresh data from database to ensure UI is in sync
-    await fetchEducationFromDatabase()
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Failed to update education entry:', errorData)
+        throw new Error(errorData.error || 'Failed to update education entry')
+      }
 
-    setEditingEntry(null)
-    setIsAddingEntry(false)
+      const result = await response.json()
+      console.log('✅ Education entry updated successfully:', result)
+
+      toast.success('Education entry updated successfully!')
+
+      // Update local state with the edited entry
+      const updatedEducation = educationHistory.map(entry => 
+        entry.id === editingEntry.id ? editingEntry : entry
+      )
+      setEducationHistory(updatedEducation)
+
+      // Fetch fresh data from database to ensure UI is in sync
+      await fetchEducationFromDatabase()
+
+      setEditingEntry(null)
+      setIsAddingEntry(false)
+    } catch (error) {
+      console.error('❌ Error updating education entry:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to update education entry')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleRemoveEntry = async (id: number | string) => {
