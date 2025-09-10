@@ -139,6 +139,12 @@ export async function POST(request: NextRequest) {
       for (const entry of data.education) {
         if (!entry.institutionName || !entry.institutionType) continue;
         
+        // Skip entries that already have an ID (already exist in database)
+        if (entry.id) {
+          console.log('Skipping existing education entry with ID:', entry.id);
+          continue;
+        }
+        
         const { data: educationRecord, error: insertError } = await supabase
           .from('student_education_history')
           .insert({
