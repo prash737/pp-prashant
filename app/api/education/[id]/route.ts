@@ -47,7 +47,7 @@ export async function PUT(
     const educationId = params.id;
 
     // Validate required fields
-    if (!data.institutionName || !data.institutionTypeId) {
+    if (!data.institutionName || (!data.institutionType && !data.institutionTypeId)) {
       return NextResponse.json(
         { error: 'Institution name and type are required' },
         { status: 400 }
@@ -73,8 +73,9 @@ export async function PUT(
     const { data: updatedEducation, error: updateError } = await supabase
       .from('student_education_history')
       .update({
+        institution_id: data.institutionId || null,
         institution_name: data.institutionName,
-        institution_type_id: parseInt(data.institutionTypeId),
+        institution_type_id: parseInt(data.institutionType || data.institutionTypeId),
         degree_program: data.degree || null,
         field_of_study: data.fieldOfStudy || null,
         subjects: Array.isArray(data.subjects) ? data.subjects : [],
