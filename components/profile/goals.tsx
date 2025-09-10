@@ -207,10 +207,6 @@ const Goals: React.FC<GoalsProps> = ({ student, currentUser, goals = [], isViewM
                       <span>{goal.timeframe}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>Added {new Date(goal.created_at).toLocaleDateString()}</span>
-                  </div>
                 </div>
               </div>
             </div>
