@@ -168,8 +168,9 @@ export default function ProfileHeader({
   const currentEducation = educationHistory.find((edu: any) => edu.isCurrent === true || edu.is_current === true) ||
                            educationHistory[0] // Most recent education (already sorted by API)
   
-  const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
-  const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
+  // Only show education data if it actually exists - no default fallbacks
+  const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level
+  const schoolName = currentEducation?.institutionName || currentEducation?.institution_name
 
   // Get profile image - prioritize nested profile structure, then direct field
   const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
@@ -687,9 +688,11 @@ export default function ProfileHeader({
                           {tagline}
                         </p>
                       )}
-                      <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                        {gradeLevel} • {schoolName}
-                      </p>
+                      {(gradeLevel && schoolName) && (
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                          {gradeLevel} • {schoolName}
+                        </p>
+                      )}
                     </div>
                   </div>
 
