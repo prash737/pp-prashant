@@ -69,7 +69,7 @@ model Profile {
   coverImageUrl      String?   @map("cover_image_url")
   themePreference    String    @default("default") @map("theme_preference")
   timezone           String?
-  availabilityStatus String    @default("online") @map("availability_status")
+  availabilityStatus String?   @default("online") @map("availability_status")
   lastActiveDate     DateTime  @default(now()) @map("last_active_date")
   profileViews       Int       @default(0) @map("profile_views")
   createdAt          DateTime  @default(now()) @map("created_at")
