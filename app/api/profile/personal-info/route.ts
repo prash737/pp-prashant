@@ -1,199 +1,138 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { getUserProfile, updateUserProfile, updateStudentProfile } from '@/lib/db/profile'
+import { prisma } from '@/lib/prisma'
+import { supabase } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🎯 GET /api/profile/personal-info - Request received')
-    
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    let token = authHeader?.replace('Bearer ', '')
+    const cookieStore = await cookies()
 
-    if (!token) {
-      // Try to get token from cookies as fallback
-      const authCookie = request.cookies.get('sb-access-token')?.value ||
-                        request.cookies.get('sb-refresh-token')?.value
+    // Get the access token from cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
 
-      if (authCookie) {
-        token = authCookie
-      }
-    }
-
-    if (!token) {
-      console.log('❌ GET /api/profile/personal-info - No token found')
+    if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized - no access token' }, { status: 401 })
     }
 
-    // Verify the user
-    const { data: authData, error: authError } = await supabase.auth.getUser(token)
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
 
-    if (authError || !authData.user) {
-      console.log('❌ GET /api/profile/personal-info - Auth verification failed:', authError?.message)
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized - invalid token' }, { status: 401 })
     }
 
-    const userId = authData.user.id
-    console.log('✅ GET /api/profile/personal-info - User authenticated:', userId)
+    // Use optimized single query to get all profile data
+    const profile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      include: {
+        student: true,
+        mentor: true,
+        institution: true,
+        userInterests: {
+          include: {
+            interest: {
+              include: {
+                category: true
+              }
+            }
+          }
+        },
+        userSkills: {
+          include: {
+            skill: {
+              include: {
+                category: true
+              }
+            }
+          }
+        }
+      }
+    })
 
-    // Fetch user profile using direct Supabase query with relationships
-    console.log('🔍 Supabase Query: Fetching profile with relationships for user:', userId)
-    console.log('📝 Query Details: SELECT profiles with student_profiles, user_interests, user_skills')
-    
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        first_name,
-        last_name,
-        bio,
-        location,
-        tagline,
-        professional_summary,
-        profile_image_url,
-        cover_image_url,
-        timezone,
-        availability_status,
-        role,
-        student_profiles (
-          education_level,
-          age_group,
-          birth_month,
-          birth_year,
-          personality_type,
-          learning_style,
-          favorite_quote
-        ),
-        user_interests (
-          interests (
-            id,
-            name,
-            interest_categories (
-              name
-            )
-          )
-        ),
-        user_skills (
-          proficiency_level,
-          skills (
-            id,
-            name,
-            skill_categories (
-              name
-            )
-          )
-        )
-      `)
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      console.error('❌ Error fetching profile:', error)
+    if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    console.log('✅ Supabase Query Result: Found profile for user:', userId)
-
-    // Transform the response to match the expected structure (camelCase)
+    // Format the response to match the expected structure
     const formattedProfile = {
       id: profile.id,
-      firstName: profile.first_name,
-      lastName: profile.last_name,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
       bio: profile.bio,
       location: profile.location,
       tagline: profile.tagline,
-      professionalSummary: profile.professional_summary,
-      profileImageUrl: profile.profile_image_url,
-      coverImageUrl: profile.cover_image_url,
+      professionalSummary: profile.professionalSummary,
+      profileImageUrl: profile.profileImageUrl,
+      coverImageUrl: profile.coverImageUrl,
       timezone: profile.timezone,
-      availabilityStatus: profile.availability_status,
+      availabilityStatus: profile.availabilityStatus,
       role: profile.role,
-      // Student-specific fields (if student profile exists)
-      ...(profile.student_profiles && profile.student_profiles.length > 0 && {
-        educationLevel: profile.student_profiles[0].education_level,
-        ageGroup: profile.student_profiles[0].age_group,
-        birthMonth: profile.student_profiles[0].birth_month,
-        birthYear: profile.student_profiles[0].birth_year,
-        personalityType: profile.student_profiles[0].personality_type,
-        learningStyle: profile.student_profiles[0].learning_style,
-        favoriteQuote: profile.student_profiles[0].favorite_quote
+      // Student-specific fields
+      ...(profile.student && {
+        educationLevel: profile.student.educationLevel,
+        ageGroup: profile.student.age_group,
+        birthMonth: profile.student.birthMonth,
+        birthYear: profile.student.birthYear,
+        personalityType: profile.student.personalityType,
+        learningStyle: profile.student.learningStyle,
+        favoriteQuote: profile.student.favoriteQuote
       }),
       // Include interests and skills
-      interests: profile.user_interests?.map(ui => ({
-        id: ui.interests.id,
-        name: ui.interests.name,
-        category: ui.interests.interest_categories?.name || 'Uncategorized'
+      interests: profile.userInterests?.map(ui => ({
+        id: ui.interest.id,
+        name: ui.interest.name,
+        category: ui.interest.category.name
       })) || [],
-      skills: profile.user_skills?.map(us => ({
-        id: us.skills.id,
-        name: us.skills.name,
-        category: us.skills.skill_categories?.name || 'Uncategorized',
-        level: us.proficiency_level
+      skills: profile.userSkills?.map(us => ({
+        id: us.skill.id,
+        name: us.skill.name,
+        category: us.skill.category.name,
+        level: us.proficiencyLevel
       })) || []
     }
 
-    console.log('📊 Personal Info API Result: Successfully formatted profile data')
-
     const response = NextResponse.json(formattedProfile)
-    
+
     // Add cache headers to reduce unnecessary requests
     response.headers.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=300')
 
     return response
   } catch (error) {
-    console.error('❌ Error fetching personal info:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error fetching profile:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    console.log('🎯 PUT /api/profile/personal-info - Request received')
-    
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization')
-    let token = authHeader?.replace('Bearer ', '')
+    const cookieStore = await cookies()
 
-    if (!token) {
-      // Try to get token from cookies as fallback
-      const authCookie = request.cookies.get('sb-access-token')?.value ||
-                        request.cookies.get('sb-refresh-token')?.value
+    // Get the access token from cookies
+    const accessToken = cookieStore.get('sb-access-token')?.value
 
-      if (authCookie) {
-        token = authCookie
-      }
-    }
-
-    if (!token) {
-      console.log('❌ PUT /api/profile/personal-info - No token found')
+    if (!accessToken) {
       return NextResponse.json({ error: 'Unauthorized - no access token' }, { status: 401 })
     }
 
-    // Verify the user
-    const { data: authData, error: authError } = await supabase.auth.getUser(token)
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
 
-    if (authError || !authData.user) {
-      console.log('❌ PUT /api/profile/personal-info - Auth verification failed:', authError?.message)
+    if (error || !user) {
       return NextResponse.json({ error: 'Unauthorized - invalid token' }, { status: 401 })
     }
 
-    const userId = authData.user.id
     const body = await request.json()
 
-    console.log('✅ PUT /api/profile/personal-info - User authenticated:', userId)
-    console.log('📝 Update data received:', Object.keys(body))
-
-    // Validate required fields
+    // Validate required fields (use authenticated user ID)
     if (!body.firstName || !body.lastName) {
-      console.log('❌ PUT /api/profile/personal-info - Missing required fields')
       return NextResponse.json(
         { error: 'First name and last name are required' },
         { status: 400 }
-      )
+      );
     }
 
     // Separate profile data from student-specific data
@@ -205,118 +144,85 @@ export async function PUT(request: NextRequest) {
       personalityType,
       learningStyle,
       favoriteQuote,
+      linkedinUrl,
+      portfolioUrl,
       ...profileData
     } = body
 
-    // Update main profile using direct Supabase query
-    console.log('🔍 Supabase Query: Updating main profile')
-    console.log('📝 Query Details: UPDATE profiles SET ... WHERE id = ?')
-    
-    const { data: updatedProfile, error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        first_name: profileData.firstName.trim(),
-        last_name: profileData.lastName.trim(),
-        bio: profileData.bio?.trim() || null,
-        location: profileData.location?.trim() || null,
-        tagline: profileData.tagline || null,
-        professional_summary: profileData.professionalSummary || null,
-        profile_image_url: profileData.profileImageUrl || null,
-        cover_image_url: profileData.coverImageUrl || null,
-        timezone: profileData.timezone || null,
-        availability_status: profileData.availabilityStatus || null,
-        updated_at: new Date()
-      })
-      .eq('id', userId)
-      .select()
-      .single()
+    // Update main profile using Prisma
+    const updatedProfile = await updateUserProfile(user.id, {
+      firstName: profileData.firstName.trim(),
+      lastName: profileData.lastName.trim(),
+      bio: profileData.bio?.trim() || null,
+      location: profileData.location?.trim() || null,
+      tagline: profileData.tagline,
+      professionalSummary: profileData.professionalSummary,
+      profileImageUrl: profileData.profileImageUrl,
+      coverImageUrl: profileData.coverImageUrl,
+      timezone: profileData.timezone,
+      availabilityStatus: profileData.availabilityStatus,
+    })
 
-    if (profileError) {
-      console.error('❌ Error updating profile:', profileError)
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
-    }
-
-    console.log('✅ Supabase Query Result: Profile updated successfully')
-
-    // Update student profile if student-specific data is provided and user is a student
+    // Update student profile if student-specific data is provided
     if (updatedProfile.role === 'student' && 
         (educationLevel || ageGroup || birthMonth || birthYear || personalityType || learningStyle || favoriteQuote)) {
 
-      console.log('🔍 Supabase Query: Updating student profile')
-      console.log('📝 Query Details: UPDATE student_profiles SET ... WHERE id = ?')
-
       // Calculate age group from birth data if available
       const calculateAgeGroup = (birthMonth: string, birthYear: string): string => {
-        if (!birthMonth || !birthYear) return "young_adult"
+        if (!birthMonth || !birthYear) return "young_adult";
 
-        const currentDate = new Date()
-        const currentYear = currentDate.getFullYear()
-        const currentMonth = currentDate.getMonth() + 1
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
 
-        const birthYearNum = parseInt(birthYear)
-        const birthMonthNum = parseInt(birthMonth)
+        const birthYearNum = parseInt(birthYear);
+        const birthMonthNum = parseInt(birthMonth);
 
-        let ageInYears = currentYear - birthYearNum
+        let ageInYears = currentYear - birthYearNum;
         if (currentMonth < birthMonthNum) {
-          ageInYears--
+          ageInYears--;
         }
 
         if (ageInYears < 5) {
-          return "early_childhood"
+          return "early_childhood";
         } else if (ageInYears < 11) {
-          return "elementary"
+          return "elementary";
         } else if (ageInYears < 13) {
-          return "middle_school"
+          return "middle_school";
         } else if (ageInYears < 18) {
-          return "high_school"
+          return "high_school";
         } else {
-          return "young_adult"
+          return "young_adult";
         }
-      }
+      };
 
-      // Get existing student profile to access birth data if needed
-      const { data: existingStudentProfile } = await supabase
-        .from('student_profiles')
-        .select('birth_month, birth_year')
-        .eq('id', userId)
-        .single()
+      // Get existing student profile to access birth data
+      const existingStudentProfile = await prisma.studentProfile.findUnique({
+        where: { id: user.id },
+        select: { birthMonth: true, birthYear: true }
+      });
 
-      const currentBirthMonth = birthMonth || existingStudentProfile?.birth_month || ""
-      const currentBirthYear = birthYear || existingStudentProfile?.birth_year || ""
-      const calculatedAgeGroup = calculateAgeGroup(currentBirthMonth, currentBirthYear)
+      const calculatedAgeGroup = existingStudentProfile 
+        ? calculateAgeGroup(existingStudentProfile.birthMonth || "", existingStudentProfile.birthYear || "")
+        : "young_adult";
 
-      const { data: updatedStudentProfile, error: studentError } = await supabase
-        .from('student_profiles')
-        .update({
-          education_level: educationLevel || null,
-          age_group: calculatedAgeGroup, // Use calculated age group
-          birth_month: birthMonth || null,
-          birth_year: birthYear || null,
-          personality_type: personalityType || null,
-          learning_style: learningStyle || null,
-          favorite_quote: favoriteQuote || null,
-          updated_at: new Date()
-        })
-        .eq('id', userId)
-        .select()
-        .single()
-
-      if (studentError) {
-        console.error('❌ Error updating student profile:', studentError)
-        return NextResponse.json({ error: 'Failed to update student profile' }, { status: 500 })
-      }
-
-      console.log('✅ Supabase Query Result: Student profile updated successfully')
+      await updateStudentProfile(user.id, {
+        educationLevel,
+        age_group: calculatedAgeGroup, // Note: using age_group as per database schema
+        birthMonth,
+        birthYear,
+        personalityType,
+        learningStyle,
+        favoriteQuote
+      })
     }
-
-    console.log('✅ PUT /api/profile/personal-info - All updates completed successfully')
 
     return NextResponse.json({ success: true, profile: updatedProfile })
   } catch (error) {
-    console.error('❌ Error updating personal info:', error)
+    console.error('Error updating profile:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to update profile' },
       { status: 500 }
-    )
+    );
   }
 }
