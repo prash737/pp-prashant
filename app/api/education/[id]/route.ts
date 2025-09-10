@@ -46,6 +46,9 @@ export async function PUT(
     const data = await request.json();
     const educationId = params.id;
 
+    console.log('🔍 PUT /api/education/[id] - Received data:', JSON.stringify(data, null, 2));
+    console.log('📝 Education ID to update:', educationId);
+
     // Validate required fields
     if (!data.institutionName || (!data.institutionType && !data.institutionTypeId)) {
       return NextResponse.json(
@@ -53,6 +56,9 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    // Get the correct institution type ID
+    const institutionTypeId = data.institutionType || data.institutionTypeId;
 
     // Check if the education entry belongs to the authenticated user
     const { data: existingEntry, error: checkError } = await supabase
@@ -75,7 +81,7 @@ export async function PUT(
       .update({
         institution_id: data.institutionId || null,
         institution_name: data.institutionName,
-        institution_type_id: parseInt(data.institutionType || data.institutionTypeId),
+        institution_type_id: parseInt(institutionTypeId),
         degree_program: data.degree || null,
         field_of_study: data.fieldOfStudy || null,
         subjects: Array.isArray(data.subjects) ? data.subjects : [],
@@ -84,6 +90,7 @@ export async function PUT(
         is_current: Boolean(data.isCurrent),
         grade_level: data.grade || null,
         description: data.description || null,
+        institution_verified: data.institutionVerified !== undefined ? data.institutionVerified : null,
         updated_at: new Date()
       })
       .eq('id', educationId)
