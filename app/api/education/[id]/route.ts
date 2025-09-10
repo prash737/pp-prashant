@@ -1,14 +1,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { prisma } from '@/lib/prisma'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // Auth helper function
 async function getAuthenticatedUser(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
   // First try authorization header
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) {
@@ -56,35 +55,48 @@ export async function PUT(
     }
 
     // Check if the education entry belongs to the authenticated user
-    const existingEntry = await prisma.studentEducationHistory.findFirst({
-      where: {
-        id: educationId,
-        studentId: userId
-      }
-    });
+    const { data: existingEntry, error: checkError } = await supabase
+      .from('student_education_history')
+      .select('*')
+      .eq('id', educationId)
+      .eq('student_id', userId)
+      .single()
 
-    if (!existingEntry) {
+    if (checkError || !existingEntry) {
       return NextResponse.json(
         { error: 'Education entry not found or access denied' },
         { status: 404 }
       );
     }
 
-    const updatedEducation = await prisma.studentEducationHistory.update({
-      where: { id: educationId },
-      data: {
-        institutionName: data.institutionName,
-        institutionTypeId: parseInt(data.institutionTypeId),
-        degreeProgram: data.degree || null,
-        fieldOfStudy: data.fieldOfStudy || null,
+    // Update the education entry using Supabase
+    const { data: updatedEducation, error: updateError } = await supabase
+      .from('student_education_history')
+      .update({
+        institution_name: data.institutionName,
+        institution_type_id: parseInt(data.institutionTypeId),
+        degree_program: data.degree || null,
+        field_of_study: data.fieldOfStudy || null,
         subjects: Array.isArray(data.subjects) ? data.subjects : [],
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        isCurrent: Boolean(data.isCurrent),
-        gradeLevel: data.grade || null,
-        description: data.description || null
-      },
-    });
+        start_date: data.startDate ? new Date(data.startDate) : null,
+        end_date: data.endDate ? new Date(data.endDate) : null,
+        is_current: Boolean(data.isCurrent),
+        grade_level: data.grade || null,
+        description: data.description || null,
+        updated_at: new Date()
+      })
+      .eq('id', educationId)
+      .eq('student_id', userId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating education record:', updateError)
+      return NextResponse.json(
+        { error: updateError.message || 'Failed to update education record' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(updatedEducation);
   } catch (error) {
@@ -105,23 +117,34 @@ export async function DELETE(
     const educationId = params.id;
 
     // Check if the education entry belongs to the authenticated user
-    const existingEntry = await prisma.studentEducationHistory.findFirst({
-      where: {
-        id: educationId,
-        studentId: userId
-      }
-    });
+    const { data: existingEntry, error: checkError } = await supabase
+      .from('student_education_history')
+      .select('*')
+      .eq('id', educationId)
+      .eq('student_id', userId)
+      .single()
 
-    if (!existingEntry) {
+    if (checkError || !existingEntry) {
       return NextResponse.json(
         { error: 'Education entry not found or access denied' },
         { status: 404 }
       );
     }
 
-    await prisma.studentEducationHistory.delete({
-      where: { id: educationId }
-    });
+    // Delete the education entry using Supabase
+    const { error: deleteError } = await supabase
+      .from('student_education_history')
+      .delete()
+      .eq('id', educationId)
+      .eq('student_id', userId)
+
+    if (deleteError) {
+      console.error('Error deleting education record:', deleteError)
+      return NextResponse.json(
+        { error: deleteError.message || 'Failed to delete education record' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
