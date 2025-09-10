@@ -161,10 +161,47 @@ export default function ProfileHeader({
       `${student.first_name} ${student.last_name}`.trim() : 
       "Student"
 
-  const currentEducation = student?.educationHistory?.find((edu: any) => edu.is_current || edu.isCurrent) || 
-                          student?.education_history?.find((edu: any) => edu.is_current || edu.isCurrent)
-  const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level || "Student"
-  const schoolName = currentEducation?.institutionName || currentEducation?.institution_name || "School"
+  // Enhanced current education logic with better fallback handling
+  const getCurrentEducation = () => {
+    // Try multiple data structure paths
+    const educationSources = [
+      student?.educationHistory,
+      student?.education_history,
+      student?.profile?.educationHistory,
+      student?.profile?.education_history
+    ].filter(Boolean)
+
+    for (const educationArray of educationSources) {
+      if (Array.isArray(educationArray) && educationArray.length > 0) {
+        // First try to find current education
+        const current = educationArray.find((edu: any) => 
+          edu.is_current === true || 
+          edu.isCurrent === true ||
+          edu.current === true
+        )
+        if (current) return current
+        
+        // If no current education found, get the most recent one (by start date or creation)
+        const sorted = [...educationArray].sort((a: any, b: any) => {
+          const aDate = new Date(a.startDate || a.start_date || a.createdAt || a.created_at || 0)
+          const bDate = new Date(b.startDate || b.start_date || b.createdAt || b.created_at || 0)
+          return bDate.getTime() - aDate.getTime()
+        })
+        if (sorted[0]) return sorted[0]
+      }
+    }
+    return null
+  }
+
+  const currentEducation = getCurrentEducation()
+  
+  // Only use defaults if no education data exists at all
+  const gradeLevel = currentEducation ? 
+    (currentEducation.gradeLevel || currentEducation.grade_level || "Current Student") : 
+    "Student"
+  const schoolName = currentEducation ? 
+    (currentEducation.institutionName || currentEducation.institution_name || "Educational Institution") : 
+    "School"
 
   // Get profile image - prioritize nested profile structure, then direct field
   const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
