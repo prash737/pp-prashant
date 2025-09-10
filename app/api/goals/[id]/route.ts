@@ -1,10 +1,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { db } from '@/lib/drizzle/client'
-import { goals } from '@/lib/drizzle/schema'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import { eq, and } from 'drizzle-orm'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function DELETE(
   request: NextRequest,
@@ -30,21 +31,29 @@ export async function DELETE(
       return NextResponse.json({ error: 'Goal ID is required' }, { status: 400 })
     }
 
-    // Verify the goal belongs to the user before deleting using Drizzle
-    const goal = await db.select().from(goals)
-      .where(and(
-        eq(goals.id, parseInt(goalId)),
-        eq(goals.userId, user.id)
-      ))
-      .limit(1)
+    // Verify the goal belongs to the user before deleting using Supabase
+    const { data: goal, error: checkError } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('id', parseInt(goalId))
+      .eq('user_id', user.id)
+      .single()
 
-    if (goal.length === 0) {
+    if (checkError || !goal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 })
     }
 
-    // Delete the goal using Drizzle
-    await db.delete(goals)
-      .where(eq(goals.id, parseInt(goalId)))
+    // Delete the goal using Supabase
+    const { error: deleteError } = await supabase
+      .from('goals')
+      .delete()
+      .eq('id', parseInt(goalId))
+      .eq('user_id', user.id)
+
+    if (deleteError) {
+      console.error('Error deleting goal:', deleteError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     return NextResponse.json({ message: 'Goal deleted successfully' })
   } catch (error) {

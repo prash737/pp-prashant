@@ -2,9 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/drizzle/client'
-import { suggestedGoals } from '@/lib/drizzle/schema'
-import { eq } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -30,13 +27,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get suggested goals for the user
-    const userSuggestedGoals = await db.select().from(suggestedGoals)
-      .where(eq(suggestedGoals.userId, user.id))
+    // Get suggested goals for the user using direct Supabase query
+    const { data: userSuggestedGoals, error: fetchError } = await supabase
+      .from('suggested_goals')
+      .select('*')
+      .eq('user_id', user.id)
 
-    console.log(`✅ Found ${userSuggestedGoals.length} suggested goals for user ${user.id}`)
+    if (fetchError) {
+      console.error('Error fetching suggested goals:', fetchError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
-    return NextResponse.json({ suggestedGoals: userSuggestedGoals })
+    // Transform snake_case to camelCase for frontend compatibility
+    const transformedSuggestedGoals = (userSuggestedGoals || []).map(goal => ({
+      id: goal.id,
+      userId: goal.user_id,
+      title: goal.title,
+      description: goal.description,
+      category: goal.category,
+      timeframe: goal.timeframe,
+      isAdded: goal.is_added,
+      createdAt: goal.created_at
+    }))
+
+    console.log(`✅ Found ${transformedSuggestedGoals.length} suggested goals for user ${user.id}`)
+
+    return NextResponse.json({ suggestedGoals: transformedSuggestedGoals })
 
   } catch (error) {
     console.error('Suggested goals fetch error:', error)
@@ -73,23 +89,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // Create new suggested goal
-    const newGoal = await db.insert(suggestedGoals)
-      .values({
-        userId: user.id,
+    // Create new suggested goal using direct Supabase query
+    const { data: newGoal, error: insertError } = await supabase
+      .from('suggested_goals')
+      .insert({
+        user_id: user.id,
         title: title.trim(),
         description: description?.trim() || '',
         category: category?.trim() || '',
         timeframe: timeframe?.trim() || '',
-        isAdded: false,
+        is_added: false,
       })
-      .returning()
+      .select()
+      .single()
 
-    console.log('✅ Successfully created suggested goal:', newGoal[0])
+    if (insertError) {
+      console.error('Error creating suggested goal:', insertError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    // Transform response to camelCase for frontend compatibility
+    const transformedGoal = {
+      id: newGoal.id,
+      userId: newGoal.user_id,
+      title: newGoal.title,
+      description: newGoal.description,
+      category: newGoal.category,
+      timeframe: newGoal.timeframe,
+      isAdded: newGoal.is_added,
+      createdAt: newGoal.created_at
+    }
+
+    console.log('✅ Successfully created suggested goal:', transformedGoal)
 
     return NextResponse.json({
       message: 'Suggested goal created successfully',
-      goal: newGoal[0]
+      goal: transformedGoal
     })
 
   } catch (error) {

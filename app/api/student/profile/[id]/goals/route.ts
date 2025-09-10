@@ -1,13 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/drizzle/client'
-import { goals, suggestedGoals } from '@/lib/drizzle/schema'
-import { createClient } from '@supabase/supabase-js'
-import { eq, desc, and } from 'drizzle-orm'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(
   request: NextRequest,
@@ -35,40 +32,66 @@ export async function GET(
 
     console.log('API: Authenticated user found:', user.id)
 
-    // Get goals for the specific student using Drizzle
-    const userGoals = await db.select().from(goals)
-      .where(eq(goals.userId, studentId))
-      .orderBy(desc(goals.createdAt))
+    // Get goals for the specific student using direct Supabase query
+    const { data: userGoals, error: goalsError } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', studentId)
+      .order('created_at', { ascending: false })
 
-    // Get suggested goals that have been added (is_added = true) using Drizzle
-    const userSuggestedGoals = await db.select().from(suggestedGoals)
-      .where(and(
-        eq(suggestedGoals.userId, studentId),
-        eq(suggestedGoals.isAdded, true)
-      ))
-      .orderBy(desc(suggestedGoals.createdAt))
+    if (goalsError) {
+      console.error('Error fetching goals:', goalsError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    // Get suggested goals that have been added (is_added = true) using direct Supabase query
+    const { data: userSuggestedGoals, error: suggestedError } = await supabase
+      .from('suggested_goals')
+      .select('*')
+      .eq('user_id', studentId)
+      .eq('is_added', true)
+      .order('created_at', { ascending: false })
+
+    if (suggestedError) {
+      console.error('Error fetching suggested goals:', suggestedError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    // Transform regular goals to camelCase
+    const transformedGoals = (userGoals || []).map(g => ({
+      id: g.id,
+      title: g.title,
+      description: g.description,
+      category: g.category,
+      timeframe: g.timeframe,
+      userId: g.user_id,
+      completed: g.completed,
+      createdAt: g.created_at,
+      updatedAt: g.updated_at,
+      isSuggested: false
+    }))
+
+    // Transform suggested goals to camelCase and format for consistency
+    const transformedSuggestedGoals = (userSuggestedGoals || []).map(sg => ({
+      id: sg.id,
+      title: sg.title,
+      description: sg.description,
+      category: sg.category,
+      timeframe: sg.timeframe,
+      userId: sg.user_id,
+      completed: false, // suggested goals don't have completed status
+      createdAt: sg.created_at,
+      updatedAt: sg.created_at, // use createdAt as updatedAt for suggested goals
+      isSuggested: true // flag to identify suggested goals
+    }))
 
     // Combine both goal types into a single array
     const allGoals = [
-      ...userGoals.map(g => ({
-        ...g,
-        isSuggested: false
-      })),
-      ...userSuggestedGoals.map(sg => ({
-        id: sg.id,
-        title: sg.title,
-        description: sg.description,
-        category: sg.category,
-        timeframe: sg.timeframe,
-        userId: sg.userId,
-        completed: false, // suggested goals don't have completed status
-        createdAt: sg.createdAt,
-        updatedAt: sg.createdAt, // use createdAt as updatedAt for suggested goals
-        isSuggested: true // flag to identify suggested goals
-      }))
+      ...transformedGoals,
+      ...transformedSuggestedGoals
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    console.log(`API: Found ${userGoals.length} regular goals and ${userSuggestedGoals.length} suggested goals for student ${studentId}`)
+    console.log(`API: Found ${transformedGoals.length} regular goals and ${transformedSuggestedGoals.length} suggested goals for student ${studentId}`)
 
     return NextResponse.json({ goals: allGoals })
   } catch (error) {

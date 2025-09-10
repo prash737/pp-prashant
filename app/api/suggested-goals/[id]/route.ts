@@ -2,9 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
-import { db } from '@/lib/drizzle/client'
-import { suggestedGoals } from '@/lib/drizzle/schema'
-import { eq, and } from 'drizzle-orm'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -41,35 +38,30 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // Update the suggested goal
-    const updateResult = await db.update(suggestedGoals)
-      .set({
+    // Update the suggested goal using direct Supabase query
+    const { data: updateResult, error: updateError } = await supabase
+      .from('suggested_goals')
+      .update({
         title: title.trim(),
         description: description?.trim() || null,
         category: category?.trim() || null,
         timeframe: timeframe?.trim() || null,
       })
-      .where(and(
-        eq(suggestedGoals.id, goalId),
-        eq(suggestedGoals.userId, user.id)
-      ))
-      .returning({
-        id: suggestedGoals.id,
-        title: suggestedGoals.title,
-        description: suggestedGoals.description,
-        category: suggestedGoals.category,
-        timeframe: suggestedGoals.timeframe,
-      })
+      .eq('id', goalId)
+      .eq('user_id', user.id)
+      .select('id, title, description, category, timeframe')
+      .single()
 
-    if (updateResult.length === 0) {
+    if (updateError || !updateResult) {
+      console.error('Error updating suggested goal:', updateError)
       return NextResponse.json({ error: 'Goal not found or not authorized' }, { status: 404 })
     }
 
-    console.log('✅ Successfully updated suggested goal:', updateResult[0])
+    console.log('✅ Successfully updated suggested goal:', updateResult)
 
     return NextResponse.json({
       message: 'Suggested goal updated successfully',
-      goal: updateResult[0]
+      goal: updateResult
     })
 
   } catch (error) {
@@ -106,24 +98,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Invalid goal ID' }, { status: 400 })
     }
 
-    // Update the suggested goal's is_added status to true
-    const updateResult = await db.update(suggestedGoals)
-      .set({ isAdded: true })
-      .where(and(
-        eq(suggestedGoals.id, goalId),
-        eq(suggestedGoals.userId, user.id)
-      ))
-      .returning({ id: suggestedGoals.id, title: suggestedGoals.title })
+    // Update the suggested goal's is_added status to true using direct Supabase query
+    const { data: updateResult, error: updateError } = await supabase
+      .from('suggested_goals')
+      .update({ is_added: true })
+      .eq('id', goalId)
+      .eq('user_id', user.id)
+      .select('id, title')
+      .single()
 
-    if (updateResult.length === 0) {
+    if (updateError || !updateResult) {
+      console.error('Error updating suggested goal:', updateError)
       return NextResponse.json({ error: 'Goal not found or not authorized' }, { status: 404 })
     }
 
-    console.log('✅ Successfully updated suggested goal:', updateResult[0])
+    console.log('✅ Successfully updated suggested goal:', updateResult)
 
     return NextResponse.json({
       message: 'Goal added to profile successfully',
-      goal: updateResult[0]
+      goal: updateResult
     })
 
   } catch (error) {
@@ -160,23 +153,25 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Invalid goal ID' }, { status: 400 })
     }
 
-    // Delete the suggested goal
-    const deleteResult = await db.delete(suggestedGoals)
-      .where(and(
-        eq(suggestedGoals.id, goalId),
-        eq(suggestedGoals.userId, user.id)
-      ))
-      .returning({ id: suggestedGoals.id, title: suggestedGoals.title })
+    // Delete the suggested goal using direct Supabase query
+    const { data: deleteResult, error: deleteError } = await supabase
+      .from('suggested_goals')
+      .delete()
+      .eq('id', goalId)
+      .eq('user_id', user.id)
+      .select('id, title')
+      .single()
 
-    if (deleteResult.length === 0) {
+    if (deleteError || !deleteResult) {
+      console.error('Error deleting suggested goal:', deleteError)
       return NextResponse.json({ error: 'Goal not found or not authorized' }, { status: 404 })
     }
 
-    console.log('✅ Successfully deleted suggested goal:', deleteResult[0])
+    console.log('✅ Successfully deleted suggested goal:', deleteResult)
 
     return NextResponse.json({
       message: 'Suggested goal deleted successfully',
-      goal: deleteResult[0]
+      goal: deleteResult
     })
 
   } catch (error) {
