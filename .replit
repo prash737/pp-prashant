@@ -2,43 +2,22 @@ modules = ["nodejs-20", "web"]
 run = "npm run dev"
 
 [nix]
-channel = "stable-25_05"
+channel = "stable-24_05"
 packages = ["unixtools.ping"]
 
 [env]
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
 
 [deployment]
-run = ["npm", "start"]
-build = ["npm", "run", "build"]
-deploymentTarget = "autoscale"
+run = ["sh", "-c", "npm run start"]
+build = ["sh", "-c", "npm run build"]
 
 [[ports]]
 localPort = 3000
 externalPort = 80
 
-[[ports]]
-localPort = 3001
-externalPort = 3001
-
-[[ports]]
-localPort = 3002
-externalPort = 3002
-
-[[ports]]
-localPort = 3003
-externalPort = 3003
-
-[[ports]]
-localPort = 3004
-externalPort = 3000
-
-[[ports]]
-localPort = 5000
-externalPort = 80
-
 [workflows]
-runButton = "Project"
+runButton = "Run Dev Server"
 
 [[workflows.workflow]]
 name = "Run Dev Server"
@@ -73,27 +52,6 @@ args = "echo \"✅ Feed testing setup complete!\""
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "echo \"🌐 Visit http://localhost:3000/feed/test for comprehensive testing\""
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Server"
-
-[[workflows.workflow]]
-name = "Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev -- --port 5000 --hostname 0.0.0.0"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [agent]
 expertMode = true
