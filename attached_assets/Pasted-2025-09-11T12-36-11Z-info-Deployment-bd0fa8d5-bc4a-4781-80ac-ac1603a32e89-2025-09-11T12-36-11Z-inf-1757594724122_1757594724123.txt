@@ -1,0 +1,121 @@
+2025-09-11T12:36:11Z info: Deployment: bd0fa8d5-bc4a-4781-80ac-ac1603a32e89
+2025-09-11T12:36:11Z info: Build: b8e16dcd-0dbc-442f-99c1-5b2cdf5c882e
+2025-09-11T12:36:11Z info: Connecting to builder
+2025-09-11T12:36:17Z info: Builder connected
+2025-09-11T12:36:18Z info: Installing packages
+--> npm install
+
+
+up to date, audited 654 packages in 9s
+
+165 packages are looking for funding
+
+  run `npm fund` for details
+
+
+5 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.0
+npm notice To update run: npm install -g npm@11.6.0
+npm notice
+
+2025-09-11T12:36:29Z info: Starting Build
+
+> my-v0-project@0.1.0 build
+> next build
+
+
+   ▲ Next.js 15.2.4
+
+   Creating an optimized production build ...
+
+ ✓ Compiled successfully
+
+   Skipping validation of types
+
+   Skipping linting
+
+   Collecting page data ...
+
+   Generating static pages (0/139) ...
+
+   Generating static pages (34/139) 
+
+   Generating static pages (69/139) 
+
+   Generating static pages (104/139) 
+
+ ✓ Generating static pages (139/139)
+
+   Collecting build traces ...
+
+Route (app)                                                       Size  First Load JS
+┌ ○ /                                                          16.2 kB         173 kB
+├ ○ /_not-found                                                  992 B         102 kB
+├ ○ /about                                                     5.53 kB         181 kB
+├ ○ /admin/moderation                                          6.06 kB         128 kB
+├ ƒ /api/achievement-categories                                  478 B         102 kB
+├ ƒ /api/achievement-types                                       478 B         102 kB
+├ ƒ /api/achievements                                            478 B         102 kB
+├ ƒ /api/admin/moderation/[id]                                   478 B         102 kB
+├ ƒ /api/admin/moderation/performance                            478 B         102 kB
+├ ƒ /api/admin/moderation/stats                                  478 B         102 kB
+├ ƒ /api/auth/callback                                           478 B         102 kB
+├ ƒ /api/auth/check-token                                        478 B         102 kB
+├ ƒ /api/auth/cookie-check                                       478 B         102 kB
+├ ƒ /api/auth/forgot-password                                    478 B         102 kB
+├ ƒ /api/auth/login                                              478 B         102 kB
+├ ƒ /api/auth/logout                                             478 B         102 kB
+├ ƒ /api/auth/register                                           478 B         102 kB
+├ ƒ /api/auth/social                                             478 B         102 kB
+├ ƒ /api/auth/user                                               478 B         102 kB
+├ ƒ /api/auth/user-login                                         478 B         102 kB
+├ ƒ /api/auth/verify-parent                                      478 B         102 kB
+├ ƒ /api/auth/verify-student-email                               478 B         102 kB
+├ ƒ /api/circles                                                 478 B         102 kB
+├ ƒ /api/circles/[id]/members                                    478 B         102 kB
+├ ƒ /api/circles/invitations                                     478 B         102 kB
+├ ƒ /api/circles/invitations/[id]                                478 B         102 kB
+├ ƒ /api/connections                                             478 B         102 kB
+├ ƒ /api/connections/[id]                                        478 B         102 kB
+├ ƒ /api/connections/request                                     478 B         102 kB
+├ ƒ /api/connections/requests                                    478 B         102 kB
+├ ƒ /api/connections/requests/[id]                               478 B         102 kB
+├ ƒ /api/db-test                                                 478 B         102 kB
+├ ƒ /api/db-test-write                                           478 B         102 kB
+├ ƒ /api/education                                               478 B         102 kB
+├ ƒ /api/education/[id]                                          478 B         102 kB
+├ ƒ /api/education/verification                                  478 B         102 kB
+├ ƒ /api/feed/debug                                              478 B         102 kB
+├ ƒ /api/feed/errors                                             478 B         102 kB
+├ ƒ /api/feed/health-check                                       478 B         102 kB
+├ ƒ /api/feed/posts                                              478 B         102 kB
+├ ƒ /api/feed/posts/[id]                                         478 B         102 kB
+├ ƒ /api/feed/posts/[id]/bookmark                                478 B         102 kB
+├ ƒ /api/feed/posts/[id]/comment                                 478 B         102 kB
+├ ƒ /api/feed/posts/[id]/delete                                  478 B         102 kB
+├ ƒ /api/feed/posts/[id]/like                                    478 B         102 kB
+├ ƒ /api/feed/posts/[id]/react                                   478 B         102 kB
+├ ƒ /api/feed/posts/[id]/repost                       
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+2025-09-11T12:41:07Z info: Pushing pid1 binary layer...
+2025-09-11T12:41:12Z info: Pushing Repl layer...
+2025-09-11T12:41:12Z info: Nix layers for this Repl are uncached.
+2025-09-11T12:41:12Z info: Pushing nix-0 layer...
+2025-09-11T12:41:14Z info: Created hosting layer
+2025-09-11T12:41:16Z info: Created pid1 binary layer
+2025-09-11T12:41:19Z info: Created nix-0 layer
+2025-09-11T12:41:19Z info: uploading image for cached layer
+2025-09-11T12:41:21Z info: pushed cache image manifest
+2025-09-11T12:41:22Z info: pushed cache soci index manifest
+2025-09-11T12:41:23Z info: uploading cached layer
+2025-09-11T12:41:23Z info: successfully uploaded cached layer

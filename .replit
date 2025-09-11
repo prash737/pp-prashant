@@ -9,9 +9,9 @@ packages = ["unixtools.ping"]
 REPLIT_DISABLE_PACKAGE_LAYER = "1"
 
 [deployment]
-run = ["sh", "-c", "npm run start"]
-build = ["sh", "-c", "npm run build"]
-deploymentTarget = "cloudrun"
+run = ["npm", "start"]
+build = ["npm", "run", "build"]
+deploymentTarget = "autoscale"
 
 [[ports]]
 localPort = 3000
@@ -36,10 +36,6 @@ externalPort = 3000
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 34927
-externalPort = 4200
 
 [workflows]
 runButton = "Project"
