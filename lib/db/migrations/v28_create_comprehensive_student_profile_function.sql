@@ -1,4 +1,3 @@
-
 -- Create a function to get comprehensive student profile data
 CREATE OR REPLACE FUNCTION get_comprehensive_student_profile(student_id_param UUID)
 RETURNS TABLE (
@@ -445,7 +444,7 @@ BEGIN
     sd.personality_type,
     sd.learning_style,
     sd.favorite_quote,
-    COALESCE(ccd.total_connections, 0)::INTEGER as connection_count,
+    COALESCE(conn_count.total_connections, 0)::INTEGER as connection_count,
     COALESCE(ui.interests, '[]'::jsonb) as user_interests,
     COALESCE(us.skills, '[]'::jsonb) as user_skills,
     COALESCE(a.achievements, '[]'::jsonb) as achievements,
@@ -457,10 +456,10 @@ BEGIN
     COALESCE(rc.received_connections, '[]'::jsonb) as received_connections,
     COALESCE(if_data.institution_following, '[]'::jsonb) as institution_following,
     COALESCE(acd.circles, '[]'::jsonb) as circles,
-    COALESCE(ccd.created_circles, '[]'::jsonb) as created_circles,
+    COALESCE(ccrd.created_circles, '[]'::jsonb) as created_circles,
     COALESCE(cid.circle_invitations, '[]'::jsonb) as circle_invitations
   FROM student_data sd
-  LEFT JOIN connection_count_data ccd ON sd.id = ccd.user_id
+  LEFT JOIN connection_count_data conn_count ON sd.id = conn_count.user_id
   LEFT JOIN user_interests_data ui ON sd.id = ui.user_id
   LEFT JOIN user_skills_data us ON sd.id = us.user_id
   LEFT JOIN achievements_data a ON sd.id = a.user_id
@@ -472,7 +471,7 @@ BEGIN
   LEFT JOIN received_connections_data rc ON sd.id = rc.user_id
   LEFT JOIN institution_following_data if_data ON sd.id = if_data.sender_id
   LEFT JOIN all_circles_data acd ON sd.id = acd.user_id
-  LEFT JOIN circles_created_data ccd ON sd.id = ccd.creator_id
+  LEFT JOIN circles_created_data ccrd ON sd.id = ccrd.creator_id
   LEFT JOIN circle_invitations_data cid ON sd.id = cid.user_id;
 END;
 $$ LANGUAGE plpgsql;
