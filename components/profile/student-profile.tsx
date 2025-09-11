@@ -172,6 +172,7 @@ export default function StudentProfile({
           cover_image_url: rawStudentData.cover_image_url,
           tagline: rawStudentData.tagline,
           verification_status: rawStudentData.verification_status,
+          connection_count: rawStudentData.connection_count || 0,
           // Create nested profile structure that ProfileHeader expects
           profile: {
             firstName: rawStudentData.first_name,
@@ -298,6 +299,7 @@ export default function StudentProfile({
           cover_image_url: rawStudentData.cover_image_url,
           tagline: rawStudentData.tagline,
           verification_status: rawStudentData.verification_status,
+          connection_count: rawStudentData.connection_count || 0,
           // Create nested profile structure that ProfileHeader expects
           profile: {
             firstName: rawStudentData.first_name,

@@ -701,7 +701,7 @@ export default function ProfileHeader({
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full">
                       <Users className="h-3.5 w-3.5 text-blue-500" data-tooltip={`${isOwnProfile ? "Your" : "Their"} total connections`} />
                       <span data-tooltip={`${isOwnProfile ? "Your" : "Their"} total connections`}>
-                        Connections: {student?.connection_count || 0}
+                        Connections: {student?.connection_count || actualConnectionCounts?.total || 0}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
