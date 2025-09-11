@@ -18,6 +18,7 @@ RETURNS TABLE (
   personality_type TEXT,
   learning_style TEXT,
   favorite_quote TEXT,
+  connection_count INTEGER,
   user_interests JSONB,
   user_skills JSONB,
   achievements JSONB,
@@ -55,6 +56,13 @@ BEGIN
     FROM profiles p
     JOIN student_profiles sp ON p.id = sp.id
     WHERE p.id = student_id_param AND p.role = 'student'
+  ),
+  connection_count_data AS (
+    SELECT 
+      student_id_param as user_id,
+      COUNT(*) as total_connections
+    FROM connections
+    WHERE user1_id = student_id_param OR user2_id = student_id_param
   ),
   user_interests_data AS (
     SELECT 
@@ -437,6 +445,7 @@ BEGIN
     sd.personality_type,
     sd.learning_style,
     sd.favorite_quote,
+    COALESCE(ccd.total_connections, 0)::INTEGER as connection_count,
     COALESCE(ui.interests, '[]'::jsonb) as user_interests,
     COALESCE(us.skills, '[]'::jsonb) as user_skills,
     COALESCE(a.achievements, '[]'::jsonb) as achievements,
@@ -451,6 +460,7 @@ BEGIN
     COALESCE(ccd.created_circles, '[]'::jsonb) as created_circles,
     COALESCE(cid.circle_invitations, '[]'::jsonb) as circle_invitations
   FROM student_data sd
+  LEFT JOIN connection_count_data ccd ON sd.id = ccd.user_id
   LEFT JOIN user_interests_data ui ON sd.id = ui.user_id
   LEFT JOIN user_skills_data us ON sd.id = us.user_id
   LEFT JOIN achievements_data a ON sd.id = a.user_id
