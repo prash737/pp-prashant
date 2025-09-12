@@ -1,21 +1,27 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  Edit, 
-  UserPlus, 
-  UserCheck, 
-  Clock, 
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  MapPin,
+  Calendar,
+  Users,
+  Edit,
+  UserPlus,
+  UserCheck,
+  Clock,
   BadgeCheck,
   Star,
   Award,
@@ -37,107 +43,112 @@ import {
   Brain,
   Share2,
   UserX,
-  Building2
-} from "lucide-react"
-import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons"
-import { format } from "date-fns"
-import CircleManagementDialog from "./circle-management-dialog"
+  Building2,
+} from "lucide-react";
+import { getDefaultIcon, getDefaultIconData } from "@/lib/achievement-icons";
+import { format } from "date-fns";
+import CircleManagementDialog from "./circle-management-dialog";
 
 interface ProfileHeaderProps {
-  student: any
-  currentUser?: any
+  student: any;
+  currentUser?: any;
   connectionCounts?: {
-    total: number
-    students: number
-    mentors: number
-    institutions: number
-  }
-  isViewMode?: boolean
-  isShareMode?: boolean
-  onGoBack?: () => void
-  circles?: any[]
-  onCirclesUpdate?: () => void
+    total: number;
+    students: number;
+    mentors: number;
+    institutions: number;
+  };
+  isViewMode?: boolean;
+  isShareMode?: boolean;
+  onGoBack?: () => void;
+  circles?: any[];
+  onCirclesUpdate?: () => void;
   // New consolidated data props
-  achievements?: any[]
-  connectionRequestsSent?: any[]
-  connectionRequestsReceived?: any[]
-  circleInvitations?: any[]
+  achievements?: any[];
+  connectionRequestsSent?: any[];
+  connectionRequestsReceived?: any[];
+  circleInvitations?: any[];
 }
 
 interface Achievement {
-  id: number
-  name: string
-  description: string
-  dateOfAchievement: string
-  createdAt: string
-  achievementImageIcon?: string
-  achievementTypeId?: number
+  id: number;
+  name: string;
+  description: string;
+  dateOfAchievement: string;
+  createdAt: string;
+  achievementImageIcon?: string;
+  achievementTypeId?: number;
 }
 
-export default function ProfileHeader({ 
-  student: studentProp, 
-  currentUser, 
-  connectionCounts, 
-  isViewMode = false, 
-  isShareMode = false, 
-  onGoBack, 
-  circles = [], 
+export default function ProfileHeader({
+  student: studentProp,
+  currentUser,
+  connectionCounts,
+  isViewMode = false,
+  isShareMode = false,
+  onGoBack,
+  circles = [],
   onCirclesUpdate,
   achievements = [],
   connectionRequestsSent = [],
   connectionRequestsReceived = [],
-  circleInvitations = []
+  circleInvitations = [],
 }: ProfileHeaderProps) {
-  const router = useRouter()
-  const [isEditing, setIsEditing] = useState(false)
-  const [actualConnectionCounts, setActualConnectionCounts] = useState(connectionCounts)
-  const [showCreateCircle, setShowCreateCircle] = useState(false)
-  const [newCircleName, setNewCircleName] = useState('')
-  const [newCircleColor, setNewCircleColor] = useState('#3B82F6')
-  const [newCircleDescription, setNewCircleDescription] = useState('')
-  const [newCircleImageFile, setNewCircleImageFile] = useState<File | null>(null)
-  const [newCircleImageUrl, setNewCircleImageUrl] = useState('')
-  const [selectedCircle, setSelectedCircle] = useState<any>(null)
-  const [showCircleManagement, setShowCircleManagement] = useState(false)
-  const [connections, setConnections] = useState<any[]>([])
-  const [showFollowingDialog, setShowFollowingDialog] = useState(false)
-  const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([])
-  const [followingCount, setFollowingCount] = useState(0)
-  const [connectionStatus, setConnectionStatus] = useState<'none' | 'connected' | 'pending' | 'loading'>('none')
-  const [sendingRequest, setSendingRequest] = useState(false)
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [actualConnectionCounts, setActualConnectionCounts] =
+    useState(connectionCounts);
+  const [showCreateCircle, setShowCreateCircle] = useState(false);
+  const [newCircleName, setNewCircleName] = useState("");
+  const [newCircleColor, setNewCircleColor] = useState("#3B82F6");
+  const [newCircleDescription, setNewCircleDescription] = useState("");
+  const [newCircleImageFile, setNewCircleImageFile] = useState<File | null>(
+    null,
+  );
+  const [newCircleImageUrl, setNewCircleImageUrl] = useState("");
+  const [selectedCircle, setSelectedCircle] = useState<any>(null);
+  const [showCircleManagement, setShowCircleManagement] = useState(false);
+  const [connections, setConnections] = useState<any[]>([]);
+  const [showFollowingDialog, setShowFollowingDialog] = useState(false);
+  const [followingInstitutions, setFollowingInstitutions] = useState<any[]>([]);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "none" | "connected" | "pending" | "loading"
+  >("none");
+  const [sendingRequest, setSendingRequest] = useState(false);
 
   const handleShareProfile = async () => {
-    const profileUrl = `https://pathpiper.com/public-view/student/profile/${student.id}`
+    const profileUrl = `https://pathpiper.com/public-view/student/profile/${student.id}`;
 
     try {
-      await navigator.clipboard.writeText(profileUrl)
+      await navigator.clipboard.writeText(profileUrl);
       // You can add a toast notification here if you have a toast system
-      alert('Profile link copied to clipboard!')
+      alert("Profile link copied to clipboard!");
     } catch (err) {
-      console.error('Failed to copy profile link:', err)
+      console.error("Failed to copy profile link:", err);
       // Fallback for older browsers
-      const textArea = document.createElement('textarea')
-      textArea.value = profileUrl
-      document.body.appendChild(textArea)
-      textArea.focus()
-      textArea.select()
+      const textArea = document.createElement("textarea");
+      textArea.value = profileUrl;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
       try {
-        document.execCommand('copy')
-        alert('Profile link copied to clipboard!')
+        document.execCommand("copy");
+        alert("Profile link copied to clipboard!");
       } catch (fallbackErr) {
-        console.error('Fallback copy failed:', fallbackErr)
-        alert('Failed to copy link. Please copy manually: ' + profileUrl)
+        console.error("Fallback copy failed:", fallbackErr);
+        alert("Failed to copy link. Please copy manually: " + profileUrl);
       }
-      document.body.removeChild(textArea)
+      document.body.removeChild(textArea);
     }
-  }
+  };
 
   // Use passed student data or fallback to mock data
   const student = studentProp || {
     id: "",
     profile: {
       firstName: "Alex",
-      lastName: "Johnson", 
+      lastName: "Johnson",
       profileImageUrl: "/images/student-student-profile.png",
       coverImageUrl: "/images/student-cover.png", // Added a mock cover image
       bio: "A student exploring new opportunities.", // Added a mock bio
@@ -146,46 +157,64 @@ export default function ProfileHeader({
       {
         gradeLevel: "11th Grade",
         institutionName: "Westlake High School",
-        isCurrent: true
-      }
+        isCurrent: true,
+      },
     ],
     projects: [],
     customBadges: [],
-    skills: []
-  }
+    skills: [],
+  };
 
   // Get display name - prioritize nested profile structure, then direct fields
-  const displayName = student?.profile?.firstName && student?.profile?.lastName ? 
-    `${student.profile.firstName} ${student.profile.lastName}`.trim() : 
-    student?.first_name && student?.last_name ? 
-      `${student.first_name} ${student.last_name}`.trim() : 
-      "Student"
+  const displayName =
+    student?.profile?.firstName && student?.profile?.lastName
+      ? `${student.profile.firstName} ${student.profile.lastName}`.trim()
+      : student?.first_name && student?.last_name
+        ? `${student.first_name} ${student.last_name}`.trim()
+        : "Student";
 
   // Get current education directly from comprehensive profile data
-  const educationHistory = student?.educationHistory || []
-  
+  const educationHistory = student?.educationHistory || [];
+
   // Find current education first, then fall back to most recent
-  const currentEducation = educationHistory.find((edu: any) => edu.isCurrent === true || edu.is_current === true) ||
-                           educationHistory[0] // Most recent education (already sorted by API)
-  
+  const currentEducation =
+    educationHistory.find(
+      (edu: any) => edu.isCurrent === true || edu.is_current === true,
+    ) || educationHistory[0]; // Most recent education (already sorted by API)
+
   // Only show education data if it actually exists - no default fallbacks
-  const gradeLevel = currentEducation?.gradeLevel || currentEducation?.grade_level
-  const schoolName = currentEducation?.institutionName || currentEducation?.institution_name
+  const gradeLevel =
+    currentEducation?.gradeLevel || currentEducation?.grade_level;
+  const schoolName =
+    currentEducation?.institutionName || currentEducation?.institution_name;
 
   // Get profile image - prioritize nested profile structure, then direct field
-  const profileImage = student?.profile?.profileImageUrl || student?.profile_image_url || "/images/student-profile.png"
+  const profileImage =
+    student?.profile?.profileImageUrl ||
+    student?.profile_image_url ||
+    "/images/student-profile.png";
 
   // Get tagline - prioritize nested profile structure, then direct fields
-  const tagline = student?.profile?.tagline || student?.profile?.bio || student?.tagline || student?.bio || "Passionate learner exploring new horizons"
+  const tagline =
+    student?.profile?.tagline ||
+    student?.profile?.bio ||
+    student?.tagline ||
+    student?.bio ||
+    "Passionate learner exploring new horizons";
 
   // Get cover image - prioritize nested profile structure, then direct field
-  const coverImage = student?.profile?.coverImageUrl || student?.cover_image_url
+  const coverImage =
+    student?.profile?.coverImageUrl || student?.cover_image_url;
 
   // Debug logging for ProfileHeader
   // Get the actual social links data from comprehensive profile or nested profile
-  const socialLinksData = student?.social_links || student?.profile?.social_links || student?.socialLinks || student?.profile?.socialLinks
+  const socialLinksData =
+    student?.social_links ||
+    student?.profile?.social_links ||
+    student?.socialLinks ||
+    student?.profile?.socialLinks;
 
-  console.log('🔍 ProfileHeader Debug:', {
+  console.log("🔍 ProfileHeader Debug:", {
     hasStudent: !!student,
     hasProfile: !!student?.profile,
     displayName,
@@ -197,10 +226,10 @@ export default function ProfileHeader({
       lastName: student?.last_name,
       bio: student?.bio,
       profileImageUrl: student?.profile_image_url,
-      coverImageUrl: student?.cover_image_url
+      coverImageUrl: student?.cover_image_url,
     },
-    profileKeys: student?.profile ? Object.keys(student.profile) : 'No profile',
-    studentKeys: student ? Object.keys(student) : 'No student',
+    profileKeys: student?.profile ? Object.keys(student.profile) : "No profile",
+    studentKeys: student ? Object.keys(student) : "No student",
     circlesCount: circles?.length || 0,
     socialLinks: socialLinksData,
     socialLinksType: typeof socialLinksData,
@@ -208,212 +237,207 @@ export default function ProfileHeader({
     hasSocialLinks: !!(socialLinksData && socialLinksData.length > 0),
     socialLinksRaw: JSON.stringify(socialLinksData),
     rawStudentSocialLinks: student?.social_links,
-    profileSocialLinks: student?.profile?.social_links
-  })
+    profileSocialLinks: student?.profile?.social_links,
+  });
 
   // Check if this is the current user's own profile
-  const isOwnProfile = currentUser && currentUser.id === student.id
+  const isOwnProfile = currentUser && currentUser.id === student.id;
 
   // Set connection status based on provided data
   React.useEffect(() => {
     if (isOwnProfile) {
-      setConnectionStatus('none')
-      return
+      setConnectionStatus("none");
+      return;
     }
 
     // Check if already connected by looking at the student's connections
-    const isConnected = student?.connections?.some((conn: any) => 
-      conn.id === currentUser?.id
-    )
+    const isConnected = student?.connections?.some(
+      (conn: any) => conn.id === currentUser?.id,
+    );
 
     if (isConnected) {
-      setConnectionStatus('connected')
-      return
+      setConnectionStatus("connected");
+      return;
     }
 
     // Check for pending requests
-    const hasPendingSent = connectionRequestsSent.some((req: any) => 
-      req.receiverId === student.id || req.receiver?.id === student.id
-    )
+    const hasPendingSent = connectionRequestsSent.some(
+      (req: any) =>
+        req.receiverId === student.id || req.receiver?.id === student.id,
+    );
 
-    const hasPendingReceived = connectionRequestsReceived.some((req: any) => 
-      req.senderId === student.id || req.sender?.id === student.id
-    )
+    const hasPendingReceived = connectionRequestsReceived.some(
+      (req: any) =>
+        req.senderId === student.id || req.sender?.id === student.id,
+    );
 
     if (hasPendingSent || hasPendingReceived) {
-      setConnectionStatus('pending')
+      setConnectionStatus("pending");
     } else {
-      setConnectionStatus('none')
+      setConnectionStatus("none");
     }
-  }, [isOwnProfile, student?.connections, connectionRequestsSent, connectionRequestsReceived, student.id, currentUser?.id])
+  }, [
+    isOwnProfile,
+    student?.connections,
+    connectionRequestsSent,
+    connectionRequestsReceived,
+    student.id,
+    currentUser?.id,
+  ]);
 
-  // Initialize connection counts from props or comprehensive profile data
+  // Initialize connection counts - ONLY use connection_count from comprehensive function
   React.useEffect(() => {
-    console.log('🔍 Connection counts effect triggered:', {
+    console.log("🔍 Connection counts effect triggered:", {
       isOwnProfile,
       studentId: student.id,
-      hasConnectionCounts: !!connectionCounts,
-      connectionCounts,
-      hasSentConnections: !!(student?.sent_connections),
-      hasReceivedConnections: !!(student?.received_connections)
-    })
+      hasConnectionCount: student?.connection_count !== undefined,
+      studentConnectionCount: student?.connection_count,
+      rawStudentKeys: student ? Object.keys(student) : "No student",
+      studentData: student,
+    });
 
-    // Always prioritize passed connectionCounts first
-    if (connectionCounts) {
-      console.log('✅ Using passed connectionCounts:', connectionCounts)
-      setActualConnectionCounts(connectionCounts)
-      return
-    }
-
-    // Then check comprehensive profile data
-    if (student?.sent_connections || student?.received_connections) {
-      console.log('🔄 Using comprehensive profile connection data')
-      const sentConnections = student.sent_connections || []
-      const receivedConnections = student.received_connections || []
-      const allConnections = [...sentConnections, ...receivedConnections]
-
-      const counts = {
-        total: allConnections.length,
-        students: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'student' || conn.receiver?.role === 'student'
-        ).length,
-        mentors: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'mentor' || conn.receiver?.role === 'mentor'  
-        ).length,
-        institutions: allConnections.filter((conn: any) => 
-          conn.sender?.role === 'institution' || conn.receiver?.role === 'institution'
-        ).length
-      }
-
-      console.log('📊 Connection counts from comprehensive data:', counts)
-      setActualConnectionCounts(counts)
-    } else {
-      // Default to zero counts if no data available
-      console.log('📊 No connection data available, using default counts')
-      setActualConnectionCounts({ total: 0, students: 0, mentors: 0, institutions: 0 })
-    }
-  }, [isOwnProfile, student.id, connectionCounts, student.sent_connections, student.received_connections])
+    // ONLY use direct connection_count from comprehensive profile function
+    console.log(
+      "✅ Using ONLY connection_count from comprehensive function:",
+      student?.connection_count || 0,
+    );
+    setActualConnectionCounts({
+      total: student?.connection_count || 0,
+      students: 0, // Not available from comprehensive function
+      mentors: 0,
+      institutions: 0,
+    });
+  }, [isOwnProfile, student.id, student.connection_count]);
 
   // Set initial data from props
-  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>(achievements || [])
-  const [achievementLoading, setAchievementLoading] = useState(false)
+  const [recentAchievements, setRecentAchievements] = useState<Achievement[]>(
+    achievements || [],
+  );
+  const [achievementLoading, setAchievementLoading] = useState(false);
 
   // Update state when achievements prop changes
   useEffect(() => {
-    setRecentAchievements(achievements || [])
-  }, [achievements])
+    setRecentAchievements(achievements || []);
+  }, [achievements]);
 
   // Extract circles from student data and create local state
-  const [localCircles, setLocalCircles] = useState<any[]>([])
+  const [localCircles, setLocalCircles] = useState<any[]>([]);
 
   // Debug log for circles and handle student data circles
   useEffect(() => {
-    console.log('🔍 ProfileHeader - Circles prop received:', {
+    console.log("🔍 ProfileHeader - Circles prop received:", {
       circlesLength: circles?.length || 0,
       circles: circles,
       circlesType: typeof circles,
       isArray: Array.isArray(circles),
-      sampleCircle: circles?.[0]
-    })
+      sampleCircle: circles?.[0],
+    });
 
     // Extract circles from student data if circles prop is empty
     if ((!circles || circles.length === 0) && student) {
-      const createdCircles = student.created_circles || student.profile?.created_circles || []
-      const memberCircles = student.circles || student.profile?.circles || []
+      const createdCircles =
+        student.created_circles || student.profile?.created_circles || [];
+      const memberCircles = student.circles || student.profile?.circles || [];
 
       if (createdCircles.length > 0 || memberCircles.length > 0) {
-        const combinedCircles = [...createdCircles, ...memberCircles]
-        console.log('🔍 ProfileHeader - Extracting circles from student data:', {
-          createdCount: createdCircles.length,
-          memberCount: memberCircles.length,
-          totalCount: combinedCircles.length,
-          combinedCircles
-        })
+        const combinedCircles = [...createdCircles, ...memberCircles];
+        console.log(
+          "🔍 ProfileHeader - Extracting circles from student data:",
+          {
+            createdCount: createdCircles.length,
+            memberCount: memberCircles.length,
+            totalCount: combinedCircles.length,
+            combinedCircles,
+          },
+        );
 
-        setLocalCircles(combinedCircles)
+        setLocalCircles(combinedCircles);
       }
     } else if (circles && circles.length > 0) {
-      setLocalCircles(circles)
+      setLocalCircles(circles);
     }
-  }, [circles, student])
+  }, [circles, student]);
 
   // Use localCircles for display
-  const displayCircles = localCircles.length > 0 ? localCircles : circles || []
+  const displayCircles = localCircles.length > 0 ? localCircles : circles || [];
 
   // Set connections and following data from student prop
   useEffect(() => {
     if (isOwnProfile && student?.connections) {
-      setConnections(student.connections)
+      setConnections(student.connections);
     }
 
     // Set following institutions from student data
     if (student?.followingInstitutions) {
-      console.log('🏛️ ProfileHeader: Setting following institutions:', student.followingInstitutions)
-      setFollowingInstitutions(student.followingInstitutions)
-      setFollowingCount(student.followingInstitutions.length)
+      console.log(
+        "🏛️ ProfileHeader: Setting following institutions:",
+        student.followingInstitutions,
+      );
+      setFollowingInstitutions(student.followingInstitutions);
+      setFollowingCount(student.followingInstitutions.length);
     }
-  }, [student, isOwnProfile])
+  }, [student, isOwnProfile]);
 
   const handleCreateCircle = async () => {
-    if (!newCircleName.trim()) return
+    if (!newCircleName.trim()) return;
 
     try {
-      let iconPath = 'users' // default icon
+      let iconPath = "users"; // default icon
 
       // Upload image if provided
       if (newCircleImageFile) {
-        const formData = new FormData()
-        formData.append('image', newCircleImageFile)
-        formData.append('type', 'circle-icon')
+        const formData = new FormData();
+        formData.append("image", newCircleImageFile);
+        formData.append("type", "circle-icon");
 
-        const uploadResponse = await fetch('/api/upload/circle-icon', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData
-        })
+        const uploadResponse = await fetch("/api/upload/circle-icon", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
 
         if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          iconPath = uploadResult.path
+          const uploadResult = await uploadResponse.json();
+          iconPath = uploadResult.path;
         }
       }
 
-      const response = await fetch('/api/circles', {
-        method: 'POST',
+      const response = await fetch("/api/circles", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           name: newCircleName.trim(),
           description: newCircleDescription.trim() || null,
           color: newCircleColor,
-          icon: iconPath
-        })
-      })
+          icon: iconPath,
+        }),
+      });
 
       if (response.ok) {
         // Reset form
-        setNewCircleName('')
-        setNewCircleDescription('')
-        setNewCircleColor('#3B82F6')
-        setNewCircleImageFile(null)
-        setNewCircleImageUrl('')
-        setShowCreateCircle(false)
+        setNewCircleName("");
+        setNewCircleDescription("");
+        setNewCircleColor("#3B82F6");
+        setNewCircleImageFile(null);
+        setNewCircleImageUrl("");
+        setShowCreateCircle(false);
 
         // Notify parent to refresh circles
         if (onCirclesUpdate) {
-          onCirclesUpdate()
+          onCirclesUpdate();
         }
       } else {
-        console.error('Failed to create circle')
+        console.error("Failed to create circle");
       }
     } catch (error) {
-      console.error('Error creating circle:', error)
+      console.error("Error creating circle:", error);
     }
-  }
+  };
 
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Function to check if circle should be disabled for current user
   const isCircleDisabled = (circle: any, currentUserId: string) => {
@@ -429,7 +453,7 @@ export default function ProfileHeader({
 
     // 3. Check if current user's membership is disabled
     const userMembership = circle.memberships?.find(
-      (membership: any) => membership.user.id === currentUserId
+      (membership: any) => membership.user.id === currentUserId,
     );
     if (userMembership && userMembership.isDisabledMember) {
       return true;
@@ -441,32 +465,57 @@ export default function ProfileHeader({
   const handleCircleClick = (circle: any) => {
     const disabled = isCircleDisabled(circle, student.id);
     if (!disabled) {
-      setSelectedCircle(circle)
-      setShowCircleManagement(true)
+      setSelectedCircle(circle);
+      setShowCircleManagement(true);
     }
-  }
+  };
 
   const handleCircleUpdated = () => {
     // Notify parent to refresh circles
     if (onCirclesUpdate) {
-      onCirclesUpdate()
+      onCirclesUpdate();
     }
-  }
+  };
 
   // Mock circle members (would come from API in real app)
   const circleMembers = [
-    { id: 1, name: "Emma W.", image: "/diverse-students-studying.png", type: "student" },
-    { id: 2, name: "Noah T.", image: "/placeholder.svg?key=hwap2", type: "student" },
-    { id: 3, name: "Olivia R.", image: "/placeholder.svg?key=oez43", type: "student" },
-    { id: 4, name: "Ms. Chen", image: "/diverse-classroom-teacher.png", type: "mentor" },
-    { id: 5, name: "Riverdale High", image: "/university-classroom.png", type: "institution" },
-  ]
+    {
+      id: 1,
+      name: "Emma W.",
+      image: "/diverse-students-studying.png",
+      type: "student",
+    },
+    {
+      id: 2,
+      name: "Noah T.",
+      image: "/placeholder.svg?key=hwap2",
+      type: "student",
+    },
+    {
+      id: 3,
+      name: "Olivia R.",
+      image: "/placeholder.svg?key=oez43",
+      type: "student",
+    },
+    {
+      id: 4,
+      name: "Ms. Chen",
+      image: "/diverse-classroom-teacher.png",
+      type: "mentor",
+    },
+    {
+      id: 5,
+      name: "Riverdale High",
+      image: "/university-classroom.png",
+      type: "institution",
+    },
+  ];
 
-    const handleAddCircle = () => {
-        setShowCreateCircle(true)
-    }
+  const handleAddCircle = () => {
+    setShowCreateCircle(true);
+  };
 
-  const colorOptions = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B'];
+  const colorOptions = ["#3B82F6", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B"];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -476,62 +525,64 @@ export default function ProfileHeader({
     }
   };
 
-
-
   const handleUnfollowInstitution = async (institutionId: string) => {
     try {
-      const response = await fetch('/api/institutions/follow', {
-        method: 'DELETE',
+      const response = await fetch("/api/institutions/follow", {
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ institutionId }),
-      })
+      });
 
       if (response.ok) {
         // Remove from local state
-        setFollowingInstitutions(prev => prev.filter(inst => inst.id !== institutionId))
-        setFollowingCount(prev => prev - 1)
+        setFollowingInstitutions((prev) =>
+          prev.filter((inst) => inst.id !== institutionId),
+        );
+        setFollowingCount((prev) => prev - 1);
       } else {
-        console.error('Failed to unfollow institution')
+        console.error("Failed to unfollow institution");
       }
     } catch (error) {
-      console.error('Error unfollowing institution:', error)
+      console.error("Error unfollowing institution:", error);
     }
-  }
+  };
 
   const handleSendConnectionRequest = async () => {
-    if (!currentUser || isOwnProfile || connectionStatus !== 'none') return
+    if (!currentUser || isOwnProfile || connectionStatus !== "none") return;
 
-    setSendingRequest(true)
+    setSendingRequest(true);
     try {
-      const response = await fetch('/api/connections/request', {
-        method: 'POST',
+      const response = await fetch("/api/connections/request", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           receiverId: student.id,
-          message: `Hi! I'd like to connect with you on PathPiper.`
+          message: `Hi! I'd like to connect with you on PathPiper.`,
         }),
-      })
+      });
 
       if (response.ok) {
-        setConnectionStatus('pending')
-        alert('Connection request sent successfully!')
+        setConnectionStatus("pending");
+        alert("Connection request sent successfully!");
       } else {
-        const error = await response.json()
-        alert(`Failed to send connection request: ${error.error || 'Unknown error'}`)
+        const error = await response.json();
+        alert(
+          `Failed to send connection request: ${error.error || "Unknown error"}`,
+        );
       }
     } catch (error) {
-      console.error('Error sending connection request:', error)
-      alert('Failed to send connection request')
+      console.error("Error sending connection request:", error);
+      alert("Failed to send connection request");
     } finally {
-      setSendingRequest(false)
+      setSendingRequest(false);
     }
-  }
+  };
 
   const [isCircleDialogOpen, setIsCircleDialogOpen] = useState(false);
 
@@ -548,14 +599,14 @@ export default function ProfileHeader({
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   // If image fails to load, hide it and show default background
-                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.style.display = "none";
                 }}
               />
             ) : null}
             {/* Default background - always present, only visible when no cover image or image fails */}
-            <div 
-              className={`w-full h-full bg-pathpiper-teal ${coverImage ? 'absolute inset-0 -z-10' : ''}`}
-              style={{ minHeight: '400px' }}
+            <div
+              className={`w-full h-full bg-pathpiper-teal ${coverImage ? "absolute inset-0 -z-10" : ""}`}
+              style={{ minHeight: "400px" }}
             ></div>
           </div>
         </div>
@@ -563,19 +614,19 @@ export default function ProfileHeader({
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="relative -mt-32 sm:-mt-24 mb-6">
             {/* Back button - positioned below cover image */}
-          {isViewMode && onGoBack && (
-            <div className="mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onGoBack}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-            </div>
-          )}
+            {isViewMode && onGoBack && (
+              <div className="mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onGoBack}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </div>
+            )}
             {/* Profile info - With profile pic inside */}
             <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -599,15 +650,19 @@ export default function ProfileHeader({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 justify-between">
                         <div className="flex items-center gap-2">
-                          <h1 className="text-xl sm:text-3xl font-bold truncate">{displayName}</h1>
-                          {true && <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />}
+                          <h1 className="text-xl sm:text-3xl font-bold truncate">
+                            {displayName}
+                          </h1>
+                          {true && (
+                            <BadgeCheck className="h-6 w-6 text-pathpiper-teal" />
+                          )}
                         </div>
                         {/* Edit Profile button for own profile or Connect button for viewing others */}
                         <div className="flex items-center gap-2">
                           {/* Share Profile button - Show for view mode and own profile */}
                           {(isViewMode || isOwnProfile) && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="shrink-0"
                               onClick={handleShareProfile}
@@ -618,68 +673,73 @@ export default function ProfileHeader({
                           )}
 
                           {isOwnProfile && !isViewMode ? (
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               className="bg-pathpiper-teal hover:bg-pathpiper-teal/90 shrink-0"
-                              onClick={() => router.push('/student/profile/edit')}
+                              onClick={() =>
+                                router.push("/student/profile/edit")
+                              }
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Edit Profile
                             </Button>
-                          ) : !isOwnProfile && !isShareMode && (
-                            <>
-                              {connectionStatus === 'connected' ? (
-                                <Button 
-                                  variant="secondary" 
-                                  size="sm"
-                                  className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100 cursor-not-allowed"
-                                  disabled
-                                >
-                                  <UserCheck className="h-4 w-4 mr-2" />
-                                  Already Connected
-                                </Button>
-                              ) : connectionStatus === 'pending' ? (
-                                <Button 
-                                  variant="secondary" 
-                                  size="sm"
-                                  className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-not-allowed"
-                                  disabled
-                                >
-                                  <Clock className="h-4 w-4 mr-2" />
-                                  Pending
-                                </Button>
-                              ) : connectionStatus === 'loading' ? (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="shrink-0"
-                                  disabled
-                                >
-                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                                  Loading...
-                                </Button>
-                              ) : (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="shrink-0"
-                                  onClick={handleSendConnectionRequest}
-                                  disabled={sendingRequest}
-                                >
-                                  {sendingRequest ? (
-                                    <>
-                                      <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                                      Sending...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <UserPlus className="h-4 w-4 mr-2" />
-                                      Connect
-                                    </>
-                                  )}
-                                </Button>
-                              )}
-                            </>
+                          ) : (
+                            !isOwnProfile &&
+                            !isShareMode && (
+                              <>
+                                {connectionStatus === "connected" ? (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="shrink-0 bg-green-100 text-green-800 hover:bg-green-100 cursor-not-allowed"
+                                    disabled
+                                  >
+                                    <UserCheck className="h-4 w-4 mr-2" />
+                                    Already Connected
+                                  </Button>
+                                ) : connectionStatus === "pending" ? (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="shrink-0 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-not-allowed"
+                                    disabled
+                                  >
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    Pending
+                                  </Button>
+                                ) : connectionStatus === "loading" ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="shrink-0"
+                                    disabled
+                                  >
+                                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                    Loading...
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="shrink-0"
+                                    onClick={handleSendConnectionRequest}
+                                    disabled={sendingRequest}
+                                  >
+                                    {sendingRequest ? (
+                                      <>
+                                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                        Sending...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <UserPlus className="h-4 w-4 mr-2" />
+                                        Connect
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </>
+                            )
                           )}
                         </div>
                       </div>
@@ -688,44 +748,51 @@ export default function ProfileHeader({
                           {tagline}
                         </p>
                       )}
-                      {(gradeLevel && schoolName) && (
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-                          {gradeLevel} • {schoolName}
-                        </p>
-                      )}
                     </div>
                   </div>
 
                   {/* Skills section */}
                   <div className="flex flex-wrap gap-3 text-xs font-medium mt-4">
-                    <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-full">
-                      <Users className="h-3.5 w-3.5 text-blue-500" data-tooltip={`${isOwnProfile ? "Your" : "Their"} total connections`} />
-                      <span data-tooltip={`${isOwnProfile ? "Your" : "Their"} total connections`}>
-                        Connections: {student?.connection_count || actualConnectionCounts?.total || 0}
-                      </span>
-                    </div>
                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 text-teal-600 dark:text-teal-300 px-3 py-1.5 rounded-full">
-                      <Brain className="h-3.5 w-3.5 text-teal-500" data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`} />
-                      <span data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}>
-                        Skills: {student?.profile?.skills?.length || student?.profile?.userSkills?.length || student?.userSkills?.length || student?.user_skills?.length || 0}
+                      <Brain
+                        className="h-3.5 w-3.5 text-teal-500"
+                        data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}
+                      />
+                      <span
+                        data-tooltip={`Skills ${isOwnProfile ? "you've" : "they've"} developed`}
+                      >
+                        Skills:{" "}
+                        {student?.profile?.skills?.length ||
+                          student?.profile?.userSkills?.length ||
+                          student?.userSkills?.length ||
+                          student?.user_skills?.length ||
+                          0}
                       </span>
                     </div>
-                    <div 
+                    <div
                       className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 transition-all"
                       onClick={() => setShowFollowingDialog(true)}
                     >
-                      <Users className="h-3.5 w-3.5 text-indigo-500" data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`} />
-                      <span data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}>
-                        Following: {student?.followingInstitutions?.length || followingCount || 0}
+                      <Users
+                        className="h-3.5 w-3.5 text-indigo-500"
+                        data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}
+                      />
+                      <span
+                        data-tooltip={`Institutions ${isOwnProfile ? "you're" : "they're"} following`}
+                      >
+                        Following:{" "}
+                        {student?.followingInstitutions?.length ||
+                          followingCount ||
+                          0}
                       </span>
-                    </div>                  
+                    </div>
                   </div>
 
                   {/* Circle preview - Friends circle with add button */}
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {isViewMode ? 'Circles' : 'My Circles'}
+                        {isViewMode ? "Circles" : "My Circles"}
                       </h3>
                       {isOwnProfile && !isViewMode && (
                         <button
@@ -740,33 +807,47 @@ export default function ProfileHeader({
                     <div className="relative flex items-center">
                       {/* Check if scrolling is needed */}
                       {(() => {
-                        const totalCircles = (isOwnProfile ? 1 : 0) + displayCircles.length; // Friends circle + custom circles
+                        const totalCircles =
+                          (isOwnProfile ? 1 : 0) + displayCircles.length; // Friends circle + custom circles
                         const needsScrolling = totalCircles > 4; // Adjust threshold as needed
 
                         return (
                           <>
                             {/* Scrollable circles container */}
-                            <div className={needsScrolling ? "flex-1 overflow-hidden" : "flex-1"}>
-                              <div className={`flex ${needsScrolling ? 'overflow-x-auto pb-2 hide-scrollbar' : ''} gap-4 ${needsScrolling ? 'pr-4' : ''}`}>
+                            <div
+                              className={
+                                needsScrolling
+                                  ? "flex-1 overflow-hidden"
+                                  : "flex-1"
+                              }
+                            >
+                              <div
+                                className={`flex ${needsScrolling ? "overflow-x-auto pb-2 hide-scrollbar" : ""} gap-4 ${needsScrolling ? "pr-4" : ""}`}
+                              >
                                 {/* Default Friends Circle - Only show for own profile */}
                                 {isOwnProfile && (
                                   <div className="flex flex-col items-center min-w-[72px] shrink-0">
                                     <div className="relative mb-1">
                                       <button
-                                        onClick={() => handleCircleClick({
-                                          id: 'friends',
-                                          name: 'Friends',
-                                          color: '#ec4899',
-                                          icon: 'users',
-                                          memberships: connections?.map(conn => ({
-                                            user: conn.user
-                                          })) || [],
-                                          _count: {
-                                            memberships: actualConnectionCounts?.total || 0
-                                          },
-                                          creator: student.profile,
-                                          isDefault: true
-                                        })}
+                                        onClick={() =>
+                                          handleCircleClick({
+                                            id: "friends",
+                                            name: "Friends",
+                                            color: "#ec4899",
+                                            icon: "users",
+                                            memberships:
+                                              connections?.map((conn) => ({
+                                                user: conn.user,
+                                              })) || [],
+                                            _count: {
+                                              memberships:
+                                                actualConnectionCounts?.total ||
+                                                0,
+                                            },
+                                            creator: student.profile,
+                                            isDefault: true,
+                                          })
+                                        }
                                         className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 p-[3px] hover:from-pink-500 hover:to-purple-600 transition-all duration-200"
                                       >
                                         <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
@@ -777,81 +858,111 @@ export default function ProfileHeader({
                                       </button>
                                     </div>
                                     <span className="text-xs text-center text-gray-600 dark:text-gray-400 truncate w-full">
-                                      Friends ({(actualConnectionCounts?.total || 0) + 1})
+                                      Friends (
+                                      {(actualConnectionCounts?.total || 0) + 1}
+                                      )
                                     </span>
                                   </div>
                                 )}
 
                                 {/* Dynamic Circles from Database */}
                                 {displayCircles.map((circle) => {
-                                  const isDisabled = isCircleDisabled(circle, student.id);
+                                  const isDisabled = isCircleDisabled(
+                                    circle,
+                                    student.id,
+                                  );
 
                                   return (
-                                    <div 
+                                    <div
                                       key={circle.id}
                                       className="flex flex-col items-center min-w-[72px] shrink-0"
                                     >
                                       <div className="relative mb-1">
                                         <button
-                                          onClick={() => handleCircleClick(circle)}
+                                          onClick={() =>
+                                            handleCircleClick(circle)
+                                          }
                                           disabled={isDisabled}
                                           className={`w-16 h-16 rounded-full p-[3px] transition-all duration-200 relative ${
-                                            isDisabled 
-                                              ? 'cursor-not-allowed opacity-50 grayscale' 
-                                              : 'hover:opacity-80'
+                                            isDisabled
+                                              ? "cursor-not-allowed opacity-50 grayscale"
+                                              : "hover:opacity-80"
                                           }`}
-                                          style={{ 
-                                            background: isDisabled 
-                                              ? 'linear-gradient(135deg, #9CA3AF, #9CA3AFdd)'
-                                              : `linear-gradient(135deg, ${circle.color}, ${circle.color}dd)`
+                                          style={{
+                                            background: isDisabled
+                                              ? "linear-gradient(135deg, #9CA3AF, #9CA3AFdd)"
+                                              : `linear-gradient(135deg, ${circle.color}, ${circle.color}dd)`,
                                           }}
                                         >
                                           <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-[2px]">
                                             <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                                              {circle.icon && (circle.icon.startsWith('data:image') || circle.icon.startsWith('/uploads/')) ? (
+                                              {circle.icon &&
+                                              (circle.icon.startsWith(
+                                                "data:image",
+                                              ) ||
+                                                circle.icon.startsWith(
+                                                  "/uploads/",
+                                                )) ? (
                                                 <img
                                                   src={circle.icon}
                                                   alt={circle.name}
                                                   className={`w-full h-full object-cover rounded-full ${
-                                                    isDisabled ? 'grayscale' : ''
+                                                    isDisabled
+                                                      ? "grayscale"
+                                                      : ""
                                                   }`}
                                                 />
                                               ) : (
-                                                <div 
+                                                <div
                                                   className="w-3 h-3 rounded-full"
-                                                  style={{ backgroundColor: isDisabled ? '#9CA3AF' : circle.color }}
+                                                  style={{
+                                                    backgroundColor: isDisabled
+                                                      ? "#9CA3AF"
+                                                      : circle.color,
+                                                  }}
                                                 />
                                               )}
                                             </div>
                                           </div>
                                           {isDisabled && (
                                             <div className="absolute inset-0 rounded-full bg-gray-500 bg-opacity-30 flex items-center justify-center">
-                                              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636" />
+                                              <svg
+                                                className="w-4 h-4 text-gray-600"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636"
+                                                />
                                               </svg>
                                             </div>
                                           )}
                                         </button>
                                       </div>
-                                      <span className={`text-xs text-center truncate w-full ${
-                                        isDisabled 
-                                          ? 'text-gray-400 dark:text-gray-500' 
-                                          : 'text-gray-600 dark:text-gray-400'
-                                      }`}>
-                                        {circle.name} ({(circle._count?.memberships || 0) + 1})
+                                      <span
+                                        className={`text-xs text-center truncate w-full ${
+                                          isDisabled
+                                            ? "text-gray-400 dark:text-gray-500"
+                                            : "text-gray-600 dark:text-gray-400"
+                                        }`}
+                                      >
+                                        {circle.name} (
+                                        {(circle._count?.memberships || 0) + 1})
                                         {isDisabled && (
-                                          <div className="text-[10px] text-gray-400">Disabled</div>
+                                          <div className="text-[10px] text-gray-400">
+                                            Disabled
+                                          </div>
                                         )}
                                       </span>
                                     </div>
                                   );
                                 })}
-
-
                               </div>
                             </div>
-
-
                           </>
                         );
                       })()}
@@ -859,34 +970,47 @@ export default function ProfileHeader({
 
                     {/* Create Circle Modal */}
                     {showCreateCircle && (
-                      <Dialog open={showCreateCircle} onOpenChange={setShowCreateCircle}>
+                      <Dialog
+                        open={showCreateCircle}
+                        onOpenChange={setShowCreateCircle}
+                      >
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
                           <DialogHeader>
                             <DialogTitle>Create New Circle Badge</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <label className="text-sm font-medium">Circle Name</label>
+                              <label className="text-sm font-medium">
+                                Circle Name
+                              </label>
                               <Input
                                 value={newCircleName}
-                                onChange={(e) => setNewCircleName(e.target.value)}
+                                onChange={(e) =>
+                                  setNewCircleName(e.target.value)
+                                }
                                 placeholder="Enter circle name"
                                 maxLength={50}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium">Description (Optional)</label>
+                              <label className="text-sm font-medium">
+                                Description (Optional)
+                              </label>
                               <Input
                                 value={newCircleDescription}
-                                onChange={(e) => setNewCircleDescription(e.target.value)}
+                                onChange={(e) =>
+                                  setNewCircleDescription(e.target.value)
+                                }
                                 placeholder="Enter circle description"
                                 maxLength={200}
                               />
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium">Circle Icon</label>
+                              <label className="text-sm font-medium">
+                                Circle Icon
+                              </label>
                               <div className="space-y-3">
                                 <div className="flex items-center gap-3">
                                   <Input
@@ -906,8 +1030,8 @@ export default function ProfileHeader({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => {
-                                          setNewCircleImageUrl('')
-                                          setNewCircleImageFile(null)
+                                          setNewCircleImageUrl("");
+                                          setNewCircleImageFile(null);
                                         }}
                                       >
                                         Remove
@@ -916,32 +1040,47 @@ export default function ProfileHeader({
                                   )}
                                 </div>
                                 <p className="text-xs text-gray-500">
-                                  Upload a custom icon or leave empty to use default icon
+                                  Upload a custom icon or leave empty to use
+                                  default icon
                                 </p>
                               </div>
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium">Color</label>
+                              <label className="text-sm font-medium">
+                                Color
+                              </label>
                               <div className="flex gap-2 mt-2">
                                 {colorOptions.map((colorOption) => (
                                   <button
                                     key={colorOption}
                                     className={`w-8 h-8 rounded-full border-2 ${
-                                      newCircleColor === colorOption ? 'border-gray-800' : 'border-gray-300'
+                                      newCircleColor === colorOption
+                                        ? "border-gray-800"
+                                        : "border-gray-300"
                                     }`}
                                     style={{ backgroundColor: colorOption }}
-                                    onClick={() => setNewCircleColor(colorOption)}
+                                    onClick={() =>
+                                      setNewCircleColor(colorOption)
+                                    }
                                   />
                                 ))}
                               </div>
                             </div>
 
                             <div className="flex gap-2 pt-2">
-                              <Button variant="outline" onClick={() => setShowCreateCircle(false)} className="flex-1">
+                              <Button
+                                variant="outline"
+                                onClick={() => setShowCreateCircle(false)}
+                                className="flex-1"
+                              >
                                 Cancel
                               </Button>
-                              <Button onClick={handleCreateCircle} disabled={!newCircleName.trim()} className="flex-1">
+                              <Button
+                                onClick={handleCreateCircle}
+                                disabled={!newCircleName.trim()}
+                                className="flex-1"
+                              >
                                 Create Circle
                               </Button>
                             </div>
@@ -955,92 +1094,121 @@ export default function ProfileHeader({
                 {/* Right column - Profile highlights */}
                 <div className="md:col-span-2 md:border-l md:border-gray-200 md:dark:border-gray-700 md:pl-6">
                   {/* Social Links */}
-                  {socialLinksData && Array.isArray(socialLinksData) && socialLinksData.length > 0 && (
-                    <div className="mb-4">
-                      <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Social Links</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {socialLinksData.map((link: any, index: number) => {
-                          const getSocialIcon = (platform: string) => {
-                            switch (platform.toLowerCase()) {
-                              case 'instagram':
-                                return <Instagram className="h-4 w-4 text-pink-500" />
-                              case 'twitter':
-                              case 'x':
-                                return <Twitter className="h-4 w-4 text-blue-500" />
-                              case 'linkedin':
-                                return <Linkedin className="h-4 w-4 text-blue-600" />
-                              case 'github':
-                                return <Github className="h-4 w-4 text-gray-800 dark:text-gray-200" />
-                              case 'youtube':
-                                return <Youtube className="h-4 w-4 text-red-500" />
-                              case 'facebook':
-                                return <Facebook className="h-4 w-4 text-blue-600" />
-                              case 'portfolio':
-                                return <FolderKanban className="h-4 w-4 text-purple-500" />
-                              case 'website':
-                                return <Globe className="h-4 w-4 text-green-500" />
-                              case 'behance':
-                                return <ExternalLink className="h-4 w-4 text-blue-500" />
-                              case 'dribbble':
-                                return <Star className="h-4 w-4 text-pink-500" />
-                              default:
-                                return <Globe className="h-4 w-4 text-gray-500" />
-                            }
-                          }
+                  {socialLinksData &&
+                    Array.isArray(socialLinksData) &&
+                    socialLinksData.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                          Social Links
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {socialLinksData.map((link: any, index: number) => {
+                            const getSocialIcon = (platform: string) => {
+                              switch (platform.toLowerCase()) {
+                                case "instagram":
+                                  return (
+                                    <Instagram className="h-4 w-4 text-pink-500" />
+                                  );
+                                case "twitter":
+                                case "x":
+                                  return (
+                                    <Twitter className="h-4 w-4 text-blue-500" />
+                                  );
+                                case "linkedin":
+                                  return (
+                                    <Linkedin className="h-4 w-4 text-blue-600" />
+                                  );
+                                case "github":
+                                  return (
+                                    <Github className="h-4 w-4 text-gray-800 dark:text-gray-200" />
+                                  );
+                                case "youtube":
+                                  return (
+                                    <Youtube className="h-4 w-4 text-red-500" />
+                                  );
+                                case "facebook":
+                                  return (
+                                    <Facebook className="h-4 w-4 text-blue-600" />
+                                  );
+                                case "portfolio":
+                                  return (
+                                    <FolderKanban className="h-4 w-4 text-purple-500" />
+                                  );
+                                case "website":
+                                  return (
+                                    <Globe className="h-4 w-4 text-green-500" />
+                                  );
+                                case "behance":
+                                  return (
+                                    <ExternalLink className="h-4 w-4 text-blue-500" />
+                                  );
+                                case "dribbble":
+                                  return (
+                                    <Star className="h-4 w-4 text-pink-500" />
+                                  );
+                                default:
+                                  return (
+                                    <Globe className="h-4 w-4 text-gray-500" />
+                                  );
+                              }
+                            };
 
-                          const getPlatformLabel = (platform: string) => {
-                            switch (platform.toLowerCase()) {
-                              case 'x':
-                                return 'X (Twitter)'
-                              case 'linkedin':
-                                return 'LinkedIn'
-                              case 'github':
-                                return 'GitHub'
-                              case 'youtube':
-                                return 'YouTube'
-                              case 'behance':
-                                return 'Behance'
-                              case 'dribbble':
-                                return 'Dribbble'
-                              case 'portfolio':
-                                return 'Portfolio'
-                              case 'website':
-                                return 'Website'
-                              default:
-                                return platform.charAt(0).toUpperCase() + platform.slice(1)
-                            }
-                          }
+                            const getPlatformLabel = (platform: string) => {
+                              switch (platform.toLowerCase()) {
+                                case "x":
+                                  return "X (Twitter)";
+                                case "linkedin":
+                                  return "LinkedIn";
+                                case "github":
+                                  return "GitHub";
+                                case "youtube":
+                                  return "YouTube";
+                                case "behance":
+                                  return "Behance";
+                                case "dribbble":
+                                  return "Dribbble";
+                                case "portfolio":
+                                  return "Portfolio";
+                                case "website":
+                                  return "Website";
+                                default:
+                                  return (
+                                    platform.charAt(0).toUpperCase() +
+                                    platform.slice(1)
+                                  );
+                              }
+                            };
 
-                          console.log('🔗 Rendering social link:', {
-                            platform: link.platform,
-                            url: link.url,
-                            label: getPlatformLabel(link.platform)
-                          })
+                            console.log("🔗 Rendering social link:", {
+                              platform: link.platform,
+                              url: link.url,
+                              label: getPlatformLabel(link.platform),
+                            });
 
-                          return (
-                            <a
-                              key={`social-${link.id || index}`}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
-                              title={`Visit ${getPlatformLabel(link.platform)}`}
-                            >
-                              <span className="group-hover:scale-110 transition-transform">
-                                {getSocialIcon(link.platform)}
-                              </span>
-                            </a>
-                          )
-                        })}
+                            return (
+                              <a
+                                key={`social-${link.id || index}`}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 group"
+                                title={`Visit ${getPlatformLabel(link.platform)}`}
+                              >
+                                <span className="group-hover:scale-110 transition-transform">
+                                  {getSocialIcon(link.platform)}
+                                </span>
+                              </a>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Circle Invitations Section - Only show for own profile */}
                   {isOwnProfile && (
                     <div className="mb-6">
-                      <CircleInvitationsSection 
-                        onInvitationHandled={handleCircleUpdated} 
+                      <CircleInvitationsSection
+                        onInvitationHandled={handleCircleUpdated}
                         invitations={circleInvitations}
                       />
                     </div>
@@ -1048,26 +1216,38 @@ export default function ProfileHeader({
 
                   {/* Top Skills section - Dynamic from Database with sorting by proficiency */}
                   <div className="mt-4">
-                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Top Skills</h3>
+                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Top Skills
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {(() => {
                         // Try multiple data structure paths for skills
-                        const skills = student?.profile?.skills || 
-                                     student?.profile?.userSkills || 
-                                     student?.userSkills || 
-                                     student?.user_skills || 
-                                     []
+                        const skills =
+                          student?.profile?.skills ||
+                          student?.profile?.userSkills ||
+                          student?.userSkills ||
+                          student?.user_skills ||
+                          [];
 
                         if (skills.length > 0) {
                           return skills
-                            .sort((a: any, b: any) => (b.proficiencyLevel || b.proficiency_level || 0) - (a.proficiencyLevel || a.proficiency_level || 0))
+                            .sort(
+                              (a: any, b: any) =>
+                                (b.proficiencyLevel ||
+                                  b.proficiency_level ||
+                                  0) -
+                                (a.proficiencyLevel ||
+                                  a.proficiency_level ||
+                                  0),
+                            )
                             .slice(0, 5)
                             .map((skillItem: any, i: number) => {
                               // Handle different skill data structures
-                              const skillName = skillItem.name || 
-                                              skillItem.skills?.name || 
-                                              skillItem.skill?.name || 
-                                              'Unknown Skill'
+                              const skillName =
+                                skillItem.name ||
+                                skillItem.skills?.name ||
+                                skillItem.skill?.name ||
+                                "Unknown Skill";
 
                               return (
                                 <div
@@ -1084,9 +1264,12 @@ export default function ProfileHeader({
                                 >
                                   {skillName}
                                 </div>
-                              )
-                            })
-                        } else if (student?.first_name === "Prashant" || displayName === "Student") {
+                              );
+                            });
+                        } else if (
+                          student?.first_name === "Prashant" ||
+                          displayName === "Student"
+                        ) {
                           // Show placeholder when in loading state
                           return (
                             <div className="flex gap-2">
@@ -1094,9 +1277,13 @@ export default function ProfileHeader({
                                 Loading skills...
                               </div>
                             </div>
-                          )
+                          );
                         } else {
-                          return <span className="text-xs text-gray-500 dark:text-gray-400">No skills added yet</span>
+                          return (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              No skills added yet
+                            </span>
+                          );
                         }
                       })()}
                     </div>
@@ -1105,10 +1292,16 @@ export default function ProfileHeader({
                   {/* Recent Achievements section */}
                   <div className="mt-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">Recent Achievements</h3>
+                      <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Recent Achievements
+                      </h3>
                       {isOwnProfile && !isViewMode && (
                         <button
-                          onClick={() => router.push('/student/profile/edit?section=achievements')}
+                          onClick={() =>
+                            router.push(
+                              "/student/profile/edit?section=achievements",
+                            )
+                          }
                           className="text-xs text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"
                         >
                           + Add
@@ -1125,85 +1318,98 @@ export default function ProfileHeader({
                       </div>
                     ) : recentAchievements && recentAchievements.length > 0 ? (
                       <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-                        {recentAchievements.slice(0, 5).map((achievement, index) => (
-                          <div 
-                            key={achievement.id} 
-                            className="min-w-[220px] shrink-0 cursor-pointer"
-                            title={`${achievement.name} - Awarded ${format(new Date(achievement.dateOfAchievement), 'MMM dd, yyyy')}`}
-                          >
-                            <div 
-                              className={`p-3 rounded-lg border h-16 ${
-                                index % 4 === 0
-                                  ? "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800"
-                                  : index % 4 === 1
-                                    ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800"
-                                    : index % 4 === 2
-                                      ? "bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-purple-200 dark:border-purple-800"
-                                      : "bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800"
-                              }`}
+                        {recentAchievements
+                          .slice(0, 5)
+                          .map((achievement, index) => (
+                            <div
+                              key={achievement.id}
+                              className="min-w-[220px] shrink-0 cursor-pointer"
+                              title={`${achievement.name} - Awarded ${format(new Date(achievement.dateOfAchievement), "MMM dd, yyyy")}`}
                             >
-                              <div className="flex items-center gap-3 h-full">
-                                <div className="flex-shrink-0">
-                                  {achievement.achievementImageIcon ? (
-                                    <img
-                                      src={achievement.achievementImageIcon}
-                                      alt={achievement.name}
-                                      className="h-8 w-8 rounded-full object-cover"
-                                    />
-                                  ) : achievement.achievementTypeId ? (
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-                                         style={{
-                                           background: `linear-gradient(135deg, ${getDefaultIconData(achievement.achievementTypeId).color}20, ${getDefaultIconData(achievement.achievementTypeId).color}40)`,
-                                           border: `1px solid ${getDefaultIconData(achievement.achievementTypeId).color}30`,
-                                           boxShadow: `0 1px 4px ${getDefaultIconData(achievement.achievementTypeId).color}20`
-                                         }}>
-                                      {getDefaultIcon(achievement.achievementTypeId)}
-                                    </div>
-                                  ) : (
-                                    <div 
-                                      className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                                        index % 4 === 0
-                                          ? "bg-yellow-100 dark:bg-yellow-900/40"
-                                          : index % 4 === 1
-                                            ? "bg-blue-100 dark:bg-blue-900/40"
-                                            : index % 4 === 2
-                                              ? "bg-purple-100 dark:bg-purple-900/40"
-                                              : "bg-green-100 dark:bg-green-900/40"
-                                      }`}
-                                    >
-                                      <Award className={`h-4 w-4 ${
-                                        index % 4 === 0
-                                          ? "text-yellow-600 dark:text-yellow-400"
-                                          : index % 4 === 1
-                                            ? "text-blue-600 dark:text-blue-400"
-                                            : index % 4 === 2
-                                              ? "text-purple-600 dark:text-purple-400"
-                                              : "text-green-600 dark:text-green-400"
-                                      }`}
+                              <div
+                                className={`p-3 rounded-lg border h-16 ${
+                                  index % 4 === 0
+                                    ? "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800"
+                                    : index % 4 === 1
+                                      ? "bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800"
+                                      : index % 4 === 2
+                                        ? "bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-purple-200 dark:border-purple-800"
+                                        : "bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border-green-200 dark:border-green-800"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 h-full">
+                                  <div className="flex-shrink-0">
+                                    {achievement.achievementImageIcon ? (
+                                      <img
+                                        src={achievement.achievementImageIcon}
+                                        alt={achievement.name}
+                                        className="h-8 w-8 rounded-full object-cover"
                                       />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between">
-                                    <h5 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                                      {achievement.name}
-                                    </h5>
-                                    <div className="flex items-center gap-1 ml-2">
-                                      <Calendar className="h-3 w-3 text-gray-400" />
-                                      <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                                        {format(new Date(achievement.dateOfAchievement), 'MMM dd')}
-                                      </span>
-                                    </div>
+                                    ) : achievement.achievementTypeId ? (
+                                      <div
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
+                                        style={{
+                                          background: `linear-gradient(135deg, ${getDefaultIconData(achievement.achievementTypeId).color}20, ${getDefaultIconData(achievement.achievementTypeId).color}40)`,
+                                          border: `1px solid ${getDefaultIconData(achievement.achievementTypeId).color}30`,
+                                          boxShadow: `0 1px 4px ${getDefaultIconData(achievement.achievementTypeId).color}20`,
+                                        }}
+                                      >
+                                        {getDefaultIcon(
+                                          achievement.achievementTypeId,
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div
+                                        className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                                          index % 4 === 0
+                                            ? "bg-yellow-100 dark:bg-yellow-900/40"
+                                            : index % 4 === 1
+                                              ? "bg-blue-100 dark:bg-blue-900/40"
+                                              : index % 4 === 2
+                                                ? "bg-purple-100 dark:bg-purple-900/40"
+                                                : "bg-green-100 dark:bg-green-900/40"
+                                        }`}
+                                      >
+                                        <Award
+                                          className={`h-4 w-4 ${
+                                            index % 4 === 0
+                                              ? "text-yellow-600 dark:text-yellow-400"
+                                              : index % 4 === 1
+                                                ? "text-blue-600 dark:text-blue-400"
+                                                : index % 4 === 2
+                                                  ? "text-purple-600 dark:text-purple-400"
+                                                  : "text-green-600 dark:text-green-400"
+                                          }`}
+                                        />
+                                      </div>
+                                    )}
                                   </div>
-                                  <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-1 truncate">
-                                    {achievement.description || "Achievement earned"}
-                                  </p>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <h5 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                                        {achievement.name}
+                                      </h5>
+                                      <div className="flex items-center gap-1 ml-2">
+                                        <Calendar className="h-3 w-3 text-gray-400" />
+                                        <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                          {format(
+                                            new Date(
+                                              achievement.dateOfAchievement,
+                                            ),
+                                            "MMM dd",
+                                          )}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-1 truncate">
+                                      {achievement.description ||
+                                        "Achievement earned"}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     ) : displayName === "Student" ? (
                       // Show placeholder when in static loading state
@@ -1212,8 +1418,12 @@ export default function ProfileHeader({
                           <Award className="h-4 w-4 text-gray-400" />
                         </div>
                         <div>
-                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading achievements...</h4>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">Fetching accomplishments</p>
+                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                            Loading achievements...
+                          </h4>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            Fetching accomplishments
+                          </p>
                         </div>
                       </div>
                     ) : (
@@ -1222,15 +1432,21 @@ export default function ProfileHeader({
                           <Award className="h-4 w-4 text-gray-400" />
                         </div>
                         <div>
-                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">No achievements yet</h4>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">Start adding your accomplishments</p>
+                          <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                            No achievements yet
+                          </h4>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            Start adding your accomplishments
+                          </p>
                         </div>
                       </div>
                     )}
                     {recentAchievements && recentAchievements.length > 5 && (
                       <div className="mt-2 text-center">
                         <button
-                          onClick={() => router.push('/student/profile?tab=achievements')}
+                          onClick={() =>
+                            router.push("/student/profile?tab=achievements")
+                          }
                           className="text-[10px] text-pathpiper-teal hover:text-pathpiper-teal/80 font-medium transition-colors"
                         >
                           View All ({recentAchievements.length})
@@ -1239,22 +1455,22 @@ export default function ProfileHeader({
                     )}
                   </div>
 
-
-
                   {/* Recent Badges section */}
                   <div className="mt-3">
-                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Recent Badges</h3>
+                    <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Recent Badges
+                    </h3>
                     <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg flex items-center justify-center h-20">
                       <div className="text-center">
                         <div className="bg-gray-100 dark:bg-gray-700 h-8 w-8 rounded-full flex items-center justify-center mx-auto mb-1">
                           <Award className="h-4 w-4 text-gray-400" />
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Coming Soon</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          Coming Soon
+                        </span>
                       </div>
                     </div>
                   </div>
-
-
                 </div>
               </div>
             </div>
@@ -1281,29 +1497,50 @@ export default function ProfileHeader({
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             {followingInstitutions && followingInstitutions.length > 0 ? (
               followingInstitutions.map((institution) => (
-                <div key={institution.institutionId || institution.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div
+                  key={institution.institutionId || institution.id}
+                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold overflow-hidden">
                       {institution.institutionProfile?.logoUrl ? (
-                        <img 
-                          src={institution.institutionProfile.logoUrl} 
+                        <img
+                          src={institution.institutionProfile.logoUrl}
                           alt={institution.institutionProfile.institutionName}
                           className="w-full h-full object-cover rounded-full"
                         />
                       ) : (
-                        institution.institutionProfile?.institutionName?.charAt(0) || 'I'
+                        institution.institutionProfile?.institutionName?.charAt(
+                          0,
+                        ) || "I"
                       )}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-sm">{institution.institutionProfile?.institutionName || 'Institution'}</h4>
-                      <p className="text-xs text-gray-500">{institution.institutionProfile?.institutionType || 'Educational Institution'}</p>
+                      <h4 className="font-semibold text-sm">
+                        {institution.institutionProfile?.institutionName ||
+                          "Institution"}
+                      </h4>
+                      <p className="text-xs text-gray-500">
+                        {institution.institutionProfile?.institutionType ||
+                          "Educational Institution"}
+                      </p>
                       {institution.institutionProfile?.location && (
-                        <p className="text-xs text-gray-400">{institution.institutionProfile.location}</p>
+                        <p className="text-xs text-gray-400">
+                          {institution.institutionProfile.location}
+                        </p>
                       )}
                       {institution.institutionProfile?.verified && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 mt-1">
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Verified
                         </span>
@@ -1314,7 +1551,11 @@ export default function ProfileHeader({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleUnfollowInstitution(institution.institutionId || institution.id)}
+                      onClick={() =>
+                        handleUnfollowInstitution(
+                          institution.institutionId || institution.id,
+                        )
+                      }
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       Unfollow
@@ -1332,48 +1573,58 @@ export default function ProfileHeader({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
 
 // Circle Invitations Section Component
 interface CircleInvitationsSectionProps {
-  onInvitationHandled: () => void
+  onInvitationHandled: () => void;
 }
 
-function CircleInvitationsSection({ onInvitationHandled, invitations: initialInvitations = [] }: CircleInvitationsSectionProps & { invitations?: any[] }) {
-  const [invitations, setInvitations] = useState<any[]>(initialInvitations.filter((inv: any) => inv.status === 'pending'))
-  const [loading, setLoading] = useState(false)
+function CircleInvitationsSection({
+  onInvitationHandled,
+  invitations: initialInvitations = [],
+}: CircleInvitationsSectionProps & { invitations?: any[] }) {
+  const [invitations, setInvitations] = useState<any[]>(
+    initialInvitations.filter((inv: any) => inv.status === "pending"),
+  );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setInvitations(initialInvitations.filter((inv: any) => inv.status === 'pending'))
-  }, [initialInvitations])
+    setInvitations(
+      initialInvitations.filter((inv: any) => inv.status === "pending"),
+    );
+  }, [initialInvitations]);
 
-  const handleInvitation = async (invitationId: string, action: 'accept' | 'decline') => {
-    setLoading(true)
+  const handleInvitation = async (
+    invitationId: string,
+    action: "accept" | "decline",
+  ) => {
+    setLoading(true);
     try {
       const response = await fetch(`/api/circles/invitations/${invitationId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
-        body: JSON.stringify({ action })
-      })
+        credentials: "include",
+        body: JSON.stringify({ action }),
+      });
 
       if (response.ok) {
         // Remove the invitation from the list
-        setInvitations(prev => prev.filter(inv => inv.id !== invitationId))
-        onInvitationHandled()
+        setInvitations((prev) => prev.filter((inv) => inv.id !== invitationId));
+        onInvitationHandled();
       }
     } catch (error) {
-      console.error('Error handling invitation:', error)
+      console.error("Error handling invitation:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (invitations.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -1381,22 +1632,28 @@ function CircleInvitationsSection({ onInvitationHandled, invitations: initialInv
       <h3 className="text-lg font-semibold mb-4">Circle Requests</h3>
       <div className="space-y-3 max-w-xs">
         {invitations.map((invitation) => (
-          <div key={invitation.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border">
+          <div
+            key={invitation.id}
+            className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border"
+          >
             <div className="flex items-center gap-2 mb-2">
-              <div 
+              <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs"
                 style={{ backgroundColor: invitation.circle.color }}
               >
-                {invitation.circle.icon === 'users' ? (
+                {invitation.circle.icon === "users" ? (
                   <Users className="h-4 w-4" />
                 ) : (
                   invitation.circle.icon
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{invitation.circle.name}</p>
+                <p className="text-sm font-medium truncate">
+                  {invitation.circle.name}
+                </p>
                 <p className="text-xs text-gray-500">
-                  from {invitation.inviter.firstName} {invitation.inviter.lastName}
+                  from {invitation.inviter.firstName}{" "}
+                  {invitation.inviter.lastName}
                 </p>
               </div>
             </div>
@@ -1410,7 +1667,7 @@ function CircleInvitationsSection({ onInvitationHandled, invitations: initialInv
             <div className="flex gap-2">
               <Button
                 size="sm"
-                onClick={() => handleInvitation(invitation.id, 'accept')}
+                onClick={() => handleInvitation(invitation.id, "accept")}
                 disabled={loading}
                 className="flex-1 h-7 text-xs"
               >
@@ -1420,7 +1677,7 @@ function CircleInvitationsSection({ onInvitationHandled, invitations: initialInv
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => handleInvitation(invitation.id, 'decline')}
+                onClick={() => handleInvitation(invitation.id, "decline")}
                 disabled={loading}
                 className="flex-1 h-7 text-xs"
               >
@@ -1432,5 +1689,5 @@ function CircleInvitationsSection({ onInvitationHandled, invitations: initialInv
         ))}
       </div>
     </div>
-  )
+  );
 }
